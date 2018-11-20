@@ -35,7 +35,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Contact
-...
+Leipzig University 
+Martin Grimmer (grimmer@informatik.uni-leipzig.de) 
+Martin Max Röhling (roehling@wifa.uni-leipzig.de)
 
 ## Acknowledgements
-This work was partly funded by the German Federal Ministry of Education and Research within the project Explicit Privacy-Preserving Host Intrusion Detection System (EXPLOIDS) (BMBF 16KIS0522K) and Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig (BMBF 01IS14014B).
+This work was partly funded by the German Federal Ministry of Education and Research within the project [Explicit Privacy-Preserving Host Intrusion Detection System](http://www.exploids.de) (EXPLOIDS) (BMBF 16KIS0522K) and [Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig](http://www.scads.de) (BMBF 01IS14014B).
