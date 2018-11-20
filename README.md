@@ -13,7 +13,17 @@ The package contains the LID-LD library and a example scenario.
 ...
 
 ## Installation
-...
+### Requirements
+argparse
+promise
+docker
+bumpversion
+
+tox
+pytest
+pyyaml
+mock
+pexpect
 
 ## Usage
 ...
