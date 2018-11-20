@@ -32,7 +32,7 @@ pexpect
 
 ## License
 Leipzig Intrusion Detection Dataset (LID-DS) 
-Copyright (C) 2018 Martin Grimmer und Martin Max Röhling
+Copyright (C) 2018 Martin Grimmer, Martin Max Röhling, Dennis Kreußel and Simon Ganz
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
