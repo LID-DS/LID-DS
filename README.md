@@ -14,6 +14,7 @@ The package contains the LID-LD library and a example scenario.
 
 ## Installation
 ### Requirements
+```javascript
 argparse
 promise
 docker
@@ -24,6 +25,7 @@ pytest
 pyyaml
 mock
 pexpect
+```
 
 ## Usage
 ...
