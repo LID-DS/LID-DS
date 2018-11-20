@@ -9,6 +9,7 @@ The LID-DS package presents a lightweight framework for simulating attack/non-at
 LID-DS manages docker containers on which the scenarios are modeled. The result of such a simulation should be a pcap file expressing the system calls executed by the docker container during the scenario.
 
 ## Structure
+The package contains the LID-LD library and a example scenario.
 ...
 
 ## Installation
@@ -35,9 +36,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Contact
-Leipzig University 
-Martin Grimmer (grimmer@informatik.uni-leipzig.de) 
-Martin Max Röhling (roehling@wifa.uni-leipzig.de)
+Leipzig University, Martin Grimmer (grimmer@informatik.uni-leipzig.de) and Martin Max Röhling (roehling@wifa.uni-leipzig.de).
 
 ## Acknowledgements
 This work was partly funded by the German Federal Ministry of Education and Research within the project [Explicit Privacy-Preserving Host Intrusion Detection System](http://www.exploids.de) (EXPLOIDS) (BMBF 16KIS0522K) and [Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig](http://www.scads.de) (BMBF 01IS14014B).
