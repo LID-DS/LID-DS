@@ -26,7 +26,7 @@ docker
 
 ## Contribution
 
-For guidance on setting up a development environment and how to make a contribution to LID-DS, see the [contributing guidelines](.github/CONTRIBUTION.md).
+For guidance on setting up a development environment and how to make a contribution to LID-DS, see the [contributing guidelines](.github/CONTRIBUTING.md).
 
 ## License
 Leipzig Intrusion Detection Dataset (LID-DS) 
