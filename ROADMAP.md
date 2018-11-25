@@ -20,4 +20,4 @@
     - real-world-like network configurations for victim and attacker containers (packet-loss; latency)
         * more research on this is neccessary
         * but can easily be done on linux via tc
-    
+    - we probably should implement our own recording system since sysdig only works on linux the way we need it to work
