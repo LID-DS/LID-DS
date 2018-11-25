@@ -8,27 +8,20 @@ The LID-DS package presents a lightweight framework for simulating attack/non-at
 
 LID-DS manages docker containers on which the scenarios are modeled. The result of such a simulation should be a pcap file expressing the system calls executed by the docker container during the scenario.
 
-## Structure
-The package contains the LID-LD library and a example scenario.
-...
-
 ## Installation
+
+To install the library: 
+
+```bash
+pip3 install git+https://github.com/LID-DS/LID-DS
+```
+
 ### Requirements
-```javascript
+```
 argparse
 promise
 docker
-bumpversion
-
-tox
-pytest
-pyyaml
-mock
-pexpect
 ```
-
-## Usage
-...
 
 ## License
 Leipzig Intrusion Detection Dataset (LID-DS) 
