@@ -16,6 +16,11 @@ To install the library:
 pip3 install git+https://github.com/LID-DS/LID-DS
 ```
 
+
+## Contribution
+
+For guidance on setting up a development environment and how to make a contribution to LID-DS, see the [contributing guidelines](.github/CONTRIBUTION.md).
+
 ### Requirements
 ```
 argparse
