@@ -10,3 +10,15 @@
     - a more stable approach to recording
     - fetch live stream data from recording containers
     - generator for normal behavior data
+    - provide repositories of security related information like:
+        * bad passwords
+        * good passwords
+        * wordlists
+        * url crawl lists
+        * user data generator
+        * content data generator
+    - real-world-like network configurations for victim and attacker containers (packet-loss; latency)
+        * more research on this is neccessary
+        * but can easily be done on linux via tc
+    - 
+    
