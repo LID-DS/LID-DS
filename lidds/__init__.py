@@ -19,3 +19,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .argparser import LIDArgparser, readable_dir, writeable_dir
 from .simulator import Simulator
 from .container_manager import startContainer
+from .scheduler import scheduler
