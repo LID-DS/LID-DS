@@ -163,12 +163,12 @@ class Simulator:
       lambda res:
         self.__executeTerminateHook().then(
           lambda res:
-            sys.exit()
-            quit()
+            #sys.exit()
+            #quit()
             os._exit(os.EX_OK)
         ).catch(
           lambda reas:
-            sys.exit()
+            #sys.exit()
             os._exit(os.EX_OSERR)
         )
     ).catch(
