@@ -22,3 +22,5 @@
         * but can easily be done on linux via tc
     - we probably should implement our own recording system since sysdig only works on linux the way we need it to work
     - move away from promises and use async/await instead
+    - Move MES (Master Execution Script) to Github
+
