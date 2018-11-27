@@ -6,6 +6,7 @@ The recorder module provides the recorder class that describes a way to record s
 # Global imports
 import pexpect
 import signal
+from .argparser import LIDArgparser
 
 class Recorder:
   '''
@@ -18,7 +19,9 @@ class Recorder:
   def start_recording(self):
     print('recording:' + self.container.name)
     print('executing: sysdig -w {outputPath} container.name={containername}'.format(containername=self.container.name, outputPath=self.outputHandler.getScapPath()))
-    self.child = pexpect.spawn('sysdig -w {outputPath} container.name={containername}'.format(containername=self.container.name, outputPath=self.outputHandler.getScapPath()))
+    args = LIDArgparser().parse_args() 
+    io_buffer_length = args.io_buffer_length
+    self.child = pexpect.spawn('sysdig -w {outputPath} -s {ioBufferLength} container.name={containername}'.format(containername=self.container.name, outputPath=self.outputHandler.getScapPath(), ioBufferLength=io_buffer_length))
 
 
   def stop_recording(self):

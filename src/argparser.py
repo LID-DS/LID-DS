@@ -73,6 +73,8 @@ class LIDArgparser():
             self.add_argument('-rt', '--recording-time', dest='recording_time', action='store', type=int, required=True, help='The total time (in ms) of recording the simulation.')
             self.add_argument('-wt', '--warmup-time', dest='warmup_time', action='store', type=int, required=True, help='The total time (in ms) of waiting before any recording takes place.')
 
+            self.add_argument('-ior', '--io-buffer', dest='io_buffer_length', action='store', type=int, default=80, required=False, help='The maximum byte count that gets recorded on IO-Buffers!')
+
             self.add_argument('--exploit', dest='execute_exploit', action='store_true', default=True, help='Execute the exploit during simulation.')
             self.add_argument('-t', '--wait-time', dest='wait_before_exploit', action='store', type=int, required='--exploit' in sys.argv, help='The total time (in ms) of waiting before the exploit is executed. (Only relevant when executeExploit flag is set!)')
 
