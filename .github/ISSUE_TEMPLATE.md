@@ -2,7 +2,6 @@
 
 * [ ] Are you running the latest version?
 * [ ] Did you check the debugging guide?
-* [ ] Did you check the FAQs on the Wiki?
 * [ ] Are you reporting to the correct repository?
 * [ ] Did you perform a cursory search?
 
