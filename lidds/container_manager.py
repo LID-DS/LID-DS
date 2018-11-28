@@ -14,8 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
-"""
+
+
 The container_manager module provides functions to starting and stopping victim containers.
 """
 # Global imports
@@ -24,17 +24,20 @@ import docker
 # Relative imports
 from promise import Promise
 
+
 def startContainer(imagename, portMapping):
   return Promise(
     lambda resolve, reject:
       __startContainer(resolve, reject, imagename, portMapping)
   )
 
+
 def stopContainer(container):
   return Promise(
     lambda resolve, reject:
       __stopContainer(resolve, reject, container)
   )
+
 
 def __startContainer(resolve, reject, imagename, portMapping):
   try:

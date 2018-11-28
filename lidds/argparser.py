@@ -14,8 +14,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""
-"""
+
+
 The argparse module provides a preconfigured argument parser named LIDArgparser.
 Onto this argparser object the user can add more arguments to consider before parsing system arguments with it.
 Also it provides utility functions for the correct usage of readable and writeable directories in custom arguments.
@@ -40,6 +40,7 @@ class readable_dir(argparse.Action):
         else:
             raise argparse.ArgumentTypeError("readable_dir:{0} is not a readable dir".format(prospective_dir))
 
+
 class writeable_dir(argparse.Action):
     """
     Checks if the path of a given directory is writeable and stores the Path object
@@ -53,10 +54,12 @@ class writeable_dir(argparse.Action):
         else:
             raise argparse.ArgumentTypeError("writeable_dir:{0} is not a writeable dir".format(prospective_dir))
 
+
 """
 Default output directory is system-tmp directory
 """
 defaultOutputDir = tempfile.gettempdir()
+
 
 class LIDArgparser():
     """
@@ -109,6 +112,7 @@ class LIDArgparser():
         """
         if not LIDArgparser.instance:
             LIDArgparser.instance = LIDArgparser.__LIDArgparser()
+
     def __getattr__(self, name):
         """
         SINGLETON-PATTERN
