@@ -20,9 +20,9 @@ The Scheduler provides functions that provide an option to let specific function
 appropriate to an probabilistic time model.
 """
 import numpy as np
-from .scheduler_constants import *
 import threading
 from threading import Timer
+from .scheduler_constants import MIN_K, MAX_K, MIN_ALPHA, MAX_ALPHA, MIN_THETA, MAX_THETA
 
 __all__ = ['scheduler']
 
@@ -33,8 +33,8 @@ def uniform_K():
     >>Empirical Model of WWW Document Arrivals at Access Link<<
     """
     return np.random.uniform(
-        low=scheduler_constants.MIN_K,
-        high=scheduler_constants.MAX_K
+        low=MIN_K,
+        high=MAX_K
     )
 
 
@@ -44,8 +44,8 @@ def uniform_ALPHA():
     >>Empirical Model of WWW Document Arrivals at Access Link<<
     """
     return np.random.uniform(
-        low=scheduler_constants.MIN_ALPHA,
-        high=scheduler_constants.MAX_ALPHA
+        low=MIN_ALPHA,
+        high=MAX_ALPHA
     )
 
 
@@ -55,8 +55,8 @@ def uniform_THETA():
     >>Empirical Model of WWW Document Arrivals at Access Link<<
     """
     return np.random.uniform(
-        low=scheduler_constants.MIN_THETA,
-        high=scheduler_constants.MAX_THETA
+        low=MIN_THETA,
+        high=MAX_THETA
     )
 
 

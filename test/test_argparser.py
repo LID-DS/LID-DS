@@ -1,6 +1,6 @@
 import sys
-import pytest
-from lid import LIDArgparser
+
+from lidds import LIDArgparser
 
 try:
   # python 3.4+ should use builtin unittest.mock not mock package
