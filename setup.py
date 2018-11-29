@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from setuptools import setup
 
 setup(name='lidds',
-      version='0.2.0',
+      version='0.2.1',
       description='Leipzig Intrusion Detection Data Set Framework',
       url='https://github.com/LID-DS/LID-DS',
       packages=['lidds'],
