@@ -22,9 +22,10 @@ appropriate to an probabilistic time model.
 import numpy as np
 import threading
 from threading import Timer
+import time
 from .scheduler_constants import MIN_K, MAX_K, MIN_ALPHA, MAX_ALPHA, MIN_THETA, MAX_THETA
 
-__all__ = ['scheduler']
+__all__ = ['scheduler', 'scheduler_sync']
 
 
 def uniform_K():
@@ -89,6 +90,46 @@ def inter_time_scheduler(on_time, fn):
 
     for idx, timer in enumerate(timers):
         Timer(timer, fn, (idx,)).start()
+
+
+def scheduler_sync(fn):
+    """
+    synchronous scheduler -> waits until fn returns before calling the next one
+    """
+
+    while True:
+        """
+        block duration: weibul
+        next block: pareto
+        """
+        on_time_scale, on_time_coefficient = uniform_THETA(), uniform_K()
+        block_duration = on_time_scale * (np.random.weibull(on_time_coefficient))
+        block_start_time = time.time()
+        block_end_time = block_start_time + block_duration
+        off_time = np.random.pareto(0.9)
+        next_inner_time = block_start_time
+        while True:
+            # call fn with the current timestamp
+            fn(time.time())
+            # get the next inner block event timestamp
+            next_inner_time = 1.5 * np.random.weibull(0.5) + next_inner_time
+            # now wait until the next inner event time
+            current_time = time.time()
+            inner_sleep_time = next_inner_time - current_time
+            # check for block end
+            if current_time > block_end_time:
+                break
+            # check for next event time
+            # do not sleep if it will end after the block end
+            if inner_sleep_time > 0:
+                if current_time + inner_sleep_time > block_end_time:
+                    break
+                time.sleep(inner_sleep_time)
+
+        # sleep off time
+        sleep_until = block_end_time + off_time
+        time_to_sleep = sleep_until - time.time()
+        time.sleep(time_to_sleep)
 
 
 if __name__ == "__main__":
