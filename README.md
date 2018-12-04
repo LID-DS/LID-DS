@@ -10,11 +10,15 @@ LID-DS manages docker containers on which the scenarios are modeled. The result 
 
 ## Installation
 
-To install the library: 
+Install and update using [pip](https://pip.pypa.io/en/stable/quickstart/): 
 
 ```bash
 pip3 install git+https://github.com/LID-DS/LID-DS
 ```
+
+## A Simple Example
+
+
 
 ### Requirements
 ```
@@ -23,6 +27,11 @@ promise
 docker
 ```
 
+## Links
+
+* Documentation: [https://lid-ds.github.io/LID-DS/html/index.html](https://lid-ds.github.io/LID-DS/html/index.html)
+* Code: [https://github.com/LID-DS/LID-DS](https://github.com/LID-DS/LID-DS)
+* Issue Tracker: [https://github.com/LID-DS/LID-DS/issues](https://github.com/LID-DS/LID-DS/issues)
 
 ## Contribution
 
