@@ -1,4 +1,6 @@
-# LID-DS
+![Logo of ID-DS](https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png)
+
+#
 The LID-DS package presents a lightweight framework for simulating attack/non-attack scenarios in a host intrusion detection context. This package handles the timing of events like:
 * Container Initialization
 * Starting Normal Behaviour
