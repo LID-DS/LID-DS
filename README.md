@@ -21,11 +21,9 @@ pip3 install git+https://github.com/LID-DS/LID-DS
 
 
 ### Requirements
-```
-argparse
-promise
-docker
-```
+
+* [Sysdig](https://sysdig.com/opensource)
+* [Docker](https://www.docker.com/)
 
 ## Links
 
