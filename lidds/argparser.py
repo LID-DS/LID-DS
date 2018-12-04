@@ -1,26 +1,31 @@
+#!/usr/bin/python
+
+# Leipzig Intrusion Detection Dataset (LID-DS) 
+# Copyright (C) 2018 Martin Grimmer, Martin Max Röhling, Dennis Kreußel and Simon Ganz
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# 
+# 
+# The Scheduler provides functions that provide an option to let specific functions get called
+# appropriate to an probabilistic time model.
+
 """
-Leipzig Intrusion Detection Dataset (LID-DS) 
-Copyright (C) 2018 Martin Grimmer, Martin Max Röhling, Dennis Kreußel and Simon Ganz
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
-The argparse module provides a preconfigured argument parser named LIDArgparser.
-Onto this argparser object the user can add more arguments to consider before parsing system arguments with it.
-Also it provides utility functions for the correct usage of readable and writeable directories in custom arguments.
+This implements an argparser extension with minimal options needed by all scenarios.
 """
-# Global imports
+
+__module__ = "lidds"
+
 import os
 import sys
 import argparse
@@ -55,9 +60,7 @@ class writeable_dir(argparse.Action):
             raise argparse.ArgumentTypeError("writeable_dir:{0} is not a writeable dir".format(prospective_dir))
 
 
-"""
-Default output directory is system-tmp directory
-"""
+#Default output directory is system-tmp directory
 defaultOutputDir = tempfile.gettempdir()
 
 

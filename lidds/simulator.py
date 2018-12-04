@@ -1,28 +1,28 @@
-"""
-Leipzig Intrusion Detection Dataset (LID-DS) 
-Copyright (C) 2018 Martin Grimmer, Martin Max Röhling, Dennis Kreußel and Simon Ganz
+#!/usr/bin/python
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+# Leipzig Intrusion Detection Dataset (LID-DS) 
+# Copyright (C) 2018 Martin Grimmer, Martin Max Röhling, Dennis Kreußel and Simon Ganz
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# 
+# 
+# The Scheduler provides functions that provide an option to let specific functions get called
+# appropriate to an probabilistic time model.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
-The simulator module provides a Simulator which is used to manage the simulation workflow.
-It assures that the timing of the steps done in the simulation is correct and provides ways
-for users to define their own simulation by registering initial-, normalBehaviour- and exploit hooks.
-It also manages the recording of the victim container.
-"""
-# Future imports
 from __future__ import print_function
+
+__module__ = "lidds"
 
 # Global imports
 import time
