@@ -1,4 +1,6 @@
-![Logo of ID-DS](https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png)
+<p align="center"> 
+<img src="https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png">
+</p>
 
 #
 The LID-DS package presents a lightweight framework for simulating attack/non-attack scenarios in a host intrusion detection context. This package handles the timing of events like:
