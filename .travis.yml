@@ -18,4 +18,4 @@ services:
   - docker
 
 script:
-  - tox
+  - pytest
