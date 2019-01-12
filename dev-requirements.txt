@@ -1,0 +1,7 @@
+pylint
+mypy
+pytest
+tox
+
+sphinx
+guzzle_sphinx_theme

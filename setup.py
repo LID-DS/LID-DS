@@ -1,5 +1,5 @@
 """
-Leipzig Intrusion Detection Dataset (LID-DS) 
+Leipzig Intrusion Detection Dataset (LID-DS)
 Copyright (C) 2018 Martin Grimmer, Martin Max Röhling, Dennis Kreußel and Simon Ganz
 
 This program is free software: you can redistribute it and/or modify
@@ -17,11 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 from setuptools import setup
 
-setup(name='lidds',
+setup(name='lid_ds',
       version='0.2.2',
       description='Leipzig Intrusion Detection Data Set Framework',
       url='https://github.com/LID-DS/LID-DS',
-      packages=['lidds'],
+      packages=['lid_ds'],
       platforms=['linux_x86_64'],
       install_requires=[
           'argparse',

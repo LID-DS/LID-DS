@@ -1,5 +1,4 @@
+.env
 .DS_Store
-dist
-/build
-lidds.egg-info
-.vscode
+.tox
+lid_ds.egg-info
