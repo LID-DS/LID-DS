@@ -6,7 +6,6 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7"
 
 before_install:
   - curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash
@@ -16,3 +15,6 @@ install:
 
 services:
   - docker
+
+script:
+  - tox
