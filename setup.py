@@ -21,15 +21,28 @@ setup(name='lid_ds',
       version='0.2.2',
       description='Leipzig Intrusion Detection Data Set Framework',
       url='https://github.com/LID-DS/LID-DS',
-      packages=['lid_ds'],
+      packages=[
+        'lid_ds',
+        'lid_ds.analysis',
+        'lid_ds.core',
+        'lid_ds.data_models',
+        'lid_ds.export',
+        'lid_ds.helpers',
+        'lid_ds.sim',
+        'lid_ds.utils',
+        'lid_ds.vis',
+      ],
       platforms=['linux_x86_64'],
       install_requires=[
-          'argparse',
-          'promise',
+          'huepy',
           'docker',
-          'pyyaml',
-          'mock',
-          'pexpect'
+          'numpy',
+          'pexpect',
+          'terminaltables',
+          'docopt'
       ],
+      entry_points = {
+        'console_scripts': ['lid_ds_analysis=lid_ds.analysis.main:main'],
+      },
       zip_safe=True
 )
