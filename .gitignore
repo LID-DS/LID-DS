@@ -2,6 +2,7 @@
 .DS_Store
 .tox
 dist
+build
 lid_ds.egg-info
 .pytest_cache
 *.py[cod]
