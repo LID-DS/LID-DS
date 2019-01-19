@@ -1,4 +1,32 @@
 .env
 .DS_Store
 .tox
+dist
 lid_ds.egg-info
+.pytest_cache
+*.py[cod]
+*.so
+.pytest_cache
+
+
+.Python
+*.egg-info
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+.cache
+.tox
+.coverage
+.coverage.*
+coverage.xml
+*,cover
+
+# Translations
+*.mo
+*.pot
+
+docs/_build
+scenarios
