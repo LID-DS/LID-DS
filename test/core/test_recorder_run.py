@@ -22,5 +22,5 @@ def test_container_recording():
                 '80/tcp': 80
             }
         }, wait_available_fake) as container:
-        with record_container(container) as recorder:
+        with record_container(container, container.name) as recorder:
             sleep(40)

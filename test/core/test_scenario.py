@@ -33,4 +33,6 @@ def test_subclass_scenario_implement_abstract():
             """
             a sample exploit hook doing nothing
             """
-    DerivedScenario()
+        def wait_for_availability(self):
+            return True
+    DerivedScenario('nginx')
