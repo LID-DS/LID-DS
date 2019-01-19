@@ -1,0 +1,6 @@
+huepy
+docker
+numpy
+pexpect
+terminaltables
+docopt
