@@ -12,15 +12,16 @@ matrix:
       dist: xenial
       sudo: true
 
+services:
+  - docker
+
 before_install:
   - curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash
+  - docker pull nginx
 
 install:
   - pip install -r dev-requirements.txt
   - pip install -r requirements.txt
-
-services:
-  - docker
 
 script:
   - pytest
