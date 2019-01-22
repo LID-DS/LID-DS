@@ -3,6 +3,8 @@
 </p>
 
 #
+[![Build Status](https://travis-ci.org/LID-DS/LID-DS.svg?branch=master)](https://travis-ci.org/LID-DS/LID-DS)
+
 The LID-DS package presents a lightweight framework for simulating attack/non-attack scenarios in a host intrusion detection context. This package handles the timing of events like:
 * Container Initialization
 * Starting Normal Behaviour
