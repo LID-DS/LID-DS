@@ -1,4 +1,5 @@
-import sched, time
+import sched
+from time import sleep
 from lid_ds.sim import gen_schedule_wait_times
 
 class Behaviour:
