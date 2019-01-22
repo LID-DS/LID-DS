@@ -10,5 +10,5 @@ class Behaviour:
     def __call__(self, *args, **kwargs):
         if len(self.actions) == len(self.wait_times):
             for i in range(len(min([self.actions, self.wait_times], key=len))):
-                time.sleep(wait_times[i])
-                actions[i]()
+                time.sleep(self.wait_times[i])
+                self.actions[i]()
