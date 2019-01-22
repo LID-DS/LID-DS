@@ -1,5 +1,4 @@
-import sched
-from time import sleep
+import sched, time
 from lid_ds.sim import gen_schedule_wait_times
 
 class Behaviour:
@@ -11,5 +10,5 @@ class Behaviour:
     def __call__(self, *args, **kwargs):
         if len(self.actions) == len(self.wait_times):
             for i in range(len(min([self.actions, self.wait_times], key=len))):
-                sleep(wait_times[i])
+                time.sleep(wait_times[i])
                 actions[i]()
