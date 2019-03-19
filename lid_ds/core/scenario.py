@@ -15,6 +15,19 @@ from .recorder_run import record_container
 logger = logging.getLogger(__name__)
 
 class Scenario(metaclass=ABCMeta):
+    @abstractmethod
+    def exploit(self, *args, **kwargs):
+        """
+        Implement the exploit method in the derived class
+        to add a hook that gets called when the exploit shall
+        be executed.
+        """
+    @abstractmethod
+    def wait_for_availability(self, container):
+        """
+        Implement a hook that returns once the container is ready
+        """
+
     """
     The scenario class provides a baseclass to derive from
     in order to implement a custom security scenario
@@ -38,6 +51,7 @@ class Scenario(metaclass=ABCMeta):
         self.behaviours = behaviours
         self.recording_time = recording_time
         self.execute_exploit = 'exploit_start_time' in kwargs
+        print("Simulating with exploit " + self.execute_exploit)
         if not isinstance(self.warmup_time, (int, float)):
             raise TypeError("Warmup time needs to be an integer or float")
         if not isinstance(self.recording_time, (int, float)):
@@ -54,6 +68,9 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
+        file = open("/data/runs.csv", "a+")
+        file.write("{}, {}, {}, {}, {}".format(self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
+        file.close()
 
     def __call__(self, with_exploit=False):
         print('Simulating Scenario: {}'.format(self))
@@ -73,7 +90,10 @@ class Scenario(metaclass=ABCMeta):
                 # Do normal behaviour
                 if self.execute_exploit:
                     print('Start Exploiting Scenario: {}'.format(self.name))
-                    Timer(self.exploit_start_time, self.exploit, (container))
+                    texploit = Timer(self.exploit_start_time, self.exploit, [container])
+                    tannounce = Timer(self.exploit_start_time, print, ("Exploiting now"))
+                    texploit.start()
+                    tannounce.start()
                 sleep(self.recording_time)
 
     def __repr__(self):
@@ -91,17 +111,4 @@ class Scenario(metaclass=ABCMeta):
             self.recording_time,
             self.warmup_time,
             )
-
-    @abstractmethod
-    def exploit(self, container):
-        """
-        Implement the exploit method in the derived class
-        to add a hook that gets called when the exploit shall
-        be executed.
-        """
-    @abstractmethod
-    def wait_for_availability(self, container):
-        """
-        Implement a hook that returns once the container is ready
-        """
 
