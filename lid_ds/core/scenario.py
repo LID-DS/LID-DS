@@ -69,7 +69,7 @@ class Scenario(metaclass=ABCMeta):
 
         self.name = scenario_name(self)
         file = open("/data/runs.csv", "a+")
-        file.write("{}, {}, {}, {}, {}".format(self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
+        file.write("{}, {}, {}, {}, {}\n".format(self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
         file.close()
 
     def __call__(self, with_exploit=False):
