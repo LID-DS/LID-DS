@@ -70,7 +70,7 @@ class Scenario(metaclass=ABCMeta):
         self.name = scenario_name(self)
         file = open("/data/runs.csv", "a+")
         if self.execute_exploit:
-            file.write("{}, {}, {}, {}, {}\n".format(self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
+            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
         else:
             file.write("{}, {}, {}, {}, {}\n".format(self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), "none"))
         file.close()
