@@ -51,7 +51,7 @@ class Scenario(metaclass=ABCMeta):
         self.behaviours = behaviours
         self.recording_time = recording_time
         self.execute_exploit = 'exploit_start_time' in kwargs
-        print("Simulating with exploit " + self.execute_exploit)
+        print("Simulating with exploit " + str(self.execute_exploit))
         if not isinstance(self.warmup_time, (int, float)):
             raise TypeError("Warmup time needs to be an integer or float")
         if not isinstance(self.recording_time, (int, float)):
