@@ -12,18 +12,24 @@ def container_run(config, check_if_available=lambda container: True):
     A contextmanager for container ressource management
     handles starting, stopping and removing of containers
     """
-    docker_client = from_env()
-    if ('image_name' in config and
-            isinstance(config['image_name'], str) and
-            'port_mapping' in config and
-            isinstance(config['port_mapping'], dict)):
-        container = docker_client.containers.run(
-            config['image_name'],
-            detach=True,
-            stdin_open=True,
-            tty=True,
-            ports=config['port_mapping']
+    try:
+        docker_client = from_env()
+        if ('image_name' in config and
+                isinstance(config['image_name'], str) and
+                'port_mapping' in config and
+                isinstance(config['port_mapping'], dict)):
+            container = docker_client.containers.run(
+                config['image_name'],
+                detach=True,
+                stdin_open=True,
+                tty=True,
+                ports=config['port_mapping']
             )
-        wait_until(check_if_available, 60, 1, container=container)
-    yield container
-    container.remove(force=True)
+            wait_until(check_if_available, 60, 1, container=container)
+        yield container
+        container.remove(force=True)
+    except KeyboardInterrupt as interruptException:
+        try:
+            container.remove(force=True)
+        except:
+            pass

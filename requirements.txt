@@ -4,3 +4,4 @@ numpy
 pexpect
 terminaltables
 docopt
+pandas
