@@ -3,8 +3,8 @@ the core module provides all functionality used to create,
 run and record security scenarios
 """
 try:
-    import lid_ds.core.pout as pout
 
+    from .pout import add_run
     from .scenario import Scenario
     from .container_run import container_run
     from .recorder_run import record_container

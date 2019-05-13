@@ -10,7 +10,7 @@ from abc import ABCMeta, abstractmethod
 from threading import Thread, Timer
 from time import sleep
 from lid_ds.helpers import scenario_name
-from lid_ds.core import pout
+from .pout import add_run
 from .container_run import container_run
 from .recorder_run import record_container
 
@@ -70,7 +70,7 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
-        pout.add_run(self)
+        add_run(self)
         """
         file = open("/data/runs.csv", "a+")
         if self.execute_exploit:
