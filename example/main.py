@@ -31,7 +31,7 @@ class CVE_2012_2122(Scenario):
         subprocess.Popen(r'''#!/bin/bash
                 for i in `seq 1 1000`;
                 do
-                    mysql -uroot -pwrong -h 127.0.0.1 -P3306 ;
+                    mysql -uroot -pwrong -h 127.0.0.1 -P3306 2>/dev/null;;
                 done''', shell=True, executable='/bin/bash')
 
     def wait_for_availability(self, container):
