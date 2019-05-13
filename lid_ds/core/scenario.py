@@ -4,11 +4,13 @@ The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
 import logging
+import os
 
 from abc import ABCMeta, abstractmethod
 from threading import Thread, Timer
 from time import sleep
 from lid_ds.helpers import scenario_name
+from lid_ds.core import pout
 from .container_run import container_run
 from .recorder_run import record_container
 
@@ -68,12 +70,15 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
+        pout.add_run(self)
+        """
         file = open("/data/runs.csv", "a+")
         if self.execute_exploit:
             file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
         else:
             file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), "none"))
         file.close()
+        """
 
     def __call__(self, with_exploit=False):
         print('Simulating Scenario: {}'.format(self))
