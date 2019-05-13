@@ -103,7 +103,18 @@ behaviours = []
 for i in range(user_count):
     behaviours.append(MySQLUser("localhost", "root", "123456", recording_time))
 
-scenario = CVE_2012_2122(
+scenario_normal = CVE_2012_2122(
+    'vulhub/mysql:5.5.23',
+    port_mapping={
+        '3306/tcp': 3306
+    },
+    warmup_time=warmup_time,
+    recording_time=recording_time,
+    behaviours=behaviours
+)
+scenario_normal()
+
+scenario_exploit = CVE_2012_2122(
     'vulhub/mysql:5.5.23',
     port_mapping={
         '3306/tcp': 3306
@@ -113,4 +124,5 @@ scenario = CVE_2012_2122(
     behaviours=behaviours,
     exploit_start_time=exploit_time  # Comment this line if you don't want the exploit to be executed
 )
-scenario()
+scenario_exploit()
+
