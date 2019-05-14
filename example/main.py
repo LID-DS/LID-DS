@@ -22,7 +22,7 @@ min_user_count = 10
 max_user_count = 25
 user_count = random.randint(min_user_count, max_user_count)
 
-words = open('/etc/dictionaries-common/words').read().splitlines()
+words = open('./words').read().splitlines()
 
 host = "localhost"
 

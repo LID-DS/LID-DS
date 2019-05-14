@@ -1,0 +1,3 @@
+image_name, scenario_name, is_executing_exploit, warmup_time, recording_time, exploit_start_time
+vulhub/mysql:5.5.23, wonderful_mendeleev_6755, False, 15, 300, -1
+vulhub/mysql:5.5.23, creamy_noether_1351, True, 15, 300, 115
