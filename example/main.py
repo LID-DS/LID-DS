@@ -22,8 +22,8 @@ min_user_count = 10
 max_user_count = 25
 user_count = random.randint(min_user_count, max_user_count)
 
-words = open('./words').read().splitlines()
-
+words = open('./words.txt').read().splitlines()
+print(len(words))
 host = "localhost"
 
 class CVE_2012_2122(Scenario):
@@ -93,7 +93,8 @@ class MySQLUser(Behaviour):
                 print("Got: " + result[1])
         except Exception as e:
             print("Exception: " + str(e))
-            sys.exit()
+            
+   	    #sys.exit()
             #try:
             #    self.db = pymysql.connect(self.host, self.uname, self.passwd, db_name)
             #except:
@@ -110,10 +111,12 @@ scenario_normal = CVE_2012_2122(
     },
     warmup_time=warmup_time,
     recording_time=recording_time,
-    behaviours=behaviours
+    behaviours=behaviours,
+    exploit_start_time=exploit_time
 )
 scenario_normal()
 
+"""
 scenario_exploit = CVE_2012_2122(
     'vulhub/mysql:5.5.23',
     port_mapping={
@@ -125,4 +128,4 @@ scenario_exploit = CVE_2012_2122(
     exploit_start_time=exploit_time  # Comment this line if you don't want the exploit to be executed
 )
 scenario_exploit()
-
+"""
