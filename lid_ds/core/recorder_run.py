@@ -13,7 +13,8 @@ def record_container(container, recording_name, buffer_size=80):
     A context manager managing the sysdig recording
     process for the lifetime of the container
     """
-    child = pexpect.spawn('sysdig -w {} -s {} container.name={} --unbuffered'.format('/data/' + recording_name + '.scap', buffer_size, container.name))
+    out_dir = os.environ.get('LIDDS_OUT_DIR', '.')
+    child = pexpect.spawn('sysdig -w {} -s {} container.name={} --unbuffered'.format(os.path.join(out_dir, recording_name + '.scap'), buffer_size, container.name))
     yield child
     pid = child.pid
     tries = 0
