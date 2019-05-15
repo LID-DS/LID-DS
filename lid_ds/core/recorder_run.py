@@ -14,7 +14,9 @@ def record_container(container, recording_name, buffer_size=80):
     process for the lifetime of the container
     """
     out_dir = os.environ.get('LIDDS_OUT_DIR', '.')
-    child = pexpect.spawn('sysdig -w {} -s {} container.name={} --unbuffered'.format(os.path.join(out_dir, recording_name + '.scap'), buffer_size, container.name))
+    out_path = os.path.join(out_dir, '{}.scap'.format(recording_name))
+    print('Saving to {}'.format(out_path))
+    child = pexpect.spawn('sysdig -w {} -s {} container.name={} --unbuffered'.format(out_path, buffer_size, container.name))
     yield child
     pid = child.pid
     tries = 0
