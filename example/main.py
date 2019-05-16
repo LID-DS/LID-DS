@@ -12,10 +12,13 @@ from lid_ds.sim import Behaviour
 
 warmup_time = int(sys.argv[1])
 recording_time = int(sys.argv[2])
+is_exploit = int(sys.argv[3])
+do_exploit = True
+if is_exploit < 1:
+    do_exploit = False
+
 total_duration = warmup_time + recording_time
 exploit_time = random.randint(int(recording_time * .3), int(recording_time * .8))
-print("Exploit time : {}".format(str(exploit_time)))
-
 
 db_name = "textDB"
 min_user_count = 10
@@ -23,8 +26,9 @@ max_user_count = 25
 user_count = random.randint(min_user_count, max_user_count)
 
 words = open('./words.txt').read().splitlines()
-print(len(words))
+# print(len(words))
 host = "localhost"
+
 
 class CVE_2012_2122(Scenario):
     def exploit(self, container):
@@ -54,6 +58,7 @@ class MySQLUser(Behaviour):
         print("Behavior with actions: " + str(len(self.wait_times)))
         for wt in self.wait_times[1:]:
             self.actions.append(self.do_normal)
+        self.db = None
 
     def _init_normal(self):
         try:
@@ -80,7 +85,7 @@ class MySQLUser(Behaviour):
             if random.random() > 0.5:
                 word = random.choice(words).replace("'", "")
                 sql = "INSERT INTO `texts` (`text`) VALUES ('" + word + "');"
-                print("Insert: " + word )
+                print("Insert: " + word)
                 with self.db.cursor() as cursor:
                     self.db.begin()
                     cursor.execute(sql)
@@ -91,41 +96,42 @@ class MySQLUser(Behaviour):
                     cursor.execute(sql)
                 result = cursor.fetchone()
                 print("Got: " + result[1])
-        except Exception as e:
-            print("Exception: " + str(e))
-            
-   	    #sys.exit()
-            #try:
-            #    self.db = pymysql.connect(self.host, self.uname, self.passwd, db_name)
-            #except:
+        except Exception as e1:
+            #
+            try:
+                self.db = pymysql.connect(self.host, self.uname, self.passwd, db_name)
+            except Exception as e2:
+                #print("Exception e1: " + str(e1))
+                #print("Exception e2: " + str(e2))
+                #sys.exit()
+                pass
+            # except:
 
 
 behaviours = []
 for i in range(user_count):
     behaviours.append(MySQLUser("localhost", "root", "123456", recording_time))
 
-scenario_normal = CVE_2012_2122(
-    'vulhub/mysql:5.5.23',
-    port_mapping={
-        '3306/tcp': 3306
-    },
-    warmup_time=warmup_time,
-    recording_time=recording_time,
-    behaviours=behaviours,
-    exploit_start_time=exploit_time
-)
-scenario_normal()
+if do_exploit:
+    scenario_normal = CVE_2012_2122(
+        'vulhub/mysql:5.5.23',
+        port_mapping={
+            '3306/tcp': 3306
+        },
+        warmup_time=warmup_time,
+        recording_time=recording_time,
+        behaviours=behaviours,
+        exploit_start_time=exploit_time
+    )
+else:
+    scenario_normal = CVE_2012_2122(
+        'vulhub/mysql:5.5.23',
+        port_mapping={
+            '3306/tcp': 3306
+        },
+        warmup_time=warmup_time,
+        recording_time=recording_time,
+        behaviours=behaviours,
+    )
 
-"""
-scenario_exploit = CVE_2012_2122(
-    'vulhub/mysql:5.5.23',
-    port_mapping={
-        '3306/tcp': 3306
-    },
-    warmup_time=warmup_time,
-    recording_time=recording_time,
-    behaviours=behaviours,
-    exploit_start_time=exploit_time  # Comment this line if you don't want the exploit to be executed
-)
-scenario_exploit()
-"""
+scenario_normal()

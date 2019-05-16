@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in `seq 2`
+for i in `seq 1`
 do
 	m=$((i%7))
 	t=$((30+5*m))
