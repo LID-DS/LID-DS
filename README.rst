@@ -5,15 +5,8 @@ Download the host based intrusion detection data set.
 #####################################################
 `LID-DS download <https://www.exploids.de/lid-ds/>`_
 
-
 The Framework
 #############
-
-.. raw:: html
-   <p align="center">
-   <img src="https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png">
-   </p>
-
 
 .. image:: https://travis-ci.org/LID-DS/LID-DS.svg?branch=master
     :target: https://travis-ci.org/LID-DS/LID-DS
@@ -27,6 +20,8 @@ The LID-DS package presents a lightweight framework for simulating attack/non-at
 * Executing the exploit dependend on the fact if the scenario is an attack scenario or not
 
 LID-DS manages docker containers on which the scenarios are modeled. The result of such a simulation should be a scap file expressing the system calls executed by the docker container during the scenario.
+
+.. image:: https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png
 
 
 Installation
