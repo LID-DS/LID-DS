@@ -1,6 +1,13 @@
-LID-DS
-******
+LID-DS (Leipzig Intrusion Detection - Data Set)
+***********************************************
 
+Download the host based intrusion detection data set.
+#####################################################
+`LID-DS download <https://www.exploids.de/lid-ds/>`_
+
+
+The Framework
+#############
 
 .. raw:: html
    <p align="center">
