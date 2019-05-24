@@ -1,7 +1,8 @@
 # SCENARIOS(TODO):
+(Please mark what. scenario you are sitting on with your name in brackets)
 
 ## XML entitites 
-* expanded entities (XML bomb)
+* expanded entities (XML bomb) [Dennis Kreußel / Caroline Mösler]
   * decompression bomb (aka zip bomb) on gzipped stream
 * allowed DTD
 * iterparse-like parsers
