@@ -1,4 +1,14 @@
-SCENARIOS(TODO):
+# SCENARIOS(TODO):
 
-* XML bomb
+## XML entitites 
+* expanded entities (XML bomb)
+  * decompression bomb (aka zip bomb) on gzipped stream
+* allowed DTD
+* iterparse-like parsers
+* XPath on untrusted xml
+* XSL on untrusted xml
+* unlimited parse time/ parse depth / parse size
+
+
+## Others
 * slow-post (slowloris)
