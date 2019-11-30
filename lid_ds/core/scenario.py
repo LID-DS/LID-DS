@@ -8,7 +8,9 @@ import os
 
 from abc import ABCMeta, abstractmethod
 from threading import Thread, Timer
-from time import sleep
+from time import sleep, time
+
+from lid_ds.core.collector import Collector
 from lid_ds.helpers import scenario_name
 from .pout import add_run
 from .container_run import container_run
@@ -29,6 +31,13 @@ class Scenario(metaclass=ABCMeta):
         """
         Implement a hook that returns once the container is ready
         """
+
+    def execute_exploit_at_time(self, execution_time, container):
+        while time() < execution_time:
+            sleep(0.5)
+        self.collector.set_exploit_time(time())
+        print('Executing the exploit now at {}'.format(time()))
+        self.exploit(container)
 
     """
     The scenario class provides a baseclass to derive from
@@ -70,38 +79,34 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
+        self.collector = Collector(self.name)
         add_run(self)
-        """
-        file = open("/data/runs.csv", "a+")
-        if self.execute_exploit:
-            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
-        else:
-            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), "none"))
-        file.close()
-        """
 
     def __call__(self, with_exploit=False):
         print('Simulating Scenario: {}'.format(self))
+        print('Current time: {}'.format(time()))
         with container_run({
             'image_name': self.image_name,
             'port_mapping': self.port_mapping
         }, self.wait_for_availability) as container:
+
             print('Start Normal Behaviours for Scenario: {}'.format(self.name))
             for behaviour in self.behaviours:
                 thread_behaviour = Thread(target=behaviour, args=())
                 thread_behaviour.start()
                 self.current_threads.append(thread_behaviour)
+
+            if self.execute_exploit:
+                exploitTime = time() + self.exploit_start_time
+                print('Planned exploid to execute at {}'.format(exploitTime))
+                self.exploit_thread = Thread(target=self.execute_exploit_at_time, args=(exploitTime, container))
+                self.exploit_thread.start()
+
             print('Warming up Scenario: {}'.format(self.name))
             sleep(self.warmup_time)
+
             print('Start Recording Scenario: {}'.format(self.name))
             with record_container(container, self.name) as recorder:
-                # Do normal behaviour
-                if self.execute_exploit:
-                    print('Start Exploiting Scenario: {}'.format(self.name))
-                    texploit = Timer(self.exploit_start_time, self.exploit, [container])
-                    tannounce = Timer(self.exploit_start_time, print, ("Exploiting now"))
-                    texploit.start()
-                    tannounce.start()
                 sleep(self.recording_time)
 
     def __repr__(self):
