@@ -5,3 +5,4 @@ pexpect
 terminaltables
 docopt
 pandas
+pymongo

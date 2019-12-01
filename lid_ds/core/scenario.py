@@ -10,13 +10,14 @@ from abc import ABCMeta, abstractmethod
 from threading import Thread, Timer
 from time import sleep, time
 
-from lid_ds.core.collector import Collector
+from lid_ds.core.collector.collector import Collector
+from lid_ds.core.collector.json_file_store import JSONFileStore
+from lid_ds.core.collector.mongo_db_store import MongoDBStore
 from lid_ds.helpers import scenario_name
 from .pout import add_run
 from .container_run import container_run
 from .recorder_run import record_container
 
-logger = logging.getLogger(__name__)
 
 class Scenario(metaclass=ABCMeta):
     @abstractmethod
@@ -80,7 +81,8 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
-        self.collector = Collector(self.name, self.image_name, self.recording_time, self.execute_exploit)
+        self.collector = Collector(MongoDBStore(host="localhost", port=27017, db_name="test"), self.name)
+        self.collector.set_meta(image=self.image_name, recording_time=self.recording_time, is_exploit=self.execute_exploit)
         add_run(self)
 
     def __call__(self, with_exploit=False):

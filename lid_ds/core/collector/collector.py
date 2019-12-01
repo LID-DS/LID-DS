@@ -1,19 +1,25 @@
-import json
-import os
+from abc import ABC, abstractmethod
 from time import time
 
 
+class CollectorStorageService(ABC):
+    @abstractmethod
+    def store_dict(self, name: str, dict: dict):
+        pass
+
+
+class CollectorError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class Collector:
-    def __init__(self, name, image, recording_time, is_exploit):
+    def __init__(self, storage_service: CollectorStorageService, name):
         self.storage = {
-            "image": image,
-            "recording_time": recording_time,
-            "exploit": is_exploit,
             "time": {}
         }
         self.name = name
-        out_dir = os.environ.get("LIDDS_OUT_DIR", ".")
-        self.file = open(os.path.join(out_dir, "runs.json"), "a+")
+        self.storage_service = storage_service
 
     def __set_time_value(self, key: str):
         t = time()
@@ -31,6 +37,11 @@ class Collector:
                 "relative": int(t) - time_store["container_ready"]["absolute"]
             }
 
+    def set_meta(self, image, recording_time, is_exploit):
+        self.storage["image"] = image
+        self.storage["recording_time"] = recording_time
+        self.storage["exploit"] = is_exploit
+
     def set_exploit_start(self):
         self.__set_time_value("exploit_start")
 
@@ -44,19 +55,8 @@ class Collector:
         self.__set_time_value("warmup_end")
 
     def __del__(self):
-        self.file.seek(0)
-        try:
-            data = json.load(self.file)
-        except json.JSONDecodeError:
-            data = {}
-
-        data.update({self.name: self.storage})
-        self.file.seek(0)
-        self.file.truncate()
-        json.dump(data, self.file, indent=4, sort_keys=True)
-        self.file.close()
+        self.storage_service.store_dict(self.name, self.storage)
 
 
-class CollectorError(Exception):
-    def __init__(self, message):
-        self.message = message
+
+
