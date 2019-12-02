@@ -9,10 +9,9 @@ import os
 from abc import ABCMeta, abstractmethod
 from threading import Thread, Timer
 from time import sleep, time
+from typing import List
 
-from lid_ds.core.collector.collector import Collector
-from lid_ds.core.collector.json_file_store import JSONFileStore
-from lid_ds.core.collector.mongo_db_store import MongoDBStore
+from lid_ds.core.collector.collector import Collector, CollectorStorageService
 from lid_ds.helpers import scenario_name
 from .pout import add_run
 from .container_run import container_run
@@ -52,25 +51,29 @@ class Scenario(metaclass=ABCMeta):
             warmup_time=60,
             recording_time=300,
             behaviours=[],
-            **kwargs
+            exploit_start_time=0,
+            storage_services: List[CollectorStorageService] = None
     ):
         """
         initialize all time sequences needed for the recording process
         as well es for statistically relevant execution
         """
+        if storage_services is None:
+            storage_services = []
+
         self.image_name = image_name
         self.port_mapping = port_mapping
         self.warmup_time = warmup_time
         self.behaviours = behaviours
         self.recording_time = recording_time
-        self.execute_exploit = 'exploit_start_time' in kwargs
+        self.execute_exploit = exploit_start_time is not 0
         print("Simulating with exploit " + str(self.execute_exploit))
         if not isinstance(self.warmup_time, (int, float)):
             raise TypeError("Warmup time needs to be an integer or float")
         if not isinstance(self.recording_time, (int, float)):
             raise TypeError("Recording time needs to be an integer or float")
         if self.execute_exploit:
-            self.exploit_start_time = kwargs.get('exploit_start_time')
+            self.exploit_start_time = exploit_start_time
             if not isinstance(self.exploit_start_time, (int, float)):
                 raise TypeError("Exploit start time needs to be an integer or float")
 
@@ -81,7 +84,7 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
-        self.collector = Collector(MongoDBStore(host="localhost", port=27017, db_name="test"), self.name)
+        self.collector = Collector(storage_services, self.name)
         self.collector.set_meta(image=self.image_name, recording_time=self.recording_time, is_exploit=self.execute_exploit)
         add_run(self)
 

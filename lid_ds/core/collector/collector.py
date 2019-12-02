@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from time import time
+from typing import List
 
 
 class CollectorStorageService(ABC):
     @abstractmethod
-    def store_dict(self, name: str, dict: dict):
+    def store_dict(self, name: str, obj: dict):
         pass
 
 
@@ -14,12 +15,12 @@ class CollectorError(Exception):
 
 
 class Collector:
-    def __init__(self, storage_service: CollectorStorageService, name):
+    def __init__(self, storage_services: List[CollectorStorageService], name):
         self.storage = {
             "time": {}
         }
         self.name = name
-        self.storage_service = storage_service
+        self.storage_services = storage_services
 
     def __set_time_value(self, key: str):
         t = time()
@@ -55,7 +56,8 @@ class Collector:
         self.__set_time_value("warmup_end")
 
     def __del__(self):
-        self.storage_service.store_dict(self.name, self.storage)
+        for service in self.storage_services:
+            service.store_dict(self.name, self.storage)
 
 
 
