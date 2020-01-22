@@ -8,13 +8,15 @@ import os
 
 from abc import ABCMeta, abstractmethod
 from threading import Thread, Timer
-from time import sleep
+from time import sleep, time
+from typing import List
+
+from lid_ds.core.collector.collector import Collector, CollectorStorageService
 from lid_ds.helpers import scenario_name
 from .pout import add_run
 from .container_run import container_run
 from .recorder_run import record_container
 
-logger = logging.getLogger(__name__)
 
 class Scenario(metaclass=ABCMeta):
     @abstractmethod
@@ -30,6 +32,14 @@ class Scenario(metaclass=ABCMeta):
         Implement a hook that returns once the container is ready
         """
 
+    def execute_exploit_at_time(self, execution_time, container):
+        while time() < execution_time:
+            sleep(0.5)
+        self.collector.set_exploit_start()
+        print('Executing the exploit now at {}'.format(time()))
+        self.exploit(container)
+        self.collector.set_exploit_end()
+
     """
     The scenario class provides a baseclass to derive from
     in order to implement a custom security scenario
@@ -41,25 +51,29 @@ class Scenario(metaclass=ABCMeta):
             warmup_time=60,
             recording_time=300,
             behaviours=[],
-            **kwargs
+            exploit_start_time=0,
+            storage_services: List[CollectorStorageService] = None
     ):
         """
         initialize all time sequences needed for the recording process
         as well es for statistically relevant execution
         """
+        if storage_services is None:
+            storage_services = []
+
         self.image_name = image_name
         self.port_mapping = port_mapping
         self.warmup_time = warmup_time
         self.behaviours = behaviours
         self.recording_time = recording_time
-        self.execute_exploit = 'exploit_start_time' in kwargs
+        self.execute_exploit = exploit_start_time is not 0
         print("Simulating with exploit " + str(self.execute_exploit))
         if not isinstance(self.warmup_time, (int, float)):
             raise TypeError("Warmup time needs to be an integer or float")
         if not isinstance(self.recording_time, (int, float)):
             raise TypeError("Recording time needs to be an integer or float")
         if self.execute_exploit:
-            self.exploit_start_time = kwargs.get('exploit_start_time')
+            self.exploit_start_time = exploit_start_time
             if not isinstance(self.exploit_start_time, (int, float)):
                 raise TypeError("Exploit start time needs to be an integer or float")
 
@@ -70,15 +84,9 @@ class Scenario(metaclass=ABCMeta):
         self.current_threads = []
 
         self.name = scenario_name(self)
+        self.collector = Collector(storage_services, self.name)
+        self.collector.set_meta(image=self.image_name, recording_time=self.recording_time, is_exploit=self.execute_exploit)
         add_run(self)
-        """
-        file = open("/data/runs.csv", "a+")
-        if self.execute_exploit:
-            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
-        else:
-            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), "none"))
-        file.close()
-        """
 
     def __call__(self, with_exploit=False):
         print('Simulating Scenario: {}'.format(self))
@@ -86,22 +94,24 @@ class Scenario(metaclass=ABCMeta):
             'image_name': self.image_name,
             'port_mapping': self.port_mapping
         }, self.wait_for_availability) as container:
+            self.collector.set_container_ready()
+            print('Warming up Scenario: {}'.format(self.name))
+            sleep(self.warmup_time)
+            self.collector.set_warmup_end()
+
+            if self.execute_exploit:
+                exploit_time = time() + self.exploit_start_time
+                self.exploit_thread = Thread(target=self.execute_exploit_at_time, args=(exploit_time, container))
+                self.exploit_thread.start()
+
             print('Start Normal Behaviours for Scenario: {}'.format(self.name))
             for behaviour in self.behaviours:
                 thread_behaviour = Thread(target=behaviour, args=())
                 thread_behaviour.start()
                 self.current_threads.append(thread_behaviour)
-            print('Warming up Scenario: {}'.format(self.name))
-            sleep(self.warmup_time)
+
             print('Start Recording Scenario: {}'.format(self.name))
             with record_container(container, self.name) as recorder:
-                # Do normal behaviour
-                if self.execute_exploit:
-                    print('Start Exploiting Scenario: {}'.format(self.name))
-                    texploit = Timer(self.exploit_start_time, self.exploit, [container])
-                    tannounce = Timer(self.exploit_start_time, print, ("Exploiting now"))
-                    texploit.start()
-                    tannounce.start()
                 sleep(self.recording_time)
 
     def __repr__(self):

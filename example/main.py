@@ -8,6 +8,8 @@ import pymysql
 
 from requests.auth import HTTPBasicAuth
 from lid_ds.core import Scenario
+from lid_ds.core.collector.json_file_store import JSONFileStorage
+from lid_ds.core.collector.mongo_db_store import MongoDBStorage
 from lid_ds.sim import Behaviour
 
 warmup_time = int(sys.argv[1])
@@ -112,6 +114,8 @@ behaviours = []
 for i in range(user_count):
     behaviours.append(MySQLUser("localhost", "root", "123456", recording_time))
 
+storage_services = [JSONFileStorage()]
+
 if do_exploit:
     scenario_normal = CVE_2012_2122(
         'vulhub/mysql:5.5.23',
@@ -121,7 +125,8 @@ if do_exploit:
         warmup_time=warmup_time,
         recording_time=recording_time,
         behaviours=behaviours,
-        exploit_start_time=exploit_time
+        exploit_start_time=exploit_time,
+        storage_services=storage_services,
     )
 else:
     scenario_normal = CVE_2012_2122(
@@ -132,6 +137,7 @@ else:
         warmup_time=warmup_time,
         recording_time=recording_time,
         behaviours=behaviours,
+        storage_services=storage_services,
     )
 
 scenario_normal()

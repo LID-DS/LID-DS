@@ -27,8 +27,7 @@ def container_run(config, check_if_available=lambda container: True):
             )
             wait_until(check_if_available, 60, 1, container=container)
         yield container
-        container.remove(force=True)
-    except KeyboardInterrupt as interruptException:
+    finally:
         try:
             container.remove(force=True)
         except:
