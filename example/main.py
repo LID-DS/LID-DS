@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.collector.mongo_db_store import MongoDBStorage
-from lid_ds.sim import Behaviour
+from lid_ds.sim import Behaviour, GeneratedBehaviour
 
 warmup_time = int(sys.argv[1])
 recording_time = int(sys.argv[2])
@@ -50,7 +50,7 @@ class CVE_2012_2122(Scenario):
         return True
 
 
-class MySQLUser(Behaviour):
+class MySQLUser(GeneratedBehaviour):
     def __init__(self, host, uname, passwd, rec_time):
         super().__init__([], rec_time)
         self.host = host

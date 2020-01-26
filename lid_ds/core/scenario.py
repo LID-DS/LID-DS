@@ -16,6 +16,7 @@ from lid_ds.helpers import scenario_name
 from .pout import add_run
 from .container_run import container_run
 from .recorder_run import record_container
+from lid_ds.sim.sampler import visualize
 
 
 class Scenario(metaclass=ABCMeta):
@@ -113,6 +114,9 @@ class Scenario(metaclass=ABCMeta):
             print('Start Recording Scenario: {}'.format(self.name))
             with record_container(container, self.name) as recorder:
                 sleep(self.recording_time)
+        # TODO: Remove later
+        visualize(self.name)
+
 
     def __repr__(self):
         if self.execute_exploit:
