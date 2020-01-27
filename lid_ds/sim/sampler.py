@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import os
+import os, random
 import matplotlib.pyplot as plt
 
 print("Reading joined...")
@@ -10,14 +10,15 @@ fig = plt.figure(figsize=(5, 15))
 
 
 def scale_sample_to(secs, sample: np.ndarray):
-    # IDEA: map each min to 0, max to 100, and rest between
     return np.round((sample / np.amax(sample) * secs), 0)
 
 
-def generate_sample(secs, choice_factor=0.5):
+def generate_sample(secs, choice_factor=0.5, random_range=0.1):
     # data = data[data['time'] > 1.46e9]
     data['time'] -= data['time'].min()
-    sample = np.random.choice(data['time'], int(secs * choice_factor))
+    # random difference between behaviors +-range
+    variation = round(random.uniform(1 - random_range, 1 + random_range), 2)
+    sample = np.random.choice(data['time'], int(secs * choice_factor * variation))
     return scale_sample_to(secs, sample)
 
 
