@@ -16,7 +16,7 @@ class Behaviour:
 
 class GeneratedBehaviour:
     def __init__(self, actions, total_duration):
-        self.sample = sampler.generate_sample(total_duration)
+        self.sample = sampler.generate_sample_real_data(total_duration)
         self.actions = actions
         self.wait_times = sampler.convert_sample_to_wait_times(self.sample)
         sampler.visualize_sample(self.sample, total_duration)

@@ -3,23 +3,27 @@ import pandas as pd
 import os, random
 import matplotlib.pyplot as plt
 
-print("Reading joined...")
 this_dir = os.path.dirname(os.path.realpath(__file__))
-data: pd.DataFrame = pd.read_hdf(os.path.join(this_dir, "access.h5"), "access")
+print("reading raith")
+data_raith: pd.DataFrame = pd.read_hdf(os.path.join(this_dir, "raith.h5"))
+print("reading nasa")
+data_nasa: pd.DataFrame = pd.read_hdf(os.path.join(this_dir, "nasa.h5"))
 fig = plt.figure(figsize=(5, 15))
 
 
-def scale_sample_to(secs, sample: np.ndarray):
-    return np.round((sample / np.amax(sample) * secs), 0)
+def generate_sample_real_data(secs):
+    first_time = np.random.choice(data_nasa['time'], 1)
+    sample = data_nasa["time"]
+    sample = sample[sample.isin(range(first_time, first_time + secs))]
+    return sample
 
 
 def generate_sample(secs, choice_factor=0.5, random_range=0.1):
-    # data = data[data['time'] > 1.46e9]
-    data['time'] -= data['time'].min()
     # random difference between behaviors +-range
     variation = round(random.uniform(1 - random_range, 1 + random_range), 2)
-    sample = np.random.choice(data['time'], int(secs * choice_factor * variation))
-    return scale_sample_to(secs, sample)
+    sample = np.random.choice(data_raith['time'], int(secs * choice_factor * variation))
+    # scale sample to secs
+    return np.round((sample / np.amax(sample) * secs), 0)
 
 
 def convert_sample_to_wait_times(sample: np.ndarray):
