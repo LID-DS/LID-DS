@@ -12,10 +12,11 @@ fig = plt.figure(figsize=(5, 15))
 
 
 def generate_sample_real_data(secs):
-    first_time = np.random.choice(data_nasa['time'], 1)
     sample = data_nasa["time"]
+    first_time = random.randrange(sample.min(), sample.max())
     sample = sample[sample.isin(range(first_time, first_time + secs))]
-    return sample
+    sample -= first_time
+    return sample.to_numpy(np.float64)
 
 
 def generate_sample(secs, choice_factor=0.5, random_range=0.1):
