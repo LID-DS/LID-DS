@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 print("reading raith")
-data_raith: pd.DataFrame = pd.read_hdf(os.path.join(this_dir, "raith.h5"))
+data_raith: pd.DataFrame = None#pd.read_hdf(os.path.join(this_dir, "raith.h5"))
 print("reading nasa")
-data_nasa: pd.DataFrame = pd.read_hdf(os.path.join(this_dir, "nasa.h5"))
+data_nasa: pd.DataFrame = None#pd.read_hdf(os.path.join(this_dir, "nasa.h5"))
 fig = plt.figure(figsize=(5, 15))
 
 

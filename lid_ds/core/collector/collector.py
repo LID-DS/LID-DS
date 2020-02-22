@@ -55,7 +55,7 @@ class Collector:
     def set_warmup_end(self):
         self.__set_time_value("warmup_end")
 
-    def __del__(self):
+    def write(self):
         for service in self.storage_services:
             service.store_dict(self.name, self.storage)
 

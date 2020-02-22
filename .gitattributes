@@ -1,1 +1,2 @@
 CHANGES.rst merge=union
+*.h5 filter=lfs diff=lfs merge=lfs -text
