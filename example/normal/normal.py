@@ -48,11 +48,10 @@ def query():
 if __name__ == '__main__':
     while True:
         sys.stdin.readline()
-        print(time.time())
-        #try:
-        #    if random.random() > 0.5:
-        #        insert()
-        #    else:
-        #        query()
-        #except Exception as e1:
-        #    connect_to_db()
+        try:
+            if random.random() > 0.5:
+                insert()
+            else:
+                query()
+        except Exception as e1:
+            connect_to_db()

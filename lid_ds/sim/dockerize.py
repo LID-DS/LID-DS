@@ -6,17 +6,13 @@ import random
 
 import dateutil.parser
 import docker
+import uuid
 from docker.models.containers import Container
 
 from lid_ds.utils import log
 
 client = docker.from_env()
 this_dir = os.path.dirname(os.path.realpath(__file__))
-
-
-def create_network(name):
-    print("Creating network %s" % name)
-    return client.networks.create(name)
 
 
 def run_image(image, network, name, port_mapping=None, command="") -> Container:
@@ -50,34 +46,3 @@ def show_logs(container: Container, name, queue):
         except:
             logger.debug("SHUTDOWN")
             break
-
-def show_logs_old(container: Container, name, lock):
-    logger = log.get_logger(name)
-    logger.info("Showing logs")
-    current_line = ""
-    lines_to_flush = []
-    next_flush = time.time() + 2
-    for char in container.logs(stream=True):
-        if len(char) > 1:
-            logger.info(char.decode().replace("\n", ""))
-        else:
-            if char is b'\r':
-                continue
-            if char is b'\n':
-                if len(current_line) == 0:
-                    continue
-                lines_to_flush.append(current_line)
-                current_line = ""
-            else:
-                current_line += char.decode()
-        if time.time() > next_flush:
-            lock.acquire()
-            for line in lines_to_flush:
-                logger.info(line)
-            lock.release()
-            lines_to_flush = []
-            next_flush = time.time() + 2
-    lock.acquire()
-    for line in lines_to_flush:
-        logger.info(line)
-    lock.release()

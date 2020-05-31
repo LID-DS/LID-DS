@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from time import time
 from typing import List
 
+from lid_ds.utils.singleton import Singleton
+
 
 class CollectorStorageService(ABC):
     @abstractmethod
@@ -14,13 +16,13 @@ class CollectorError(Exception):
         self.message = message
 
 
+@Singleton
 class Collector:
-    def __init__(self, storage_services: List[CollectorStorageService], name):
+    def __init__(self):
         self.storage = {
             "time": {}
         }
-        self.name = name
-        self.storage_services = storage_services
+        self.name = None
 
     def __set_time_value(self, key: str):
         t = time()
@@ -38,7 +40,8 @@ class Collector:
                 "relative": int(t) - time_store["container_ready"]["absolute"]
             }
 
-    def set_meta(self, image, recording_time, is_exploit):
+    def set_meta(self, name, image, recording_time, is_exploit):
+        self.name = name
         self.storage["image"] = image
         self.storage["recording_time"] = recording_time
         self.storage["exploit"] = is_exploit
@@ -55,8 +58,8 @@ class Collector:
     def set_warmup_end(self):
         self.__set_time_value("warmup_end")
 
-    def write(self):
-        for service in self.storage_services:
+    def write(self, storage_services: List[CollectorStorageService]):
+        for service in storage_services:
             service.store_dict(self.name, self.storage)
 
 

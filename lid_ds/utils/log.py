@@ -1,8 +1,7 @@
 import logging
 import logging.handlers
-import multiprocessing
-import time
-from enum import Enum
+
+from lid_ds.core.models.environment import ScenarioEnvironment
 
 logger_name = "lidds_logger"
 
@@ -23,7 +22,8 @@ def _init_logger():
     return logger
 
 
-def print_logs(queue):
+def print_logs():
+    queue = ScenarioEnvironment().logging_queue
     logger = _init_logger()
     while True:
         try:
@@ -35,8 +35,9 @@ def print_logs(queue):
             print('Whoops! Problem:', e)
 
 
-def stop(queue):
+def stop():
     # lock.acquire()
+    queue = ScenarioEnvironment().logging_queue
     queue.put_nowait(None)
     # lock.release()
 

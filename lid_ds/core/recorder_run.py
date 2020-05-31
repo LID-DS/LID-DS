@@ -19,6 +19,7 @@ def kill_child(child):
     if child.isalive():
         os.kill(pid, signal.SIGINT)
 
+
 @contextmanager
 def record_container(container, recording_name, buffer_size=80):
     """

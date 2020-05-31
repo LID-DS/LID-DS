@@ -64,7 +64,7 @@ storage_services = [JSONFileStorage()]
 if do_exploit:
     scenario_normal = CVE_2012_2122(
         image_name='vulhub/mysql:5.5.23',
-        exploit_image_name="python:alpine",
+        exploit_image_name="exploit_mysql",
         normal_image_name="normal_mysql",
         port_mapping={
             '3306/tcp': 3306

@@ -13,8 +13,8 @@ from time import sleep, time
 from typing import List
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
-from .models.scenario_models import ScenarioGeneralMeta, ScenarioNormalMeta, ScenarioExploitMeta, ScenarioVictimMeta, \
-    ScenarioEnvironment
+from .models.environment import ScenarioEnvironment
+from .models.scenario_models import ScenarioGeneralMeta, ScenarioNormalMeta, ScenarioExploitMeta, ScenarioVictimMeta
 from .recorder_run import record_container
 from .tcpdump import run_tcpdump
 from lid_ds.sim.sampler import visualize
@@ -22,14 +22,6 @@ from lid_ds.utils import log
 
 
 class Scenario(metaclass=ABCMeta):
-    @abstractmethod
-    def exploit(self, *args, **kwargs):
-        """
-        Implement the exploit method in the derived class
-        to add a hook that gets called when the exploit shall
-        be executed.
-        """
-
     @abstractmethod
     def wait_for_availability(self, container):
         """
@@ -41,14 +33,6 @@ class Scenario(metaclass=ABCMeta):
         """
         Implement a method for initialising the victim container, pass if this is not needed
         """
-
-    def execute_exploit_at_time(self, execution_time, container):
-        while time() < execution_time:
-            sleep(0.5)
-        self.collector.set_exploit_start()
-        print('Executing the exploit now at {}'.format(time()))
-        self.exploit(container)
-        self.collector.set_exploit_end()
 
     """
     The scenario class provides a baseclass to derive from
@@ -72,28 +56,26 @@ class Scenario(metaclass=ABCMeta):
         as well es for statistically relevant execution
         """
         self.general_meta = ScenarioGeneralMeta(exploit_start_time, warmup_time, recording_time)
-        self.docker_objects = ScenarioEnvironment(self.general_meta.name, user_count)
-        self.logger = log.get_logger("control_script", self.docker_objects.logging_queue)
-        self.logging_thread = Thread(target=log.print_logs, args=(self.docker_objects.logging_queue,))
+        self.logger = log.get_logger("control_script", ScenarioEnvironment().logging_queue)
+        self.logging_thread = Thread(target=log.print_logs)
         self.logging_thread.start()
 
-        if storage_services is None:
-            storage_services = []
+        self.storage_services = storage_services if storage_services else []
 
+        self.victim_meta = ScenarioVictimMeta(image_name, port_mapping)
         self.normal_meta = ScenarioNormalMeta(normal_image_name, "generated", user_count, command="", to_stdin=True,
-                                              run_command="victim root 123456")
-        self.exploit_meta = ScenarioExploitMeta(exploit_image_name, "the exploit command")
-        self.victim_meta = ScenarioVictimMeta(image_name, port_mapping, self.docker_objects.logging_queue)
+                                              run_command="${victim} root 123456")
+        self.exploit_meta = ScenarioExploitMeta(exploit_image_name, "sh /app/exploit.sh ${victim_ip}")
 
         self.logger.info("Generating Behaviours")
         self.normal_meta.generate_behaviours(self.general_meta.recording_time)
         self.logger.info("Starting normal container")
-        self.normal_meta.start_containers(self.docker_objects.network)
+        self.normal_meta.start_containers()
         self.logger.info("Starting exploit container")
-        self.exploit_meta.start_container(self.docker_objects.network)
+        self.exploit_meta.start_container()
 
-        self.collector = Collector(storage_services, self.general_meta.name)
-        self.collector.set_meta(
+        Collector().set_meta(
+            name=self.general_meta.name,
             image=self.victim_meta.image_name, recording_time=self.general_meta.recording_time,
             is_exploit=self.general_meta.is_exploit)
         # add_run(self)
@@ -109,21 +91,21 @@ class Scenario(metaclass=ABCMeta):
 
     def __call__(self, with_exploit=False):
         self.logger.info('Simulating Scenario: {}'.format(self))
-        with self.victim_meta.start_container(self.docker_objects.network, self.wait_for_availability,
+        with self.victim_meta.start_container(self.wait_for_availability,
                                               self.init_victim) as container:
-            self.collector.set_container_ready()
+            Collector().set_container_ready()
             self.logger.info('Warming up Scenario: {}'.format(self.general_meta.name))
             sleep(self.general_meta.warmup_time)
-            self.collector.set_warmup_end()
+            Collector().set_warmup_end()
 
-            if False and self.general_meta.is_exploit:
+            if self.general_meta.is_exploit:
                 exploit_time = time() + self.general_meta.exploit_time
                 self.exploit_thread = Thread(
-                    target=self.execute_exploit_at_time, args=(exploit_time, container))
+                    target=self.exploit_meta.execute_exploit_at_time, args=(exploit_time,))
                 self.exploit_thread.start()
 
             self.logger.info('Start Normal Behaviours for Scenario: {}'.format(self.general_meta.name))
-            self.normal_meta.start_simulation(self.docker_objects.execution_thread_pool, self.docker_objects.logging_queue)
+            self.normal_meta.start_simulation()
 
             self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
             with record_container(container, self.general_meta.name) as recorder, run_tcpdump(
@@ -132,12 +114,11 @@ class Scenario(metaclass=ABCMeta):
         self._teardown()
 
     def _teardown(self):
-        self.collector.write()
-        self.exploit_meta.stop_container()
-        self.normal_meta.stop_containers()
-        self.docker_objects.network.remove()
-        log.stop(self.docker_objects.logging_queue)
-        self.docker_objects.execution_thread_pool.shutdown(wait=True)
+        Collector().write(self.storage_services)
+        self.exploit_meta.teardown()
+        self.normal_meta.teardown()
+        ScenarioEnvironment().network.remove()
+        log.stop()
         self.logging_thread.join()
         # TODO: Remove later
         # visualize(self.general_meta.name)
