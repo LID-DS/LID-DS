@@ -1,7 +1,6 @@
 import secrets
 from abc import ABC
 from concurrent.futures.thread import ThreadPoolExecutor
-from contextlib import contextmanager
 import time
 from threading import Thread
 from typing import Union, Optional, Dict
@@ -10,7 +9,6 @@ from docker.models.containers import Container
 
 from lid_ds.core.collector.collector import Collector
 from lid_ds.core.models.environment import ScenarioEnvironment, format_command
-from lid_ds.helpers import wait_until
 from lid_ds.helpers.names_generator import scenario_name
 from lid_ds.sim.behaviour import get_sampling_method
 from lid_ds.sim.dockerize import run_image, show_logs
@@ -134,24 +132,3 @@ class ScenarioExploitMeta(ScenarioContainerBase):
 
     def teardown(self):
         self.container.stop()
-
-
-class ScenarioVictimMeta(ScenarioContainerBase):
-    def __init__(self, image_name, port_mapping):
-        super().__init__()
-        self.image_name = image_name
-        self.port_mapping = port_mapping
-
-    @contextmanager
-    def start_container(self, check_if_available, init=None):
-        name = ScenarioEnvironment().victim_hostname
-        logger = log.get_logger(name, self.queue)
-        container = run_image(self.image_name, self.network, name, self.port_mapping)
-        logger.debug("Waiting for container to be available")
-        wait_until(check_if_available, 60, 1, container=container)
-        logger.info("Container available on port(s) %s" % self.port_mapping)
-        if init is not None:
-            init()
-        yield container
-        container.stop()
-

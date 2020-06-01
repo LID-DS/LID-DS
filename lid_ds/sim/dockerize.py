@@ -15,17 +15,20 @@ client = docker.from_env()
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def run_image(image, network, name, port_mapping=None, command="") -> Container:
+def run_image(image, network, name, port_mapping=None, command="", volumes=None, privileged=False) -> Container:
+    network_name = network if isinstance(network, str) else network.name
     container = client.containers.run(
         image,
         command=command,
         name=name,
-        network=network.name,
+        network=network_name,
+        ports=port_mapping,
+        volumes=volumes,
         detach=True,
         stdin_open=True,
         tty=True,
         remove=True,
-        ports=port_mapping)
+        privileged=privileged)
     return container
 
 

@@ -21,6 +21,7 @@ min_user_count = 10
 max_user_count = 25
 user_count = random.randint(min_user_count, max_user_count)
 
+# TODO: enable dynamic ports
 
 class CVE_2012_2122(Scenario):
     def exploit(self, container):

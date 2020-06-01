@@ -14,7 +14,8 @@ from typing import List
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
 from .models.environment import ScenarioEnvironment
-from .models.scenario_models import ScenarioGeneralMeta, ScenarioNormalMeta, ScenarioExploitMeta, ScenarioVictimMeta
+from .models.scenario_models import ScenarioGeneralMeta, ScenarioNormalMeta, ScenarioExploitMeta
+from .victim import ScenarioVictim
 from .recorder_run import record_container
 from .tcpdump import run_tcpdump
 from lid_ds.sim.sampler import visualize
@@ -62,10 +63,10 @@ class Scenario(metaclass=ABCMeta):
 
         self.storage_services = storage_services if storage_services else []
 
-        self.victim_meta = ScenarioVictimMeta(image_name, port_mapping)
+        self.victim_meta = ScenarioVictim(image_name, port_mapping)
         self.normal_meta = ScenarioNormalMeta(normal_image_name, "generated", user_count, command="", to_stdin=True,
                                               run_command="${victim} root 123456")
-        self.exploit_meta = ScenarioExploitMeta(exploit_image_name, "sh /app/exploit.sh ${victim_ip}")
+        self.exploit_meta = ScenarioExploitMeta(exploit_image_name, "sh /app/exploit.sh ${victim}")
 
         self.logger.info("Generating Behaviours")
         self.normal_meta.generate_behaviours(self.general_meta.recording_time)
@@ -108,8 +109,7 @@ class Scenario(metaclass=ABCMeta):
             self.normal_meta.start_simulation()
 
             self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
-            with record_container(container, self.general_meta.name) as recorder, run_tcpdump(
-                    self.general_meta.name, container) as tcpdump:
+            with self.victim_meta.record_container() as (sysdig, tcpdump):
                 sleep(self.general_meta.recording_time)
         self._teardown()
 
