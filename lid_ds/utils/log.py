@@ -1,7 +1,7 @@
 import logging
 import logging.handlers
 
-from lid_ds.core.models.environment import ScenarioEnvironment
+from lid_ds.core.objects.environment import ScenarioEnvironment
 
 logger_name = "lidds_logger"
 

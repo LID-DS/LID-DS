@@ -45,11 +45,11 @@ class SysCall():
 
     @property
     def args(self):
-        return self.start_event.args
+        return self.start_event.init_args
 
     @property
     def res(self):
-        return self.stop_event.args
+        return self.stop_event.init_args
 
     def _get_table_rep_row(self):
         return [

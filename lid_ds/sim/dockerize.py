@@ -17,12 +17,14 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def run_image(image, network, name, port_mapping=None, command="", volumes=None, privileged=False) -> Container:
     network_name = network if isinstance(network, str) else network.name
+    ports, publish_all = (None, True) if port_mapping is "all" else (port_mapping, False)
     container = client.containers.run(
         image,
         command=command,
         name=name,
         network=network_name,
-        ports=port_mapping,
+        ports=ports,
+        publish_all_ports=publish_all,
         volumes=volumes,
         detach=True,
         stdin_open=True,

@@ -4,21 +4,18 @@ The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
 
-import logging
-import sys
-
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from time import sleep, time
 from typing import List
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
-from .models.environment import ScenarioEnvironment
-from .models.scenario_models import ScenarioGeneralMeta, ScenarioNormalMeta, ScenarioExploitMeta
-from .victim import ScenarioVictim
-from .recorder_run import record_container
-from .tcpdump import run_tcpdump
-from lid_ds.sim.sampler import visualize
+from .image import Image
+from .objects.environment import ScenarioEnvironment
+from .objects.meta import ScenarioMeta
+from .objects.exploit import ScenarioExploit
+from .objects.normal import ScenarioNormalMeta
+from lid_ds.core.objects.victim import ScenarioVictim
 from lid_ds.utils import log
 
 
@@ -30,7 +27,7 @@ class Scenario(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def init_victim(self):
+    def init_victim(self, container):
         """
         Implement a method for initialising the victim container, pass if this is not needed
         """
@@ -42,11 +39,10 @@ class Scenario(metaclass=ABCMeta):
 
     def __init__(
             self,
-            image_name,
-            normal_image_name,
-            exploit_image_name,
+            victim: Image,
+            normal: Image,
+            exploit: Image,
             user_count=10,
-            port_mapping={},
             warmup_time=60,
             recording_time=300,
             exploit_start_time=0,
@@ -56,72 +52,67 @@ class Scenario(metaclass=ABCMeta):
         initialize all time sequences needed for the recording process
         as well es for statistically relevant execution
         """
-        self.general_meta = ScenarioGeneralMeta(exploit_start_time, warmup_time, recording_time)
+        self.general_meta = ScenarioMeta(exploit_start_time, warmup_time, recording_time)
         self.logger = log.get_logger("control_script", ScenarioEnvironment().logging_queue)
         self.logging_thread = Thread(target=log.print_logs)
         self.logging_thread.start()
 
         self.storage_services = storage_services if storage_services else []
 
-        self.victim_meta = ScenarioVictim(image_name, port_mapping)
-        self.normal_meta = ScenarioNormalMeta(normal_image_name, "generated", user_count, command="", to_stdin=True,
-                                              run_command="${victim} root 123456")
-        self.exploit_meta = ScenarioExploitMeta(exploit_image_name, "sh /app/exploit.sh ${victim}")
-
-        self.logger.info("Generating Behaviours")
-        self.normal_meta.generate_behaviours(self.general_meta.recording_time)
-        self.logger.info("Starting normal container")
-        self.normal_meta.start_containers()
-        self.logger.info("Starting exploit container")
-        self.exploit_meta.start_container()
+        self.victim = ScenarioVictim(victim)
+        self.normal = ScenarioNormalMeta(normal, "generated", user_count)
+        self.exploit = ScenarioExploit(exploit)
 
         Collector().set_meta(
             name=self.general_meta.name,
-            image=self.victim_meta.image_name, recording_time=self.general_meta.recording_time,
+            image=victim.name, recording_time=self.general_meta.recording_time,
             is_exploit=self.general_meta.is_exploit)
-        # add_run(self)
+
+        self._container_init()
 
     def _container_init(self):
-        pass
+        self.logger.info("Generating Behaviours")
+        self.normal.generate_behaviours(self.general_meta.recording_time)
+        self.logger.info("Starting normal container")
+        self.normal.start_containers()
+        self.logger.info("Starting exploit container")
+        self.exploit.start_container()
 
     def _warmup(self):
-        pass
+        self.logger.info('Warming up Scenario: {}'.format(self.general_meta.name))
+        sleep(self.general_meta.warmup_time)
+        Collector().set_warmup_end()
+
+        if self.general_meta.is_exploit:
+            exploit_time = time() + self.general_meta.exploit_time
+            self.exploit_thread = Thread(
+                target=self.exploit.execute_exploit_at_time, args=(exploit_time,))
+            self.exploit_thread.start()
+
+        self.logger.info('Start Normal Behaviours for Scenario: {}'.format(self.general_meta.name))
+        self.normal.start_simulation()
 
     def _recording(self):
-        pass
+        self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
+        with self.victim.record_container() as (sysdig, tcpdump):
+            sleep(self.general_meta.recording_time)
 
     def __call__(self, with_exploit=False):
         self.logger.info('Simulating Scenario: {}'.format(self))
-        with self.victim_meta.start_container(self.wait_for_availability,
-                                              self.init_victim) as container:
+        with self.victim.start_container(self.wait_for_availability,
+                                         self.init_victim) as container:
             Collector().set_container_ready()
-            self.logger.info('Warming up Scenario: {}'.format(self.general_meta.name))
-            sleep(self.general_meta.warmup_time)
-            Collector().set_warmup_end()
-
-            if self.general_meta.is_exploit:
-                exploit_time = time() + self.general_meta.exploit_time
-                self.exploit_thread = Thread(
-                    target=self.exploit_meta.execute_exploit_at_time, args=(exploit_time,))
-                self.exploit_thread.start()
-
-            self.logger.info('Start Normal Behaviours for Scenario: {}'.format(self.general_meta.name))
-            self.normal_meta.start_simulation()
-
-            self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
-            with self.victim_meta.record_container() as (sysdig, tcpdump):
-                sleep(self.general_meta.recording_time)
+            self._warmup()
+            self._recording()
         self._teardown()
 
     def _teardown(self):
         Collector().write(self.storage_services)
-        self.exploit_meta.teardown()
-        self.normal_meta.teardown()
+        self.exploit.teardown()
+        self.normal.teardown()
         ScenarioEnvironment().network.remove()
         log.stop()
         self.logging_thread.join()
-        # TODO: Remove later
-        # visualize(self.general_meta.name)
 
     def __repr__(self):
         if self.general_meta.is_exploit:

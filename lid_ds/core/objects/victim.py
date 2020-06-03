@@ -4,8 +4,9 @@ from contextlib import contextmanager
 
 import pexpect
 
-from lid_ds.core.models.environment import ScenarioEnvironment
-from lid_ds.core.models.scenario_models import ScenarioContainerBase
+from lid_ds.core.objects.environment import ScenarioEnvironment
+from lid_ds.core.objects.base import ScenarioContainerBase
+from lid_ds.core.image import Image
 from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
@@ -24,22 +25,22 @@ def kill_child(child):
 
 
 class ScenarioVictim(ScenarioContainerBase):
-    def __init__(self, image_name, port_mapping):
-        super().__init__()
-        self.image_name = image_name
-        self.port_mapping = port_mapping
+    def __init__(self, image: Image):
+        super().__init__(image)
+        self.port_mapping = "all"
         self.container = None
         self.env = ScenarioEnvironment()
         self.logger = log.get_logger(self.env.victim_hostname, self.queue)
 
     @contextmanager
     def start_container(self, check_if_available, init=None):
-        self.container = run_image(self.image_name, self.env.network, self.env.victim_hostname, self.port_mapping)
+        self.container = run_image(self.image.name, self.env.network, self.env.victim_hostname, self.port_mapping)
         self.logger.debug("Waiting for container to be available")
+        self.container.reload()
         wait_until(check_if_available, 60, 1, container=self.container)
-        self.logger.info("Container available on port(s) %s" % self.port_mapping)
+        self.logger.info("Container available on port(s) %s" % self.container.ports)
         if init is not None:
-            init()
+            init(self.container)
         yield self.container
         self.container.stop()
 
@@ -49,7 +50,7 @@ class ScenarioVictim(ScenarioContainerBase):
         sysdig = self._sysdig(out_dir, buffer_size)
         tcpdump = self._tcpdump(out_dir)
         yield sysdig, tcpdump
-        _kill_child(sysdig)
+        kill_child(sysdig)
         tcpdump.kill()
 
     def _sysdig(self, out_dir, buffer_size):
@@ -60,9 +61,9 @@ class ScenarioVictim(ScenarioContainerBase):
 
     def _tcpdump(self, out_dir):
         container = run_image("itsthenetwork/alpine-tcpdump",
-                              volumes={out_dir: {'bind': '/capture', 'mode': 'rw'}},
+                              volumes={os.path.abspath(out_dir): {'bind': '/capture', 'mode': 'rw'}},
                               name="tcpdump_%s" % self.env.recording_name,
                               network="container:%s" % self.container.name,
                               command="-i any -U -s0 -w /capture/%s.pcap" % self.env.recording_name)
-        self.logger.info("Writing tcpdump to %s.pcap" % self.env.recording_name)
+        self.logger.info("Writing tcpdump to %s" % (os.path.join(out_dir, "%s.pcap" % self.env.recording_name)))
         return container
