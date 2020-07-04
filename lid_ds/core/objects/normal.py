@@ -35,14 +35,13 @@ class ScenarioNormalMeta(ScenarioContainerBase):
             self.containers[k] = run_image(self.image.name, network=self.network, name=k, command=args)
 
     def start_simulation(self):
-        logger = log.get_logger("control_script", self.queue)
-        logger.debug("Simulating with %s" % dict(zip(self.containers.keys(), self.wait_times)))
         for i, name in enumerate(self.containers):
             if self.to_stdin:
                 t = Thread(target=show_logs, args=(self.containers[name], name, self.queue))
                 t.start()
                 self.log_threads.append(t)
             self.thread_pool.submit(self._simulate_container, self.wait_times[i], name)
+        return dict(zip(self.containers.keys(), self.wait_times))
 
     def teardown(self):
         for _, container in self.containers.items():
@@ -58,7 +57,7 @@ class ScenarioNormalMeta(ScenarioContainerBase):
             for wt in wait_times:
                 time.sleep(wt)
                 try:
-                    socket.write(self.image.command.encode() + b"\n")
+                    socket.write(self.image.command.command.encode() + b"\n")
                 except:
                     pass
         else:

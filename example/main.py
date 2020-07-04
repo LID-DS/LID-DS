@@ -25,7 +25,7 @@ user_count = random.randint(min_user_count, max_user_count)
 
 
 class CVE_2012_2122(Scenario):
-    def init_victim(self, container):
+    def init_victim(self, container, logger):
         port = get_host_port(container, "3306")
         try:
             db = pymysql.connect("localhost", "root", "123456", port=port)
@@ -57,7 +57,7 @@ class CVE_2012_2122(Scenario):
 storage_services = [JSONFileStorage()]
 
 victim = Image('vulhub/mysql:5.5.23')
-exploit = Image("exploit_mysql", command="sh /app/exploit.sh ${victim}")
+exploit = Image("exploit_mysql", command="sh /app/nmap.sh ${victim}")
 normal = Image("normal_mysql", command=StdinCommand(""), init_args="${victim} root 123456")
 
 if do_exploit:

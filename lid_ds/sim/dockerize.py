@@ -49,5 +49,5 @@ def show_logs(container: Container, name, queue):
                     last_lines.append(line)
                 last = dateutil.parser.isoparse(ts).replace(tzinfo=None)
         except:
-            logger.debug("SHUTDOWN")
+            logger.debug("Shutdown")
             break

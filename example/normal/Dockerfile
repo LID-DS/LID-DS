@@ -1,4 +1,4 @@
-FROM python:alpine
+FROM python:alpine-3.7.5
 RUN pip3 install pymysql
 WORKDIR /app
 ADD words.txt /app

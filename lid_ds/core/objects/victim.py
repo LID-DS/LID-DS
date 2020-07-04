@@ -40,7 +40,7 @@ class ScenarioVictim(ScenarioContainerBase):
         wait_until(check_if_available, 60, 1, container=self.container)
         self.logger.info("Container available on port(s) %s" % self.container.ports)
         if init is not None:
-            init(self.container)
+            init(self.container, self.logger)
         yield self.container
         self.container.stop()
 

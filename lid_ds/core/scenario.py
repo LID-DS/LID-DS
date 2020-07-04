@@ -27,7 +27,7 @@ class Scenario(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def init_victim(self, container):
+    def init_victim(self, container, logger):
         """
         Implement a method for initialising the victim container, pass if this is not needed
         """
@@ -90,7 +90,8 @@ class Scenario(metaclass=ABCMeta):
             self.exploit_thread.start()
 
         self.logger.info('Start Normal Behaviours for Scenario: {}'.format(self.general_meta.name))
-        self.normal.start_simulation()
+        wts = self.normal.start_simulation()
+        self.logger.debug("Simulating with %s" % wts)
 
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
