@@ -1,8 +1,8 @@
 import json
+import logging
 import os
 import couchdb
 import requests
-import logging
 from faker import Faker
 import numpy
 
@@ -24,7 +24,7 @@ def _generate_project():
     }
 
 
-def init(host, logger):
+def init(host, logger, valid_user=True):
     URL_PLAIN = "http://%s" % host
     URL_ADMIN = "http://%s:%s@%s" % (ADMIN_U, ADMIN_PW, host)
 
@@ -40,10 +40,11 @@ def init(host, logger):
     requests.post("%s/_node/nonode@nohost/_config/couchdb/max_dbs_open" % URL_ADMIN, data='"1000"')
 
     # Require a valid user
-    requests.put("%s/_node/nonode@nohost/_config/chttpd/require_valid_user" %
-                 URL_ADMIN,
-                 data='"true"')
-    requests.put("%s/_node/nonode@nohost/_config/httpd/WWW-Authenticate" %
+    if valid_user:
+        requests.put("%s/_node/nonode@nohost/_config/chttpd/require_valid_user" %
+                     URL_ADMIN,
+                     data='"true"')
+        requests.put("%s/_node/nonode@nohost/_config/httpd/WWW-Authenticate" %
                  URL_ADMIN,
                  data='"Basic realm=\"administrator\""')
 

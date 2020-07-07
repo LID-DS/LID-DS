@@ -10,7 +10,7 @@ from time import sleep, time
 from typing import List
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
-from .image import Image
+from .image import Image, ChainImage
 from .objects.environment import ScenarioEnvironment
 from .objects.meta import ScenarioMeta
 from .objects.exploit import ScenarioExploit
@@ -39,9 +39,9 @@ class Scenario(metaclass=ABCMeta):
 
     def __init__(
             self,
-            victim: Image,
-            normal: Image,
-            exploit: Image,
+            victim: ChainImage,
+            normal: ChainImage,
+            exploit: ChainImage,
             user_count=10,
             warmup_time=60,
             recording_time=300,

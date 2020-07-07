@@ -6,7 +6,7 @@ import pexpect
 
 from lid_ds.core.objects.environment import ScenarioEnvironment
 from lid_ds.core.objects.base import ScenarioContainerBase
-from lid_ds.core.image import Image
+from lid_ds.core.image import Image, ChainImage
 from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
@@ -25,7 +25,7 @@ def kill_child(child):
 
 
 class ScenarioVictim(ScenarioContainerBase):
-    def __init__(self, image: Image):
+    def __init__(self, image: ChainImage):
         super().__init__(image)
         self.port_mapping = "all"
         self.container = None
