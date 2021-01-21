@@ -46,24 +46,23 @@ class ScenarioVictim(ScenarioContainerBase):
 
     @contextmanager
     def record_container(self, buffer_size=80):
-        out_dir = os.environ.get('LIDDS_OUT_DIR', '.')
-        sysdig = self._sysdig(out_dir, buffer_size)
-        tcpdump = self._tcpdump(out_dir)
+        sysdig = self._sysdig(buffer_size)
+        tcpdump = self._tcpdump()
         yield sysdig, tcpdump
         kill_child(sysdig)
         tcpdump.kill()
 
-    def _sysdig(self, out_dir, buffer_size):
-        sysdig_out_path = os.path.join(out_dir, '{}.scap'.format(self.env.recording_name))
-        self.logger.info('Saving to Sysdig to {}'.format(sysdig_out_path))
+    def _sysdig(self, buffer_size):
+        sysdig_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}.scap')
+        self.logger.info('Saving to Sysdig to {} with buffer size {}'.format(sysdig_out_path, buffer_size))
         return pexpect.spawn(
             'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size, self.env.victim_hostname))
 
-    def _tcpdump(self, out_dir):
+    def _tcpdump(self):
         container = run_image("itsthenetwork/alpine-tcpdump",
-                              volumes={os.path.abspath(out_dir): {'bind': '/capture', 'mode': 'rw'}},
+                              volumes={os.path.abspath(self.env.out_dir): {'bind': '/capture', 'mode': 'rw'}},
                               name="tcpdump_%s" % self.env.recording_name,
                               network="container:%s" % self.container.name,
                               command="-i any -U -s0 -w /capture/%s.pcap" % self.env.recording_name)
-        self.logger.info("Writing tcpdump to %s" % (os.path.join(out_dir, "%s.pcap" % self.env.recording_name)))
+        self.logger.info("Writing tcpdump to %s" % (os.path.join(self.env.out_dir, "%s.pcap" % self.env.recording_name)))
         return container

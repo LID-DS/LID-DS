@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+import os
 
 from lid_ds.core.objects.environment import ScenarioEnvironment
 
@@ -9,7 +10,7 @@ logger_name = "lidds_logger"
 def _init_logger():
     formatter = logging.Formatter(fmt='%(levelname)s - %(container)s - %(message)s')
 
-    fh = logging.FileHandler('spam.log')
+    fh = logging.FileHandler(os.path.join(ScenarioEnvironment().out_dir, 'runs.log'))
     fh.setFormatter(formatter)
 
     handler = logging.StreamHandler()

@@ -2,12 +2,12 @@ import json
 import os
 
 from lid_ds.core.collector.collector import CollectorStorageService
+from lid_ds.core.objects.environment import ScenarioEnvironment
 
 
 class JSONFileStorage(CollectorStorageService):
     def __init__(self, filename="runs.json"):
-        out_dir = os.environ.get("LIDDS_OUT_DIR", ".")
-        self.file = open(os.path.join(out_dir, filename), "a+")
+        self.file = open(os.path.join(ScenarioEnvironment().out_dir, filename), "a+")
 
     def store_dict(self, name: str, obj: dict):
         self.file.seek(0)
