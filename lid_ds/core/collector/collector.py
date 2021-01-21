@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from time import time
 from typing import List
 
+from lid_ds.core.objects.environment import ScenarioEnvironment
+from lid_ds.utils import log
 from lid_ds.utils.singleton import Singleton
 
 
@@ -23,9 +25,10 @@ class Collector:
             "time": {"exploit": []}
         }
         self.name = None
+        self.logger = log.get_logger("collector", ScenarioEnvironment().logging_queue)
 
-    def _generate_time_value(self):
-        t = time()
+    def _calculate_time_value(self, value=None) -> dict:
+        t = value if value is not None else time()
         time_store = self.storage["time"]
         if "container_ready" not in time_store:
             return {
@@ -44,14 +47,29 @@ class Collector:
         self.storage["recording_time"] = recording_time
         self.storage["exploit"] = is_exploit
 
-    def set_exploit_step(self, name):
-        self.storage["time"]["exploit"].append({**self._generate_time_value(), 'name': name})
-
     def set_container_ready(self):
-        self.storage["time"]["container_ready"] = self._generate_time_value()
+        self.storage["time"]["container_ready"] = self._calculate_time_value()
 
     def set_warmup_end(self):
-        self.storage["time"]["warmup_end"] = self._generate_time_value()
+        self.storage["time"]["warmup_end"] = self._calculate_time_value()
+
+    def set_exploit_time(self, name, value=None):
+        for i, entry in enumerate(self.storage["time"]["exploit"]):
+            if entry['name'] is name:
+                # only update if value is set
+                if value is not None:
+                    self.logger.info(f"Optimized attack time for {name} from {entry['absolute']} to {value}")
+                    self.storage["time"]["exploit"][i] = {**self._calculate_time_value(value), 'name': name}
+                return
+        self.storage["time"]["exploit"].append({**self._calculate_time_value(value), 'name': name})
+
+    @property
+    def attacker_ip(self):
+        return self.storage["attacker"]
+
+    @attacker_ip.setter
+    def attacker_ip(self, ip):
+        self.storage["attacker"] = ip
 
     def write(self, storage_services: List[CollectorStorageService]):
         for service in storage_services:

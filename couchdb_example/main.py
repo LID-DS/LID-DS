@@ -5,6 +5,7 @@ from couchdb_example.victim.init import init
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.image import StdinCommand, Image, ChainImage, ExecCommand
+from lid_ds.postprocessing.tcpdump import TCPPacketPartsMatcher
 from lid_ds.utils.docker_utils import get_host_port
 
 warmup_time = int(sys.argv[1])
@@ -20,7 +21,8 @@ exploit_time = random.randint(int(recording_time * .3),
 
 min_user_count = 10
 max_user_count = 25
-user_count = random.randint(min_user_count, max_user_count)
+# user_count = random.randint(min_user_count, max_user_count)
+user_count = 1
 
 full_chain = True
 
@@ -39,17 +41,25 @@ class CouchDBChain(Scenario):
 storage_services = [JSONFileStorage()]
 
 victim = Image('vulhub/couchdb:2.1.0')
+
+portscan = ExecCommand("sh /app/nmap.sh ${victim}", name="port-scan")
+bruteforce = ExecCommand("sh /app/hydra.sh ${victim}", name="brute-force",
+                         after_packet=TCPPacketPartsMatcher(["GET /", "User-Agent: curl"],
+                                                            forbidden_parts=["Authorization"]))
+privilege_escalation = ExecCommand("python3 /app/exploit.py ${victim}:5984", name="privilege-escalation",
+                                   after_packet=TCPPacketPartsMatcher(["GET /_all_dbs", "User-Agent: curl",
+                                                                       "Authorization"]))
+remote_code = ExecCommand("python3 /app/reverse-shell.py ${victim}:5984", name="remote-code",
+                          after_packet=TCPPacketPartsMatcher(["GET /_users/_all_docs",
+                                                              "Authorization"]))
+
 exploit_full = ChainImage("exploit_couchdb",
-                          commands=[ExecCommand("sh /app/nmap.sh ${victim}", name="port-scan"),
-                                    ExecCommand("sh /app/hydra.sh ${victim}", name="brute-force"),
-                                    ExecCommand("python3 /app/exploit.py ${victim}:5984", name="privilige-escalation"),
-                                    ExecCommand("python3 /app/reverse-shell.py ${victim}:5984", name="remote-code"),
-                                    ])
+                          commands=[portscan, bruteforce, privilege_escalation, remote_code])
 
 exploit_short = ChainImage("exploit_couchdb",
-                           commands=[ExecCommand("sh /app/nmap.sh ${victim}", name="port-scan"),
-                                     ExecCommand("python3 /app/exploit.py ${victim}:5984", name="privilige-escalation"),
-                                     ExecCommand("python3 /app/reverse-shell.py ${victim}:5984", name="remote-code"),
+                           commands=[portscan,
+                                     privilege_escalation,
+                                     remote_code,
                                      ])
 
 normal = Image("normal_couchdb",

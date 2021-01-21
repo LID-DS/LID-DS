@@ -17,6 +17,8 @@ from .objects.exploit import ScenarioExploit
 from .objects.normal import ScenarioNormalMeta
 from lid_ds.core.objects.victim import ScenarioVictim
 from lid_ds.utils import log
+from ..postprocessing import postprocessing
+from ..utils.docker_utils import get_ip_address
 
 
 class Scenario(metaclass=ABCMeta):
@@ -78,6 +80,8 @@ class Scenario(metaclass=ABCMeta):
         self.logger.info("Starting exploit container")
         self.exploit.start_container()
 
+        Collector().attacker_ip = get_ip_address(self.exploit.container)
+
     def _warmup(self):
         self.logger.info('Warming up Scenario: {}'.format(self.general_meta.name))
         sleep(self.general_meta.warmup_time)
@@ -98,6 +102,15 @@ class Scenario(metaclass=ABCMeta):
         with self.victim.record_container() as (sysdig, tcpdump):
             sleep(self.general_meta.recording_time)
 
+    def _postprocessing(self):
+        postprocessing.optimize_attack_time(self.exploit.image)
+        Collector().write(self.storage_services)
+
+    def _teardown(self):
+        self.exploit.teardown()
+        self.normal.teardown()
+        ScenarioEnvironment().network.remove()
+
     def __call__(self, with_exploit=False):
         self.logger.info('Simulating Scenario: {}'.format(self))
         with self.victim.start_container(self.wait_for_availability,
@@ -106,12 +119,8 @@ class Scenario(metaclass=ABCMeta):
             self._warmup()
             self._recording()
         self._teardown()
+        self._postprocessing()
 
-    def _teardown(self):
-        Collector().write(self.storage_services)
-        self.exploit.teardown()
-        self.normal.teardown()
-        ScenarioEnvironment().network.remove()
         log.stop()
         self.logging_thread.join()
 

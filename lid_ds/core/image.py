@@ -1,19 +1,24 @@
 from dataclasses import dataclass
 from typing import Union, List
 
+from lid_ds.postprocessing.tcpdump import TCPPacketMatcher
+
 
 @dataclass
-class StdinCommand:
+class Command:
+    command: str
+    name: str = "attack"
+    after_packet: TCPPacketMatcher = None
+
+
+@dataclass
+class StdinCommand(Command):
     stdin = True
-    command: str
-    name: str = "attack"
 
 
 @dataclass
-class ExecCommand:
+class ExecCommand(Command):
     stdin = False
-    command: str
-    name: str = "attack"
 
 
 @dataclass

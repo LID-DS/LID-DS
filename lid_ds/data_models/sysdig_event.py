@@ -17,7 +17,7 @@ class SysdigEvent():
         tokens = sysdig_line.decode("utf-8").split()
 
         self.sysdig_recording_index = int(tokens[0])
-        self.event_time = datetime.strptime(tokens[1][:-3], '%H:%M:%S.%f')
+        self.event_time = float(tokens[1][:-3])
         self.executing_cpu = int(tokens[2])
         self.process = tokens[3]
 
