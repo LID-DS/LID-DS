@@ -6,7 +6,7 @@ import pymysql
 
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
-from lid_ds.core.image import StdinCommand, Image
+from lid_ds.core.image import StdinCommand, Image, ExecCommand
 from lid_ds.utils.docker_utils import get_host_port
 
 warmup_time = int(sys.argv[1])
@@ -57,7 +57,7 @@ class CVE_2012_2122(Scenario):
 storage_services = [JSONFileStorage()]
 
 victim = Image('vulhub/mysql:5.5.23')
-exploit = Image("exploit_mysql", command="sh /app/nmap.sh ${victim}")
+exploit = Image("exploit_mysql", command=ExecCommand("sh exploit.sh ${victim}"))
 normal = Image("normal_mysql", command=StdinCommand(""), init_args="${victim} root 123456")
 
 if do_exploit:

@@ -1,7 +1,5 @@
 import random
-import time
 from typing import Optional
-
 import pymysql
 import sys
 

@@ -8,7 +8,7 @@ import numpy
 
 ADMIN_U = "admin"
 ADMIN_PW = "admin"
-faker = Faker()
+faker = Faker('de_DE')
 
 
 def _generate_project():
@@ -16,7 +16,6 @@ def _generate_project():
         'name': faker.company(),
         'phrase': faker.catch_phrase(),
         'address': {
-            'country': faker.country(),
             'city': faker.city(),
             'postcode': faker.postcode(),
             'street': faker.street_address(),
@@ -58,6 +57,7 @@ def init(host, logger, valid_user=True):
     local_dir = os.path.dirname(os.path.realpath(__file__))
     db.update(json.load(open(os.path.join(local_dir, "db/_users.json"))))
     logger.debug("inserted users")
+
 
 if __name__ == '__main__':
     init("localhost:5984", logging)
