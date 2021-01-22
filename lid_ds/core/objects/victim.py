@@ -4,12 +4,14 @@ from contextlib import contextmanager
 
 import pexpect
 
+from lid_ds.core.collector.collector import Collector
 from lid_ds.core.objects.environment import ScenarioEnvironment
 from lid_ds.core.objects.base import ScenarioContainerBase
-from lid_ds.core.image import Image, ChainImage
+from lid_ds.core.image import ChainImage
 from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
+from lid_ds.utils.docker_utils import get_ip_address
 
 
 def kill_child(child):
@@ -30,13 +32,14 @@ class ScenarioVictim(ScenarioContainerBase):
         self.port_mapping = "all"
         self.container = None
         self.env = ScenarioEnvironment()
-        self.logger = log.get_logger(self.env.victim_hostname, self.queue)
+        self.logger = log.get_logger(f"[VICTIM] {self.env.victim_hostname}", self.queue)
 
     @contextmanager
     def start_container(self, check_if_available, init=None):
         self.container = run_image(self.image.name, self.env.network, self.env.victim_hostname, self.port_mapping)
         self.logger.debug("Waiting for container to be available")
         self.container.reload()
+        Collector().add_container(self.env.victim_hostname, "victim", get_ip_address(self.container))
         wait_until(check_if_available, 60, 1, container=self.container)
         self.logger.info("Container available on port(s) %s" % self.container.ports)
         if init is not None:

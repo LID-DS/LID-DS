@@ -13,8 +13,8 @@ from lid_ds.core.collector.collector import Collector, CollectorStorageService
 from .image import Image, ChainImage
 from .objects.environment import ScenarioEnvironment
 from .objects.meta import ScenarioMeta
-from .objects.exploit import ScenarioExploit
-from .objects.normal import ScenarioNormalMeta
+from .objects.attacker import ScenarioAttacker
+from .objects.normal import ScenarioNormal
 from lid_ds.core.objects.victim import ScenarioVictim
 from lid_ds.utils import log
 from ..postprocessing import postprocessing
@@ -33,6 +33,10 @@ class Scenario(metaclass=ABCMeta):
         """
         Implement a method for initialising the victim container, pass if this is not needed
         """
+
+    @property
+    def is_exploit(self):
+        return self.general_meta.is_exploit
 
     """
     The scenario class provides a baseclass to derive from
@@ -62,8 +66,8 @@ class Scenario(metaclass=ABCMeta):
         self.storage_services = storage_services if storage_services else []
 
         self.victim = ScenarioVictim(victim)
-        self.normal = ScenarioNormalMeta(normal, "generated", user_count)
-        self.exploit = ScenarioExploit(exploit)
+        self.normal = ScenarioNormal(normal, "generated", user_count)
+        self.exploit = ScenarioAttacker(exploit)
 
         Collector().set_meta(
             name=self.general_meta.name,
@@ -77,17 +81,16 @@ class Scenario(metaclass=ABCMeta):
         self.normal.generate_behaviours(self.general_meta.recording_time)
         self.logger.info("Starting normal container")
         self.normal.start_containers()
-        self.logger.info("Starting exploit container")
-        self.exploit.start_container()
-
-        Collector().attacker_ip = get_ip_address(self.exploit.container)
+        if self.is_exploit:
+            self.logger.info("Starting exploit container")
+            self.exploit.start_container()
 
     def _warmup(self):
         self.logger.info('Warming up Scenario: {}'.format(self.general_meta.name))
         sleep(self.general_meta.warmup_time)
         Collector().set_warmup_end()
 
-        if self.general_meta.is_exploit:
+        if self.is_exploit:
             exploit_time = time() + self.general_meta.exploit_time
             self.exploit_thread = Thread(
                 target=self.exploit.execute_exploit_at_time, args=(exploit_time,))
@@ -103,11 +106,13 @@ class Scenario(metaclass=ABCMeta):
             sleep(self.general_meta.recording_time)
 
     def _postprocessing(self):
-        postprocessing.optimize_attack_time(self.exploit.image)
+        if self.is_exploit:
+            postprocessing.optimize_attack_time(self.exploit.image)
         Collector().write(self.storage_services)
 
     def _teardown(self):
-        self.exploit.teardown()
+        if self.is_exploit:
+            self.exploit.teardown()
         self.normal.teardown()
         ScenarioEnvironment().network.remove()
 

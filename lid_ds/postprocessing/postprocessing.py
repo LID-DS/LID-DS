@@ -20,7 +20,7 @@ def optimize_attack_time(image: ChainImage):
     matcher = PostprocessingMatcher(pcap, scap, ip)
 
     for command in image.commands:
-        optimized_time = matcher.get_exact_attack_time(command.after_packet)
-        Collector().set_exploit_time(command.name, optimized_time)
+        optimized_time, source = matcher.get_exact_attack_time(command.after_packet)
+        Collector().set_exploit_time(command.name, optimized_time, source)
 
     logger.info(f"Finished postprocessing")

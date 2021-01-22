@@ -10,10 +10,9 @@ class PostprocessingMatcher:
 
     def _get_optimized_time(self, event, packet):
         if event is not None:
-            print(event.event_time)
-            return event.event_time
+            return event.event_time, "SYSDIG"
         elif packet is not None:
-            return self.tcpdump.get_time_for_packet(packet)
+            return self.tcpdump.get_time_for_packet(packet), "TCPDUMP"
 
     def get_exact_attack_time(self, matcher: TCPPacketMatcher = None):
         if matcher is None:

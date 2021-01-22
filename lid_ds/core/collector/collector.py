@@ -22,23 +22,31 @@ class CollectorError(Exception):
 class Collector:
     def __init__(self):
         self.storage = {
-            "time": {"exploit": []}
+            "time": {"exploit": []},
+            "container": [],
         }
         self.name = None
         self.logger = log.get_logger("collector", ScenarioEnvironment().logging_queue)
 
-    def _calculate_time_value(self, value=None) -> dict:
-        t = value if value is not None else time()
+    def _calculate_time_value(self, value=None, source=None) -> dict:
+        if value is None:
+            value = time()
+            source = "CONTROL_SCRIPT"
+        if source is None:
+            source = "UNKNOWN"
+
         time_store = self.storage["time"]
         if "container_ready" not in time_store:
             return {
-                "absolute": int(t),
-                "relative": 0
+                "absolute": int(value),
+                "relative": 0,
+                "source": source,
             }
         else:
             return {
-                "absolute": int(t),
-                "relative": int(t) - time_store["container_ready"]["absolute"]
+                "absolute": int(value),
+                "relative": int(value) - time_store["container_ready"]["absolute"],
+                "source": source
             }
 
     def set_meta(self, name, image, recording_time, is_exploit):
@@ -53,23 +61,24 @@ class Collector:
     def set_warmup_end(self):
         self.storage["time"]["warmup_end"] = self._calculate_time_value()
 
-    def set_exploit_time(self, name, value=None):
+    def add_container(self, name, role, ip):
+        self.storage['container'].append({'name': name, 'role': role, 'ip': ip})
+
+    def set_exploit_time(self, name, value=None, source=None):
         for i, entry in enumerate(self.storage["time"]["exploit"]):
             if entry['name'] is name:
                 # only update if value is set
                 if value is not None:
-                    self.logger.info(f"Optimized attack time for {name} from {entry['absolute']} to {value}")
-                    self.storage["time"]["exploit"][i] = {**self._calculate_time_value(value), 'name': name}
+                    self.logger.info(f"Optimized attack time for {name} from {entry['absolute']} to {value} from {source}")
+                    self.storage["time"]["exploit"][i] = {**self._calculate_time_value(value, source), 'name': name}
                 return
-        self.storage["time"]["exploit"].append({**self._calculate_time_value(value), 'name': name})
+        self.storage["time"]["exploit"].append({**self._calculate_time_value(value, source), 'name': name})
 
     @property
     def attacker_ip(self):
-        return self.storage["attacker"]
-
-    @attacker_ip.setter
-    def attacker_ip(self, ip):
-        self.storage["attacker"] = ip
+        for container in self.storage['container']:
+            if container['role'] is 'attacker':
+                return container['ip']
 
     def write(self, storage_services: List[CollectorStorageService]):
         for service in storage_services:

@@ -6,20 +6,21 @@ from typing import Dict, Optional
 
 from docker.models.containers import Container
 
+from lid_ds.core.collector.collector import Collector
 from lid_ds.core.image import StdinCommand, Image, ChainImage
-from lid_ds.utils.docker_utils import format_command
+from lid_ds.utils.docker_utils import format_command, get_ip_address
 from lid_ds.core.objects.base import ScenarioContainerBase
 from lid_ds.sim.behaviour import get_sampling_method
 from lid_ds.sim.dockerize import run_image, show_logs
 from lid_ds.utils import log
 
 
-class ScenarioNormalMeta(ScenarioContainerBase):
+class ScenarioNormal(ScenarioContainerBase):
     def __init__(self, image: ChainImage, behaviour_type, user_count):
         super().__init__(image)
         self.behaviour_type = behaviour_type  # TODO: make enum
         self.containers: Dict[str, Optional[Container]] = dict(
-            ("normal_%s" % secrets.token_hex(8), None) for _ in range(user_count))
+            (secrets.token_hex(8), None) for _ in range(user_count))
         self.logger = {}
         self.wait_times = []
         self.thread_pool = ThreadPoolExecutor(max_workers=user_count + 1)
@@ -34,7 +35,8 @@ class ScenarioNormalMeta(ScenarioContainerBase):
         for k in self.containers.keys():
             args = format_command(self.image.init_args)
             self.containers[k] = run_image(self.image.name, network=self.network, name=k, command=args)
-            self.logger[k] = log.get_logger(k, self.queue)
+            self.logger[k] = log.get_logger(f"[NORMAL] {k}", self.queue)
+            Collector().add_container(k, "normal", get_ip_address(self.containers[k]))
 
     def start_simulation(self):
         for i, name in enumerate(self.containers):
@@ -68,5 +70,5 @@ class ScenarioNormalMeta(ScenarioContainerBase):
                         pass
                 else:
                     _, out = self.containers[name].exec_run(cmd)
-                    # for line in out.decode("utf-8").split("\n")[:-1]:
-                    #    self.logger[name].info("%s" % line)
+                    for line in out.decode("utf-8").split("\n")[:-1]:
+                        self.logger[name].info("%s" % line)

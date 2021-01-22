@@ -32,8 +32,8 @@ def print_logs():
             if record is None:
                 break
             logger.handle(record)
-        except Exception as e:
-            print('Whoops! Problem:', e)
+        except:
+            pass
 
 
 def stop():
