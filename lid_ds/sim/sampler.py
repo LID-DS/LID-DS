@@ -13,11 +13,16 @@ def convert_to_wait_times(series, to_array=False):
 
 class Sampler:
     def __init__(self, dataset):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        hdf_path = os.path.join(dir_path, f"datasets/{dataset}.h5")
-        if not os.path.exists(hdf_path):
-            raise Exception("Dataset not found")
-        self.df: pd.DataFrame = pd.read_hdf(hdf_path)
+        if isinstance(dataset, str):
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            hdf_path = os.path.join(dir_path, f"datasets/{dataset}.h5")
+            if not os.path.exists(hdf_path):
+                raise Exception("Dataset not found")
+            self.df: pd.DataFrame = pd.read_hdf(hdf_path)
+        elif isinstance(dataset, pd.DataFrame):
+            self.df = dataset
+        else:
+            raise Exception("Invalid dataset supplied")
         self.random = np.random.default_rng()
 
     def random_sampling(self, user, length, lower, upper):
