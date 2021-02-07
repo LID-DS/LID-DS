@@ -7,29 +7,23 @@ from typing import Dict, Optional
 from docker.models.containers import Container
 
 from lid_ds.core.collector.collector import Collector
-from lid_ds.core.image import StdinCommand, Image, ChainImage
+from lid_ds.core.image import ChainImage
 from lid_ds.utils.docker_utils import format_command, get_ip_address
 from lid_ds.core.objects.base import ScenarioContainerBase
-from lid_ds.sim.behaviour import get_sampling_method
 from lid_ds.sim.dockerize import run_image, show_logs
 from lid_ds.utils import log
 
 
 class ScenarioNormal(ScenarioContainerBase):
-    def __init__(self, image: ChainImage, behaviour_type, user_count):
+    def __init__(self, image: ChainImage, wait_times):
         super().__init__(image)
-        self.behaviour_type = behaviour_type  # TODO: make enum
+        self.wait_times = wait_times
         self.containers: Dict[str, Optional[Container]] = dict(
-            (secrets.token_hex(8), None) for _ in range(user_count))
+            (secrets.token_hex(8), None) for _ in range(len(wait_times)))
         self.logger = {}
-        self.wait_times = []
-        self.thread_pool = ThreadPoolExecutor(max_workers=user_count + 1)
+        self.thread_pool = ThreadPoolExecutor(max_workers=len(wait_times) + 1)
         if self.to_stdin:
             self.log_threads = []
-
-    def generate_behaviours(self, recording_time):
-        self.wait_times = get_sampling_method(self.behaviour_type).generate_wait_times(len(self.containers),
-                                                                                       recording_time)
 
     def start_containers(self):
         for k in self.containers.keys():

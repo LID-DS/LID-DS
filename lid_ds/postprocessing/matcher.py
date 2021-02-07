@@ -23,4 +23,4 @@ class PostprocessingMatcher:
         self.last_index = packet.index[-1]
         event = self.sysdig.find_first_matching_syscalls(packet)
 
-        return self._get_optimized_time(event, packet)
+        return self._get_optimized_time(event=event, packet=packet)

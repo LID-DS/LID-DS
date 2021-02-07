@@ -38,6 +38,9 @@ class Request:
     def post(self, path="", **kwargs):
         return self.http.post(self._join_urls(path), headers={'Content-Type': 'application/json'}, **kwargs)
 
+    def delete(self, path="", **kwargs):
+        return self.http.put(self._join_urls(path), **kwargs)
+
     def head(self, path, **kwargs):
         return self.http.head(self._join_urls(path), **kwargs)
 
@@ -71,6 +74,9 @@ class Database:
 
     def get(self, id):
         return self.request.get(id).json()
+
+    def delete(self, id):
+        return self.request.delete(id).json()
 
     def save(self, doc):
         res = self.request.post(data=json.dumps(doc)).json()

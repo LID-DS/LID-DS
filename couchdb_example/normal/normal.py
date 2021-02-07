@@ -68,6 +68,18 @@ def update_document():
     print("Update of doc %s in database %s" % (updated_doc, db))
 
 
+def delete_document():
+    db = random.choice(list(dbs.keys()))
+    if len(dbs[db]) == 0:
+        query(db)
+    conn = connect().get(db)
+    doc_id = random.choice(dbs[db])
+    conn.delete(doc_id)
+    dbs[db].remove(doc_id)
+
+    print("Deleted doc %s in database %s" % (doc_id, db))
+
+
 def new_document():
     db = random.choice(list(dbs.keys()))
     conn = connect().get(db)
@@ -90,10 +102,11 @@ if __name__ == '__main__':
                 'create': create_database,
                 'wrong': wrong_login,
                 'query': query,
+                'delete': delete_document,
                 'update': update_document,
                 'new': new_document,
             }
-            choice = numpy.random.choice(list(mapping.keys()), p=[0.1, 0.1, 0.4, 0.2, 0.2])
+            choice = numpy.random.choice(list(mapping.keys()), p=[0.1, 0.1, 0.3, 0.1, 0.2, 0.2])
             mapping[choice]()
         except Exception as e:
             print("Exception", e)

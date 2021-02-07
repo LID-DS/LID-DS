@@ -35,7 +35,6 @@ def run_image(image, network, name, port_mapping=None, command="", volumes=None,
 
 
 def show_logs(container: Container, logger):
-    logger.info("Showing logs")
     last = datetime.fromtimestamp(1)
     last_lines = collections.deque(maxlen=50)
     while True:

@@ -38,14 +38,14 @@ class Collector:
         time_store = self.storage["time"]
         if "container_ready" not in time_store:
             return {
-                "absolute": int(value),
+                "absolute": float(value),
                 "relative": 0,
                 "source": source,
             }
         else:
             return {
-                "absolute": int(value),
-                "relative": int(value) - time_store["container_ready"]["absolute"],
+                "absolute": float(value),
+                "relative": float(value) - time_store["container_ready"]["absolute"],
                 "source": source
             }
 

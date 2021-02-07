@@ -1,50 +1,91 @@
 import numpy as np
 import pandas as pd
-import os, random
-import matplotlib.pyplot as plt
-
-this_dir = os.path.dirname(os.path.realpath(__file__))
-print("reading raith")
-data_raith: pd.DataFrame = None#pd.read_hdf(os.path.join(this_dir, "raith.h5"))
-print("reading nasa")
-data_nasa: pd.DataFrame = None#pd.read_hdf(os.path.join(this_dir, "nasa.h5"))
-fig = plt.figure(figsize=(5, 15))
+import os
 
 
-def generate_sample_real_data(secs):
-    sample = data_nasa["time"]
-    first_time = random.randrange(sample.min(), sample.max())
-    sample = sample[sample.isin(range(first_time, first_time + secs))]
-    sample -= first_time
-    return sample.to_numpy(np.float64)
+def convert_to_wait_times(series, to_array=False):
+    wt = series.sort_values().diff()[1:-1]
+    if to_array:
+        return wt.tolist()
+    else:
+        return wt
 
 
-def generate_sample(secs, choice_factor=0.5, random_range=0.1):
-    # random difference between behaviors +-range
-    variation = round(random.uniform(1 - random_range, 1 + random_range), 2)
-    sample = np.random.choice(data_raith['time'], int(secs * choice_factor * variation))
-    # scale sample to secs
-    return np.round((sample / np.amax(sample) * secs), 0)
+class Sampler:
+    def __init__(self, dataset):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        hdf_path = os.path.join(dir_path, f"datasets/{dataset}.h5")
+        if not os.path.exists(hdf_path):
+            raise Exception("Dataset not found")
+        self.df: pd.DataFrame = pd.read_hdf(hdf_path)
+        self.random = np.random.default_rng()
 
+    def random_sampling(self, user, length, lower, upper):
+        wts = []
+        for _ in range(user):
+            # random count, add two for upper and lower limit
+            entry_count = self.random.integers(lower, upper) + 2
 
-def convert_sample_to_wait_times(sample: np.ndarray):
-    sample.sort()
-    wait_times = []
-    last = 0
-    for time in sample:
-        wait_times.append(time - last)
-        last = time
-    return wait_times
+            # select random
+            sample = self.df.sample(entry_count)
+            sample = sample["time"]
 
+            # scale to length
+            sample = sample - sample.min()
+            sample = sample / sample.max() * length
 
-def visualize_sample(sample: np.ndarray, bins=100):
-    n = len(fig.axes)
-    for i in range(n):
-        fig.axes[i].change_geometry(n + 1, 1, i + 1)
+            wts.append(convert_to_wait_times(sample, True))
+        return wts
 
-    ax = fig.add_subplot(n + 1, 1, n + 1)
-    ax.hist(sample, bins=bins)
+    def timerange_sampling(self, user, length):
+        wts = []
+        for _ in range(user):
+            sample = self.df["time"]
 
+            begin = np.random.choice(sample.to_numpy())
 
-def visualize(name):
-    fig.savefig("behavior_%s.png" % name)
+            sample = sample[sample.between(begin, begin + length)]
+
+            wts.append(convert_to_wait_times(sample, True))
+        return wts
+
+    def ip_sampling(self, user, length):
+        wts = []
+        for _ in range(user):
+            ip = np.random.choice(self.df["ip"])
+
+            sample = self.df[self.df['ip'] == ip]
+
+            sample = sample['time']
+
+            sample = sample - sample.min()
+            sample = sample / sample.max() * length
+
+            wts.append(convert_to_wait_times(sample, True))
+
+        return wts
+
+    def ip_timerange_sampling(self, user, length):
+        wts = []
+        for _ in range(user):
+            entry = self.df.sample(1).iloc[0]
+
+            sample = self.df[self.df['ip'] == entry['ip']]
+
+            sample = sample['time']
+            sample = sample[sample.between(
+                entry['time'], entry['time'] + length)]
+
+            wts.append(convert_to_wait_times(sample, True))
+
+        return wts
+
+    def extraction_sampling(self, length):
+        sample = self.df["time"]
+        begin = np.random.choice(sample.to_numpy())
+        sample = self.df[sample.between(begin, begin + length)]
+
+        wts = []
+        for name, group in sample.groupby("ip"):
+            wts.append(convert_to_wait_times(group["time"], True))
+        return wts

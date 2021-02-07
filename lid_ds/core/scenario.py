@@ -10,7 +10,7 @@ from time import sleep, time
 from typing import List
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
-from .image import Image, ChainImage
+from .image import ChainImage
 from .objects.environment import ScenarioEnvironment
 from .objects.meta import ScenarioMeta
 from .objects.attacker import ScenarioAttacker
@@ -18,7 +18,6 @@ from .objects.normal import ScenarioNormal
 from lid_ds.core.objects.victim import ScenarioVictim
 from lid_ds.utils import log
 from ..postprocessing import postprocessing
-from ..utils.docker_utils import get_ip_address
 
 
 class Scenario(metaclass=ABCMeta):
@@ -48,7 +47,7 @@ class Scenario(metaclass=ABCMeta):
             victim: ChainImage,
             normal: ChainImage,
             exploit: ChainImage,
-            user_count=10,
+            wait_times,
             warmup_time=60,
             recording_time=300,
             exploit_start_time=0,
@@ -66,7 +65,7 @@ class Scenario(metaclass=ABCMeta):
         self.storage_services = storage_services if storage_services else []
 
         self.victim = ScenarioVictim(victim)
-        self.normal = ScenarioNormal(normal, "generated", user_count)
+        self.normal = ScenarioNormal(normal, wait_times)
         self.exploit = ScenarioAttacker(exploit)
 
         Collector().set_meta(
@@ -74,12 +73,8 @@ class Scenario(metaclass=ABCMeta):
             image=victim.name, recording_time=self.general_meta.recording_time,
             is_exploit=self.general_meta.is_exploit)
 
-        self._container_init()
-
     def _container_init(self):
-        self.logger.info("Generating Behaviours")
-        self.normal.generate_behaviours(self.general_meta.recording_time)
-        self.logger.info("Starting normal container")
+        self.logger.info(f"Starting normal container")
         self.normal.start_containers()
         if self.is_exploit:
             self.logger.info("Starting exploit container")
@@ -116,14 +111,18 @@ class Scenario(metaclass=ABCMeta):
         self.normal.teardown()
         ScenarioEnvironment().network.remove()
 
-    def __call__(self, with_exploit=False):
-        self.logger.info('Simulating Scenario: {}'.format(self))
-        with self.victim.start_container(self.wait_for_availability,
-                                         self.init_victim) as container:
-            Collector().set_container_ready()
-            self._warmup()
-            self._recording()
-        self._teardown()
+    def __call__(self):
+        try:
+            self._container_init()
+            self.logger.info('Simulating Scenario: {}'.format(self))
+            with self.victim.start_container(self.wait_for_availability,
+                                             self.init_victim) as container:
+                Collector().set_container_ready()
+                self._warmup()
+                self._recording()
+        finally:
+            self._teardown()
+
         self._postprocessing()
 
         log.stop()

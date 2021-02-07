@@ -8,13 +8,14 @@ logger_name = "lidds_logger"
 
 
 def _init_logger():
-    formatter = logging.Formatter(fmt='%(levelname)s - %(container)s - %(message)s')
+    formatter_stream = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(container)s - %(message)s')
+    formatter_file = logging.Formatter(fmt='%(levelname)s - %(container)s - %(message)s')
 
     fh = logging.FileHandler(os.path.join(ScenarioEnvironment().out_dir, 'runs.log'))
-    fh.setFormatter(formatter)
+    fh.setFormatter(formatter_file)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
+    handler.setFormatter(formatter_stream)
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)

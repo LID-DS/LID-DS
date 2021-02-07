@@ -6,3 +6,4 @@ terminaltables
 docopt
 pandas
 pymongo
+tables

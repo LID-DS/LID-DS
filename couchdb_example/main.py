@@ -6,6 +6,7 @@ from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.image import StdinCommand, Image, ChainImage, ExecCommand
 from lid_ds.postprocessing.tcpdump import TCPPacketPartsMatcher
+from lid_ds.sim.sampler import Sampler
 from lid_ds.utils.docker_utils import get_host_port
 
 warmup_time = int(sys.argv[1])
@@ -19,12 +20,9 @@ total_duration = warmup_time + recording_time
 exploit_time = random.randint(int(recording_time * .3),
                               int(recording_time * .5))
 
-min_user_count = 10
-max_user_count = 25
-# user_count = random.randint(min_user_count, max_user_count)
-user_count = 1
+wait_times = Sampler("Jul95").extraction_sampling(total_duration)
 
-full_chain = True
+full_chain = int(sys.argv[4]) > 1
 
 
 class CouchDBChain(Scenario):
@@ -42,19 +40,29 @@ storage_services = [JSONFileStorage()]
 
 victim = Image('vulhub/couchdb:2.1.0')
 
+# Attack steps
+
 portscan = ExecCommand("sh /app/nmap.sh ${victim}", name="port-scan")
+
 bruteforce = ExecCommand("sh /app/hydra.sh ${victim}", name="brute-force",
                          after_packet=TCPPacketPartsMatcher(["GET /", "User-Agent: curl"],
                                                             forbidden_parts=["Authorization"]))
-privilege_escalation = ExecCommand("python3 /app/attacker.py ${victim}:5984", name="privilege-escalation",
+
+privilege_escalation = ExecCommand("python3 /app/exploit.py ${victim}:5984", name="privilege-escalation",
+                                   after_packet=TCPPacketPartsMatcher(["GET /", "User-Agent: curl"],
+                                                                      forbidden_parts=["Authorization"]))
+
+privilege_escalation_full = ExecCommand("python3 /app/exploit.py ${victim}:5984", name="privilege-escalation",
                                    after_packet=TCPPacketPartsMatcher(["GET /_all_dbs", "User-Agent: curl",
                                                                        "Authorization"]))
 remote_code = ExecCommand("python3 /app/reverse-shell.py ${victim}:5984", name="remote-code",
                           after_packet=TCPPacketPartsMatcher(["GET /_users/_all_docs",
                                                               "Authorization"]))
 
+# Szenarios
+
 exploit_full = ChainImage("exploit_couchdb",
-                          commands=[portscan, bruteforce, privilege_escalation, remote_code])
+                          commands=[portscan, bruteforce, privilege_escalation_full, remote_code])
 
 exploit_short = ChainImage("exploit_couchdb",
                            commands=[portscan,
@@ -71,7 +79,7 @@ if do_exploit:
         victim=victim,
         normal=normal,
         exploit=exploit_full if full_chain else exploit_short,
-        user_count=user_count,
+        wait_times=wait_times,
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,
@@ -81,7 +89,7 @@ else:
         victim=victim,
         normal=normal,
         exploit=exploit_full if full_chain else exploit_short,
-        user_count=user_count,
+        wait_times=wait_times,
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services)
