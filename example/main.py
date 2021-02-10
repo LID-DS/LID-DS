@@ -7,7 +7,9 @@ import pymysql
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.image import StdinCommand, Image, ExecCommand
+from lid_ds.sim import gen_schedule_wait_times
 from lid_ds.utils.docker_utils import get_host_port
+
 
 warmup_time = int(sys.argv[1])
 recording_time = int(sys.argv[2])
@@ -22,6 +24,8 @@ exploit_time = random.randint(int(recording_time * .3), int(recording_time * .8)
 min_user_count = 10
 max_user_count = 25
 user_count = random.randint(min_user_count, max_user_count)
+
+wait_times = [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
 
 
 class CVE_2012_2122(Scenario):
@@ -65,7 +69,7 @@ if do_exploit:
         victim=victim,
         normal=normal,
         exploit=exploit,
-        user_count=1,
+        wait_times=wait_times,
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,
@@ -76,7 +80,7 @@ else:
         victim=victim,
         normal=normal,
         exploit=exploit,
-        user_count=1,
+        wait_times=wait_times,
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,

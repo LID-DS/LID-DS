@@ -1,4 +1,3 @@
-import time
 import numpy as np
 from .schedule_constants import MIN_K, MAX_K, MIN_ALPHA, MAX_ALPHA, MIN_THETA, MAX_THETA
 

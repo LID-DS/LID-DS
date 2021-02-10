@@ -27,6 +27,7 @@ class Collector:
         }
         self.name = None
         self.logger = log.get_logger("collector", ScenarioEnvironment().logging_queue)
+        self.container_ready = None
 
     def _calculate_time_value(self, value=None, source=None) -> dict:
         if value is None:
@@ -36,7 +37,7 @@ class Collector:
             source = "UNKNOWN"
 
         time_store = self.storage["time"]
-        if "container_ready" not in time_store:
+        if "warmup_end" not in time_store:
             return {
                 "absolute": float(value),
                 "relative": 0,
@@ -45,7 +46,7 @@ class Collector:
         else:
             return {
                 "absolute": float(value),
-                "relative": float(value) - time_store["container_ready"]["absolute"],
+                "relative": float(value) - time_store["warmup_end"]["absolute"],
                 "source": source
             }
 
@@ -56,10 +57,11 @@ class Collector:
         self.storage["exploit"] = is_exploit
 
     def set_container_ready(self):
-        self.storage["time"]["container_ready"] = self._calculate_time_value()
+        self.container_ready = self._calculate_time_value()['absolute']
 
     def set_warmup_end(self):
         self.storage["time"]["warmup_end"] = self._calculate_time_value()
+        self.storage["time"]["container_ready"] = self._calculate_time_value(self.container_ready, "CONTROL_SCRIPT")
 
     def add_container(self, name, role, ip):
         self.storage['container'].append({'name': name, 'role': role, 'ip': ip})
