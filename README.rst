@@ -1,11 +1,15 @@
 LID-DS (Leipzig Intrusion Detection - Data Set)
 ***********************************************
 
-Download the host based intrusion detection data set.
+Download the host based intrusion detection data set version 2019.
 #####################################################
-`LID-DS download <https://www.exploids.de/lid-ds/>`_
+`LID-DS 2019 download <https://www.exploids.de/lid-ds/>`_
 
-The Framework
+The Framework Version 2021
+#############
+* description coming soon
+
+The Framework Version 2019
 #############
 
 .. image:: https://travis-ci.org/LID-DS/LID-DS.svg?branch=master
@@ -82,8 +86,7 @@ Leipzig University, Martin Grimmer (grimmer@informatik.uni-leipzig.de) and Marti
 
 Acknowledgements
 ----------------
-
-This work was partly funded by the German Federal Ministry of Education and Research within the project `Explicit Privacy-Preserving Host Intrusion Detection System (EXPLOIDS)`_ (BMBF 16KIS0522K) and `Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig`_ (BMBF 01IS14014B).
+This work was partly funded by the German Federal Ministry of Education and Research within the project `Explicit Privacy-Preserving Host Intrusion Detection System (EXPLOIDS)`_ (BMBF 16KIS0522K) and `Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig`_ (BMBF 01IS14014B and BMBF 01IS18026B).
 
 .. _Explicit Privacy-Preserving Host Intrusion Detection System (EXPLOIDS): http://www.exploids.de
 .. _Competence Center for Scalable Data Services and Solutions (ScaDS) Dresden/Leipzig: http://www.scads.de
