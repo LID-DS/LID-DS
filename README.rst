@@ -1,9 +1,10 @@
 LID-DS (Leipzig Intrusion Detection - Data Set)
 ***********************************************
 
-Download the host based intrusion detection data set version 2019.
+Download the host based intrusion detection data set.
 #####################################################
-`LID-DS 2019 download <https://www.exploids.de/lid-ds/>`_
+* LID-DS 2019 download: <https://www.exploids.de/lid-ds/>`_
+* LID-DS 2021 download: coming soon
 
 The Framework Version 2021
 #############
