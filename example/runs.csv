@@ -1,3 +1,6 @@
 image_name, scenario_name, is_executing_exploit, warmup_time, recording_time, exploit_start_time
 vulhub/mysql:5.5.23, only_normal_behavior, False, 15, 300, -1
 vulhub/mysql:5.5.23, other_normal_behavior_with_exploit, True, 15, 300, 120
+vulhub/mysql:5.5.23, thousands_hermann_3279, False, 5, 30, -1
+vulhub/mysql:5.5.23, miniature_edison_1607, False, 5, 30, -1
+vulhub/mysql:5.5.23, cool_mayer_4436, False, 10, 100, -1

@@ -3,120 +3,143 @@ The purpose of the Scenario module is to provide the scenario class.
 The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
-import logging
-import os
 
 from abc import ABCMeta, abstractmethod
-from threading import Thread, Timer
-from time import sleep
-from lid_ds.helpers import scenario_name
-from .pout import add_run
-from .container_run import container_run
-from .recorder_run import record_container
+from threading import Thread
+from time import sleep, time
+from typing import List
 
-logger = logging.getLogger(__name__)
+from lid_ds.core.collector.collector import Collector, CollectorStorageService
+from .image import ChainImage
+from .objects.environment import ScenarioEnvironment
+from .objects.meta import ScenarioMeta
+from .objects.attacker import ScenarioAttacker
+from .objects.normal import ScenarioNormal
+from lid_ds.core.objects.victim import ScenarioVictim
+from lid_ds.utils import log
+from ..postprocessing import postprocessing
+
 
 class Scenario(metaclass=ABCMeta):
-    @abstractmethod
-    def exploit(self, *args, **kwargs):
-        """
-        Implement the exploit method in the derived class
-        to add a hook that gets called when the exploit shall
-        be executed.
-        """
     @abstractmethod
     def wait_for_availability(self, container):
         """
         Implement a hook that returns once the container is ready
         """
 
+    @abstractmethod
+    def init_victim(self, container, logger):
+        """
+        Implement a method for initialising the victim container, pass if this is not needed
+        """
+
+    @property
+    def is_exploit(self):
+        return self.general_meta.is_exploit
+
     """
     The scenario class provides a baseclass to derive from
     in order to implement a custom security scenario
     """
+
     def __init__(
             self,
-            image_name,
-            port_mapping={},
+            victim: ChainImage,
+            normal: ChainImage,
+            exploit: ChainImage,
+            wait_times,
             warmup_time=60,
             recording_time=300,
-            behaviours=[],
-            **kwargs
+            exploit_start_time=0,
+            storage_services: List[CollectorStorageService] = None
     ):
         """
         initialize all time sequences needed for the recording process
         as well es for statistically relevant execution
         """
-        self.image_name = image_name
-        self.port_mapping = port_mapping
-        self.warmup_time = warmup_time
-        self.behaviours = behaviours
-        self.recording_time = recording_time
-        self.execute_exploit = 'exploit_start_time' in kwargs
-        print("Simulating with exploit " + str(self.execute_exploit))
-        if not isinstance(self.warmup_time, (int, float)):
-            raise TypeError("Warmup time needs to be an integer or float")
-        if not isinstance(self.recording_time, (int, float)):
-            raise TypeError("Recording time needs to be an integer or float")
-        if self.execute_exploit:
-            self.exploit_start_time = kwargs.get('exploit_start_time')
-            if not isinstance(self.exploit_start_time, (int, float)):
-                raise TypeError("Exploit start time needs to be an integer or float")
+        self.general_meta = ScenarioMeta(exploit_start_time, warmup_time, recording_time)
+        self.logger = log.get_logger("control_script", ScenarioEnvironment().logging_queue)
+        self.logging_thread = Thread(target=log.print_logs)
+        self.logging_thread.start()
 
-            if self.exploit_start_time > recording_time:
-                raise ValueError(
-                    "The start time of the exploit must be before the end of the recording!"
-                    )
-        self.current_threads = []
+        self.storage_services = storage_services if storage_services else []
 
-        self.name = scenario_name(self)
-        add_run(self)
-        """
-        file = open("/data/runs.csv", "a+")
-        if self.execute_exploit:
-            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), str(self.exploit_start_time)))
-        else:
-            file.write("{}, {}, {}, {}, {}, {}\n".format(self.image_name, self.name, str(self.execute_exploit), str(self.warmup_time), str(self.recording_time), "none"))
-        file.close()
-        """
+        self.victim = ScenarioVictim(victim)
+        self.normal = ScenarioNormal(normal, wait_times)
+        self.exploit = ScenarioAttacker(exploit)
 
-    def __call__(self, with_exploit=False):
-        print('Simulating Scenario: {}'.format(self))
-        with container_run({
-            'image_name': self.image_name,
-            'port_mapping': self.port_mapping
-        }, self.wait_for_availability) as container:
-            print('Start Normal Behaviours for Scenario: {}'.format(self.name))
-            for behaviour in self.behaviours:
-                thread_behaviour = Thread(target=behaviour, args=())
-                thread_behaviour.start()
-                self.current_threads.append(thread_behaviour)
-            print('Warming up Scenario: {}'.format(self.name))
-            sleep(self.warmup_time)
-            print('Start Recording Scenario: {}'.format(self.name))
-            with record_container(container, self.name) as recorder:
-                # Do normal behaviour
-                if self.execute_exploit:
-                    print('Start Exploiting Scenario: {}'.format(self.name))
-                    texploit = Timer(self.exploit_start_time, self.exploit, [container])
-                    tannounce = Timer(self.exploit_start_time, print, ("Exploiting now"))
-                    texploit.start()
-                    tannounce.start()
-                sleep(self.recording_time)
+        Collector().set_meta(
+            name=self.general_meta.name,
+            image=victim.name, recording_time=self.general_meta.recording_time,
+            is_exploit=self.general_meta.is_exploit)
+
+    def _container_init(self):
+        self.logger.info(f"Starting normal container")
+        self.normal.start_containers()
+        if self.is_exploit:
+            self.logger.info("Starting exploit container")
+            self.exploit.start_container()
+
+    def _warmup(self):
+        self.logger.info('Warming up Scenario: {}'.format(self.general_meta.name))
+        sleep(self.general_meta.warmup_time)
+        Collector().set_warmup_end()
+
+        if self.is_exploit:
+            exploit_time = time() + self.general_meta.exploit_time
+            self.exploit_thread = Thread(
+                target=self.exploit.execute_exploit_at_time, args=(exploit_time,))
+            self.exploit_thread.start()
+
+        self.logger.info('Start Normal Behaviours for Scenario: {}'.format(self.general_meta.name))
+        wts = self.normal.start_simulation()
+        self.logger.debug("Simulating with %s" % wts)
+
+    def _recording(self):
+        self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
+        with self.victim.record_container() as (sysdig, tcpdump):
+            sleep(self.general_meta.recording_time)
+
+    def _postprocessing(self):
+        if self.is_exploit:
+            postprocessing.optimize_attack_time(self.exploit.image)
+        Collector().write(self.storage_services)
+
+    def _teardown(self):
+        if self.is_exploit:
+            self.exploit.teardown()
+        self.normal.teardown()
+        ScenarioEnvironment().network.remove()
+
+    def __call__(self):
+        try:
+            self._container_init()
+            self.logger.info('Simulating Scenario: {}'.format(self))
+            with self.victim.start_container(self.wait_for_availability,
+                                             self.init_victim) as container:
+                Collector().set_container_ready()
+                self._warmup()
+                self._recording()
+        finally:
+            self._teardown()
+
+        self._postprocessing()
+
+        log.stop()
+        self.logging_thread.join()
 
     def __repr__(self):
-        if self.execute_exploit:
+        if self.general_meta.is_exploit:
             return '<{} {} recording_time={} warmup_time={} exploit_start_time={}>'.format(
                 self.__class__.__name__,
-                self.name,
-                self.recording_time,
-                self.warmup_time,
-                self.exploit_start_time
-                )
+                self.general_meta.name,
+                self.general_meta.recording_time,
+                self.general_meta.warmup_time,
+                self.general_meta.exploit_time
+            )
         return '<{} {} recording_time={} warmup_time={}>'.format(
             self.__class__.__name__,
-            self.name,
-            self.recording_time,
-            self.warmup_time,
-            )
-
+            self.general_meta.name,
+            self.general_meta.recording_time,
+            self.general_meta.warmup_time,
+        )
