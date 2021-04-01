@@ -1,3 +1,7 @@
+###############################################################
+#	Install Script for clean Ubuntu 18.04                 #
+###############################################################
+
 #Prerequesites
 sudo apt update
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
