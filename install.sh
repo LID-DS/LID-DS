@@ -17,15 +17,3 @@ echo 'eval "$(pyenv init -)"' >> /home/$(whoami)/.bashrc
 echo 'eval "$(pyenv virtualenv-init -)"' >> /home/$(whoami)/.bashrc
 curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash
 
-# install python and pip
-sudo apt install python3.7
-sudo apt install python3-pip
-
-#clone git
-sudo apt install git
-cd ~/Documents
-git clone https://github.com/LID-DS/LID-DS
-cd LID-DS
-#install requirements
-python3.7 -m pip install -r requirements.txt
-python3.7 -m pip install -e .
