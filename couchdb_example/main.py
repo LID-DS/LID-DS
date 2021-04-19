@@ -1,7 +1,7 @@
 import sys
 import random
 import requests
-from couchdb_example.victim.init import init
+from victim.init import init
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.image import StdinCommand, Image, ChainImage, ExecCommand
