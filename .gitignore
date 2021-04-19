@@ -30,7 +30,6 @@ coverage.xml
 *.pot
 
 docs/_build
-scenarios
 .idea
 
 runs/
