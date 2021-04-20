@@ -36,3 +36,6 @@ scenarios
 runs/
 runs.json
 runs.log
+
+# Sim Files
+*.h5

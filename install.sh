@@ -17,5 +17,4 @@ echo 'eval "$(pyenv init -)"' >> /home/$(whoami)/.bashrc
 echo 'eval "$(pyenv virtualenv-init -)"' >> /home/$(whoami)/.bashrc
 curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash
 
-rm lid_ds/sim/datasets/*.h5
 unzip lid_ds/sim/datasets/Archiv.zip lid_ds/sim/datasets/
