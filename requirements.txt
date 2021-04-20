@@ -17,4 +17,3 @@ urllib3~=1.26.2
 CouchDB~=1.2
 pypcapkit~=0.15.5
 scapy~=2.4.4
-PyMySQL~=1.0.2
