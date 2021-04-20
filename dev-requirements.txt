@@ -1,6 +1,0 @@
-pylint
-mypy
-pytest
-tox
-
-sphinx
