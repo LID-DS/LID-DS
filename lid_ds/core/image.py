@@ -25,7 +25,7 @@ class ExecCommand(Command):
 class ChainImage:
     name: str
     commands: List[Union[ExecCommand, StdinCommand]] = None
-    init_args: str = None
+    init_args: str = ""
 
 
 class Image(ChainImage):
