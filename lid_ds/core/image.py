@@ -29,5 +29,5 @@ class ChainImage:
 
 
 class Image(ChainImage):
-    def __init__(self, name: str, command: Union[ExecCommand, StdinCommand] = None, init_args=None):
+    def __init__(self, name: str, command: Union[ExecCommand, StdinCommand] = None, init_args=""):
         super(Image, self).__init__(name, [command] if command else [], init_args)
