@@ -15,15 +15,15 @@ from lid_ds.utils.docker_utils import get_ip_address
 
 
 def kill_child(child):
-        pid = child.pid
-        tries = 0
-        while child.isalive():
-            tries += 1
-            child.sendcontrol('c')
-            if tries > 1000:
-                break
-        if child.isalive():
-            os.kill(pid, signal.SIGINT)
+    pid = child.pid
+    tries = 0
+    while child.isalive():
+        tries += 1
+        child.sendcontrol('c')
+        if tries > 1000:
+            break
+    if child.isalive():
+        os.kill(pid, signal.SIGINT)
 
 
 class ScenarioVictim(ScenarioContainerBase):
@@ -51,7 +51,9 @@ class ScenarioVictim(ScenarioContainerBase):
     def record_container(self, buffer_size=80):
         sysdig = self._sysdig(buffer_size)
         tcpdump = self._tcpdump()
+        # todo: start resource logging thread here
         yield sysdig, tcpdump
+        # todo: stop the resource logging thread here
         kill_child(sysdig)
         tcpdump.kill()
 
@@ -59,7 +61,8 @@ class ScenarioVictim(ScenarioContainerBase):
         sysdig_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}.scap')
         self.logger.info('Saving to Sysdig to {} with buffer size {}'.format(sysdig_out_path, buffer_size))
         return pexpect.spawn(
-            'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size, self.env.victim_hostname))
+            'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size,
+                                                                       self.env.victim_hostname))
 
     def _tcpdump(self):
         container = run_image("itsthenetwork/alpine-tcpdump",
@@ -67,5 +70,9 @@ class ScenarioVictim(ScenarioContainerBase):
                               name="tcpdump_%s" % self.env.recording_name,
                               network="container:%s" % self.container.name,
                               command="-i any -U -s0 -w /capture/%s.pcap" % self.env.recording_name)
-        self.logger.info("Writing tcpdump to %s" % (os.path.join(self.env.out_dir, "%s.pcap" % self.env.recording_name)))
+        self.logger.info(
+            "Writing tcpdump to %s" % (os.path.join(self.env.out_dir, "%s.pcap" % self.env.recording_name)))
         return container
+
+    def _resource_logger(self):
+        pass
