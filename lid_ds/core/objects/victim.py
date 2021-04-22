@@ -1,6 +1,7 @@
 import os
 import signal
 from contextlib import contextmanager
+from threading import Thread
 
 import pexpect
 
@@ -12,7 +13,7 @@ from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
 from lid_ds.utils.docker_utils import get_ip_address
-from lid_ds.utils.docker_utils import extract_resource_usage
+from lid_ds.utils.docker_utils import ResourceLoggingThread
 
 
 def kill_child(child):
@@ -34,6 +35,7 @@ class ScenarioVictim(ScenarioContainerBase):
         self.container = None
         self.env = ScenarioEnvironment()
         self.logger = log.get_logger(f"[VICTIM] {self.env.victim_hostname}", self.queue)
+        self._resource_thread = None
 
     @contextmanager
     def start_container(self, check_if_available, init=None):
@@ -45,26 +47,20 @@ class ScenarioVictim(ScenarioContainerBase):
         self.logger.info("Container available on port(s) %s" % self.container.ports)
         if init is not None:
             init(self.container, self.logger)
+        self._resource_thread = ResourceLoggingThread(self.container)
+        self._resource_thread.start()
         yield self.container
+        self._resource_thread.stop_it()
+        self._resource_thread.join()
         self.container.stop()
 
     @contextmanager
     def record_container(self, buffer_size=80):
         sysdig = self._sysdig(buffer_size)
         tcpdump = self._tcpdump()
-        # todo: start resource logging thread here
-        # should return a thread id
-        resource = self._resource_logging()
-        yield sysdig, tcpdump, resource
-        # todo: stop the resource logging thread here
-        # stop thread resourcelogging with the thread id
+        yield sysdig, tcpdump, self._resource_thread
         kill_child(sysdig)
         tcpdump.kill()
-
-    def _resource_logging(self):
-        data = extract_resource_usage(self.container)
-        print(data)
-        return data
 
     def _sysdig(self, buffer_size):
         sysdig_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}.scap')
