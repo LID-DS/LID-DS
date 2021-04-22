@@ -5,13 +5,14 @@ from contextlib import contextmanager
 import pexpect
 
 from lid_ds.core.collector.collector import Collector
-from lid_ds.core.objects.environment import ScenarioEnvironment
-from lid_ds.core.objects.base import ScenarioContainerBase
 from lid_ds.core.image import ChainImage
+from lid_ds.core.objects.base import ScenarioContainerBase
+from lid_ds.core.objects.environment import ScenarioEnvironment
 from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
 from lid_ds.utils.docker_utils import get_ip_address
+from lid_ds.utils.docker_utils import extract_resource_usage
 
 
 def kill_child(child):
@@ -52,10 +53,18 @@ class ScenarioVictim(ScenarioContainerBase):
         sysdig = self._sysdig(buffer_size)
         tcpdump = self._tcpdump()
         # todo: start resource logging thread here
-        yield sysdig, tcpdump
+        # should return a thread id
+        resource = self._resource_logging()
+        yield sysdig, tcpdump, resource
         # todo: stop the resource logging thread here
+        # stop thread resourcelogging with the thread id
         kill_child(sysdig)
         tcpdump.kill()
+
+    def _resource_logging(self):
+        data = extract_resource_usage(self.container)
+        print(data)
+        return data
 
     def _sysdig(self, buffer_size):
         sysdig_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}.scap')

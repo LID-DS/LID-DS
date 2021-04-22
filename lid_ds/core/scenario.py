@@ -97,7 +97,7 @@ class Scenario(metaclass=ABCMeta):
 
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
-        with self.victim.record_container() as (sysdig, tcpdump):
+        with self.victim.record_container() as (sysdig, tcpdump, resource):
             sleep(self.general_meta.recording_time)
 
     def _postprocessing(self):
