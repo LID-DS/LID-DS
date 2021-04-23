@@ -8,6 +8,6 @@ echo '[+] Starting apache'
 service apache2 start
 
 echo '--> init dvwa script'
-python3 /tmp/dvwa_init.py > py.log 2>&1
+python3 /tmp/dvwa_init.py
 
 sleep 1d

@@ -28,3 +28,6 @@ RUN chmod +x /usr/bin/chromedriver
 COPY main.sh /
 RUN chmod +x /main.sh
 COPY dvwa_init.py /tmp/dvwa_init.py
+
+ENTRYPOINT ["./main.sh"]
+
