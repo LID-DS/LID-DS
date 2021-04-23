@@ -1,29 +1,31 @@
 import os
 import signal
 from contextlib import contextmanager
+from threading import Thread
 
 import pexpect
 
 from lid_ds.core.collector.collector import Collector
-from lid_ds.core.objects.environment import ScenarioEnvironment
-from lid_ds.core.objects.base import ScenarioContainerBase
 from lid_ds.core.image import ChainImage
+from lid_ds.core.objects.base import ScenarioContainerBase
+from lid_ds.core.objects.environment import ScenarioEnvironment
 from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
 from lid_ds.utils.docker_utils import get_ip_address
+from lid_ds.utils.docker_utils import ResourceLoggingThread
 
 
 def kill_child(child):
-        pid = child.pid
-        tries = 0
-        while child.isalive():
-            tries += 1
-            child.sendcontrol('c')
-            if tries > 1000:
-                break
-        if child.isalive():
-            os.kill(pid, signal.SIGINT)
+    pid = child.pid
+    tries = 0
+    while child.isalive():
+        tries += 1
+        child.sendcontrol('c')
+        if tries > 1000:
+            break
+    if child.isalive():
+        os.kill(pid, signal.SIGINT)
 
 
 class ScenarioVictim(ScenarioContainerBase):
@@ -33,6 +35,7 @@ class ScenarioVictim(ScenarioContainerBase):
         self.container = None
         self.env = ScenarioEnvironment()
         self.logger = log.get_logger(f"[VICTIM] {self.env.victim_hostname}", self.queue)
+        self._resource_thread = None
 
     @contextmanager
     def start_container(self, check_if_available, init=None):
@@ -44,14 +47,18 @@ class ScenarioVictim(ScenarioContainerBase):
         self.logger.info("Container available on port(s) %s" % self.container.ports)
         if init is not None:
             init(self.container, self.logger)
+        self._resource_thread = ResourceLoggingThread(self.container)
+        self._resource_thread.start()
         yield self.container
+        self._resource_thread.stop_it()
+        self._resource_thread.join()
         self.container.stop()
 
     @contextmanager
     def record_container(self, buffer_size=80):
         sysdig = self._sysdig(buffer_size)
         tcpdump = self._tcpdump()
-        yield sysdig, tcpdump
+        yield sysdig, tcpdump, self._resource_thread
         kill_child(sysdig)
         tcpdump.kill()
 
@@ -59,7 +66,8 @@ class ScenarioVictim(ScenarioContainerBase):
         sysdig_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}.scap')
         self.logger.info('Saving to Sysdig to {} with buffer size {}'.format(sysdig_out_path, buffer_size))
         return pexpect.spawn(
-            'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size, self.env.victim_hostname))
+            'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size,
+                                                                       self.env.victim_hostname))
 
     def _tcpdump(self):
         container = run_image("itsthenetwork/alpine-tcpdump",
@@ -67,5 +75,9 @@ class ScenarioVictim(ScenarioContainerBase):
                               name="tcpdump_%s" % self.env.recording_name,
                               network="container:%s" % self.container.name,
                               command="-i any -U -s0 -w /capture/%s.pcap" % self.env.recording_name)
-        self.logger.info("Writing tcpdump to %s" % (os.path.join(self.env.out_dir, "%s.pcap" % self.env.recording_name)))
+        self.logger.info(
+            "Writing tcpdump to %s" % (os.path.join(self.env.out_dir, "%s.pcap" % self.env.recording_name)))
         return container
+
+    def _resource_logger(self):
+        pass
