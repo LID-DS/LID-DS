@@ -16,16 +16,12 @@ RUN pip3 install 'urllib3==1.23' --force-reinstall
 RUN pip3 install pyvirtualdisplay
 RUN pip3 install requests
 
-#RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
-#RUN tar -xvzf geckodriver-v0.22.0-linux64.tar.gz -C /usr/bin
-#RUN chmod +x /usr/bin/geckodriver
-
 RUN wget https://chromedriver.storage.googleapis.com/2.42/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip -d /usr/bin
 RUN chmod +x /usr/bin/chromedriver
 
-#COPY main.sh /
-#RUN chmod +x /main.sh
+COPY main.sh /
+RUN chmod +x /main.sh
 COPY dvwa_init.py /tmp/dvwa_init.py
 
-ENTRYPOINT ["./bin/bash"]
+ENTRYPOINT ["./main.sh"]

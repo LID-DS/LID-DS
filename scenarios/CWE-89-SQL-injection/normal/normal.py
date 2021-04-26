@@ -1,11 +1,14 @@
 import argparse
+import os
+import sys
+import tempfile
 import time
+
 import requests
 import numpy as np
 import logging
 import string
 import random
-import lidds
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -66,7 +69,6 @@ exclude_links = ['/logout.php',
                  '/phpinfo.php',
                  '.pdf']
 
-
 # logins for dvwa
 logins = {}
 logins["Admin"] = "password"
@@ -92,34 +94,22 @@ def generate_random_string(size=6, chars=string.printable):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def wait_for_dvwa():
-    done = False
-    logging.info('wait till dvwa is up und running...')
-    while not done:
-        # wait till dvwa is up und running
-        url = 'http://' + args.server_ip + '/login.php'
-        browser.get(url)
-        logging.info("get url: " + url)
-        if 'Login :: Damn Vulnerable Web Application' in browser.title:
-            done = True
-            logging.info('dvwa is ready...')
-        else:
-            logging.info(
-                'dvwa not ready yet, waiting 2 seconds, current title: \n'
-                + browser.title)
-            time.sleep(2)
-
-
 def random_browsing():
     """
     main loop of random browsing normal behaviour
     """
-    wait_for_dvwa()
-    # now start the "normal routine"
-    lidds.scheduler_sync(normal_step)
+    while True:
+        # now start the "normal routine"
+        sys.stdin.readline()
+        try:
+            normal_step()
+        except Exception as e:
+            if args.verbose:
+                print(e)
+            time.sleep(2)
 
 
-def normal_step(arg):
+def normal_step():
     global client_state
     # is the client logged in?
     # yes, its logged in
@@ -145,7 +135,8 @@ def do_things():
         Values 1 to 5 are ok
     """
     if 'vulnerabilities/sqli/' in browser.current_url:
-        logging.info(' SQL injection form found')
+        if args.verbose:
+            print(' SQL injection form found')
         sending_value = ''
         if np.random.random() <= sqli_valid_input_probability:
             # enter a valid integer value (valid is from 1 to 5)
@@ -153,15 +144,29 @@ def do_things():
         else:
             if np.random.random() <= sqli_random_string_probability:
                 # enter a random string
-                sending_value = generate_random_string(
-                    np.random.randint(low=1, high=40))
+                sending_value = \
+                    generate_random_string(np.random.randint(low=1, high=40))
             else:
                 # enter a "not" valid number
                 sending_value = str(np.random.randint(low=-10000, high=10000))
 
-        logging.info(' sending: %s', sending_value)
+        if args.verbose:
+            print(' sending: {}'.format(sending_value))
         browser.find_element_by_name('id').send_keys(sending_value)
         browser.find_element_by_name('Submit').click()
+
+    if 'vulnerabilities/upload' in browser.current_url:
+        if args.verbose:
+            print(' upload form found')
+        # Create a random tempfile and upload it
+        file_size = random.randint(1000, 10000)
+        file = tempfile.NamedTemporaryFile(mode='w+b')
+        file.write(os.urandom(file_size))
+        if args.verbose:
+            print(' upload file {}'.format(file.name))
+        fileinput = browser.find_element_by_name('uploaded')
+        fileinput.send_keys(file.name)
+        browser.find_element_by_name('Upload').click()
 
 
 def follow_link():
@@ -169,17 +174,20 @@ def follow_link():
     iterates all "internal" links and chooses a random one to follow
     """
     # list all available local links
-    logging.info('follow link...')
+    if args.verbose:
+        print('follow link...')
     link_list = list()
     for link in browser.find_elements_by_xpath('.//a'):
         link_url = link.get_attribute('href')
         if args.server_ip in link_url:
             if not any(e in link_url for e in exclude_links):
                 link_list.append(link)
-                logging.info('%d. %s', len(link_list)-1, link_url)
+                if args.verbose:
+                    print('{}. {}'.format(len(link_list) - 1, link_url))
     # randomly select one link to follow
     i = np.random.randint(0, high=len(link_list))
-    logging.info('    selected: [%d] of %d links', i, len(link_list))
+    if args.verbose:
+        print('    selected: [{}] of {} links'.format(i, len(link_list)))
     selected_link = link_list[i]
     selected_link.click()
 
@@ -187,19 +195,22 @@ def follow_link():
 def log_in():
     """
     logs into dvwa with the given username and password
-    (args.username and args.password)
     changes client_state to logged_in
     """
     global client_state
     url = 'http://' + args.server_ip + '/login.php'
-    logging.info('login... ' + url)
+    if args.verbose:
+        print('login... ' + url)
     browser.get(url)
-    logging.info('    got response')
+    if args.verbose:
+        print('    got response')
     browser.find_element_by_name('username').send_keys(username)
     browser.find_element_by_name('password').send_keys(password)
-    logging.info('    filled form and click')
+    if args.verbose:
+        print('    filled form and click')
     browser.find_element_by_name('Login').click()
-    logging.info('    logged in')
+    if args.verbose:
+        print('    logged in')
     client_state = logged_in
 
 
@@ -209,9 +220,11 @@ def log_off():
     changes client_state to logged_off
     """
     global client_state
-    logging.info('logut...')
+    if args.verbose:
+        print('logout...')
     browser.find_element_by_link_text('Logout').click()
-    logging.info('    logged out')
+    if args.verbose:
+        print('    logged out')
     client_state = logged_off
 
 

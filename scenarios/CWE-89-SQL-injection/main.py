@@ -1,4 +1,3 @@
-import docker
 import random
 import sys
 import urllib.request
@@ -7,6 +6,7 @@ from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.sim import gen_schedule_wait_times
 from lid_ds.core.image import StdinCommand, Image, ExecCommand
+from lid_ds.utils.docker_utils import get_ip_address
 
 
 warmup_time = int(sys.argv[1])
@@ -28,16 +28,6 @@ wait_times = \
     [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
 
 
-def get_container_ip(container):
-    """
-    Returns the ip adress of the server container
-    """
-    client = docker.APIClient(base_url='unix://var/run/docker.sock')
-    server_ip = \
-        client.inspect_container(container.id)['NetworkSettings']['IPAddress']
-    return server_ip
-
-
 class SQLInjection(Scenario):
     victim_ip = ""
 
@@ -47,7 +37,7 @@ class SQLInjection(Scenario):
     def wait_for_availability(self, container):
         global victim_ip
         try:
-            victim_ip = get_container_ip(container)
+            victim_ip = get_ip_address(container)
             url = "http://" + victim_ip + "/login.php"
             print("checking... is victim ready?")
             with urllib.request.urlopen(url) as response:
