@@ -60,7 +60,7 @@ storage_services = [JSONFileStorage()]
 
 victim = Image("victim_eps")
 normal = Image("normal_eps", command=StdinCommand(""), init_args="-ip ${victim}")
-exploit = Image("exploit_eps", command=StdinCommand(""), init_args="${victim}")
+exploit = Image("exploit_eps", command=ExecCommand("python3 /home/exploit.py -ip ${victim}"))
 
 if do_exploit:
     scenario_normal = EPS_CWE_434(

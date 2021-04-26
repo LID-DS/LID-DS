@@ -3,8 +3,6 @@ FROM debian:9.2
 RUN apt-get update
 RUN apt-get install -y curl python3 python3-pip
 
-RUN pip3 install requests
-
 ADD images /home/images
 COPY normal.py /home/normal.py
 

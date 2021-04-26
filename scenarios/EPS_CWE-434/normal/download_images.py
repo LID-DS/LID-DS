@@ -9,7 +9,7 @@ number_of_images = 500
 
 
 def prepare_files():
-    """ prepares the images, called by __init__ """
+    """ prepares the images, called by build_images.sh"""
     print("prepare files...")
     # check for number of eps in current folder... needs min 1000
     image_list = glob.glob(path_download_images + "/*.eps")
@@ -18,7 +18,7 @@ def prepare_files():
         image_list = glob.glob(path_download_images + "/*.jpg")
         if len(image_list) < number_of_images:
             # if not there download them like: wget -O test.jpg http://lorempixel.com/1920/1080/
-            print("start downloading jpgs from http://lorempixel.com")
+            print("start downloading jpgs from http://picsum.com")
             for num in range(number_of_images):
                 filename = path_download_images + "image_" + str(num).zfill(4) + ".jpg"
                 if not os.path.isfile("./" + filename):

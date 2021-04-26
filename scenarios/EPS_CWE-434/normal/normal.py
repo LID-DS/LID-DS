@@ -4,10 +4,7 @@ import random
 import subprocess
 import sys
 import time
-import requests
 import os
-
-import requests
 
 parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')
 
@@ -35,7 +32,6 @@ def send_file(file, victim):
     """ sends the given file to the victim"""
     print("sending: " + file + " to " + victim)
     os.system("curl -X PUT --upload-file " + file + " " + victim)
-    # r = requests.put(victim, data=open(file, 'rb'))
 
 
 while True:
