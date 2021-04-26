@@ -22,9 +22,9 @@ RUN wget https://chromedriver.storage.googleapis.com/2.42/chromedriver_linux64.z
 RUN unzip chromedriver_linux64.zip -d /usr/bin
 RUN chmod +x /usr/bin/chromedriver
 
-COPY client.py /home/client.py
+COPY normal.py /home/normal.py
 
-ENTRYPOINT ["python3", "-u", "/home/client.py"]
+ENTRYPOINT ["python3", "-u", "/home/normal.py"]
 CMD []
 
 

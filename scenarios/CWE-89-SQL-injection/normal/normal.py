@@ -21,18 +21,13 @@ parser.add_argument('-ip',
                     type=str,
                     required=True,
                     help='The IP address of the target server')
-parser.add_argument('-u',
-                    dest='username',
+parser.add_argument('-v',
+                    dest='verbose',
                     action='store',
-                    type=str,
-                    required=True,
-                    help='The username of the client')
-parser.add_argument('-p',
-                    dest='password',
-                    action='store',
-                    type=str,
-                    required=True,
-                    help='The password of the client')
+                    type=bool,
+                    required=False,
+                    default=False,
+                    help='Make the operations more talkative')
 
 args = parser.parse_args()
 
@@ -70,6 +65,20 @@ exclude_links = ['/logout.php',
                  '/security.php',
                  '/phpinfo.php',
                  '.pdf']
+
+
+# logins for dvwa
+logins = {}
+logins["Admin"] = "password"
+logins["gordonb"] = "abc123"
+logins["pablo"] = "letmein"
+logins["smithy"] = "password"
+logins["1337"] = "charley"
+
+# pick random user
+user_list = list(logins.keys())
+username = random.choice(user_list)
+password = logins[username]
 
 
 def generate_random_string(size=6, chars=string.printable):
@@ -186,8 +195,8 @@ def log_in():
     logging.info('login... ' + url)
     browser.get(url)
     logging.info('    got response')
-    browser.find_element_by_name('username').send_keys(args.username)
-    browser.find_element_by_name('password').send_keys(args.password)
+    browser.find_element_by_name('username').send_keys(username)
+    browser.find_element_by_name('password').send_keys(password)
     logging.info('    filled form and click')
     browser.find_element_by_name('Login').click()
     logging.info('    logged in')

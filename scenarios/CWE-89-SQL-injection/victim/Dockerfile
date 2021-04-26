@@ -2,7 +2,6 @@ FROM vulnerables/web-dvwa
 
 RUN sed -i -e 's/impossible/low/g' /var/www/html/config/config.inc.php
 
-
 RUN apt-get update && apt-get install -y python3 python3-pip wget unzip xvfb udev
 
 # chrome in debian...
@@ -25,6 +24,8 @@ RUN wget https://chromedriver.storage.googleapis.com/2.42/chromedriver_linux64.z
 RUN unzip chromedriver_linux64.zip -d /usr/bin
 RUN chmod +x /usr/bin/chromedriver
 
-COPY main.sh /
-RUN chmod +x /main.sh
+#COPY main.sh /
+#RUN chmod +x /main.sh
 COPY dvwa_init.py /tmp/dvwa_init.py
+
+ENTRYPOINT ["./bin/bash"]
