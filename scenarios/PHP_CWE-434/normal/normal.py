@@ -90,7 +90,8 @@ def random_browsing():
         try:
             normal_step()
         except Exception as e:
-            if args.verbose: print(e)
+            if args.verbose:
+                print(e)
             time.sleep(2)
 
 
@@ -120,8 +121,8 @@ def do_things():
         Values 1 to 5 are ok
     """
     if 'vulnerabilities/sqli/' in browser.current_url:
-        if args.verbose: print(' SQL injection form found')
-        sending_value = ''
+        if args.verbose:
+            print(' SQL injection form found')
         if np.random.random() <= sqli_valid_input_probability:
             # enter a valid integer value (valid is from 1 to 5)
             sending_value = str(np.random.randint(low=1, high=6))
@@ -133,17 +134,20 @@ def do_things():
                 # enter a "not" valid number
                 sending_value = str(np.random.randint(low=-10000, high=10000))
 
-        if args.verbose: print(' sending: {}'.format(sending_value))
+        if args.verbose:
+            print(' sending: {}'.format(sending_value))
         browser.find_element_by_name('id').send_keys(sending_value)
         browser.find_element_by_name('Submit').click()
 
     if 'vulnerabilities/upload' in browser.current_url:
-        if args.verbose: print(' upload form found')
+        if args.verbose:
+            print(' upload form found')
         # Create a random tempfile and upload it
         file_size = random.randint(1000, 10000)
         file = tempfile.NamedTemporaryFile(mode='w+b')
         file.write(os.urandom(file_size))
-        if args.verbose: print(' upload file {}'.format(file.name))
+        if args.verbose:
+            print(' upload file {}'.format(file.name))
         fileinput = browser.find_element_by_name('uploaded')
         fileinput.send_keys(file.name)
         browser.find_element_by_name('Upload').click()
@@ -154,7 +158,8 @@ def follow_link():
     iterates all "internal" links and chooses a random one to follow
     """
     # list all available local links
-    if args.verbose: print('follow link...')
+    if args.verbose:
+        print('follow link...')
     link_list = list()
     for link in browser.find_elements_by_xpath('.//a'):
         link_url = link.get_attribute('href')
@@ -164,7 +169,8 @@ def follow_link():
                 if args.verbose: print('{}. {}'.format(len(link_list) - 1, link_url))
     # randomly select one link to follow
     i = np.random.randint(0, high=len(link_list))
-    if args.verbose: print('    selected: [{}] of {} links'.format(i, len(link_list)))
+    if args.verbose:
+        print('    selected: [{}] of {} links'.format(i, len(link_list)))
     selected_link = link_list[i]
     selected_link.click()
 
@@ -176,14 +182,18 @@ def log_in():
     """
     global client_state
     url = 'http://' + args.server_ip + '/login.php'
-    if args.verbose: print('login... ' + url)
+    if args.verbose:
+        print('login... ' + url)
     browser.get(url)
-    if args.verbose: print('    got response')
+    if args.verbose:
+        print('    got response')
     browser.find_element_by_name('username').send_keys(username)
     browser.find_element_by_name('password').send_keys(password)
-    if args.verbose: print('    filled form and click')
+    if args.verbose:
+        print('    filled form and click')
     browser.find_element_by_name('Login').click()
-    if args.verbose: print('    logged in')
+    if args.verbose:
+        print('    logged in')
     client_state = logged_in
 
 
@@ -193,9 +203,11 @@ def log_off():
     changes client_state to logged_off
     """
     global client_state
-    if args.verbose: print('logout...')
+    if args.verbose:
+        print('logout...')
     browser.find_element_by_link_text('Logout').click()
-    if args.verbose: print('    logged out')
+    if args.verbose:
+        print('    logged out')
     client_state = logged_off
 
 
