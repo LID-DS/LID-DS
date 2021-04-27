@@ -1,5 +1,5 @@
-import random
 import sys
+import random
 import urllib.request
 
 from lid_ds.core import Scenario
@@ -7,25 +7,6 @@ from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.sim import gen_schedule_wait_times
 from lid_ds.core.image import StdinCommand, Image, ExecCommand
 from lid_ds.utils.docker_utils import get_ip_address
-
-
-warmup_time = int(sys.argv[1])
-recording_time = int(sys.argv[2])
-is_exploit = int(sys.argv[3])
-do_exploit = True
-if is_exploit < 1:
-    do_exploit = False
-
-total_duration = warmup_time + recording_time
-exploit_time = random.randint(int(recording_time * .3),
-                              int(recording_time * .8))
-
-min_user_count = 10
-max_user_count = 25
-user_count = random.randint(min_user_count, max_user_count)
-
-wait_times = \
-    [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
 
 
 class SQLInjection(Scenario):
@@ -58,31 +39,41 @@ storage_services = [JSONFileStorage()]
 
 victim = Image('victim_injection')
 exploit = Image("exploit_injection",
-                command=ExecCommand("sh exploit.sh ${victim}"))
+                command=ExecCommand(
+                    "python3 /home/exploit.py -ip ${victim}"),
+                init_args="")
 normal = Image("normal_injection",
                command=StdinCommand(""),
-               init_args="-ip ${victim} -v")
+               init_args="-ip ${victim}")
 
+if __name__ == '__main__':
+    warmup_time = int(sys.argv[1])
+    recording_time = int(sys.argv[2])
+    is_exploit = int(sys.argv[3])
+    do_exploit = True
+    if is_exploit < 1:
+        exploit_time = 0
+    else:
+        exploit_time = random.randint(int(recording_time * .3),
+                                      int(recording_time * .8))
+    total_duration = warmup_time + recording_time
 
-if do_exploit:
-    scenario_normal = SQLInjection(
-        victim=victim,
-        normal=normal,
-        exploit=exploit,
-        wait_times=wait_times,
-        recording_time=recording_time,
-        storage_services=storage_services,
-        exploit_start_time=exploit_time
-    )
-else:
-    scenario_normal = SQLInjection(
+    min_user_count = 10
+    max_user_count = 25
+    user_count = random.randint(min_user_count, max_user_count)
+
+    wait_times = \
+        [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
+
+    sql_scenario = SQLInjection(
         victim=victim,
         normal=normal,
         exploit=exploit,
         wait_times=wait_times,
         warmup_time=warmup_time,
         recording_time=recording_time,
-        storage_services=storage_services
+        storage_services=storage_services,
+        exploit_start_time=exploit_time
     )
 
-scenario_normal()
+    sql_scenario()

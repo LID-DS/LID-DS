@@ -14,6 +14,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from pyvirtualdisplay import Display
 
+
 logging.basicConfig(filename='client.log', level=logging.DEBUG)
 
 parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')

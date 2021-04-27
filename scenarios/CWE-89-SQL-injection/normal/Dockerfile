@@ -24,8 +24,6 @@ RUN chmod +x /usr/bin/chromedriver
 
 COPY normal.py /home/normal.py
 
-# for debugging
-# ENTRYPOINT ["python3", "-u", "/home/normal.py", "-ip", "172.17.0.2", "-v", "TRUE"]
 ENTRYPOINT ["python3", "-u", "/home/normal.py"]
 CMD []
 
