@@ -14,13 +14,23 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from pyvirtualdisplay import Display
 
+
 logging.basicConfig(filename='client.log', level=logging.DEBUG)
 
 parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')
 
-parser.add_argument('-ip', dest='server_ip', action='store', type=str, required=True,
+parser.add_argument('-ip',
+                    dest='server_ip',
+                    action='store',
+                    type=str,
+                    required=True,
                     help='The IP address of the target server')
-parser.add_argument('-v', dest='verbose', action='store', type=bool, required=False, default=False,
+parser.add_argument('-v',
+                    dest='verbose',
+                    action='store',
+                    type=bool,
+                    required=False,
+                    default=False,
                     help='Make the operations more talkative')
 
 args = parser.parse_args()
@@ -32,7 +42,7 @@ requests.packages.urllib3.disable_warnings()
 display = Display(visible=0, size=(800, 800))
 display.start()
 
-# Headless chrome-browser settings	
+# Headless chrome-browser settings
 chrome_options = Options()
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument('--ignore-certificate-errors')
@@ -54,7 +64,11 @@ logged_in = 1
 client_state = logged_off
 
 # links to exclude when randomly choosing one
-exclude_links = ['/logout.php', '/captcha/', '/security.php', '/phpinfo.php', '.pdf']
+exclude_links = ['/logout.php',
+                 '/captcha/',
+                 '/security.php',
+                 '/phpinfo.php',
+                 '.pdf']
 
 # logins for dvwa
 logins = {}
@@ -72,7 +86,8 @@ password = logins[username]
 
 def generate_random_string(size=6, chars=string.printable):
     """
-    generates a random printable string of the given size using the given characters
+    generates a random printable string
+    of the given size using the given characters
     :param size: length of the string to be generated
     :param chars: set of characters to be used
     :return: a random string
@@ -123,13 +138,15 @@ def do_things():
     if 'vulnerabilities/sqli/' in browser.current_url:
         if args.verbose:
             print(' SQL injection form found')
+        sending_value = ''
         if np.random.random() <= sqli_valid_input_probability:
             # enter a valid integer value (valid is from 1 to 5)
             sending_value = str(np.random.randint(low=1, high=6))
         else:
             if np.random.random() <= sqli_random_string_probability:
                 # enter a random string
-                sending_value = generate_random_string(np.random.randint(low=1, high=40))
+                sending_value = \
+                    generate_random_string(np.random.randint(low=1, high=40))
             else:
                 # enter a "not" valid number
                 sending_value = str(np.random.randint(low=-10000, high=10000))
@@ -166,7 +183,8 @@ def follow_link():
         if args.server_ip in link_url:
             if not any(e in link_url for e in exclude_links):
                 link_list.append(link)
-                if args.verbose: print('{}. {}'.format(len(link_list) - 1, link_url))
+                if args.verbose:
+                    print('{}. {}'.format(len(link_list) - 1, link_url))
     # randomly select one link to follow
     i = np.random.randint(0, high=len(link_list))
     if args.verbose:
