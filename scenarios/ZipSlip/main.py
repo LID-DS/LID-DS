@@ -2,7 +2,7 @@ import random
 import sys
 import urllib.request
 
-from lid_ds.core import Scenario, Image, StdinCommand
+from lid_ds.core import Scenario, Image, StdinCommand, ExecCommand
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.sim import gen_schedule_wait_times
 from lid_ds.utils.docker_utils import get_ip_address
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     victim = Image("victim_zipslip")
     normal = Image("normal_zipslip", command=StdinCommand(""), init_args="${victim}")
-    exploit = Image("exploit_zipslip", command=StdinCommand(""), init_args="-ip ${victim}")
+    exploit = Image("exploit_zipslip", command=ExecCommand("python3 /home/exploit.py ${victim}"))
 
     zipslip_scenario = ZipSlip(
         victim=victim,

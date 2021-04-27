@@ -9,21 +9,30 @@ from fsplit.filesplit import Filesplit
 
 
 def prepare_files():
-    """ prepares the zip files send to the ZipService """
+    filename = "dewiki-latest-abstract1.xml.gz"
+    unpacked_filename = filename[:-3]
+    download_url = "https://dumps.wikimedia.org/dewiki/latest/" + filename
+    file_splits = "normal/filesplits/"
 
-    unpacked_filename = "dewiki-latest-abstract.xml"
-    filename = "dewiki-latest-abstract.xml.gz"
-    download_url = "https://dumps.wikimedia.org/dewiki/latest/dewiki-latest-abstract.xml.gz"
-    file_splits = "filesplits/"
+    # change to filesplits dir
+    print("[00]: chdir to " + file_splits)
+    if not os.path.isdir(file_splits):
+        os.mkdir(file_splits)
+    os.chdir(file_splits)
 
-    print("prepare files...")
+    # check 1
+    if os.path.isfile("dewiki-latest-abstract1_1.xml.zip"):
+        print("zip files ready...")
+        return
+
+    print("[01]: get wiki abstract xml")
     if not os.path.isfile("./" + unpacked_filename):
         # check for file: dewiki-latest-abstract.xml.gz
-        # if not there download it: https://dumps.wikimedia.org/dewiki/latest/dewiki-latest-abstract.xml.gz
+        # if not there download it: https://dumps.wikimedia.org/dewiki/latest/dewiki-latest-abstract1.xml.gz
         if not os.path.isfile("./" + filename):
-            print("start downloading wikipedia de abstract xml from: " + download_url)
+            print("start downloading wikipedia de abstract 1 xml from: " + download_url)
             wget.download(download_url)
-            print("done")
+            print(" done")
         else:
             print("file already exists: " + filename)
 
@@ -33,21 +42,25 @@ def prepare_files():
         with gzip.open("./" + filename, 'rb') as s_file, open("./" + unpacked_filename, 'wb') as d_file:
             shutil.copyfileobj(s_file, d_file, block_size)
         print("done")
+        os.remove(filename)
     else:
         print("file already exists: " + unpacked_filename)
 
     # split the xml and zip each file split
-    if not os.path.isfile(file_splits + "dewiki-latest-abstract_1.xml.zip"):
+    print("[02]: split xml")
+    if not os.path.isfile("dewiki-latest-abstract1_1.xml"):
         print("splitting the file...")
-        os.mkdir(file_splits)
         fs = Filesplit()
-        fs.split(file=unpacked_filename, split_size=2097152, output_dir=file_splits)
+        fs.split(file=unpacked_filename, split_size=2097152, output_dir="./")
+        # files are named like: dewiki-latest-abstract1_305.xml
         print("done")
+        os.remove(unpacked_filename)
 
+    print("[04]: zip splits ")
+    if not os.path.isfile("dewiki-latest-abstract1_1.xml.zip"):
         # zip all files
         print("zipping all files...")
-        os.chdir(file_splits)
-        for file in glob.glob("*.xml"):
+        for file in glob.glob("dewiki-latest-abstract1_*.xml"):
             print("zipping: " + file)
             zipfile.ZipFile(file + ".zip", mode='w').write(file, compress_type=zipfile.ZIP_DEFLATED)
             os.remove(file)
