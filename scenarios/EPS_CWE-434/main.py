@@ -62,5 +62,5 @@ if __name__ == '__main__':
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,
-        exploit_start_time=exploit_time
+        exploit_start_time=exploit_time)
     eps_scenario()
