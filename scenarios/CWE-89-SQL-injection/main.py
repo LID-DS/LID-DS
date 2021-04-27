@@ -37,12 +37,12 @@ class SQLInjection(Scenario):
 storage_services = [JSONFileStorage()]
 
 
-victim = Image('victim_injection')
-exploit = Image("exploit_injection",
+victim = Image('victim_sql')
+exploit = Image("exploit_sql",
                 command=ExecCommand(
                     "python3 /home/exploit.py -ip ${victim}"),
                 init_args="")
-normal = Image("normal_injection",
+normal = Image("normal_sql",
                command=StdinCommand(""),
                init_args="-ip ${victim}")
 
