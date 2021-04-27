@@ -11,7 +11,11 @@ number_of_images = 500
 def prepare_files():
     """ prepares the images, called by build_images.sh"""
     print("prepare files...")
-    # check for number of eps in current folder... needs min 1000
+
+    # create image directory if not exists
+    if not os.path.exists(path_download_images):
+        os.makedirs(path_download_images)
+
     image_list = glob.glob(path_download_images + "/*.eps")
     if len(image_list) < number_of_images:
         # check for number_of_images jpgs
