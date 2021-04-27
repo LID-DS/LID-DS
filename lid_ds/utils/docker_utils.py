@@ -26,13 +26,20 @@ def format_command(command):
     return command
 
 
-def calc_cpu_usage(pre_cpu, pre_sys_cpu, cpu, sys_cpu, num_cpu):
+def calc_cpu_usage(pre_cpu, pre_sys_cpu, cpu, sys_cpu):
     percent = 0.0
     cpu_delta = cpu - pre_cpu
     sys_cpu_delta = sys_cpu - pre_sys_cpu
     if sys_cpu_delta > 0.0 and cpu_delta > 0.0:
-        percent = (cpu_delta / sys_cpu_delta) * (100.0 * 100.0 / num_cpu)
+        percent = (cpu_delta / sys_cpu_delta) * 100.0
     return percent
+
+
+def diff_or_none(a, b):
+    if a and b:
+        return a - b
+    else:
+        return "NULL"
 
 
 class ResourceLoggingThread(Thread):
@@ -66,17 +73,17 @@ class ResourceLoggingThread(Thread):
                             # timestamp
                             output.append(current[0])
                             # cpu usage in percent
-                            output.append(calc_cpu_usage(last[1], last[2], current[1], current[2], num_cpu))
+                            output.append(calc_cpu_usage(last[1], last[2], current[1], current[2]))
                             # mem
                             output.append(current[3])
                             # net rec
-                            output.append(current[4] - last[4])
+                            output.append(diff_or_none(current[4], last[4]))
                             # net sent
-                            output.append(current[5] - last[5])
+                            output.append(diff_or_none(current[5], last[5]))
                             # storage read
-                            output.append(current[6] - last[6])
+                            output.append(diff_or_none(current[6], last[6]))
                             # storage write
-                            output.append(current[7] - last[7])
+                            output.append(diff_or_none(current[7], last[7]))
                             # write to file
                             csv_writer.writerow(output)
                         last = current
