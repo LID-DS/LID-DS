@@ -1,29 +1,27 @@
-import sys
 import random
+import sys
 import urllib.request
 
-from lid_ds.core import Scenario
+from lid_ds.core import Scenario, Image, StdinCommand, ExecCommand
 from lid_ds.core.collector.json_file_store import JSONFileStorage
-from lid_ds.core.image import StdinCommand, Image
 from lid_ds.sim import gen_schedule_wait_times
 from lid_ds.utils.docker_utils import get_ip_address
 
 
-class CVE_2014_0160(Scenario):
+class ZipSlip(Scenario):
 
     def init_victim(self, container, logger):
+        print(get_ip_address(container))
         pass
 
     def wait_for_availability(self, container):
         try:
-            victim_ip = get_ip_address(container)
-            url = "http://" + victim_ip + "/private/index.html"
-            print("checking... is victim ready?")
-            with urllib.request.urlopen(url) as response:
+            victim_url = "http://" + get_ip_address(container) + ":8000/"
+            print(f"checking... is victim ready? ({victim_url})")
+            with urllib.request.urlopen(victim_url) as response:
                 data = response.read().decode("utf8")
-                if "Simple Web App" in data:
+                if "READY" in data:
                     print("is ready...")
-                    print("configuring and creating clients...")
                     return True
                 else:
                     print("not ready yet...")
@@ -36,27 +34,27 @@ class CVE_2014_0160(Scenario):
 if __name__ == '__main__':
     warmup_time = int(sys.argv[1])
     recording_time = int(sys.argv[2])
-    do_exploit = int(sys.argv[3])
-    if do_exploit < 1:
+    exploit_time = int(sys.argv[3])
+
+    if exploit_time < 1:
         exploit_time = 0
     else:
         exploit_time = random.randint(int(recording_time * .3), int(recording_time * .8))
     total_duration = warmup_time + recording_time
 
-    min_user_count = 10
-    max_user_count = 25
+    min_user_count = 1
+    max_user_count = 6
     user_count = random.randint(min_user_count, max_user_count)
 
     wait_times = [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
 
     storage_services = [JSONFileStorage()]
-    post_freq = "20"
 
-    victim = Image("victim_heartbleed")
-    normal = Image("normal_heartbleed", command=StdinCommand(""), init_args="-ip ${victim} -post " + str(post_freq))
-    exploit = Image("exploit_heartbleed", command=StdinCommand(""), init_args="${victim}")
+    victim = Image("victim_zipslip")
+    normal = Image("normal_zipslip", command=StdinCommand(""), init_args="${victim}")
+    exploit = Image("exploit_zipslip", command=ExecCommand("python3 /home/exploit.py ${victim}"))
 
-    heartbleed_scenario = CVE_2014_0160(
+    zipslip_scenario = ZipSlip(
         victim=victim,
         normal=normal,
         exploit=exploit,
@@ -66,4 +64,4 @@ if __name__ == '__main__':
         storage_services=storage_services,
         exploit_start_time=exploit_time
     )
-    heartbleed_scenario()
+    zipslip_scenario()

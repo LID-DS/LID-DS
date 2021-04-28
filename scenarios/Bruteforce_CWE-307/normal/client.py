@@ -1,17 +1,11 @@
 import argparse
-import threading
 import time
 import random
-import math
-import string
 import os
 import tempfile
 import requests
-import numpy as np
-import lidds
 import sys
 
-from lidds import scheduler_sync
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from pyvirtualdisplay import Display
@@ -22,8 +16,6 @@ parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')
 
 parser.add_argument('-ip', dest='server_ip', action='store', type=str, required=True,
                     help='The IP address of the target server')
-# parser.add_argument('-u', dest='username', action='store', type=str, required=True, help='The username of the client')
-# parser.add_argument('-p', dest='password', action='store', type=str, required=True, help='The password of the client')
 parser.add_argument('-post', dest='post_freq', action='store', type=int, required=False, default=20,
                     help='The POST frequency of the client in % (GET is 100 - POST)')
 parser.add_argument('-v', dest='verbose', action='store', type=bool, required=False, default=False,
