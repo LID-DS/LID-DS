@@ -17,4 +17,5 @@ urllib3~=1.26.2
 CouchDB~=1.2
 pypcapkit~=0.15.5
 scapy~=2.4.4
-wget==3.2
+wget~=3.2
+filesplit~=3.0.2
