@@ -3,38 +3,34 @@ import wget
 import glob
 import subprocess
 
-download_url = "https://picsum.photos/400/300"
-path_download_images = "normal/images/"
-number_of_images = 500
 
-
-def prepare_files():
-    """ prepares the images, called by build_images.sh"""
+def prepare_files(url, download_path, image_number):
+    """
+    downloads and prepares images for normal behaviour, called by build_images.sh
+    """
     print("prepare files...")
 
     # create image directory if not exists
-    if not os.path.exists(path_download_images):
-        os.makedirs(path_download_images)
+    if not os.path.exists(download_path):
+        os.makedirs(download_path)
 
-    image_list = glob.glob(path_download_images + "/*.eps")
-    if len(image_list) < number_of_images:
+    image_list = glob.glob(download_path + "/*.eps")
+    if len(image_list) < image_number:
         # check for number_of_images jpgs
-        image_list = glob.glob(path_download_images + "/*.jpg")
-        if len(image_list) < number_of_images:
-            # if not there download them like: wget -O test.jpg http://lorempixel.com/1920/1080/
+        image_list = glob.glob(download_path + "/*.jpg")
+        if len(image_list) < image_number:
             print("start downloading jpgs from http://picsum.com")
-            for num in range(number_of_images):
-                filename = path_download_images + "image_" + str(num).zfill(4) + ".jpg"
+            for num in range(image_number):
+                filename = download_path + "image_" + str(num).zfill(4) + ".jpg"
                 if not os.path.isfile("./" + filename):
                     print("loading file: " + filename)
-                    wget.download(download_url, out=filename, bar=None)
+                    wget.download(url, out=filename, bar=None)
             print("done")
         else:
             print("jpgs already downloaded")
-        # ...
-        print("converting jpgs to eps:")
 
-        jpgfiles = glob.glob(path_download_images + "/*.jpg")
+        print("converting jpgs to eps:")
+        jpgfiles = glob.glob(download_path + "/*.jpg")
         for filename in jpgfiles:
             epsname = filename.replace('jpg', 'eps')
             if not os.path.isfile("./" + epsname):
@@ -49,4 +45,10 @@ def prepare_files():
     else:
         print("eps files already created.")
 
-prepare_files()
+
+if __name__ == '__main__':
+    download_url = "https://picsum.photos/400/300"
+    path_download_images = "normal/images/"
+    number_of_images = 500
+
+    prepare_files(download_url, path_download_images, number_of_images)
