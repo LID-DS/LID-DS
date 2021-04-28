@@ -34,18 +34,6 @@ class SQLInjection(Scenario):
             return False
 
 
-storage_services = [JSONFileStorage()]
-
-
-victim = Image('victim_sql')
-exploit = Image("exploit_sql",
-                command=ExecCommand(
-                    "python3 /home/exploit.py -ip ${victim}"),
-                init_args="")
-normal = Image("normal_sql",
-               command=StdinCommand(""),
-               init_args="-ip ${victim}")
-
 if __name__ == '__main__':
     warmup_time = int(sys.argv[1])
     recording_time = int(sys.argv[2])
@@ -57,6 +45,17 @@ if __name__ == '__main__':
         exploit_time = random.randint(int(recording_time * .3),
                                       int(recording_time * .8))
     total_duration = warmup_time + recording_time
+
+    storage_services = [JSONFileStorage()]
+
+    victim = Image('victim_sql')
+    exploit = Image("exploit_sql",
+                    command=ExecCommand(
+                        "python3 /home/exploit.py -ip ${victim}"),
+                    init_args="")
+    normal = Image("normal_sql",
+                   command=StdinCommand(""),
+                   init_args="-ip ${victim}")
 
     min_user_count = 10
     max_user_count = 25
