@@ -6,68 +6,12 @@ import time
 
 import requests
 import numpy as np
-import logging
 import string
 import random
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from pyvirtualdisplay import Display
-
-logging.basicConfig(filename='client.log', level=logging.DEBUG)
-
-parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')
-
-parser.add_argument('-ip', dest='server_ip', action='store', type=str, required=True,
-                    help='The IP address of the target server')
-parser.add_argument('-v', dest='verbose', action='store', type=bool, required=False, default=False,
-                    help='Make the operations more talkative')
-
-args = parser.parse_args()
-
-# Disable requests warnings (caused by self signed server certificate)
-requests.packages.urllib3.disable_warnings()
-
-# Virtual display to run chrome-browser
-display = Display(visible=0, size=(800, 800))
-display.start()
-
-# Headless chrome-browser settings	
-chrome_options = Options()
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument('--ignore-certificate-errors')
-browser = webdriver.Chrome(chrome_options=chrome_options)
-
-# probability to log off:
-prob_log_off = 0.05
-
-# probability to enter valid input into the sql_injection form
-sqli_valid_input_probability = 0.75
-# if no valid value is send, whats the probability of it been a random string
-sqli_random_string_probability = 0.5
-
-# states:
-logged_off = 0
-logged_in = 1
-
-# initially the client is logged off
-client_state = logged_off
-
-# links to exclude when randomly choosing one
-exclude_links = ['/logout.php', '/captcha/', '/security.php', '/phpinfo.php', '.pdf']
-
-# logins for dvwa
-logins = {}
-logins["Admin"] = "password"
-logins["gordonb"] = "abc123"
-logins["pablo"] = "letmein"
-logins["smithy"] = "password"
-logins["1337"] = "charley"
-
-# pick random user
-user_list = list(logins.keys())
-username = random.choice(user_list)
-password = logins[username]
 
 
 def generate_random_string(size=6, chars=string.printable):
@@ -85,7 +29,7 @@ def random_browsing():
     main loop of random browsing normal behaviour
     """
     while True:
-        # now start the "normal routine"
+        # starting the normal routine after receiving stdin line
         sys.stdin.readline()
         try:
             normal_step()
@@ -211,4 +155,60 @@ def log_off():
     client_state = logged_off
 
 
-random_browsing()
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')
+
+    parser.add_argument('-ip', dest='server_ip', action='store', type=str, required=True,
+                        help='The IP address of the target server')
+    parser.add_argument('-v', dest='verbose', action='store', type=bool, required=False, default=False,
+                        help='Make the operations more talkative')
+
+    args = parser.parse_args()
+
+    # Disable requests warnings (caused by self signed server certificate)
+    requests.packages.urllib3.disable_warnings()
+
+    # Virtual display to run chrome-browser
+    display = Display(visible=0, size=(800, 800))
+    display.start()
+
+    # Headless chrome-browser settings
+    chrome_options = Options()
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument('--ignore-certificate-errors')
+    browser = webdriver.Chrome(chrome_options=chrome_options)
+
+    # probability to log off:
+    prob_log_off = 0.05
+
+    # probability to enter valid input into the sql_injection form
+    sqli_valid_input_probability = 0.75
+    # if no valid value is send, whats the probability of it been a random string
+    sqli_random_string_probability = 0.5
+
+    # states:
+    logged_off = 0
+    logged_in = 1
+
+    # initially the client is logged off
+    client_state = logged_off
+
+    # links to exclude when randomly choosing one
+    exclude_links = ['/logout.php', '/captcha/', '/security.php', '/phpinfo.php', '.pdf']
+
+    # logins for dvwa
+    logins = {}
+    logins["Admin"] = "password"
+    logins["gordonb"] = "abc123"
+    logins["pablo"] = "letmein"
+    logins["smithy"] = "password"
+    logins["1337"] = "charley"
+
+    # pick random user
+    user_list = list(logins.keys())
+    username = random.choice(user_list)
+    password = logins[username]
+
+    # start normal behaviour
+    random_browsing()
