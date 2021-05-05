@@ -3,9 +3,7 @@ FROM ubuntu:13.04
 RUN sed -i 's/archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
 RUN sed -i 's/security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
 
-RUN apt-get update
-RUN apt-get install -y apache2 && apt-get install -y tcpdump
-RUN apt-get update && apt-get install -y php5 libapache2-mod-php5 unzip 
+RUN apt-get update && apt-get install -y apache2 tcpdump php5 libapache2-mod-php5 unzip
 
 RUN mkdir -p /etc/apache2/conf.d/
 RUN mkdir /var/run/apache2
