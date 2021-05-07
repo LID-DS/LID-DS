@@ -22,7 +22,7 @@ class Juice(Scenario):
             with urllib.request.urlopen(url) as response:
                 data = response.read().decode("utf8")
                 print(data)
-                if "Ruby" in data:
+                if "OWASP Juice Shop" in data:
                     print("is ready...")
                     return True
                 else:

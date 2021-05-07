@@ -25,6 +25,8 @@ RUN unzip chromedriver_linux64.zip -d /usr/bin
 RUN chmod +x /usr/bin/chromedriver
 
 ADD userAction.py /home/userAction.py
+ADD files /home/files/
+WORKDIR /home/
 
-ENTRYPOINT ["python3", "-u", "/home/userAction.py", "-ip", "172.17.0.1"]
+ENTRYPOINT ["python3", "-u", "userAction.py", "-ip", "172.17.0.1"]
 CMD []

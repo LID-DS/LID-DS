@@ -21,11 +21,13 @@ MAX_PRODUCTS = 3
 class User:
 
     def __init__(self,
+                 url,
                  email,
                  password,
                  security_question,
                  user_number,
                  chrome_options):
+        self.base_url = url
         self.chrome_options = chrome_options
         self.driver = webdriver.Chrome(options=self.chrome_options)
         self.driver.delete_all_cookies()
@@ -44,7 +46,8 @@ class User:
         self.feedback_path_count = 3
 
     def reset(self):
-        self.__init__(self.email,
+        self.__init__(self.base_url,
+                      self.email,
                       self.password,
                       self.security_question,
                       self.user_number,
@@ -53,21 +56,17 @@ class User:
     def register(self):
 
         # Open the website
-        self.driver.get('http://localhost:3000/#/register')
+        self.driver.get(f'{self.base_url}/#/register')
         time.sleep(2)
         try:
             # get rid of pop up window
-            self.driver.find_element_by_xpath('/html/body/div[3]/div[2]/div/mat-dialog-container/app-welcome-banner/div/div[2]/button[2]').click()
-        except Exception:
-            print("User " + str(self.user_number) + ": Error removing welcome banner")
-            # rerun registration process
-            if random.randint(0, 1) >= 1:
-                self.register()
-            else:
-                print("User "
-                      + str(self.user_number)
-                      + ": Error removing welcome banner -> not retrying")
-                return False
+            self.driver.find_element_by_xpath('/html/body/div[3]/div[2]/div/mat-dialog-container/app-welcome-banner/div/div[2]/button[2]/span[1]/span').click()
+        except Exception as e:
+            print("User "
+                  + str(self.user_number)
+                  + ": Error removing welcome banner -> not retrying")
+            print(e)
+            return False
         try:
             # find email box
             reg_email_box = self.driver.find_element_by_xpath(
@@ -112,7 +111,7 @@ class User:
     def login(self):
         print("User: " + str(self.user_number) + " " + 'Try logging in')
         # Open the website
-        self.driver.get('http://localhost:3000/#/login')
+        self.driver.get(f'{self.base_url}/#/login')
         try:
             # get rid of pop up window by clicking in top right corner
             self.driver.find_element_by_xpath('//div[contains(@class,"cdk-overlay-pane")]//button[@aria-label="Close Welcome Banner"]').click()
@@ -156,9 +155,11 @@ class User:
         self.logout_count += 1
         if (self.logout_count < MAX_LOGOUT_FAILS):
             try:
-                account_button = self.driver.find_element_by_id('navbarAccount')
+                account_button = self.driver.find_element_by_xpath(
+                    '//*[@id="navbarAccount"]')
                 account_button.click()
-                logout_button = self.driver.find_element_by_id('navbarLogoutButton')
+                logout_button = self.driver.find_element_by_xpath(
+                    '//*[@id="navbarLogoutButton"]')
                 logout_button.click()
             except Exception:
                 print("User: " + str(self.user_number) + " " + "Logout failed, retrying")
@@ -198,15 +199,13 @@ class User:
 
     def get_product_basket_button(self, product_number):
 
-        product_paths = "/html/body/app-root/div/mat-sidenav-container/mat-sidenav-content/app-search-result/div/div/div[2]/mat-grid-list/div/mat-grid-tile[{}]/figure/mat-card/div[{}]/button"
         # product 7,9,11 have extra banner, so different xpath 
         if product_number in [8, 9, 11]:
             extra_info = 3
         else:
             extra_info = 2
-        print(product_paths.format(product_number + 1, extra_info))
-        basket_button = self.driver.find_element_by_xpath(
-            product_paths.format(product_number + 1, extra_info))
+        product_path = f"/html/body/app-root/div/mat-sidenav-container/mat-sidenav-content/app-search-result/div/div/div[2]/mat-grid-list/div/mat-grid-tile[{product_number + 1}]/figure/mat-card/div[{extra_info}]/button"
+        basket_button = self.driver.find_element_by_xpath(product_path)
         return basket_button
 
     def get_product_feedback_field(self, product_number):
@@ -276,11 +275,11 @@ class User:
             close_button = self.driver.find_element_by_xpath(close_path)
             close_button.click()
 
-    def complain(self, file_path="/normal/files/test_receipt.zip"):
+    def complain(self, file_path="/files/test_receipt.zip"):
 
         print("User " + str(self.user_number) + ": complaining")
         file_path = self.dirname + file_path
-        self.driver.get('http://localhost:3000/#/complain')
+        self.driver.get(f'{self.base_url}/#/complain')
         feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
         feedback_textarea.send_keys("I hate your products.")
         time.sleep(2)
@@ -297,7 +296,7 @@ class User:
         how_many_items_in_basket = random.randint(0, max_products)
         random_items = []
         # randomly select what items are chosen
-        # with p=0.5 leave feedback of chosen product
+        # with 25% chance leave feedback of chosen product
         try:
             for i in range(0, how_many_items_in_basket + 1):
                 random_items.append(random.randint(0, 11))
@@ -307,7 +306,7 @@ class User:
                     return
                 print("User: " + str(self.user_number) + " " + "Put item into basket")
                 self.put_products_in_basket([item])
-                if (random.randint(0, 4) > 2):
+                if (random.randint(0, 1) > 0):
                     self.reload()
                 if (random.randint(0, 4) == 4):
                     print("User {}: Leaving feedback for item {}".format(self.user_number, item))
@@ -329,7 +328,7 @@ class User:
             checkout_button.click()
         except NoSuchElementException:
             print("User " + str(self.user_number) + ": has nothing in cart to checkout")
-            return
+            return False
         # check if address has to be added -> check if radiobutton for address exists
         try:
             time.sleep(2)
@@ -372,7 +371,7 @@ class User:
                 continue_button.click()
             except NoSuchElementException:
                 print("User " + str(self.user_number) + ": Error adding address")
-                return
+                return False
         try:
             time.sleep(2)
             # choose delivery method
@@ -381,7 +380,7 @@ class User:
             self.driver.find_element_by_xpath('/html/body/app-root/div/mat-sidenav-container/mat-sidenav-content/app-delivery-method/mat-card/div[4]/button[2]/span').click()
         except NoSuchElementException:
             print("User " + str(self.user_number) + ": Error chosing delivery method")
-            return
+            return False
         try:
             # check if credit card information was added previously
             self.driver.find_element_by_xpath('/html/body/app-root/div/mat-sidenav-container/mat-sidenav-content/app-payment/mat-card/div/app-payment-method/div/div[1]/mat-table/mat-row/mat-cell[1]/mat-radio-button')
@@ -404,7 +403,7 @@ class User:
                 time.sleep(1)
             except NoSuchElementException:
                 print("User " + str(self.user_number) + ": Error choosing credit card information")
-                return
+                return False
             try:
                 time.sleep(1)
                 # choose added credit card
@@ -412,7 +411,7 @@ class User:
                 time.sleep(1)
             except NoSuchElementException:
                 print("User " + str(self.user_number) + ": Error choosing credit card information")
-                return
+                return False
         try:
             # continue
             self.driver.find_element_by_xpath('/html/body/app-root/div/mat-sidenav-container/mat-sidenav-content/app-payment/mat-card/div/div[2]/button[2]').click()
@@ -422,7 +421,7 @@ class User:
             time.sleep(2)
         except NoSuchElementException:
             print("User " + str(self.user_number) + ": error finishing checkout")
-        return 1
+        return True
 
     def reload(self):
         self.driver.refresh()
@@ -436,6 +435,7 @@ class User:
         --> logout
         """
         # -->
+        print(f"Start behaviour of user {self.user_number}")
         try:
             sys.stdin.readline()
             if not self.register():
@@ -443,40 +443,34 @@ class User:
                 return
             time.sleep(0.1)
             while True:
+                print(f"User {self.user_number}: Done register user")
                 sys.stdin.readline()
-                try:
-                    if not self.login():
-                        self.suicide()
-                except Exception:
-                    self.suicide()
+                if not self.login():
+                    return
+                print(f"User {self.user_number}: Done log in")
                 # -->
                 # includes leaving feedback
                 sys.stdin.readline()
                 smh_in_cart = self.go_shopping(MAX_PRODUCTS)
+                if smh_in_cart:
+                    print(f"User {self.user_number}: Done shopping")
                 # -->
                 # leave complaint
                 sys.stdin.readline()
                 self.complain()
+                print(f"User {self.user_number}:Done complaining")
                 # -->
                 # checkout cart if it was filled in go_shopping()
                 sys.stdin.readline()
                 if smh_in_cart:
-                    if self.checkout() == 1:
-                        print("User {}: Paid for products".format(self.user_number))
+                    if self.checkout():
+                        print(f"User {self.user_number}: Paid for products")
                 # logout after shopping
                 sys.stdin.readline()
                 self.logout()
         except Exception as e:
             print(e)
             self.driver.quit()
-
-    def suicide(self):
-        """
-        stop user actions
-        """
-        print("Removing User {}".format(self.user_number))
-        self.is_running = False
-        return self
 
 
 if __name__ == '__main__':
@@ -501,8 +495,8 @@ if __name__ == '__main__':
     requests.packages.urllib3.disable_warnings()
 
     # Virtual display to run chrome-browser
-    # display = Display(visible=0, size=(800, 800))
-    # display.start()
+    display = Display(visible=0, size=(1920, 1080))
+    display.start()
 
     # Headless chrome-browser settings
     chrome_options = Options()
@@ -517,7 +511,9 @@ if __name__ == '__main__':
     security_question = "middlename"
     user_number = random.randint(0, 10000)
     email = f"mail{user_number}@test.com"
-    user = User(email,
+    print("Creating User")
+    user = User(url,
+                email,
                 password,
                 security_question,
                 user_number,
