@@ -21,7 +21,6 @@ class Juice(Scenario):
             print(f"checking {url}... is victim ready?")
             with urllib.request.urlopen(url) as response:
                 data = response.read().decode("utf8")
-                print(data)
                 if "OWASP Juice Shop" in data:
                     print("is ready...")
                     return True
@@ -45,11 +44,11 @@ if __name__ == '__main__':
                                       int(recording_time * .8))
     total_duration = warmup_time + recording_time
 
-    min_user_count = 10
-    max_user_count = 25
+    min_user_count = 3
+    max_user_count = 10
     user_count = random.randint(min_user_count, max_user_count)
 
-    wait_times = Sampler("Jul95").extraction_sampling(total_duration)
+    wait_times = Sampler("Aug95").extraction_sampling(total_duration)
 
     storage_services = [JSONFileStorage()]
 
@@ -59,7 +58,7 @@ if __name__ == '__main__':
     exploit = None
     normal = Image("normal_juice",
                    command=StdinCommand(""),
-                   init_args="${victim}")
+                   init_args="-ip ${victim} -v 1")
 
     juice_scenario = Juice(
         victim=victim,
