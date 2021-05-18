@@ -600,9 +600,9 @@ class User:
                     print("error creating user -> skipping")
                 return
             time.sleep(0.1)
+            if args.verbose:
+                print(f"User {self.user_number}: Done register user")
             while True:
-                if args.verbose:
-                    print(f"User {self.user_number}: Done register user")
                 sys.stdin.readline()
                 if not self.login():
                     return
