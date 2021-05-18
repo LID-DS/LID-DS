@@ -58,7 +58,10 @@ class Scenario(metaclass=ABCMeta):
         initialize all time sequences needed for the recording process
         as well es for statistically relevant execution
         """
-        self.general_meta = ScenarioMeta(exploit_start_time, warmup_time, recording_time)
+        self.general_meta = ScenarioMeta(exploit_start_time,
+                                         warmup_time,
+                                         recording_time,
+                                         exploit_name)
         self.logger = log.get_logger("control_script", ScenarioEnvironment().logging_queue)
         self.logging_thread = Thread(target=log.print_logs)
         self.logging_thread.start()
@@ -74,7 +77,7 @@ class Scenario(metaclass=ABCMeta):
             image=victim.name,
             recording_time=self.general_meta.recording_time,
             is_exploit=self.general_meta.is_exploit,
-            exploit_name=exploit_name
+            exploit_name=self.general_meta.exploit_name
         )
 
     def _container_init(self):
