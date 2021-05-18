@@ -2,7 +2,6 @@ FROM vulnerables/web-dvwa
 
 RUN sed -i -e 's/impossible/low/g' /var/www/html/config/config.inc.php
 
-
 RUN apt-get update && apt-get install -y python3 python3-pip wget unzip xvfb udev
 
 # chrome in debian...

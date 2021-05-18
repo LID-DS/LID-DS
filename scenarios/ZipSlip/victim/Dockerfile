@@ -1,8 +1,10 @@
 FROM ubuntu:16.04
 
-RUN apt-get update && apt-get install -y software-properties-common
-RUN add-apt-repository ppa:openjdk-r/ppa
-RUN apt-get update && apt-get install -y python3 openjdk-11-jdk
+RUN apt-get update \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository ppa:openjdk-r/ppa \
+    && apt-get update \
+    && apt-get install -y python3 openjdk-11-jdk
 
 RUN mkdir /service/
 RUN mkdir /service/upload/
