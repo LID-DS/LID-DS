@@ -51,6 +51,7 @@ class Scenario(metaclass=ABCMeta):
             warmup_time=60,
             recording_time=300,
             exploit_start_time=0,
+            exploit_name='default',
             storage_services: List[CollectorStorageService] = None
     ):
         """
@@ -70,8 +71,11 @@ class Scenario(metaclass=ABCMeta):
 
         Collector().set_meta(
             name=self.general_meta.name,
-            image=victim.name, recording_time=self.general_meta.recording_time,
-            is_exploit=self.general_meta.is_exploit)
+            image=victim.name,
+            recording_time=self.general_meta.recording_time,
+            is_exploit=self.general_meta.is_exploit,
+            exploit_name=exploit_name
+        )
 
     def _container_init(self):
         self.logger.info(f"Starting normal container")
