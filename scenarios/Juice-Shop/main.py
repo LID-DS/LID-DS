@@ -4,10 +4,11 @@ import urllib
 import pymysql
 
 from lid_ds.core import Scenario
-from lid_ds.core.collector.json_file_store import JSONFileStorage
-from lid_ds.core.image import StdinCommand, Image, ExecCommand
 from lid_ds.sim.sampler import Sampler
+from lid_ds.sim import gen_schedule_wait_times
 from lid_ds.utils.docker_utils import get_ip_address
+from lid_ds.core.image import StdinCommand, Image, ExecCommand
+from lid_ds.core.collector.json_file_store import JSONFileStorage
 
 
 class Juice(Scenario):
@@ -37,6 +38,12 @@ if __name__ == '__main__':
     warmup_time = int(sys.argv[1])
     recording_time = int(sys.argv[2])
     do_exploit = int(sys.argv[3])
+    if do_exploit:
+        try:
+            attack = sys.argv[4]
+        except IndexError:
+            print("Please choose Attack as 4th parameter")
+            print("Possible attacks: SQLInjection")
     if do_exploit < 1:
         exploit_time = 0
     else:
@@ -44,18 +51,19 @@ if __name__ == '__main__':
                                       int(recording_time * .8))
     total_duration = warmup_time + recording_time
 
-    min_user_count = 3
-    max_user_count = 10
+    min_user_count = 1
+    max_user_count = 3
     user_count = random.randint(min_user_count, max_user_count)
 
-    wait_times = Sampler("Aug95").extraction_sampling(total_duration)
+    # wait_times = Sampler("Jul95").ip_timerange_sampling(user_count, total_duration)
+    wait_times = [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
 
     storage_services = [JSONFileStorage()]
 
     victim = Image('bkimminich/juice-shop')
-    # exploit = Image("exploit_mysql",
-    # command=ExecCommand("sh exploit.sh ${victim}"))
-    exploit = None
+    exploit = Image("exploit_juice",
+                    command=StdinCommand(""),
+                    init_args="-ip ${victim} -a " + f"{attack} -v 1")
     normal = Image("normal_juice",
                    command=StdinCommand(""),
                    init_args="-ip ${victim} -v 1")
