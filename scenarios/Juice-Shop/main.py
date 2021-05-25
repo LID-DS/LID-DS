@@ -38,12 +38,14 @@ if __name__ == '__main__':
     warmup_time = int(sys.argv[1])
     recording_time = int(sys.argv[2])
     do_exploit = int(sys.argv[3])
+    attack = ""
     if do_exploit:
         try:
             attack = sys.argv[4]
         except IndexError:
             print("Please choose Attack as 4th parameter")
-            print("Possible attacks: SQLInjection")
+            print("Possible attacks: SQLInjectionUser, SQLInjectionSchema")
+            sys.exit()
     if do_exploit < 1:
         exploit_time = 0
     else:
