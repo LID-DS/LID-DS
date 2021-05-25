@@ -19,7 +19,7 @@ class ScenarioMeta:
             )
         self.name = ScenarioEnvironment().recording_name
         self.exploit_time = exploit_time
-        self.is_exploit = exploit_time is not 0
+        self.is_exploit = exploit_time != 0
         self.warmup_time = warmup_time
         self.recording_time = recording_time
         self.exploit_name = exploit_name

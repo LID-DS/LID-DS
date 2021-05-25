@@ -80,7 +80,7 @@ class Collector:
     @property
     def attacker_ip(self):
         for container in self.storage['container']:
-            if container['role'] is 'attacker':
+            if container['role'] == 'attacker':
                 return container['ip']
 
     def write(self, storage_services: List[CollectorStorageService]):
