@@ -50,11 +50,12 @@ class Collector:
                 "source": source
             }
 
-    def set_meta(self, name, image, recording_time, is_exploit):
+    def set_meta(self, name, image, recording_time, is_exploit, exploit_name):
         self.name = name
         self.storage["image"] = image
         self.storage["recording_time"] = recording_time
         self.storage["exploit"] = is_exploit
+        self.storage["exploit_name"] = exploit_name
 
     def set_container_ready(self):
         self.container_ready = self._calculate_time_value()['absolute']
@@ -79,7 +80,7 @@ class Collector:
     @property
     def attacker_ip(self):
         for container in self.storage['container']:
-            if container['role'] is 'attacker':
+            if container['role'] == 'attacker':
                 return container['ip']
 
     def write(self, storage_services: List[CollectorStorageService]):

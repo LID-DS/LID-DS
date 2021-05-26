@@ -51,13 +51,17 @@ class Scenario(metaclass=ABCMeta):
             warmup_time=60,
             recording_time=300,
             exploit_start_time=0,
+            exploit_name='default',
             storage_services: List[CollectorStorageService] = None
     ):
         """
         initialize all time sequences needed for the recording process
         as well es for statistically relevant execution
         """
-        self.general_meta = ScenarioMeta(exploit_start_time, warmup_time, recording_time)
+        self.general_meta = ScenarioMeta(exploit_start_time,
+                                         warmup_time,
+                                         recording_time,
+                                         exploit_name)
         self.logger = log.get_logger("control_script", ScenarioEnvironment().logging_queue)
         self.logging_thread = Thread(target=log.print_logs)
         self.logging_thread.start()
@@ -70,8 +74,11 @@ class Scenario(metaclass=ABCMeta):
 
         Collector().set_meta(
             name=self.general_meta.name,
-            image=victim.name, recording_time=self.general_meta.recording_time,
-            is_exploit=self.general_meta.is_exploit)
+            image=victim.name,
+            recording_time=self.general_meta.recording_time,
+            is_exploit=self.general_meta.is_exploit,
+            exploit_name=self.general_meta.exploit_name
+        )
 
     def _container_init(self):
         self.logger.info(f"Starting normal container")
