@@ -39,12 +39,18 @@ if __name__ == '__main__':
     recording_time = int(sys.argv[2])
     do_exploit = int(sys.argv[3])
     attack = ""
+    attacks = ["SQLInjectionUser", "SQLInjectionSchema", "SQLInjectionCred"]
     if do_exploit:
         try:
             attack = sys.argv[4]
+            if attack not in attacks:
+                print("Please choose Attack as 4th parameter")
+                print("Possible attacks: SQLInjectionCred, SQLInjectionSchema, SQLInjectionUser")
+                sys.exit()
+
         except IndexError:
             print("Please choose Attack as 4th parameter")
-            print("Possible attacks: SQLInjectionUser, SQLInjectionSchema")
+            print("Possible attacks: SQLInjectionCred, SQLInjectionSchema, SQLInjectionUser")
             sys.exit()
     if do_exploit < 1:
         exploit_time = 0
@@ -58,10 +64,11 @@ if __name__ == '__main__':
     user_count = random.randint(min_user_count, max_user_count)
 
     # wait_times = Sampler("Jul95").ip_timerange_sampling(user_count, total_duration)
-    wait_times = [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
+    wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
 
     storage_services = [JSONFileStorage()]
 
+    # use specific version
     victim = Image('bkimminich/juice-shop')
     exploit = Image("exploit_juice",
                     command=StdinCommand(""),
@@ -78,6 +85,7 @@ if __name__ == '__main__':
         warmup_time=warmup_time,
         recording_time=recording_time,
         storage_services=storage_services,
-        exploit_start_time=exploit_time
+        exploit_start_time=exploit_time,
+        exploit_name=attack
     )
     juice_scenario()
