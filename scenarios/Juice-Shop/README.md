@@ -18,7 +18,10 @@ User first registers, then logs in and chooses random between shopping, complain
 
 ## Exploit:
 Running debian10 with selenium user.
-Multiple attacks possible:
+Multiple attacks possible (use as 4th parameter following name):
+* SQLInjectionSchema
+* SQLInjectionCred
+* SQLInjectionUser
 
 ### SQL-Injection - SQL Schema
 Run malicious query at /rest/products/search:
