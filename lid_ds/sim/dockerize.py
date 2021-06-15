@@ -48,7 +48,7 @@ def show_logs(container: Container, logger):
                     last_lines.append(line)
                 last = dateutil.parser.isoparse(ts).replace(tzinfo=None)
         except HTTPError:
-            logger.debug("Shutdown")
+            logger.debug("Offline")
             break
         except Exception as e:
             logger.debug(e)
