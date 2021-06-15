@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    image: test-img
+    ports:
+      - 8080:8080
