@@ -44,7 +44,6 @@ if __name__ == '__main__':
     else:
         exploit_time = random.randint(int(recording_time * .3),
                                       int(recording_time * .8))
-    total_duration = warmup_time + recording_time
 
     storage_services = [JSONFileStorage()]
 
@@ -62,7 +61,7 @@ if __name__ == '__main__':
     user_count = random.randint(min_user_count, max_user_count)
 
     wait_times = \
-        [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
+        [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
 
     sql_scenario = SQLInjection(
         victim=victim,
