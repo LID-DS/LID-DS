@@ -14,7 +14,7 @@
 * Docker (https://www.docker.com)
 
 ### Installation
-* coming soon
+* [see wiki](https://github.com/LID-DS/LID-DS/wiki/Documentation-and-Installation)
 
 ## License
 
