@@ -4,17 +4,12 @@ import time
 import random
 import requests
 import argparse
-import threading
 
 from pyvirtualdisplay import Display
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
 
 MAX_LOGOUT_FAILS = 1
 MAX_PRODUCTS = 1
@@ -65,9 +60,9 @@ class User:
             self.driver.find_element_by_xpath(
                 '/html/body/div[3]/div[2]/div'
                 '/mat-dialog-container'
-                '/app-welcome-banner/div/div[2]'
-                '/button[2]/span[1]/span').click()
-        except Exception as e:
+                '/app-welcome-banner/div/'
+                '/button[2]').click()
+        except Exception:
             if args.verbose:
                 print("User "
                       + str(self.user_number)
@@ -594,7 +589,7 @@ class User:
         sys.stdin.readline()
         if not self.register():
             if args.verbose:
-                print("error creating user -> skipping")
+                print(f"Error creating user {self.user_number}-> skipping")
             return
         if args.verbose:
             print(f"User {self.user_number}: Done register user")
