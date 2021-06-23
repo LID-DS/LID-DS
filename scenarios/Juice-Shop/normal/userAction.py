@@ -4,6 +4,7 @@ import time
 import random
 import requests
 import argparse
+import traceback
 
 from pyvirtualdisplay import Display
 
@@ -307,14 +308,18 @@ class User:
     def complain(self, file_path="/files/test_receipt.zip"):
         if args.verbose:
             print("User " + str(self.user_number) + ": complaining")
-        file_path = self.dirname + file_path
-        self.driver.get(f'{self.base_url}/#/complain')
-        feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
-        feedback_textarea.send_keys("I hate your products.")
-        input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
-        input_file_path.send_keys(file_path)
-        self.driver.find_element_by_xpath(
-            '//*[@id="submitButton"]').click()
+        try:
+            file_path = self.dirname + file_path
+            self.driver.get(f'{self.base_url}/#/complain')
+            feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
+            feedback_textarea.send_keys("I hate your products.")
+            input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
+            input_file_path.send_keys(file_path)
+            self.driver.find_element_by_xpath(
+                '//*[@id="submitButton"]').click()
+        except Exception:
+            if args.verbose:
+                print("User " + str(self.user_number) + ": error complaining")
 
     def go_shopping(self, max_products):
         self.driver.get(f'{self.base_url}')
@@ -487,7 +492,7 @@ class User:
                     '/mat-sidenav-content/app-payment/mat-card/div'
                     '/app-payment-method/div/div[1]/mat-table'
                     '/mat-row/mat-cell[1]/mat-radio-button')
-            except NoSuchElementException:
+            except Exceptioin:
                 try:
                     if args.verbose:
                         print("User " + str(self.user_number) + ": Add new card information")
@@ -561,8 +566,6 @@ class User:
                 # checkout
                 self.driver.find_element_by_xpath(
                     '//*[@id="checkoutButton"]').click()
-                    # '/html/body/app-root/div/mat-sidenav-container'
-                    # '/mat-sidenav-content/app-order-summary/mat-card/div[2]/mat-card/button').click()
                 time.sleep(2)
             except NoSuchElementException:
                 if args.verbose:
@@ -571,6 +574,7 @@ class User:
         except Exception:
             if args.verbose:
                 print(f"User {self.user_number}: error finishing checkout")
+                traceback.print_exc()
             return False
         return True
 
