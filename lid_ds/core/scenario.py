@@ -105,7 +105,19 @@ class Scenario(metaclass=ABCMeta):
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
         with self.victim.record_container() as (sysdig, tcpdump, resource):
-            sleep(self.general_meta.recording_time)
+            if self.general_meta.recording_time == -1:
+                while True:
+                    print(self.exploit.container.attrs['State'])
+                    if self.exploit.container.attrs['State']['Running']:
+                        sleep(1)
+                    else:
+                        print("ATTACKER FINISHED AND SHUTDOWN - STOPPING RECORDING")
+                        sleep(5)
+                        break
+
+                    # TODO: does not work, maybe information is not updated properly next: try getting name and get info via docker wrapper
+            else:
+                sleep(self.general_meta.recording_time)
 
     def _postprocessing(self):
         if self.is_exploit:
@@ -113,8 +125,9 @@ class Scenario(metaclass=ABCMeta):
         Collector().write(self.storage_services)
 
     def _teardown(self):
-        if self.is_exploit:
+        if self.is_exploit and self.general_meta.recording_time != -1:
             self.exploit.teardown()
+
         self.normal.teardown()
         ScenarioEnvironment().network.remove()
 
