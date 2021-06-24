@@ -9,6 +9,8 @@ from threading import Thread
 from time import sleep, time
 from typing import List
 
+import docker
+
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
 from .image import ChainImage
 from .objects.environment import ScenarioEnvironment
@@ -106,16 +108,16 @@ class Scenario(metaclass=ABCMeta):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
         with self.victim.record_container() as (sysdig, tcpdump, resource):
             if self.general_meta.recording_time == -1:
+                exploit_container_id = self.exploit.container.attrs['Id']
                 while True:
-                    print(self.exploit.container.attrs['State'])
-                    if self.exploit.container.attrs['State']['Running']:
-                        sleep(1)
+                    client = docker.from_env()
+                    if client.containers.get(exploit_container_id).attrs['State']['Running']:
+                        sleep(0.1)
                     else:
-                        print("ATTACKER FINISHED AND SHUTDOWN - STOPPING RECORDING")
+                        self.logger.info("ATTACKER FINISHED AND SHUT DOWN - STOPPING RECORDING")
+                        # TODO: replace fixed sleep with time depending on recording time, maybe up to 10%
                         sleep(5)
                         break
-
-                    # TODO: does not work, maybe information is not updated properly next: try getting name and get info via docker wrapper
             else:
                 sleep(self.general_meta.recording_time)
 
