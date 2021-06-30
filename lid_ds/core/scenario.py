@@ -3,7 +3,7 @@ The purpose of the Scenario module is to provide the scenario class.
 The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
-
+import random
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from time import sleep, time
@@ -115,8 +115,7 @@ class Scenario(metaclass=ABCMeta):
                         sleep(0.1)
                     else:
                         self.logger.info("ATTACKER FINISHED AND SHUT DOWN - STOPPING RECORDING")
-                        # TODO: replace fixed sleep with time depending on recording time, maybe up to 10%
-                        sleep(5)
+                        sleep(random.randint(5, 15))
                         break
             else:
                 sleep(self.general_meta.recording_time)
