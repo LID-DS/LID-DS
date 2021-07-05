@@ -1,4 +1,4 @@
-# PHP_CWE-434 
+# CWE-89-SQL-Injection
 
 ## Description / Overview of scenario
 Running Damn Vulnerable Web Application (DVWA). With possibility to log in, upload files and send sql queries. 
