@@ -4,13 +4,17 @@ import time
 import random
 import requests
 import argparse
-import traceback
+import threading
 
 from pyvirtualdisplay import Display
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
 
 MAX_LOGOUT_FAILS = 1
 MAX_PRODUCTS = 1
@@ -61,9 +65,9 @@ class User:
             self.driver.find_element_by_xpath(
                 '/html/body/div[3]/div[2]/div'
                 '/mat-dialog-container'
-                '/app-welcome-banner/div/'
-                '/button[2]').click()
-        except Exception:
+                '/app-welcome-banner/div/div[2]'
+                '/button[2]/span[1]/span').click()
+        except Exception as e:
             if args.verbose:
                 print("User "
                       + str(self.user_number)
@@ -308,18 +312,14 @@ class User:
     def complain(self, file_path="/files/test_receipt.zip"):
         if args.verbose:
             print("User " + str(self.user_number) + ": complaining")
-        try:
-            file_path = self.dirname + file_path
-            self.driver.get(f'{self.base_url}/#/complain')
-            feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
-            feedback_textarea.send_keys("I hate your products.")
-            input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
-            input_file_path.send_keys(file_path)
-            self.driver.find_element_by_xpath(
-                '//*[@id="submitButton"]').click()
-        except Exception:
-            if args.verbose:
-                print("User " + str(self.user_number) + ": error complaining")
+        file_path = self.dirname + file_path
+        self.driver.get(f'{self.base_url}/#/complain')
+        feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
+        feedback_textarea.send_keys("I hate your products.")
+        input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
+        input_file_path.send_keys(file_path)
+        self.driver.find_element_by_xpath(
+            '//*[@id="submitButton"]').click()
 
     def go_shopping(self, max_products):
         self.driver.get(f'{self.base_url}')
@@ -492,7 +492,7 @@ class User:
                     '/mat-sidenav-content/app-payment/mat-card/div'
                     '/app-payment-method/div/div[1]/mat-table'
                     '/mat-row/mat-cell[1]/mat-radio-button')
-            except Exceptioin:
+            except NoSuchElementException:
                 try:
                     if args.verbose:
                         print("User " + str(self.user_number) + ": Add new card information")
@@ -566,6 +566,8 @@ class User:
                 # checkout
                 self.driver.find_element_by_xpath(
                     '//*[@id="checkoutButton"]').click()
+                    # '/html/body/app-root/div/mat-sidenav-container'
+                    # '/mat-sidenav-content/app-order-summary/mat-card/div[2]/mat-card/button').click()
                 time.sleep(2)
             except NoSuchElementException:
                 if args.verbose:
@@ -574,7 +576,6 @@ class User:
         except Exception:
             if args.verbose:
                 print(f"User {self.user_number}: error finishing checkout")
-                traceback.print_exc()
             return False
         return True
 
@@ -593,7 +594,7 @@ class User:
         sys.stdin.readline()
         if not self.register():
             if args.verbose:
-                print(f"Error creating user {self.user_number}-> skipping")
+                print("error creating user -> skipping")
             return
         if args.verbose:
             print(f"User {self.user_number}: Done register user")
