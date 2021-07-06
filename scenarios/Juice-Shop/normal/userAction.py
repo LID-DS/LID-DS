@@ -584,7 +584,7 @@ class User:
 
     def random_action(self):
         """
-        first register and login, each after signal from framework
+        register and login, each after signal from framework
         then choose between shop complain and checkout
         shopping includes leaving feedback
         check if there is something in cart before running checkout
