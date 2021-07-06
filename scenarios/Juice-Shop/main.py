@@ -66,7 +66,7 @@ if __name__ == '__main__':
     max_user_count = 3
     user_count = random.randint(min_user_count, max_user_count)
 
-    wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
+    wait_times = [gen_schedule_wait_times(total_duration) for _ in range(user_count)]
 
     storage_services = [JSONFileStorage()]
 

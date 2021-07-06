@@ -71,7 +71,7 @@ class User:
             if args.verbose:
                 print("User "
                       + str(self.user_number)
-                      + ": Error removing welcome banner -> not retrying")
+                      + ": Error removing welcome banner")
             return False
         time.sleep(0.5)
         try:
@@ -530,8 +530,6 @@ class User:
                         '/app-payment-method/div/div/mat-expansion-panel'
                         '/div/div/div/mat-form-field[4]/div/div[1]/div[3]'
                         '/select/option[1]').click()
-                    # select_option = self.driver.find_element_by_xpath(
-                    # '//*[@id="mat-input-13"]/option[2]')
                     time.sleep(1)
                     self.driver.find_element_by_xpath(
                         '/html/body/app-root/div/mat-sidenav-container'
@@ -555,7 +553,6 @@ class User:
                     time.sleep(1)
                 except NoSuchElementException as e:
                     if args.verbose:
-                        print(e)
                         print(f"User {str(self.user_number)}: Error choosing credit card information")
                     return False
             try:
@@ -592,10 +589,9 @@ class User:
         something_in_cart = False
         actions = ["shop", "complain", "checkout"]
         sys.stdin.readline()
-        if not self.register():
+        while not self.register():
             if args.verbose:
-                print("error creating user -> skipping")
-            return
+                print("error creating user -> retrying")
         if args.verbose:
             print(f"User {self.user_number}: Done register user")
         sys.stdin.readline()
