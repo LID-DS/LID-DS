@@ -57,34 +57,43 @@ class User:
         time.sleep(0.5)
         try:
             # get rid of pop up window
-            self.driver.find_element_by_xpath(
-                #'/html/body/div[3]/div[2]/div/mat-dialog-container/app-welcome-banner/div/div[2]/button[2]').click()
-                '/html/body/div[3]/div[2]/div/mat-dialog-container/app-welcome-banner/div/button[2]').click()
-        except Exception as e:
+            # self.driver.find_element_by_xpath(
+            # '/html/body/div[3]/div[2]/div/'
+            # 'mat-dialog-container/app-welcome-banner'
+            # '/div/button[2]').click()
+            self.driver.find_element_by_css_selector(
+                   'button.mat-focus-indicator:nth-child(4)').click()
+        except Exception:
             if args.verbose:
                 print("User "
                       + str(self.user_number)
                       + ": Error removing welcome banner")
-                print(e)
+            return False
         time.sleep(0.5)
         try:
             # find email box
             reg_email_box = self.driver.find_element_by_xpath(
-                    '//div[contains(@id, "registration-form")]//input[@id="emailControl"]')
+                    '//div[contains(@id, "registration-form")]'
+                    '//input[@id="emailControl"]')
             reg_email_box.send_keys(self.email)
             # find password box
             reg_password_box = self.driver.find_element_by_xpath(
-                    '//div[contains(@id, "registration-form")]//input[@id="passwordControl"]')
+                    '//div[contains(@id, "registration-form")]'
+                    '//input[@id="passwordControl"]')
             reg_password_box.send_keys(self.password)
             # find repeat password box
             reg_password_repeat_box = self.driver.find_element_by_xpath(
-                    '//div[contains(@id, "registration-form")]//input[@id="repeatPasswordControl"]')
+                    '//div[contains(@id, "registration-form")]'
+                    '//input[@id="repeatPasswordControl"]')
             reg_password_repeat_box.send_keys(self.password)
             # occasional overlapping without sleep
             time.sleep(1)
         except Exception:
             if args.verbose:
-                print("User " + str(self.user_number) + ": Error entering email")
+                print("User "
+                      + str(self.user_number)
+                      + ": Error entering email")
+            return False
         # select security question
         try:
             self.driver.find_element_by_xpath(
@@ -93,14 +102,15 @@ class User:
                 '/div[2]/div[1]/mat-form-field[1'
                 ']/div/div[1]/div[3]').click()
             self.driver.find_element_by_xpath(
-                '//div[contains(@id, "cdk-overlay-2")]//mat-option[@id="mat-option-0"]').click()
+                '//div[contains(@id, "cdk-overlay-2")]'
+                '//mat-option[@id="mat-option-0"]').click()
         except Exception:
             if args.verbose:
                 print("Error selecting security question")
-            # rerun registration process
-            self.register()
+            return False
         security_answer_box = self.driver.find_element_by_xpath(
-                '//div[contains(@id, "registration-form")]//input[@id="securityAnswerControl"]')
+                '//div[contains(@id, "registration-form")]//'
+                'input[@id="securityAnswerControl"]')
         security_answer_box.send_keys(self.security_question)
         try:
             # click registration button
@@ -108,9 +118,7 @@ class User:
         except Exception:
             if args.verbose:
                 print("Error clicking register button")
-            # rerun registration process
-            self.register()
-            pass
+            return False
         return True
 
     def login(self):
@@ -138,20 +146,21 @@ class User:
             pass_box.send_keys(self.password)
             # find login button
             login_button = self.driver.find_element_by_xpath(
-                '//div[contains(@id, "login-form")]//button[@id="loginButton"]')
+                '//div[contains(@id, "login-form")]'
+                '//button[@id="loginButton"]')
             # click button
             try:
                 login_button.click()
             except NoSuchElementException:
                 if args.verbose:
-                    print("User {}: login_button not found".format(self.user_number))
+                    print(f"User {self.user_number}: login_button not found")
                 return False
             time.sleep(1)
             # logout count for too many failed logouts
             self.logout_count = 0
         except NoSuchElementException:
             if args.verbose:
-                print("User {}: Login failed".format(self.user_number))
+                print("User {self.user_number}: Login failed")
             return False
         # remove cookie overlay window
         try:
@@ -170,13 +179,16 @@ class User:
         self.logout_count += 1
         if (self.logout_count < MAX_LOGOUT_FAILS):
             try:
-                account_button = self.driver.find_element_by_id('navbarAccount')
+                account_button = \
+                    self.driver.find_element_by_id('navbarAccount')
                 account_button.click()
-                logout_button = self.driver.find_element_by_id('navbarLogoutButton')
+                logout_button = \
+                    self.driver.find_element_by_id('navbarLogoutButton')
                 logout_button.click()
             except Exception:
                 if args.verbose:
-                    print(f"User {str(self.user_number)}: Error clicking logout")
+                    print(f"User {str(self.user_number)}"
+                          + ": Error clicking logout")
                 self.reload()
                 self.logout()
         else:
@@ -185,7 +197,10 @@ class User:
                       " for logout reached")
             return False
 
-    def select_products(self, selected_products, add_to_basket, leave_feedback):
+    def select_products(self,
+                        selected_products,
+                        add_to_basket,
+                        leave_feedback):
         product_button = (
             '/html/body/app-root/div'
             '/mat-sidenav-container/mat-sidenav-content'
@@ -194,7 +209,8 @@ class User:
             '/figure/mat-card/div[2]/button')
         for selection in selected_products:
             # if last row middle product is chosen
-            # wait for popup to close (...put into basket) or else it is obscured
+            # wait for popup to close (...put into basket)
+            # or else it is obscured
             if selection == 10:
                 time.sleep(8)
             else:
@@ -203,7 +219,8 @@ class User:
             # basket_button = self.driver.find_element_by_xpath(
             # product_path.format(products[selection][0]))#,products[selection][1]))
             # scroll to element so it is clickable
-            self.driver.execute_script("arguments[0].scrollIntoView();", product_button)
+            self.driver.execute_script("arguments[0].scrollIntoView();",
+                                       product_button)
             if leave_feedback:
                 return 0
             if add_to_basket:
@@ -237,7 +254,8 @@ class User:
             product_path = ('/html/body/app-root/div/mat-sidenav-container'
                             '/mat-sidenav-content/app-search-result/div/div'
                             '/div[2]/mat-grid-list/div/mat-grid'
-                            f'-tile[{product_number + 1}]/figure/mat-card/div[{extra_info}]')
+                            f'-tile[{product_number + 1}]'
+                            f'/figure/mat-card/div[{extra_info}]')
             product_button = self.driver.find_element_by_xpath(product_path)
             product_button.click()
         except Exception:
@@ -245,7 +263,8 @@ class User:
         try:
             # select feedback window
             # feedback_path = '//*[@id="mat-input-{}"]'
-            feedback_path = "//textarea[@aria-label='Text field to review a product']"
+            feedback_path = "//textarea[@aria-label=" \
+                            + "'Text field to review a product']"
             feedback_input = self.driver.find_element_by_xpath(feedback_path)
             self.feedback_path_count += 1
         except Exception:
@@ -269,12 +288,14 @@ class User:
             try:
                 basket_button = self.get_product_basket_button(selection)
                 # scroll to element so it is clickable
-                self.driver.execute_script("arguments[0].scrollIntoView();", basket_button)
+                self.driver.execute_script("arguments[0].scrollIntoView();",
+                                           basket_button)
                 basket_button.click()
                 return True
             except Exception:
                 if args.verbose:
-                    print(f"User {self.user_number}: Error putting item {selection} "
+                    print(f"User {self.user_number}: "
+                          f"Error putting item {selection} "
                           "into basket -> skipping item")
                 return False
 
@@ -545,12 +566,15 @@ class User:
                     time.sleep(1)
                 except NoSuchElementException:
                     if args.verbose:
-                        print(f"User {str(self.user_number)}: Error choosing credit card information")
+                        print(f"User {str(self.user_number)}: "
+                              + "Error choosing credit card information")
                     return False
             try:
                 # continue
                 self.driver.find_element_by_xpath(
-                    '/html/body/app-root/div/mat-sidenav-container/mat-sidenav-content/app-payment/mat-card/div/div[2]/button[2]').click()
+                    '/html/body/app-root/div/mat-sidenav-container'
+                    '/mat-sidenav-content/app-payment/mat-card/div'
+                    '/div[2]/button[2]').click()
                 time.sleep(2)
                 # checkout
                 self.driver.find_element_by_xpath(
@@ -558,7 +582,9 @@ class User:
                 time.sleep(2)
             except NoSuchElementException:
                 if args.verbose:
-                    print("User " + str(self.user_number) + ": error finishing checkout")
+                    print("User "
+                          + str(self.user_number)
+                          + ": error finishing checkout")
                 return False
         except Exception:
             if args.verbose:
