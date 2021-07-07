@@ -4,17 +4,12 @@ import time
 import random
 import requests
 import argparse
-import threading
 
 from pyvirtualdisplay import Display
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
 
 MAX_LOGOUT_FAILS = 1
 MAX_PRODUCTS = 1
@@ -63,16 +58,14 @@ class User:
         try:
             # get rid of pop up window
             self.driver.find_element_by_xpath(
-                '/html/body/div[3]/div[2]/div'
-                '/mat-dialog-container'
-                '/app-welcome-banner/div/div[2]'
-                '/button[2]/span[1]/span').click()
+                #'/html/body/div[3]/div[2]/div/mat-dialog-container/app-welcome-banner/div/div[2]/button[2]').click()
+                '/html/body/div[3]/div[2]/div/mat-dialog-container/app-welcome-banner/div/button[2]').click()
         except Exception as e:
             if args.verbose:
                 print("User "
                       + str(self.user_number)
                       + ": Error removing welcome banner")
-            return False
+                print(e)
         time.sleep(0.5)
         try:
             # find email box
@@ -92,7 +85,6 @@ class User:
         except Exception:
             if args.verbose:
                 print("User " + str(self.user_number) + ": Error entering email")
-            return False
         # select security question
         try:
             self.driver.find_element_by_xpath(
@@ -551,7 +543,7 @@ class User:
                         '/app-payment-method/div/div[1]/mat-table/mat-row'
                         '/mat-cell[1]/mat-radio-button').click()
                     time.sleep(1)
-                except NoSuchElementException as e:
+                except NoSuchElementException:
                     if args.verbose:
                         print(f"User {str(self.user_number)}: Error choosing credit card information")
                     return False
@@ -563,8 +555,6 @@ class User:
                 # checkout
                 self.driver.find_element_by_xpath(
                     '//*[@id="checkoutButton"]').click()
-                    # '/html/body/app-root/div/mat-sidenav-container'
-                    # '/mat-sidenav-content/app-order-summary/mat-card/div[2]/mat-card/button').click()
                 time.sleep(2)
             except NoSuchElementException:
                 if args.verbose:
@@ -604,7 +594,7 @@ class User:
             print(f"User {self.user_number}: Done log in")
         while True:
             sys.stdin.readline()
-            random_action = random.randint(0,len(actions) - 1)
+            random_action = random.randint(0, len(actions) - 1)
             action = actions[random_action]
             if action == "shop":
                 something_in_cart = self.go_shopping(MAX_PRODUCTS)
