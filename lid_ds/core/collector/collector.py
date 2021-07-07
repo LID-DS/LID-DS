@@ -53,7 +53,8 @@ class Collector:
     def set_meta(self, name, image, recording_time, is_exploit, exploit_name):
         self.name = name
         self.storage["image"] = image
-        self.storage["recording_time"] = recording_time
+        # recording time = -1 -> auto detection of exploit end and autostop of recording
+        self.storage["recording_time"] = recording_time if not recording_time == -1 else 'auto-detected'
         self.storage["exploit"] = is_exploit
         self.storage["exploit_name"] = exploit_name
 

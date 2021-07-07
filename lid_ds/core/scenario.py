@@ -20,6 +20,7 @@ from .objects.normal import ScenarioNormal
 from lid_ds.core.objects.victim import ScenarioVictim
 from lid_ds.utils import log
 from ..postprocessing import postprocessing
+from docker.errors import NotFound
 
 
 class Scenario(metaclass=ABCMeta):
@@ -74,6 +75,9 @@ class Scenario(metaclass=ABCMeta):
         self.normal = ScenarioNormal(normal, wait_times)
         self.exploit = ScenarioAttacker(exploit)
 
+        if exploit_start_time == 0 and recording_time == -1:
+            raise ValueError("Autostop of recording is only possible with active exploit")
+
         Collector().set_meta(
             name=self.general_meta.name,
             image=victim.name,
@@ -114,8 +118,9 @@ class Scenario(metaclass=ABCMeta):
                     if client.containers.get(exploit_container_id).attrs['State']['Running']:
                         sleep(0.1)
                     else:
-                        self.logger.info("ATTACKER FINISHED AND SHUT DOWN - STOPPING RECORDING")
-                        sleep(random.randint(5, 15))
+                        sleep_time = random.randint(5,15)
+                        self.logger.info(f"attack finished - stopping recording in {sleep_time} seconds")
+                        sleep(sleep_time)
                         break
             else:
                 sleep(self.general_meta.recording_time)
@@ -126,8 +131,11 @@ class Scenario(metaclass=ABCMeta):
         Collector().write(self.storage_services)
 
     def _teardown(self):
-        if self.is_exploit and self.general_meta.recording_time != -1:
-            self.exploit.teardown()
+        try:
+            if self.is_exploit and self.general_meta.recording_time != -1:
+                self.exploit.teardown()
+        except NotFound:
+            self.logger.info('Attacker already shut down')
 
         self.normal.teardown()
         ScenarioEnvironment().network.remove()
