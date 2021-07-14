@@ -56,9 +56,11 @@ class ScenarioNormal(ScenarioContainerBase):
             socket = self.containers[name].attach_socket(params={'stdin': 1, 'stream': 1})
             socket._writing = True
         for wt in wait_times:
-            # split up sleeping to prevent long waiting times after automatic exploit end detection, breaks loop after true flag
-            for i in range(int(wt)):
-                time.sleep(1)
+            # split up sleeping to prevent long waiting times after automatic exploit-end-detection
+            # breaks execution after teardown_flag=True
+            # granularity = 10ms
+            for i in range(int(wt/0.01)):
+                time.sleep(0.01)
                 if self.teardown_flag:
                     return None
 
