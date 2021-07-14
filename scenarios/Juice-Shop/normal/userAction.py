@@ -188,36 +188,6 @@ class User:
                    " for logout reached")
             return False
 
-    def select_products(self,
-                        selected_products,
-                        add_to_basket,
-                        leave_feedback):
-        product_button = (
-            '/html/body/app-root/div'
-            '/mat-sidenav-container/mat-sidenav-content'
-            '/app-search-result/div/div/div[2]/'
-            'mat-grid-list/div/mat-grid-tile[{}]'
-            '/figure/mat-card/div[2]/button')
-        for selection in selected_products:
-            # if last row middle product is chosen
-            # wait for popup to close (...put into basket)
-            # or else it is obscured
-            if selection == 10:
-                time.sleep(8)
-            else:
-                time.sleep(1)
-            # select product
-            # basket_button = self.driver.find_element_by_xpath(
-            # product_path.format(products[selection][0]))#,products[selection][1]))
-            # scroll to element so it is clickable
-            self.driver.execute_script("arguments[0].scrollIntoView();",
-                                       product_button)
-            if leave_feedback:
-                return 0
-            if add_to_basket:
-                # click Put into Basket
-                product_button.click()
-
     def change_language(self):
         return 0
 
@@ -596,7 +566,8 @@ class User:
                 if something_in_cart:
                     vprint(f"User {self.user_number}: Done shopping")
                 else:
-                    vprint(f"User {self.user_number}: Done shopping but nothing in cart")
+                    vprint(f"User {self.user_number}: "
+                           "Done shopping but nothing in cart")
             elif action == "complain":
                 self.complain()
                 vprint(f"User {self.user_number}: Done complaining")
@@ -667,6 +638,4 @@ if __name__ == '__main__':
         "complain",
         "checkout"
     ]
-    first_call = True
-    was_shopping = False
     user.random_action()
