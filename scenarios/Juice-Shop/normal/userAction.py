@@ -171,7 +171,7 @@ class User:
     def logout(self):
         vprint(f"User {str(self.user_number)}: Logout")
         self.logout_count += 1
-        if (self.logout_count < MAX_LOGOUT_FAILS):
+        if self.logout_count < MAX_LOGOUT_FAILS:
             try:
                 account_button = \
                     self.driver.find_element_by_id('navbarAccount')
@@ -310,9 +310,9 @@ class User:
                 vprint(f"User {str(self.user_number)}: Put item {item} into basket")
                 if not self.put_products_in_basket([item]):
                     return False
-                if (random.randint(0, 1) > 0):
+                if random.randint(0, 1) > 0:
                     self.reload()
-                if (random.randint(0, 3) == 3):
+                if random.randint(0, 3) == 3:
                     vprint(f"User {self.user_number}: Leaving feedback for item {item}")
                     self.leave_feedback([item])
             return True

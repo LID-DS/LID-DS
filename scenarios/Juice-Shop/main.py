@@ -29,7 +29,6 @@ class Juice(Scenario):
         except Exception as error:
             print("not ready yet with error: " + str(error))
             return False
-        return True
 
 
 if __name__ == '__main__':
