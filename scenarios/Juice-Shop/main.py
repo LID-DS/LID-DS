@@ -49,7 +49,6 @@ if __name__ == '__main__':
 
         except IndexError:
             print("Please choose Attack as 4th parameter")
-            print("Please choose Attack as 4th parameter")
             print("Possible attacks: SQLInjectionCred, \
                    SQLInjectionSchema, \
                    SQLInjectionUser")
