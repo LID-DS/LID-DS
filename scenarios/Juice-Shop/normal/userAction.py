@@ -47,8 +47,6 @@ class User:
         self.is_finished = False
         # relative directory path
         self.dirname = os.path.abspath(os.curdir)
-        # feedback xpath changing when next item clicked starts with 3
-        self.feedback_path_count = 3
 
     def reset(self):
         self.driver.quit()
@@ -187,7 +185,7 @@ class User:
                 self.logout()
         else:
             vprint(f"User {str(self.user_number)}: max retries"
-                      " for logout reached")
+                   " for logout reached")
             return False
 
     def select_products(self,
@@ -225,7 +223,7 @@ class User:
 
     def get_product_basket_button(self, product_number):
         # product 7,9,11 have extra banner, so different xpath
-        if product_number in [3, 8, 10, 11]:
+        if product_number in [2, 7, 9, 11]:
             extra_info = 3
         else:
             extra_info = 2
@@ -259,7 +257,6 @@ class User:
             feedback_path = "//textarea[@aria-label=" \
                             + "'Text field to review a product']"
             feedback_input = self.driver.find_element_by_xpath(feedback_path)
-            self.feedback_path_count += 1
         except Exception:
             vprint("Error finding feedback field")
             return None
@@ -286,7 +283,7 @@ class User:
                 return True
             except Exception:
                 vprint(f"User {self.user_number}: Error putting item {selection} "
-                          "into basket -> skipping item")
+                       "into basket -> skipping item")
                 return False
 
     def leave_feedback(self, selected_products):
@@ -295,10 +292,9 @@ class User:
             feedback_field = self.get_product_feedback_field(selection)
             if feedback_field is None:
                 vprint("User "
-                          + str(self.user_number)
-                          + ": " + "Error leaving feedback -> skipping feedback")
+                       + str(self.user_number)
+                       + ": " + "Error leaving feedback -> skipping feedback")
                 return
-            # self.driver.execute_script("arguments[0].scrollIntoView();", feedback_field)
             # enter feedback
             feedback_field.send_keys('u got that juice')
             # get submit button
@@ -316,9 +312,11 @@ class User:
         file_path = self.dirname + file_path
         try:
             self.driver.get(f'{self.base_url}/#/complain')
-            feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
+            feedback_textarea = self.driver.find_element_by_xpath(
+                '//*[@id="complaintMessage"]')
             feedback_textarea.send_keys("I hate your products.")
-            input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
+            input_file_path = self.driver.find_element_by_xpath(
+                '//*[@id="file"]')
             input_file_path.send_keys(file_path)
             self.driver.find_element_by_xpath(
                 '//*[@id="submitButton"]').click()
@@ -371,7 +369,8 @@ class User:
             except NoSuchElementException:
                 vprint("User " + str(self.user_number) + ": Error checking out")
                 return False
-            # check if address has to be added -> check if radiobutton for address exists
+            # check if address has to be added
+            # -> check if radiobutton for address exists
             try:
                 time.sleep(2)
                 self.driver.find_element_by_xpath(
@@ -533,7 +532,7 @@ class User:
                     time.sleep(1)
                 except NoSuchElementException:
                     vprint(f"User {str(self.user_number)}: Error filling "
-                            "out credit card information")
+                           "out credit card information")
                     return False
                 try:
                     time.sleep(1)
@@ -544,7 +543,7 @@ class User:
                         '/app-payment-method/div/div[1]/mat-table/mat-row'
                         '/mat-cell[1]/mat-radio-button').click()
                     time.sleep(1)
-                except NoSuchElementException as e:
+                except NoSuchElementException:
                     vprint(f"User {str(self.user_number)}: Error choosing credit card information")
                     return False
             try:
