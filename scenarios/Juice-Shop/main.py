@@ -71,7 +71,7 @@ if __name__ == '__main__':
     storage_services = [JSONFileStorage()]
 
     # use specific version
-    victim = Image("bkimminich/juice-shop")
+    victim = Image("bkimminich/juice-shop:v10.0.0")
     exploit = Image("exploit_juice",
                     command=StdinCommand(""),
                     init_args="-ip ${victim} -a " + f"{attack} -v 1")

@@ -18,7 +18,6 @@ RUN pip3 install 'urllib3==1.23' --force-reinstall
 RUN pip3 install pyvirtualdisplay
 RUN pip3 install requests
 RUN pip3 install numpy
-RUN pip3 install essential_generators
 
 RUN wget https://chromedriver.storage.googleapis.com/2.42/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip -d /usr/bin
