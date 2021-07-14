@@ -62,8 +62,8 @@ if __name__ == '__main__':
                                       int(recording_time * .8))
     total_duration = warmup_time + recording_time
 
-    min_user_count = 1
-    max_user_count = 3
+    min_user_count = 2
+    max_user_count = 4
     user_count = random.randint(min_user_count, max_user_count)
 
     wait_times = [gen_schedule_wait_times(total_duration) for _ in range(user_count)]

@@ -14,6 +14,13 @@ from selenium.common.exceptions import NoSuchElementException
 MAX_LOGOUT_FAILS = 1
 MAX_PRODUCTS = 1
 
+def vprint(string):
+    """
+    prints the given string if the verbose flag is set
+    """
+    if args.verbose:
+        print(string)
+
 
 class User:
 
@@ -57,17 +64,12 @@ class User:
         time.sleep(0.5)
         try:
             # get rid of pop up window
-            # self.driver.find_element_by_xpath(
-            # '/html/body/div[3]/div[2]/div/'
-            # 'mat-dialog-container/app-welcome-banner'
-            # '/div/button[2]').click()
             self.driver.find_element_by_css_selector(
                    'button.mat-focus-indicator:nth-child(4)').click()
         except Exception:
-            if args.verbose:
-                print("User "
-                      + str(self.user_number)
-                      + ": Error removing welcome banner")
+                vprint("User "
+                       + str(self.user_number)
+                       + ": Error removing welcome banner")
             return False
         time.sleep(0.5)
         try:
@@ -89,10 +91,7 @@ class User:
             # occasional overlapping without sleep
             time.sleep(1)
         except Exception:
-            if args.verbose:
-                print("User "
-                      + str(self.user_number)
-                      + ": Error entering email")
+            vprint("User " + str(self.user_number) + ": Error entering email")
             return False
         # select security question
         try:
@@ -105,9 +104,9 @@ class User:
                 '//div[contains(@id, "cdk-overlay-2")]'
                 '//mat-option[@id="mat-option-0"]').click()
         except Exception:
-            if args.verbose:
-                print("Error selecting security question")
-            return False
+            vprint("Error selecting security question")
+            # rerun registration process
+            self.register()
         security_answer_box = self.driver.find_element_by_xpath(
                 '//div[contains(@id, "registration-form")]//'
                 'input[@id="securityAnswerControl"]')
@@ -116,9 +115,10 @@ class User:
             # click registration button
             self.driver.find_element_by_id('registerButton').click()
         except Exception:
-            if args.verbose:
-                print("Error clicking register button")
-            return False
+            vprint("Error clicking register button")
+            # rerun registration process
+            self.register()
+            pass
         return True
 
     def login(self):
@@ -131,8 +131,7 @@ class User:
                 '//div[contains(@class,"cdk-overlay-pane")]'
                 '//button[@aria-label="Close Welcome Banner"]').click()
         except Exception:
-            if args.verbose:
-                print(f"User {str(self.user_number)}: No Welcome Banner")
+            vprint(f"User {str(self.user_number)}: No Welcome Banner")
             pass
         # Login with given credentials
         try:
@@ -152,15 +151,13 @@ class User:
             try:
                 login_button.click()
             except NoSuchElementException:
-                if args.verbose:
-                    print(f"User {self.user_number}: login_button not found")
+                vprint("User {}: login_button not found".format(self.user_number))
                 return False
             time.sleep(1)
             # logout count for too many failed logouts
             self.logout_count = 0
         except NoSuchElementException:
-            if args.verbose:
-                print("User {self.user_number}: Login failed")
+            vprint("User {}: Login failed".format(self.user_number))
             return False
         # remove cookie overlay window
         try:
@@ -168,14 +165,12 @@ class User:
                 '//div[contains(@aria-describedby, "cookieconsent:desc")]'
                 '//a[@aria-label="dismiss cookie message"]').click()
         except Exception:
-            if args.verbose:
-                print(f"User {str(self.user_number)}: No cookie banner")
+            vprint(f"User {str(self.user_number)}: No cookie banner")
             pass
         return True
 
     def logout(self):
-        if args.verbose:
-            print(f"User {str(self.user_number)}: Logout")
+        vprint(f"User {str(self.user_number)}: Logout")
         self.logout_count += 1
         if (self.logout_count < MAX_LOGOUT_FAILS):
             try:
@@ -186,14 +181,11 @@ class User:
                     self.driver.find_element_by_id('navbarLogoutButton')
                 logout_button.click()
             except Exception:
-                if args.verbose:
-                    print(f"User {str(self.user_number)}"
-                          + ": Error clicking logout")
+                vprint(f"User {str(self.user_number)}: Error clicking logout")
                 self.reload()
                 self.logout()
         else:
-            if args.verbose:
-                print(f"User {str(self.user_number)}: max retries"
+            vprint(f"User {str(self.user_number)}: max retries"
                       " for logout reached")
             return False
 
@@ -268,8 +260,7 @@ class User:
             feedback_input = self.driver.find_element_by_xpath(feedback_path)
             self.feedback_path_count += 1
         except Exception:
-            if args.verbose:
-                print("Error finding feedback field")
+            vprint("Error finding feedback field")
             return None
         return feedback_input
 
@@ -293,9 +284,7 @@ class User:
                 basket_button.click()
                 return True
             except Exception:
-                if args.verbose:
-                    print(f"User {self.user_number}: "
-                          f"Error putting item {selection} "
+                vprint(f"User {self.user_number}: Error putting item {selection} "
                           "into basket -> skipping item")
                 return False
 
@@ -304,8 +293,7 @@ class User:
             # get feedback field
             feedback_field = self.get_product_feedback_field(selection)
             if feedback_field is None:
-                if args.verbose:
-                    print("User "
+                vprint("User "
                           + str(self.user_number)
                           + ": " + "Error leaving feedback -> skipping feedback")
                 return
@@ -323,21 +311,22 @@ class User:
             close_button.click()
 
     def complain(self, file_path="/files/test_receipt.zip"):
-        if args.verbose:
-            print("User " + str(self.user_number) + ": complaining")
+        vprint("User " + str(self.user_number) + ": complaining")
         file_path = self.dirname + file_path
-        self.driver.get(f'{self.base_url}/#/complain')
-        feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
-        feedback_textarea.send_keys("I hate your products.")
-        input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
-        input_file_path.send_keys(file_path)
-        self.driver.find_element_by_xpath(
-            '//*[@id="submitButton"]').click()
+        try:
+            self.driver.get(f'{self.base_url}/#/complain')
+            feedback_textarea = self.driver.find_element_by_xpath('//*[@id="complaintMessage"]')
+            feedback_textarea.send_keys("I hate your products.")
+            input_file_path = self.driver.find_element_by_xpath('//*[@id="file"]')
+            input_file_path.send_keys(file_path)
+            self.driver.find_element_by_xpath(
+                '//*[@id="submitButton"]').click()
+        except Exception:
+            vprint(f"User {str(self.user_number)}: complaining failed")
 
     def go_shopping(self, max_products):
         self.driver.get(f'{self.base_url}')
-        if args.verbose:
-            print(f"User {str(self.user_number)}: Go shopping")
+        vprint(f"User {str(self.user_number)}: Go shopping")
         # choose how many items user puts in basket
         # at least one
         how_many_items_in_basket = random.randint(1, max_products)
@@ -349,20 +338,17 @@ class User:
                 random_items.append(random.randint(0, 11))
             for item in random_items:
                 # dont continue if user should not run
-                if args.verbose:
-                    print(f"User {str(self.user_number)}: Put item {item} into basket")
+                vprint(f"User {str(self.user_number)}: Put item {item} into basket")
                 if not self.put_products_in_basket([item]):
                     return False
                 if (random.randint(0, 1) > 0):
                     self.reload()
                 if (random.randint(0, 3) == 3):
-                    if args.verbose:
-                        print(f"User {self.user_number}: Leaving feedback for item {item}")
+                    vprint(f"User {self.user_number}: Leaving feedback for item {item}")
                     self.leave_feedback([item])
             return True
         except Exception as e:
-            if args.verbose:
-                print(e)
+            vprint(e)
             return False
 
     def checkout(self):
@@ -378,13 +364,11 @@ class User:
                     '/html/body/app-root/div/mat-sidenav-container'
                     '/mat-sidenav-content/app-basket/mat-card/button')
                 if not checkout_button.is_enabled():
-                    if args.verbose:
-                        print("User " + str(self.user_number) + ": Error checking out")
+                    vprint("User " + str(self.user_number) + ": Error checking out")
                     return False
                 checkout_button.click()
             except NoSuchElementException:
-                if args.verbose:
-                    print("User " + str(self.user_number) + ": Error checking out")
+                vprint("User " + str(self.user_number) + ": Error checking out")
                 return False
             # check if address has to be added -> check if radiobutton for address exists
             try:
@@ -408,8 +392,7 @@ class User:
                     '/app-address/mat-card/button')
                 continue_button.click()
             except NoSuchElementException:
-                if args.verbose:
-                    print("User " + str(self.user_number) + ": No address set")
+                vprint("User " + str(self.user_number) + ": No address set")
                 try:
                     time.sleep(2)
                     self.driver.find_element_by_xpath(
@@ -478,8 +461,7 @@ class User:
                         '/app-address/mat-card/button')
                     continue_button.click()
                 except NoSuchElementException:
-                    if args.verbose:
-                        print("User " + str(self.user_number) + ": Error adding address")
+                    vprint("User " + str(self.user_number) + ": Error adding address")
                     return False
             try:
                 time.sleep(2)
@@ -495,8 +477,7 @@ class User:
                     '/mat-sidenav-content/app-delivery-method/mat-card'
                     '/div[4]/button[2]/span').click()
             except NoSuchElementException:
-                if args.verbose:
-                    print("User " + str(self.user_number) + ": Error chosing delivery method")
+                vprint("User " + str(self.user_number) + ": Error chosing delivery method")
                 return False
             try:
                 # check if credit card information was added previously
@@ -507,8 +488,7 @@ class User:
                     '/mat-row/mat-cell[1]/mat-radio-button')
             except NoSuchElementException:
                 try:
-                    if args.verbose:
-                        print("User " + str(self.user_number) + ": Add new card information")
+                    vprint("User " + str(self.user_number) + ": Add new card information")
                     time.sleep(1)
                     # add credit card information
                     self.driver.find_element_by_xpath(
@@ -551,9 +531,8 @@ class User:
                         '/div/div/button').click()
                     time.sleep(1)
                 except NoSuchElementException:
-                    if args.verbose:
-                        print(f"User {str(self.user_number)}: Error filling "
-                              "out credit card information")
+                    vprint(f"User {str(self.user_number)}: Error filling "
+                            "out credit card information")
                     return False
                 try:
                     time.sleep(1)
@@ -564,10 +543,8 @@ class User:
                         '/app-payment-method/div/div[1]/mat-table/mat-row'
                         '/mat-cell[1]/mat-radio-button').click()
                     time.sleep(1)
-                except NoSuchElementException:
-                    if args.verbose:
-                        print(f"User {str(self.user_number)}: "
-                              + "Error choosing credit card information")
+                except NoSuchElementException as e:
+                    vprint(f"User {str(self.user_number)}: Error choosing credit card information")
                     return False
             try:
                 # continue
@@ -581,14 +558,10 @@ class User:
                     '//*[@id="checkoutButton"]').click()
                 time.sleep(2)
             except NoSuchElementException:
-                if args.verbose:
-                    print("User "
-                          + str(self.user_number)
-                          + ": error finishing checkout")
+                vprint("User " + str(self.user_number) + ": error finishing checkout")
                 return False
         except Exception:
-            if args.verbose:
-                print(f"User {self.user_number}: error finishing checkout")
+            vprint(f"User {self.user_number}: error finishing checkout")
             return False
         return True
 
@@ -606,18 +579,14 @@ class User:
         actions = ["shop", "complain", "checkout"]
         sys.stdin.readline()
         while not self.register():
-            if args.verbose:
-                print("error creating user -> retrying")
-        if args.verbose:
-            print(f"User {self.user_number}: Done register user")
+            vprint("error creating user -> retrying")
+        vprint(f"User {self.user_number}: Done register user")
         sys.stdin.readline()
         while not self.login():
-            if args.verbose:
-                print(f"User {self.user_number}: Retry log in")
+            vprint(f"User {self.user_number}: Retry log in")
             sys.stdin.readline()
             continue
-        if args.verbose:
-            print(f"User {self.user_number}: Done log in")
+        vprint(f"User {self.user_number}: Done log in")
         while True:
             sys.stdin.readline()
             random_action = random.randint(0, len(actions) - 1)
@@ -625,36 +594,27 @@ class User:
             if action == "shop":
                 something_in_cart = self.go_shopping(MAX_PRODUCTS)
                 if something_in_cart:
-                    if args.verbose:
-                        print(f"User {self.user_number}: Done shopping")
+                    vprint(f"User {self.user_number}: Done shopping")
                 else:
-                    if args.verbose:
-                        print(f"User {self.user_number}: Done shopping but nothing in cart")
+                    vprint(f"User {self.user_number}: Done shopping but nothing in cart")
             elif action == "complain":
                 self.complain()
-                if args.verbose:
-                    print(f"User {self.user_number}: Done complaining")
+                vprint(f"User {self.user_number}: Done complaining")
             elif action == "checkout":
-                if args.verbose:
-                    print(f"User {self.user_number}: checkout products")
+                vprint(f"User {self.user_number}: checkout products")
                 if something_in_cart:
                     if self.checkout():
-                        if args.verbose:
-                            print(f"User {self.user_number}: Paid for products")
+                        vprint(f"User {self.user_number}: Paid for products")
                     else:
-                        if args.verbose:
-                            print(f"User {self.user_number}: prellt Zeche")
+                        vprint(f"User {self.user_number}: prellt Zeche")
                 else:
-                    if args.verbose:
-                        print(f"User {self.user_number}: nothing to checkout")
+                    vprint(f"User {self.user_number}: nothing to checkout")
                 something_in_cart = False
                 while not self.login():
-                    if args.verbose:
-                        print(f"User {self.user_number}: Retry log in")
+                    vprint(f"User {self.user_number}: Retry log in")
                     sys.stdin.readline()
                     continue
-                if args.verbose:
-                    print(f"User {self.user_number}: Done relogin")
+                vprint(f"User {self.user_number}: Done relogin")
 
 
 if __name__ == '__main__':
