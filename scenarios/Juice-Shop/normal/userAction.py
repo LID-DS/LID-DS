@@ -14,6 +14,7 @@ from selenium.common.exceptions import NoSuchElementException
 MAX_LOGOUT_FAILS = 1
 MAX_PRODUCTS = 1
 
+
 def vprint(string):
     """
     prints the given string if the verbose flag is set
@@ -67,9 +68,9 @@ class User:
             self.driver.find_element_by_css_selector(
                    'button.mat-focus-indicator:nth-child(4)').click()
         except Exception:
-                vprint("User "
-                       + str(self.user_number)
-                       + ": Error removing welcome banner")
+            vprint("User "
+                   + str(self.user_number)
+                   + ": Error removing welcome banner")
             return False
         time.sleep(0.5)
         try:
@@ -576,7 +577,7 @@ class User:
         check if there is something in cart before running checkout
         """
         something_in_cart = False
-        actions = ["shop", "complain", "checkout"]
+        actions = ["shop", "shop", "shop", "complain", "checkout"]
         sys.stdin.readline()
         while not self.register():
             vprint("error creating user -> retrying")
