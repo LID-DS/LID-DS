@@ -3,7 +3,7 @@ FROM ubuntu:13.04
 RUN sed -i 's/archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
 RUN sed -i 's/security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
 
-RUN apt-get update && apt-get install -y apache2 tcpdump php5 libapache2-mod-php5 unzip
+RUN apt-get update && apt-get install -y apache2 tcpdump php5 libapache2-mod-php5 unzip python3
 
 RUN mkdir -p /etc/apache2/conf.d/
 RUN mkdir /var/run/apache2
@@ -38,3 +38,9 @@ CMD /usr/sbin/apache2ctl -D FOREGROUND
 ADD create_users.sh /home/
 RUN chmod +x /home/create_users.sh
 RUN ./home/create_users.sh
+
+ADD http_default_pass.txt .
+ADD http_default_users.txt .
+ADD add_admin.sh .
+RUN chmod +x add_admin.sh
+
