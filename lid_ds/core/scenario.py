@@ -3,6 +3,7 @@ The purpose of the Scenario module is to provide the scenario class.
 The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
+import datetime
 import random
 from abc import ABCMeta, abstractmethod
 from threading import Thread
@@ -112,15 +113,17 @@ class Scenario(metaclass=ABCMeta):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
         with self.victim.record_container() as (sysdig, tcpdump, resource):
             if self.general_meta.recording_time == -1:
+                self.start_time = datetime.datetime.now()
                 exploit_container_id = self.exploit.container.attrs['Id']
                 while True:
                     client = docker.from_env()
                     if client.containers.get(exploit_container_id).attrs['State']['Running']:
                         sleep(0.1)
                     else:
-                        sleep_time = random.randint(5,15)
+                        sleep_time = random.randint(5, 15)
                         self.logger.info(f"attack finished - stopping recording in {sleep_time} seconds")
                         sleep(sleep_time)
+                        self.end_time = datetime.datetime.now()
                         break
             else:
                 sleep(self.general_meta.recording_time)
@@ -153,7 +156,7 @@ class Scenario(metaclass=ABCMeta):
             self._teardown()
 
         self._postprocessing()
-
+        # Collector().set_recording_time(self.start_time, self.end_time)
         log.stop()
         self.logging_thread.join()
 

@@ -78,6 +78,10 @@ class Collector:
                 return
         self.storage["time"]["exploit"].append({**self._calculate_time_value(value, source), 'name': name})
 
+    def set_recording_time(self, start_time, end_time):
+        recording_time = end_time - start_time
+        self.storage['recording_time'] = recording_time.total_seconds()
+
     @property
     def attacker_ip(self):
         for container in self.storage['container']:
