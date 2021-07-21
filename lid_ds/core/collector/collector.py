@@ -80,7 +80,7 @@ class Collector:
 
     def set_recording_time(self, start_time, end_time):
         recording_time = end_time - start_time
-        self.storage['recording_time'] = recording_time.total_seconds()
+        self.storage['recording_time'] = int(recording_time.total_seconds())
 
     @property
     def attacker_ip(self):
