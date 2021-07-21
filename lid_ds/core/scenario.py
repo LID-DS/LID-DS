@@ -5,6 +5,7 @@ create new scenarios and implementing needed functions.
 """
 import datetime
 import random
+import sys
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from time import sleep, time
@@ -76,7 +77,9 @@ class Scenario(metaclass=ABCMeta):
         self.normal = ScenarioNormal(normal, wait_times)
         self.exploit = ScenarioAttacker(exploit)
 
-        if exploit_start_time == 0 and recording_time == -1:
+        self.auto_stop_recording = True if recording_time == -1 else False
+
+        if exploit_start_time == 0 and self.auto_stop_recording:
             raise ValueError("Autostop of recording is only possible with active exploit")
 
         Collector().set_meta(
@@ -112,8 +115,7 @@ class Scenario(metaclass=ABCMeta):
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
         with self.victim.record_container() as (sysdig, tcpdump, resource):
-            if self.general_meta.recording_time == -1:
-                self.start_time = datetime.datetime.now()
+            if self.auto_stop_recording:
                 exploit_container_id = self.exploit.container.attrs['Id']
                 while True:
                     client = docker.from_env()
@@ -135,7 +137,7 @@ class Scenario(metaclass=ABCMeta):
 
     def _teardown(self):
         try:
-            if self.is_exploit and self.general_meta.recording_time != -1:
+            if self.is_exploit and not self.auto_stop_recording:
                 self.exploit.teardown()
         except NotFound:
             self.logger.info('Attacker already shut down')
