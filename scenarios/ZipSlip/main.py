@@ -4,7 +4,7 @@ import urllib.request
 
 from lid_ds.core import Scenario, Image, StdinCommand, ExecCommand
 from lid_ds.core.collector.json_file_store import JSONFileStorage
-from lid_ds.sim import gen_schedule_wait_times
+from lid_ds.sim import gen_schedule_wait_times, Sampler
 from lid_ds.utils.docker_utils import get_ip_address
 
 
@@ -39,14 +39,17 @@ if __name__ == '__main__':
     if exploit_time < 1:
         exploit_time = 0
     else:
-        exploit_time = random.randint(int(recording_time * .3), int(recording_time * .8))
-
+        exploit_time = random.randint(int(recording_time * .3),
+                                      int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
     min_user_count = 1
     max_user_count = 6
     user_count = random.randint(min_user_count, max_user_count)
 
-    wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
-
+    if recording_time == -1:
+        # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
+        wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
+    else:
+        wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
     storage_services = [JSONFileStorage()]
 
     victim = Image("victim_zipslip")
