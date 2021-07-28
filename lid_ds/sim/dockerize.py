@@ -6,8 +6,9 @@ import random
 
 import dateutil.parser
 import docker
-import uuid
 from docker.models.containers import Container
+from requests.exceptions import HTTPError
+
 
 from lid_ds.utils import log
 
@@ -17,7 +18,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def run_image(image, network, name, port_mapping=None, command="", volumes=None, privileged=False) -> Container:
     network_name = network if isinstance(network, str) else network.name
-    ports, publish_all = (None, True) if port_mapping is "all" else (port_mapping, False)
+    ports, publish_all = (None, True) if port_mapping == "all" else (port_mapping, False)
     container = client.containers.run(
         image,
         command=command,
@@ -46,6 +47,10 @@ def show_logs(container: Container, logger):
                     logger.info(content.decode())
                     last_lines.append(line)
                 last = dateutil.parser.isoparse(ts).replace(tzinfo=None)
-        except:
-            logger.debug("Shutdown")
+        except HTTPError:
+            logger.debug("Offline")
             break
+        except Exception as e:
+            logger.debug(e)
+
+
