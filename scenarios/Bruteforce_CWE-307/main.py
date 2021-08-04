@@ -12,7 +12,7 @@ from lid_ds.utils.docker_utils import get_ip_address
 class Bruteforce_CWE_307(Scenario):
 
     def init_victim(self, container, logger):
-        pass
+        container.exec_run('./add_admin.sh')
 
     def wait_for_availability(self, container):
         try:
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     post_freq = "20"
 
     victim = Image("victim_bruteforce")
-    normal = Image("normal_bruteforce", command=StdinCommand(""), init_args="-ip ${victim} -post " + str(post_freq))
+    normal = Image("normal_bruteforce", command=StdinCommand(""), init_args="-ip ${victim} -post " + str(post_freq) + " -v 1")
     exploit = Image("exploit_bruteforce", command=StdinCommand(""), init_args="${victim}")
 
     bruteforce_scenario = Bruteforce_CWE_307(
