@@ -21,6 +21,7 @@ class ScenarioNormal(ScenarioContainerBase):
         self.containers: Dict[str, Optional[Container]] = dict(
             (secrets.token_hex(8), None) for _ in range(len(wait_times)))
         self.logger = {}
+        self.teardown_flag = False
         self.thread_pool = ThreadPoolExecutor(max_workers=len(wait_times) + 1)
         if self.to_stdin:
             self.log_threads = []
@@ -46,6 +47,7 @@ class ScenarioNormal(ScenarioContainerBase):
             container.remove(force=True)
         for t in self.log_threads:
             t.join()
+        self.teardown_flag = True
         self.thread_pool.shutdown(wait=True)
 
     def _simulate_container(self, wait_times, name):
@@ -54,7 +56,14 @@ class ScenarioNormal(ScenarioContainerBase):
             socket = self.containers[name].attach_socket(params={'stdin': 1, 'stream': 1})
             socket._writing = True
         for wt in wait_times:
-            time.sleep(wt)
+            # split up sleeping to prevent long waiting times after automatic exploit-end-detection
+            # breaks execution after teardown_flag=True
+            # granularity = 10ms
+            for i in range(int(wt/0.01)):
+                time.sleep(0.01)
+                if self.teardown_flag:
+                    return None
+
             for command in self.image.commands:
                 cmd = format_command(command.command)
                 if command.stdin:

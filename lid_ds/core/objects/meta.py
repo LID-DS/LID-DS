@@ -13,7 +13,7 @@ class ScenarioMeta:
         if not isinstance(exploit_time, (int, float)):
             raise TypeError(
                 "Exploit start time needs to be an integer or float")
-        if exploit_time > recording_time:
+        if exploit_time > recording_time != -1:
             raise ValueError(
                 "The start time of the exploit must be before the end of the recording!"
             )

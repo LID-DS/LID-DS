@@ -3,11 +3,15 @@ The purpose of the Scenario module is to provide the scenario class.
 The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
-
+import datetime
+import random
+import sys
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from time import sleep, time
 from typing import List
+
+import docker
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
 from .image import ChainImage
@@ -18,6 +22,7 @@ from .objects.normal import ScenarioNormal
 from lid_ds.core.objects.victim import ScenarioVictim
 from lid_ds.utils import log
 from ..postprocessing import postprocessing
+from docker.errors import NotFound
 
 
 class Scenario(metaclass=ABCMeta):
@@ -72,6 +77,11 @@ class Scenario(metaclass=ABCMeta):
         self.normal = ScenarioNormal(normal, wait_times)
         self.exploit = ScenarioAttacker(exploit)
 
+        self.auto_stop_recording = True if recording_time == -1 else False
+
+        if exploit_start_time == 0 and self.auto_stop_recording:
+            raise ValueError("Autostop of recording is only possible with active exploit")
+
         Collector().set_meta(
             name=self.general_meta.name,
             image=victim.name,
@@ -105,7 +115,21 @@ class Scenario(metaclass=ABCMeta):
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
         with self.victim.record_container() as (sysdig, tcpdump, resource):
-            sleep(self.general_meta.recording_time)
+            if self.auto_stop_recording:
+                self.start_time = datetime.datetime.now()
+                exploit_container_id = self.exploit.container.attrs['Id']
+                while True:
+                    client = docker.from_env()
+                    if client.containers.get(exploit_container_id).attrs['State']['Running']:
+                        sleep(0.1)
+                    else:
+                        sleep_time = random.randint(5, 15)
+                        self.logger.info(f"attack finished - stopping recording in {sleep_time} seconds")
+                        sleep(sleep_time)
+                        break
+                self.end_time = datetime.datetime.now()
+            else:
+                sleep(self.general_meta.recording_time)
 
     def _postprocessing(self):
         if self.is_exploit:
@@ -113,8 +137,12 @@ class Scenario(metaclass=ABCMeta):
         Collector().write(self.storage_services)
 
     def _teardown(self):
-        if self.is_exploit:
-            self.exploit.teardown()
+        try:
+            if self.is_exploit and not self.auto_stop_recording:
+                self.exploit.teardown()
+        except NotFound:
+            self.logger.info('Attacker already shut down')
+
         self.normal.teardown()
         ScenarioEnvironment().network.remove()
 
@@ -129,6 +157,9 @@ class Scenario(metaclass=ABCMeta):
                 self._recording()
         finally:
             self._teardown()
+
+        if self.auto_stop_recording:
+            Collector().set_recording_time(self.start_time, self.end_time)
 
         self._postprocessing()
 

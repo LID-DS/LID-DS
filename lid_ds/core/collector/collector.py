@@ -53,7 +53,8 @@ class Collector:
     def set_meta(self, name, image, recording_time, is_exploit, exploit_name):
         self.name = name
         self.storage["image"] = image
-        self.storage["recording_time"] = recording_time
+        # recording time = -1 -> auto detection of exploit end and autostop of recording
+        self.storage["recording_time"] = recording_time if not recording_time == -1 else 'auto-detected'
         self.storage["exploit"] = is_exploit
         self.storage["exploit_name"] = exploit_name
 
@@ -76,6 +77,10 @@ class Collector:
                     self.storage["time"]["exploit"][i] = {**self._calculate_time_value(value, source), 'name': name}
                 return
         self.storage["time"]["exploit"].append({**self._calculate_time_value(value, source), 'name': name})
+
+    def set_recording_time(self, start_time, end_time):
+        recording_time = end_time - start_time
+        self.storage['recording_time'] = int(recording_time.total_seconds())
 
     @property
     def attacker_ip(self):
