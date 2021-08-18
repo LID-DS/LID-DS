@@ -34,18 +34,23 @@ class Bruteforce_CWE_307(Scenario):
 
 
 if __name__ == '__main__':
-    warmup_time = int(sys.argv[1])
+    warmup_time = 3
+    run_normal_behavior = bool(int(sys.argv[1]))
     recording_time = int(sys.argv[2])
     do_exploit = int(sys.argv[3])
     if do_exploit < 1:
         exploit_time = 0
     else:
-        exploit_time = random.randint(int(recording_time * .3),
-                                      int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
+        exploit_time = random.randint(
+            int(recording_time * .3),
+            int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
 
-    min_user_count = 10
-    max_user_count = 25
-    user_count = random.randint(min_user_count, max_user_count)
+    if run_normal_behavior:
+        min_user_count = 10
+        max_user_count = 25
+        user_count = random.randint(min_user_count, max_user_count)
+    else:
+        user_count = 0
     if recording_time == -1:
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
         wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
@@ -56,7 +61,9 @@ if __name__ == '__main__':
     post_freq = "20"
 
     victim = Image("victim_bruteforce")
-    normal = Image("normal_bruteforce", command=StdinCommand(""), init_args="-ip ${victim} -post " + str(post_freq) + " -v 1")
+    normal = Image("normal_bruteforce",
+                   command=StdinCommand(""),
+                   init_args="-ip ${victim} -post " + str(post_freq) + " -v 1")
     exploit = Image("exploit_bruteforce", command=StdinCommand(""), init_args="${victim}")
 
     bruteforce_scenario = Bruteforce_CWE_307(
