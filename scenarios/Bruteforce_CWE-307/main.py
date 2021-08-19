@@ -5,7 +5,7 @@ import urllib.request
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.image import StdinCommand, Image
-from lid_ds.sim import gen_schedule_wait_times, Sampler
+from lid_ds.sim import Sampler
 from lid_ds.utils.docker_utils import get_ip_address
 
 
@@ -46,8 +46,8 @@ if __name__ == '__main__':
             int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
 
     if run_normal_behavior:
-        min_user_count = 10
-        max_user_count = 25
+        min_user_count = 15
+        max_user_count = 30
         user_count = random.randint(min_user_count, max_user_count)
     else:
         user_count = 0
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
         wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
     else:
-        wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
+        wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, recording_time)
 
     storage_services = [JSONFileStorage()]
     post_freq = "20"
