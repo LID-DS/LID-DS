@@ -46,16 +46,16 @@ if __name__ == '__main__':
             int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
 
     if run_normal_behavior:
-        min_user_count = 15
-        max_user_count = 30
+        min_user_count = 5
+        max_user_count = 25
         user_count = random.randint(min_user_count, max_user_count)
     else:
         user_count = 0
     if recording_time == -1:
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
-        wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
+        wait_times = Sampler("Jul95").timerange_sampling(user_count, 1800)
     else:
-        wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, recording_time)
+        wait_times = Sampler("Jul95").timerange_sampling(user_count, recording_time)
 
     storage_services = [JSONFileStorage()]
     post_freq = "20"

@@ -12,6 +12,16 @@ The normal behaviour consists of random GET and POST requests to the victim by p
 ## exploit:
 The exploit brute forces (tries to log in repeatedly with different credentials) the POST endpoint of the victim. This is done by using the metasploit framework's bruteforce automation that has a builtin credential library.
 
+
+## cli interface:
+
+    sudo python3.7 main.py a b c 
+    
+    a:boolean run automated normal behavior
+    b:integer recording time
+    c:boolean run automated exploit
+
+
 Further information:
 * https://cwe.mitre.org/data/definitions/307.html
 * https://owasp.org/www-community/attacks/Brute_force_attack
