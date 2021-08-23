@@ -32,7 +32,7 @@ class ZipSlip(Scenario):
 
 
 if __name__ == '__main__':
-    warmup_time = int(sys.argv[1])
+    do_normal = bool(int(sys.argv[1]))
     recording_time = int(sys.argv[2])
     exploit_time = int(sys.argv[3])
 
@@ -41,15 +41,18 @@ if __name__ == '__main__':
     else:
         exploit_time = random.randint(int(recording_time * .3),
                                       int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
-    min_user_count = 1
+    min_user_count = 3
     max_user_count = 6
     user_count = random.randint(min_user_count, max_user_count)
 
-    if recording_time == -1:
+    if not do_normal:
+        wait_times = {}
+    elif recording_time == -1:
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
-        wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
+        wait_times = Sampler("Sep4").ip_timerange_sampling(user_count, 1800)
     else:
-        wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
+        wait_times = Sampler("Sep4").ip_timerange_sampling(user_count, recording_time)
+
     storage_services = [JSONFileStorage()]
 
     victim = Image("victim_zipslip")
@@ -61,7 +64,7 @@ if __name__ == '__main__':
         normal=normal,
         exploit=exploit,
         wait_times=wait_times,
-        warmup_time=warmup_time,
+        warmup_time=3,
         recording_time=recording_time,
         storage_services=storage_services,
         exploit_start_time=exploit_time
