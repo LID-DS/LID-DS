@@ -70,18 +70,22 @@ class Sampler:
 
         return wts
 
-    def ip_timerange_sampling(self, user, length):
+    def ip_timerange_sampling(self, user, length, min_actions=1):
         wts = []
         for _ in range(user):
-            entry = self.df.sample(1).iloc[0]
+            while True:
+                entry = self.df.sample(1).iloc[0]
 
-            sample = self.df[self.df['ip'] == entry['ip']]
+                sample = self.df[self.df['ip'] == entry['ip']]
 
-            sample = sample['time']
-            sample = sample[sample.between(
-                entry['time'], entry['time'] + length)]
+                sample = sample['time']
+                sample = sample[sample.between(
+                    entry['time'], entry['time'] + length)]
 
-            wts.append(convert_to_wait_times(sample, True))
+                wait_times = convert_to_wait_times(sample, True)
+                if len(wait_times) >= min_actions:
+                    wts.append(wait_times)
+                    break
 
         return wts
 
