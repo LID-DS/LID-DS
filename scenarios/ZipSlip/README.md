@@ -15,7 +15,7 @@ This will overwrite any files at specified location.
 
 ## cli:
 
-    sudo python3.7 main.py a b c 
+    sudo python3 main.py a b c 
     
     a: boolean run automated normal behavior
     b: integer recording time
