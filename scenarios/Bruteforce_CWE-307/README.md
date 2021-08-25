@@ -17,9 +17,9 @@ Further information:
 * https://owasp.org/www-community/attacks/Brute_force_attack
 * https://docs.rapid7.com/metasploit/bruteforce-attacks/
 
-## cli interface:
+## cli:
 
-    sudo python3.7 main.py a b c
+    sudo python main.py a b c
     
     a: boolean (0/1) run automated normal behavior
     b: integer recording time
