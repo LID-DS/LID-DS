@@ -40,7 +40,7 @@ Run malicious query as email while login:
 
 ## cli:
 
-    sudo python3.7 main.py a b c d
+    sudo python3 main.py a b c d
     
     a: boolean (0/1) run automated normal behavior
     b: integer recording time
