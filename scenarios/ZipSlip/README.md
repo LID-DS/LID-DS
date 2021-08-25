@@ -13,7 +13,7 @@ Sending files for victim to unzip.
 Upload malicious zipped file with malicious content (../../../../.../etc/passwd). 
 This will overwrite any files at specified location.
 
-## cli interface:
+## cli:
 
     sudo python3.7 main.py a b c 
     
