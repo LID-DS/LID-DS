@@ -24,10 +24,11 @@ Run sqlmap with cookie information to automatically inject malicious sql queries
 
 ## cli interface:
 
-    sudo python3.7 main.py a b c 
+    sudo python3.7 main.py a b c
     
-    a: boolean run automated normal behavior
+    a: boolean (0/1) run automated normal behavior
     b: integer recording time
        1-n: recording time in seconds
         -1: flag to run auto stop of recording after end of exploit
-    c: boolean run automated exploit
+    c: boolean (0/1) run automated exploit
+
