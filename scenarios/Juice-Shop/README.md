@@ -42,9 +42,9 @@ Run malicious query as email while login:
 
     sudo python3.7 main.py a b c d
     
-    a: boolean run automated normal behavior
+    a: boolean (0/1) run automated normal behavior
     b: integer recording time
        1-n: recording time in seconds
         -1: flag to run auto stop of recording after end of exploit
-    c: boolean run automated exploit
+    c: boolean (0/1) run automated exploit
     d: attack type (SQLInjectionSchema, SQLInjectionCred, SQLInjectionUser)
