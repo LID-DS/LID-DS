@@ -22,7 +22,7 @@ Go through links on site and visit /vulnerabilities/sqli if available.
 Extract cookie information. 
 Run sqlmap with cookie information to automatically inject malicious sql queries.
 
-## cli interface:
+## cli:
 
     sudo python3.7 main.py a b c
     
