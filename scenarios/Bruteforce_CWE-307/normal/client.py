@@ -6,11 +6,17 @@ import tempfile
 import requests
 import sys
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from pyvirtualdisplay import Display
+import webbrowser
 from threading import Thread
 from heartbeat import Heartbeat
+
+
+def vprint(string):
+    """
+    prints the given string if the verbose flag is set
+    """
+    if args.verbose:
+        print(string)
 
 
 def heartbeat():
@@ -21,12 +27,11 @@ def heartbeat():
     heartbeat_freq = random.randrange(60, 120)
     while True:
         try:
-            if args.verbose:
-                print(' '.join(['Heartbeat:', username, '-->', args.server_ip]))
+            vprint(' '.join(['Heartbeat:', username, '-->', args.server_ip]))
             hb.do_heartbeat()
             time.sleep(heartbeat_freq)
         # handling victim shutdown before own shutdown
-        except Exception as e:
+        except Exception:
             time.sleep(heartbeat_freq)
 
 
@@ -39,7 +44,7 @@ def https_requests(post_user, post_password):
             sys.stdin.readline()
             do_request(post_user, post_password)
         # handling victim shutdown before own shutdown
-        except Exception as e:
+        except Exception:
             time.sleep(5)
 
 
@@ -74,9 +79,8 @@ def do_POST(post_user, post_password):
     session.auth = (post_user, post_password)
     payload = {'press': 'OK'}
     files = {'userfile': open(file.name, 'rb')}
-    auth = session.post(url, files=files, data=payload, verify=False)
-    if args.verbose:
-        print(' '.join(['POST:', 'user', post_user, 'file', file.name]))
+    session.post(url, files=files, data=payload, verify=False)
+    vprint(' '.join(['POST:', post_user, 'file', file.name]))
     file.close()
 
 
@@ -85,24 +89,42 @@ def do_GET():
     executes GET request to victim
     """
     url = ''.join(['https://', args.server_ip, '/', random.choice(server_paths)])
-    driver.get(url)
-    if args.verbose:
-        print(' '.join(['GET:', url]))
+    webbrowser.open(url)
+    vprint(' '.join(['GET:', url]))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='HTTPS-Client Simulation.')
 
-    parser.add_argument('-ip', dest='server_ip', action='store', type=str, required=True,
+    parser.add_argument('-ip',
+                        dest='server_ip',
+                        action='store',
+                        type=str,
+                        required=True,
                         help='The IP address of the target server')
-    parser.add_argument('-post', dest='post_freq', action='store', type=int, required=False, default=20,
+    parser.add_argument('-post',
+                        dest='post_freq',
+                        action='store',
+                        type=int,
+                        required=False,
+                        default=20,
                         help='The POST frequency of the client in % (GET is 100 - POST)')
-    parser.add_argument('-v', dest='verbose', action='store', type=bool, required=False, default=False,
+    parser.add_argument('-v',
+                        dest='verbose',
+                        action='store',
+                        type=bool,
+                        required=False,
+                        default=False,
                         help='Make the operations more talkative')
 
     args = parser.parse_args()
 
-    server_paths = ['index.html', 'work.html', 'about.html', 'blog.html', 'services.html', 'shop.html']
+    server_paths = ['index.html',
+                    'work.html',
+                    'about.html',
+                    'blog.html',
+                    'services.html',
+                    'shop.html']
 
     # same users as in victims 'create_users.sh'
     users = {
@@ -121,19 +143,8 @@ if __name__ == '__main__':
     # Disable requests warnings (caused by self signed server certificate)
     requests.packages.urllib3.disable_warnings()
 
-    # Virtual display to run chrome-browser
-    display = Display(visible=0, size=(800, 800))
-    display.start()
-
-    # Headless chrome-browser settings
-    chrome_options = Options()
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument('--ignore-certificate-errors')
-    driver = webdriver.Chrome(chrome_options=chrome_options)
-
     # Probability of invalid logins
     prob_invalid_login = 5
-
 
     # pick random user
     user_list = list(users.keys())
