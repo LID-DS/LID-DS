@@ -77,7 +77,7 @@ def convert_scap_to_sc(json_file):
     run_name = os.path.splitext(json_base_name)[0]
     scap_name = os.path.join(dir_name, run_name) + ".scap"
     sc_name = os.path.join(dir_name, run_name) + ".sc"
-    os.system(f'sysdig -v -x -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r {scap_name} "proc.pid != -1" > {sc_name}')
+    os.system(f'sysdig -v -b -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r {scap_name} "proc.pid != -1" > {sc_name}')
     # sysdig -v -x -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r tangy_franklin_6387.scap "proc.pid != -1"
 
 
