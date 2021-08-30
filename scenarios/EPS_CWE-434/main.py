@@ -32,7 +32,7 @@ class EPS_CWE_434(Scenario):
             return False
 
 if __name__ == '__main__':
-    warmup_time = int(sys.argv[1])
+    do_normal = bool(int(sys.argv[1]))
     recording_time = int(sys.argv[2])
     is_exploit = int(sys.argv[3])
 
@@ -45,7 +45,9 @@ if __name__ == '__main__':
     max_user_count = 25
     user_count = random.randint(min_user_count, max_user_count)
 
-    if recording_time == -1:
+    if not do_normal:
+        wait_times = {}
+    elif recording_time == -1:
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
         wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
     else:
@@ -62,7 +64,7 @@ if __name__ == '__main__':
         normal=normal,
         exploit=exploit,
         wait_times=wait_times,
-        warmup_time=warmup_time,
+        warmup_time=3,
         recording_time=recording_time,
         storage_services=storage_services,
         exploit_start_time=exploit_time)

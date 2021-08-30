@@ -16,3 +16,13 @@ Further information:
 * https://cwe.mitre.org/data/definitions/307.html
 * https://owasp.org/www-community/attacks/Brute_force_attack
 * https://docs.rapid7.com/metasploit/bruteforce-attacks/
+
+## cli:
+
+    sudo python3 main.py a b c
+    
+    a: boolean (0/1) run automated normal behavior
+    b: integer recording time
+       1-n: recording time in seconds
+        -1: flag to run auto stop of recording after end of exploit
+    c: boolean (0/1) run automated exploit

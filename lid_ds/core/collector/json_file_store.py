@@ -6,20 +6,12 @@ from lid_ds.core.objects.environment import ScenarioEnvironment
 
 
 class JSONFileStorage(CollectorStorageService):
-    def __init__(self, filename="runs.json"):
-        self.file = open(os.path.join(ScenarioEnvironment().out_dir, filename), "a+")
+    def __init__(self):
+        self.file = None
 
     def store_dict(self, name: str, obj: dict):
-        self.file.seek(0)
-        try:
-            data = json.load(self.file)
-        except json.JSONDecodeError:
-            data = {}
-
-        data.update({name: obj})
-        self.file.seek(0)
-        self.file.truncate()
-        json.dump(data, self.file, indent=4, sort_keys=True)
+        self.file = open(os.path.join(ScenarioEnvironment().out_dir, name + '.json'), "a+")
+        json.dump(obj, self.file, indent=4, sort_keys=True)
 
     def __del__(self):
         self.file.close()

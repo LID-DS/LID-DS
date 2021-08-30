@@ -12,3 +12,13 @@ Sending files for victim to unzip.
 ## exploit:
 Upload malicious zipped file with malicious content (../../../../.../etc/passwd). 
 This will overwrite any files at specified location.
+
+## cli:
+
+    sudo python3 main.py a b c 
+    
+    a: boolean run automated normal behavior
+    b: integer recording time
+       1-n: recording time in seconds
+        -1: flag to run auto stop of recording after end of exploit
+    c: boolean run automated exploit
