@@ -67,7 +67,7 @@ if __name__ == '__main__':
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
         wait_times = Sampler("Jul95").timerange_sampling(user_count, 1800)
     else:
-        wait_times = Sampler("Jul95").ip_timerange_sampling(user_count, recording_time)
+        wait_times = Sampler("Jul95").timerange_sampling(user_count, recording_time)
 
     storage_services = [JSONFileStorage()]
 
