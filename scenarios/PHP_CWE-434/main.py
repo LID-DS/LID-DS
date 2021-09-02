@@ -41,20 +41,21 @@ if __name__ == '__main__':
         exploit_time = random.randint(int(recording_time * .3),
                                       int(recording_time * .8)) if recording_time != -1 else random.randint(5, 15)
     min_user_count = 10
-    max_user_count = 25
+    max_user_count = 20
     user_count = random.randint(min_user_count, max_user_count)
 
     if not do_normal:
         wait_times = {}
     elif recording_time == -1:
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
-        wait_times = Sampler("Aug28").ip_timerange_sampling(user_count, 1800)
+        wait_times = Sampler("Aug95").timerange_sampling(user_count, 1800)
     else:
-        wait_times = [gen_schedule_wait_times(recording_time) for _ in range(user_count)]
+        wait_times = Sampler("Aug95").timerange_sampling(user_count, recording_time)
+
     storage_services = [JSONFileStorage()]
 
     victim = Image("victim_php")
-    normal = Image("normal_php", command=StdinCommand(""), init_args="-ip ${victim}")
+    normal = Image("normal_php", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
     exploit = Image("exploit_php", command=StdinCommand(""), init_args="-ip ${victim}")
 
     php_scenario = PHP_CWE_434(

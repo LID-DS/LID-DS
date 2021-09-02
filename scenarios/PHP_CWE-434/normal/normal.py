@@ -33,6 +33,9 @@ def random_browsing():
         sys.stdin.readline()
         try:
             normal_step()
+        except ValueError:
+            # ignoring ValueError that happens after server answer to invalid SQL input
+            pass
         except Exception as e:
             if args.verbose:
                 print(e)
