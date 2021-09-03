@@ -180,8 +180,8 @@ class Exporter:
 
 if __name__ == '__main__':
     counts = {
-        Modes.TRAINING: 2,
-        Modes.VALIDATION: 2
+        Modes.TRAINING: 200,
+        Modes.VALIDATION: 50
     }
 
     scenario = sys.argv[1]
