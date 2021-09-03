@@ -55,7 +55,7 @@ class ScenarioVictim(ScenarioContainerBase):
         self.container.stop()
 
     @contextmanager
-    def record_container(self, buffer_size=80):
+    def record_container(self, buffer_size=1600):
         sysdig = self._sysdig(buffer_size)
         tcpdump = self._tcpdump()
         yield sysdig, tcpdump, self._resource_thread
