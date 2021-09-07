@@ -54,7 +54,7 @@ if __name__ == '__main__':
                     init_args="")
     normal = Image("normal_sql",
                    command=StdinCommand(""),
-                   init_args="-ip ${victim} -v false")
+                   init_args="-ip ${victim}")
 
     min_user_count = 5
     max_user_count = 15
