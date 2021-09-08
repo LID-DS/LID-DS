@@ -35,6 +35,8 @@ def check_each_file(path: str):
     small_files = set()
     type_of_runs = collections.Counter()
     for f in files_in_scenario:
+        if f == "runs.log":
+            continue
         check_for_missing_files(path, f, missing_files)
         check_file_sizes(path, f, small_files)
         if f.endswith(".json"):
