@@ -9,7 +9,7 @@ class RunType(Enum):
     NORMAL = 1
     NORMAL_AND_ATTACK = 2
     ONLY_ATTACK = 3
-    NOTHING = 4
+    IDLE = 4
 
 
 class SubFolder(Enum):
@@ -61,7 +61,7 @@ def get_type_of_run(json_file_name: str) -> RunType:
             exploit = True
 
         if normal_behavoiur is False and exploit is False:
-            return RunType.NOTHING
+            return RunType.IDLE
         if normal_behavoiur is False and exploit is True:
             return RunType.ONLY_ATTACK
         if normal_behavoiur is True and exploit is False:
@@ -141,7 +141,7 @@ class Exporter:
                       os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, pcap_base_name))
             os.rename(os.path.join(dir_name, res_base_name),
                       os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, res_base_name))
-        elif run_type == RunType.NOTHING:
+        elif run_type == RunType.IDLE:
             # one after another into TRAINING, VALIDATION and TEST_NORMAL
             if self._last_nothing_got_into == SubFolder.TEST_NORMAL:
                 self._last_nothing_got_into = SubFolder.TRAINING
