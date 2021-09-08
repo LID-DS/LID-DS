@@ -44,10 +44,7 @@ def check_each_file(path: str):
             type_of_runs[tor.name] += 1
 
     if len(type_of_runs) > 0:
-        print("NORMAL:".rjust(25) + f" {type_of_runs[RunType.NORMAL.name]}")
-        print("NORMAL_AND_ATTACK:".rjust(25) + f" {type_of_runs[RunType.NORMAL_AND_ATTACK.name]}")
-        print("ONLY_ATTACK:".rjust(25) + f" {type_of_runs[RunType.ONLY_ATTACK.name]}")
-        print("IDLE:".rjust(25) + f" {type_of_runs[RunType.IDLE.name]}")
+        print(f" [{type_of_runs[RunType.NORMAL.name]}, {type_of_runs[RunType.NORMAL_AND_ATTACK.name]}, {type_of_runs[RunType.ONLY_ATTACK.name]}, {type_of_runs[RunType.IDLE.name]}]")
 
     if len(missing_files) > 0:
         print("missing files:".rjust(25) + " ", end='')
