@@ -66,7 +66,7 @@ def check_scenario(base: str, scenario: str):
         expected_number = 1000 + 100 + 20 + 30        
         done = num_files / 4 / expected_number * 100.0
         print(scenario[:-1].rjust(24) + ": ", end='')
-        print(f"{done:.2f}%".rjust(7))
+        print(f"{done:.2f}%".rjust(7), end='')
         check_each_file(path)
         line = "-" * columns
         print(line)
