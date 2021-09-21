@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from enum import Enum
+from zipfile import ZipFile
 
 
 class RunType(Enum):
@@ -70,6 +71,26 @@ def get_type_of_run(json_file_name: str) -> RunType:
             return RunType.NORMAL_AND_ATTACK
 
 
+def zip_files(json_file):
+    # get the file names
+    json_base_name = os.path.basename(json_file)
+    dir_name = os.path.dirname(json_file)
+    run_name = os.path.splitext(json_base_name)[0]
+
+    sc_name = os.path.join(dir_name, run_name) + ".sc"
+    pcap_name = os.path.join(dir_name, run_name) + ".pcap"
+    rc_name = os.path.join(dir_name, run_name) + ".res"
+
+    zip_name = os.path.join(dir_name, run_name) + ".zip"
+
+    zipfile = ZipFile(zip_name, 'w')
+    zipfile.write(json_file)
+    zipfile.write(sc_name)
+    zipfile.write(pcap_name)
+    zipfile.write(rc_name)
+    zipfile.close()
+
+
 def convert_scap_to_sc(json_file):
     # build the filename of the scap file
     json_base_name = os.path.basename(json_file)
@@ -78,7 +99,6 @@ def convert_scap_to_sc(json_file):
     scap_name = os.path.join(dir_name, run_name) + ".scap"
     sc_name = os.path.join(dir_name, run_name) + ".sc"
     os.system(f'sysdig -v -b -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r {scap_name} "proc.pid != -1" > {sc_name}')
-    # sysdig -v -x -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r tangy_franklin_6387.scap "proc.pid != -1"
 
 
 class Exporter:
@@ -86,14 +106,13 @@ class Exporter:
         self._last_nothing_got_into = SubFolder.TEST_NORMAL
 
     def move_files(self, json_file, run_type, counts_dict):
-        convert_scap_to_sc(file)
+        convert_scap_to_sc(json_file)
+        zip_files(json_file)
         json_base_name = os.path.basename(json_file)
         dir_name = os.path.dirname(json_file)
         run_name = os.path.splitext(json_base_name)[0]
 
-        sc_base_name = run_name + ".sc"
-        pcap_base_name = run_name + ".pcap"
-        res_base_name = run_name + ".res"
+        zip_base_name = run_name + ".zip"
 
         print(f"current run: {run_name} -> {run_type} ", end="", flush=True)
 
@@ -101,81 +120,39 @@ class Exporter:
             if counts_dict[Modes.TRAINING] > 0:
                 counts_dict[Modes.TRAINING] -= 1
                 print(f"-> {SubFolder.TRAINING.value}")
-                os.rename(os.path.join(dir_name, json_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, json_base_name))
-                os.rename(os.path.join(dir_name, sc_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, sc_base_name))
-                os.rename(os.path.join(dir_name, pcap_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, pcap_base_name))
-                os.rename(os.path.join(dir_name, res_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, res_base_name))
+                os.rename(os.path.join(dir_name, zip_base_name),
+                          os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name))
             elif counts_dict[Modes.VALIDATION] > 0:
                 counts_dict[Modes.VALIDATION] -= 1
                 print(f"-> {SubFolder.VALIDATION.value}")
-                os.rename(os.path.join(dir_name, json_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, json_base_name))
-                os.rename(os.path.join(dir_name, sc_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, sc_base_name))
-                os.rename(os.path.join(dir_name, pcap_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, pcap_base_name))
-                os.rename(os.path.join(dir_name, res_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, res_base_name))
+                os.rename(os.path.join(dir_name, zip_base_name),
+                          os.path.join(dir_name, SubFolder.VALIDATION.value, zip_base_name))
             else:
                 print(f"-> {SubFolder.TEST_NORMAL.value}")
-                os.rename(os.path.join(dir_name, json_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, json_base_name))
-                os.rename(os.path.join(dir_name, sc_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, sc_base_name))
-                os.rename(os.path.join(dir_name, pcap_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, pcap_base_name))
-                os.rename(os.path.join(dir_name, res_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, res_base_name))
+                os.rename(os.path.join(dir_name, zip_base_name),
+                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, zip_base_name))
 
         elif run_type == RunType.NORMAL_AND_ATTACK or run_type == RunType.ONLY_ATTACK:
             print(f"-> {SubFolder.TEST_NORMAL_AND_ATTACK.value}")
-            os.rename(os.path.join(dir_name, json_base_name),
-                      os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, json_base_name))
-            os.rename(os.path.join(dir_name, sc_base_name),
-                      os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, sc_base_name))
-            os.rename(os.path.join(dir_name, pcap_base_name),
-                      os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, pcap_base_name))
-            os.rename(os.path.join(dir_name, res_base_name),
-                      os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, res_base_name))
+            os.rename(os.path.join(dir_name, zip_base_name),
+                      os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, zip_base_name))
         elif run_type == RunType.IDLE:
             # one after another into TRAINING, VALIDATION and TEST_NORMAL
             if self._last_nothing_got_into == SubFolder.TEST_NORMAL:
                 self._last_nothing_got_into = SubFolder.TRAINING
                 print(f"-> {SubFolder.TRAINING.value}")
-                os.rename(os.path.join(dir_name, json_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, json_base_name))
-                os.rename(os.path.join(dir_name, sc_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, sc_base_name))
-                os.rename(os.path.join(dir_name, pcap_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, pcap_base_name))
-                os.rename(os.path.join(dir_name, res_base_name),
-                          os.path.join(dir_name, SubFolder.TRAINING.value, res_base_name))
+                os.rename(os.path.join(dir_name, zip_base_name),
+                          os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name))
             elif self._last_nothing_got_into == SubFolder.TRAINING:
                 self._last_nothing_got_into = SubFolder.VALIDATION
                 print(f"-> {SubFolder.VALIDATION.value}")
-                os.rename(os.path.join(dir_name, json_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, json_base_name))
-                os.rename(os.path.join(dir_name, sc_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, sc_base_name))
-                os.rename(os.path.join(dir_name, pcap_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, pcap_base_name))
-                os.rename(os.path.join(dir_name, res_base_name),
-                          os.path.join(dir_name, SubFolder.VALIDATION.value, res_base_name))
+                os.rename(os.path.join(dir_name, zip_base_name),
+                          os.path.join(dir_name, SubFolder.VALIDATION.value, zip_base_name))
             elif self._last_nothing_got_into == SubFolder.VALIDATION:
                 self._last_nothing_got_into = SubFolder.TEST_NORMAL
                 print(f"-> {SubFolder.TEST_NORMAL.value}")
-                os.rename(os.path.join(dir_name, json_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, json_base_name))
-                os.rename(os.path.join(dir_name, sc_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, sc_base_name))
-                os.rename(os.path.join(dir_name, pcap_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, pcap_base_name))
-                os.rename(os.path.join(dir_name, res_base_name),
-                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, res_base_name))
+                os.rename(os.path.join(dir_name, zip_base_name),
+                          os.path.join(dir_name, SubFolder.TEST_NORMAL.value, zip_base_name))
 
 
 if __name__ == '__main__':
@@ -185,7 +162,7 @@ if __name__ == '__main__':
     }
 
     scenario = sys.argv[1]
-    scenario_path = os.path.join(scenario, "runs")
+    scenario_path = scenario  # os.path.join(scenario, "runs")
     print(f"working on: {scenario_path}")
 
     # delete runs.log
