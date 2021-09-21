@@ -3,7 +3,7 @@ import json
 import os
 import sys
 from enum import Enum
-from zipfile import ZipFile
+import zipfile
 
 
 class RunType(Enum):
@@ -83,12 +83,12 @@ def zip_files(json_file):
 
     zip_name = os.path.join(dir_name, run_name) + ".zip"
 
-    zipfile = ZipFile(zip_name, 'w')
-    zipfile.write(json_file, f"{run_name}.json")
-    zipfile.write(sc_name, f"{run_name}.sc")
-    zipfile.write(pcap_name, f"{run_name}.pcap")
-    zipfile.write(res_name, f"{run_name}.res")
-    zipfile.close()
+    zfile = zipfile.ZipFile(zip_name, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=8)
+    zfile.write(json_file, f"{run_name}.json")
+    zfile.write(sc_name, f"{run_name}.sc")
+    zfile.write(pcap_name, f"{run_name}.pcap")
+    zfile.write(res_name, f"{run_name}.res")
+    zfile.close()
 
 
 def convert_scap_to_sc(json_file):
