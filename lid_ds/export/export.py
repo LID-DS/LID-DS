@@ -79,15 +79,15 @@ def zip_files(json_file):
 
     sc_name = os.path.join(dir_name, run_name) + ".sc"
     pcap_name = os.path.join(dir_name, run_name) + ".pcap"
-    rc_name = os.path.join(dir_name, run_name) + ".res"
+    res_name = os.path.join(dir_name, run_name) + ".res"
 
     zip_name = os.path.join(dir_name, run_name) + ".zip"
 
     zipfile = ZipFile(zip_name, 'w')
-    zipfile.write(json_file)
-    zipfile.write(sc_name)
-    zipfile.write(pcap_name)
-    zipfile.write(rc_name)
+    zipfile.write(json_file, f"{run_name}.json")
+    zipfile.write(sc_name, f"{run_name}.sc")
+    zipfile.write(pcap_name, f"{run_name}.pcap")
+    zipfile.write(res_name, f"{run_name}.res")
     zipfile.close()
 
 
