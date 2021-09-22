@@ -82,7 +82,9 @@ def zip_files(json_file):
     res_name = os.path.join(dir_name, run_name) + ".res"
 
     zip_name = os.path.join(dir_name, run_name) + ".zip"
-
+    # check if zip already exists
+    if os.path.isfile(zip_name):
+        return
     zfile = zipfile.ZipFile(zip_name, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=8)
     zfile.write(json_file, f"{run_name}.json")
     zfile.write(sc_name, f"{run_name}.sc")
@@ -98,6 +100,9 @@ def convert_scap_to_sc(json_file):
     run_name = os.path.splitext(json_base_name)[0]
     scap_name = os.path.join(dir_name, run_name) + ".scap"
     sc_name = os.path.join(dir_name, run_name) + ".sc"
+    # check if sc file already exist
+    if os.path.isfile(sc_name):
+        return
     os.system(f'sysdig -v -b -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r {scap_name} "proc.pid != -1" > {sc_name}')
 
 
@@ -113,8 +118,10 @@ class Exporter:
         zip_base_name = run_name + ".zip"
 
         print(f"current run: {run_name} -> {run_type} ", end="", flush=True)
-        if os.path.isfile(os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name)):
-            return
+	
+	# if zip is at destination
+        if os.path.isfile(os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name)) or os.path.isfile(os.path.join(dir_name, SubFolder.VALIDATION.value, zip_base_name)) or os.path.isfile(os.path.join(dir_name, SubFolder.TEST_NORMAL.value, zip_base_name)) or os.path.isfile(os.path.join(dir_name, SubFolder.TEST_NORMAL_AND_ATTACK.value, zip_base_name)):
+            return        
         convert_scap_to_sc(json_file)
         zip_files(json_file)
 
@@ -178,7 +185,8 @@ if __name__ == '__main__':
     create_subfolder(os.path.join(scenario_path, SubFolder.TEST_NORMAL_AND_ATTACK.value))
 
     # get all json files
-    list_of_jsons = [f for f in glob.glob(scenario_path + "/*.json")]
+    list_of_jsons = sorted([f for f in glob.glob(scenario_path + "/*.json")])
+    
 
     exp = Exporter()
 
