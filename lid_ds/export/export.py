@@ -114,6 +114,9 @@ class Exporter:
 
         zip_base_name = run_name + ".zip"
 
+        if not os.path.isfile(os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name)):
+            return
+
         print(f"current run: {run_name} -> {run_type} ", end="", flush=True)
 
         if run_type == RunType.NORMAL:
