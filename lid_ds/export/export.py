@@ -106,18 +106,17 @@ class Exporter:
         self._last_nothing_got_into = SubFolder.TEST_NORMAL
 
     def move_files(self, json_file, run_type, counts_dict):
-        convert_scap_to_sc(json_file)
-        zip_files(json_file)
+
         json_base_name = os.path.basename(json_file)
         dir_name = os.path.dirname(json_file)
         run_name = os.path.splitext(json_base_name)[0]
-
         zip_base_name = run_name + ".zip"
 
-        if not os.path.isfile(os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name)):
-            return
-
         print(f"current run: {run_name} -> {run_type} ", end="", flush=True)
+        if os.path.isfile(os.path.join(dir_name, SubFolder.TRAINING.value, zip_base_name)):
+            return
+        convert_scap_to_sc(json_file)
+        zip_files(json_file)
 
         if run_type == RunType.NORMAL:
             if counts_dict[Modes.TRAINING] > 0:
