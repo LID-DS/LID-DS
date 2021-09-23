@@ -61,18 +61,24 @@ class Recording:
                 https://pypcapkit.jarryshaw.me/en/latest/foundation/extraction.html#pcapkit.foundation.extraction.Extractor
 
         """
-        with zipfile.ZipFile(self.path, 'r') as zipped:
-            file_list = zipped.namelist()
-            for file in file_list:
-                if file.endswith('.pcap'):
-                    zipped.extract(file, 'tmp')
-        obj = pcapkit.extract(fin=f'tmp/{self.name}.pcap',
-                              engine='scapy',
-                              store=True,
-                              nofile=True,
-                              tcp=True,
-                              strict=True)
-        os.remove(f'tmp/{self.name}.pcap')
+        try:
+            with zipfile.ZipFile(self.path, 'r') as zipped:
+                file_list = zipped.namelist()
+                for file in file_list:
+                    if file.endswith('.pcap'):
+                        zipped.extract(file, 'tmp')
+            obj = pcapkit.extract(fin=f'tmp/{self.name}.pcap',
+                                  engine='scapy',
+                                  store=True,
+                                  nofile=True,
+                                  tcp=True,
+                                  strict=True)
+        except Exception:
+            print(f'Error extracting pcap file {self.name}')
+            return None
+        finally:
+            os.remove(f'tmp/{self.name}.pcap')
+
         return obj
 
     def resource_stats(self) -> list:

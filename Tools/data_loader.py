@@ -226,6 +226,6 @@ class DataLoader:
 if __name__ == "__main__":
     dataloader = DataLoader('../../Bruteforce')
     training_data = dataloader.training_data()
-    i = 0
     for recording in training_data:
+        print("done")
         pck = recording.packets()
