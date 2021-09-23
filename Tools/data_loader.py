@@ -10,10 +10,6 @@ VALIDATION = 'validation'
 TEST = 'test'
 
 
-def get_file_name(path):
-    return os.path.splitext(os.path.basename(path))[0]
-
-
 class RecordingType(Enum):
     NORMAL = 1
     NORMAL_AND_ATTACK = 2
@@ -21,17 +17,41 @@ class RecordingType(Enum):
     IDLE = 4
 
 
+def get_file_name(path: str) -> str:
+    """
+        Return file name without path and extension
+
+        Parameter:
+        path (str): path of file
+
+        Returns:
+        str: file name
+
+    """
+    return os.path.splitext(os.path.basename(path))[0]
+
+
 class DataLoader:
     """
 
-        Recieves path of scenario
+        Recieves path of scenario.
+
+        Args:
+        scenario_path (str): path of scenario folder
+
+        Attributes:
+        scenario_path (str): stored Arg
+        metadata_list (list): list of metadata for each recording
 
     """
 
     def __init__(self, scenario_path):
         """
 
-            Save path of scenario
+            Save path of scenario and create metadata_list.
+
+            Parameter:
+            scenario_path (str): path of assosiated folder
 
         """
         self.scenario_path = scenario_path
@@ -40,9 +60,15 @@ class DataLoader:
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
 
-            Return list of recordings contained in training data
-            Specify recordings with recording_type
-            default: all included
+            Create list of recordings contained in training data.
+            Specify recordings with recording_type.
+
+            Parameter:
+            recording_type (RecordingType): only include recordings of recording_type
+                :default: all included
+
+            Returns:
+            list: list of training data recordings
 
         """
         recordings = self.extract_recordings(category=TRAINING,
@@ -52,8 +78,15 @@ class DataLoader:
     def validation_data(self, recording_type: RecordingType = None) -> list:
         """
 
-            Return list of recordings contained in validation data
-            Exclude specific recordings with recording_type
+            Create list of recordings contained in validation data.
+            Specify recordings with recording_type.
+
+            Parameter:
+            recording_type (RecordingType): only include recordings of recording_type
+                :default: all included
+
+            Returns:
+            list: list of validation data recordings
 
         """
         recordings = self.extract_recordings(category=VALIDATION,
@@ -63,8 +96,15 @@ class DataLoader:
     def test_data(self, recording_type: RecordingType = None) -> list:
         """
 
-            Return list of recordings contained in test data
-            Exclude specific recordings with recording_type
+            Create list of recordings contained in test data.
+            Specify recordings with recording_type.
+
+            Parameter:
+            recording_type (RecordingType): only include recordings of recording_type
+                :default: all included
+
+            Returns:
+            list: list of test data recordings
 
         """
         recordings = self.extract_recordings(category=TEST,
@@ -74,6 +114,22 @@ class DataLoader:
     def extract_recordings(self,
                            category: str,
                            recording_type: RecordingType = None) -> list:
+        """
+
+            Go through list of all files in specified category.
+            Instanciate new Recording object and append to recordings list.
+            If all files have been seen return list of Recordings.
+
+            Parameter:
+            category (str): filter for category (training, validation, test)
+            recording_type (RecordingType): only include recordings of recording_type
+                :default: all included
+
+            Returns:
+            list: list of data recordings for specified category
+
+
+        """
         recordings = []
         file_list = sorted(self.metadata_list[category].keys())
         for file in file_list:
@@ -91,11 +147,12 @@ class DataLoader:
         """
 
             Create dictionary which contains following information about recording:
-                Category of recording : training, validataion, test
-                    Name of recording
-                    recording type
+                first key: Category of recording : training, validataion, test
+                second key: Name of recording
+                value : {recording type: str, path: str}
 
-            :returns metadata_dict containing type of recording for every file
+            Returns:
+            dict: metadata_dict containing type of recording for every recorded file
 
         """
         metadata_dict = {
@@ -103,9 +160,10 @@ class DataLoader:
             'validation': {},
             'test': {}
         }
-        training_files = glob.glob(self.scenario_path + '/training/*.zip')
-        val_files = glob.glob(self.scenario_path + '/validation/*.zip')
-        test_files = glob.glob(self.scenario_path + '/test/*/*.zip')
+        training_files = glob.glob(self.scenario_path + f'/{TRAINING}/*.zip')
+        val_files = glob.glob(self.scenario_path + f'/{VALIDATION}/*.zip')
+        test_files = glob.glob(self.scenario_path + f'/{TEST}/*/*.zip')
+        # create list of all files
         all_files = training_files + val_files + test_files
         for file in all_files:
             with zipfile.ZipFile(file, 'r') as zip_ref:
@@ -113,26 +171,35 @@ class DataLoader:
                 json_file_name = get_file_name(file) + '.json'
                 with zip_ref.open(json_file_name) as unzipped:
                     unzipped_byte_json = unzipped.read()
-                    # TODO remove replace?
-                    unzipped_json = json.loads(unzipped_byte_json.decode('utf8').replace("'", '"'))
+                    unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
                     recording_type = self.get_type_of_recording(unzipped_json)
                     temp_dict = {
                         'recording_type': recording_type,
                         'path': file
                     }
                     if TRAINING in os.path.dirname(file):
-                        metadata_dict['training'][get_file_name(file)] = temp_dict
+                        metadata_dict[TRAINING][get_file_name(file)] = temp_dict
                     elif VALIDATION in os.path.dirname(file):
-                        metadata_dict['validation'][get_file_name(file)] = temp_dict
+                        metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
                     elif TEST in os.path.dirname(file):
-                        metadata_dict['test'][get_file_name(file)] = temp_dict
+                        metadata_dict[TEST][get_file_name(file)] = temp_dict
                     else:
-                        # TODO Fehlermeldung
-                        pass
+                        raise TypeError()
         return metadata_dict
 
-    def get_type_of_recording(self, json_file_name: str) -> RecordingType:
-        data = json_file_name
+    def get_type_of_recording(self, json_dict: dict) -> RecordingType:
+        """
+
+            Receives json dict and determines the recording type.
+
+            Parameter:
+            json_dict (dict): json including metadata
+
+            Returns:
+            RecordingType: Enumeration describing type
+
+        """
+        data = json_dict
 
         normal_behavoiur = False
         exploit = False
@@ -157,11 +224,8 @@ class DataLoader:
 
 
 if __name__ == "__main__":
-    dataloader = DataLoader('Bruteforce')
+    dataloader = DataLoader('../../Bruteforce')
     training_data = dataloader.training_data()
     i = 0
     for recording in training_data:
-        recording.packets()
-        for syscall in recording.syscalls():
-            i = i + 1  # print(syscall)
-        break
+        pck = recording.packets()
