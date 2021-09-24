@@ -38,3 +38,5 @@ runs.log
 
 # Sim Files
 *.h5
+
+/venv/
