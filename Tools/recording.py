@@ -4,6 +4,8 @@ import json
 import pcapkit
 import zipfile
 
+from Tools.syscall import Syscall
+
 
 class Recording:
     """
@@ -27,7 +29,7 @@ class Recording:
             Save name and path of recording.
 
             Parameter:
-            path (str): path of assosiated files
+            path (str): path of associated files
             name (str): name without path and extension
 
         """
@@ -48,7 +50,7 @@ class Recording:
         with zipfile.ZipFile(self.path, 'r') as zipped:
             with zipped.open(self.name + '.sc') as unzipped:
                 for syscall in unzipped:
-                    yield syscall.decode('utf-8').rstrip()
+                    yield Syscall(syscall.decode('utf-8').rstrip())
 
     def packets(self):
         """

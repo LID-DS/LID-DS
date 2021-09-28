@@ -224,8 +224,12 @@ class DataLoader:
 
 
 if __name__ == "__main__":
-    dataloader = DataLoader('../../Bruteforce')
+    dataloader = DataLoader('../LID-DS-2021/Bruteforce_CWE-307')
     training_data = dataloader.training_data()
     for recording in training_data:
         print("done")
         pck = recording.packets()
+        for syscall in recording.syscalls():
+            print(syscall.params())
+            print(syscall.param('res'))
+
