@@ -17,6 +17,7 @@ class ResourceStatistic:
     """
 
         Class to organize resource statistics.
+        Initialization with list of multiple resource entries for specific timestamps.
 
     """
 
@@ -36,7 +37,7 @@ class ResourceStatistic:
             Convert timestamp string to float
 
             Returns:
-            float: timestamp of resource usage in unix format (seconds since 1970)
+                float: timestamp of resource usage in unix format (seconds since 1970)
 
         """
         if self._timestamp is None:
@@ -49,7 +50,7 @@ class ResourceStatistic:
             Convert timestamp string to datetime object
 
             Returns:
-            datetime: timestamp in python datetime format
+                datetime: timestamp in python datetime format
 
         """
         if self._timestamp is None:
@@ -62,7 +63,7 @@ class ResourceStatistic:
             Convert cpu_usage string to float
 
             Returns:
-            float: cpu_usage for specific timestamp
+                float: cpu_usage for specific timestamp
 
         """
         if self._cpu_usage is None:
@@ -75,7 +76,7 @@ class ResourceStatistic:
             Convert memory_usage string to int
 
             Returns:
-            int: memory_usage for specific timestamp
+                int: memory_usage for specific timestamp
 
         """
         if self._memory_usage is None:
@@ -88,7 +89,7 @@ class ResourceStatistic:
             Convert network_received string to int
 
             Returns:
-            int: network_received for specific timestamp
+                int: network_received for specific timestamp
 
         """
         if self._network_received is None:
@@ -101,7 +102,7 @@ class ResourceStatistic:
             Convert network_send string to int
 
             Returns:
-            int: network_send for specific timestamp
+                int: network_send for specific timestamp
 
         """
         if self._network_send is None:
@@ -114,7 +115,7 @@ class ResourceStatistic:
             Convert storage_read string to int
 
             Returns:
-            int: storage_read for specific timestamp
+                int: storage_read for specific timestamp
 
         """
         raw_string = self._raw_line[ParseResource.STORAGE_READ]
@@ -131,7 +132,7 @@ class ResourceStatistic:
             Convert storage_written string to int
 
             Returns:
-            int: storage_written for specific timestamp
+                int: storage_written for specific timestamp
 
         """
         if self._storage_written is None:
