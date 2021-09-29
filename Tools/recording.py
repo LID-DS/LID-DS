@@ -4,8 +4,6 @@ import json
 import pcapkit
 import zipfile
 
-from Tools.syscall import Syscall
-
 
 class Recording:
     """
@@ -108,7 +106,8 @@ class Recording:
                 # remove header
                 next(reader)
                 for row in reader:
-                    statistics.append(row)
+                    if len(row) > 0:
+                        statistics.append(ResourceStatistic(row))
         return statistics
 
     def metadata(self) -> dict:
