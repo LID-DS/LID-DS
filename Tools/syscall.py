@@ -153,7 +153,7 @@ class Syscall:
             Direction: the direction of the syscall
 
         """
-        if self._name is None:
+        if self._direction is None:
             dir_char = self._line_list[SyscallSplitPart.DIRECTION]
             if dir_char == '>':
                 self._direction = Direction.OPEN
