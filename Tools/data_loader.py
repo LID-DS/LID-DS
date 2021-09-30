@@ -31,6 +31,42 @@ def get_file_name(path: str) -> str:
     return os.path.splitext(os.path.basename(path))[0]
 
 
+def get_type_of_recording(json_dict: dict) -> RecordingType:
+    """
+
+        Receives json dict and determines the recording type.
+
+        Parameter:
+        json_dict (dict): json including metadata
+
+        Returns:
+        RecordingType: Enumeration describing type
+
+    """
+    data = json_dict
+
+    normal_behavoiur = False
+    exploit = False
+
+    # check for normal behaviour:
+    for container in data["container"]:
+        if container["role"] == "normal":
+            normal_behavoiur = True
+            break
+    # check for exploit
+    if data["exploit"]:
+        exploit = True
+
+    if normal_behavoiur is False and exploit is False:
+        return RecordingType.IDLE
+    if normal_behavoiur is False and exploit is True:
+        return RecordingType.ATTACK
+    if normal_behavoiur is True and exploit is False:
+        return RecordingType.NORMAL
+    if normal_behavoiur is True and exploit is True:
+        return RecordingType.NORMAL_AND_ATTACK
+
+
 class DataLoader:
     """
 
@@ -172,7 +208,7 @@ class DataLoader:
                 with zip_ref.open(json_file_name) as unzipped:
                     unzipped_byte_json = unzipped.read()
                     unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
-                    recording_type = self.get_type_of_recording(unzipped_json)
+                    recording_type = get_type_of_recording(unzipped_json)
                     temp_dict = {
                         'recording_type': recording_type,
                         'path': file
@@ -187,41 +223,6 @@ class DataLoader:
                         raise TypeError()
         return metadata_dict
 
-    def get_type_of_recording(self, json_dict: dict) -> RecordingType:
-        """
-
-            Receives json dict and determines the recording type.
-
-            Parameter:
-            json_dict (dict): json including metadata
-
-            Returns:
-            RecordingType: Enumeration describing type
-
-        """
-        data = json_dict
-
-        normal_behavoiur = False
-        exploit = False
-
-        # check for normal behaviour:
-        for container in data["container"]:
-            if container["role"] == "normal":
-                normal_behavoiur = True
-                break
-        # check for exploit
-        if data["exploit"]:
-            exploit = True
-
-        if normal_behavoiur is False and exploit is False:
-            return RecordingType.IDLE
-        if normal_behavoiur is False and exploit is True:
-            return RecordingType.ATTACK
-        if normal_behavoiur is True and exploit is False:
-            return RecordingType.NORMAL
-        if normal_behavoiur is True and exploit is True:
-            return RecordingType.NORMAL_AND_ATTACK
-
 
 if __name__ == "__main__":
     dataloader = DataLoader('../LID-DS-2021/Bruteforce_CWE-307')
@@ -232,4 +233,3 @@ if __name__ == "__main__":
         for syscall in recording.syscalls():
             print(syscall.params())
             print(syscall.param('res'))
-

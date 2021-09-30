@@ -1,72 +1,45 @@
+import json
 from typing import Union
 
 from Tools.data_loader import DataLoader
+from Tools.data_loader import get_type_of_recording
+from Tools.data_loader import RecordingType
 
 
 SCENARIO_NAMES = [
-    "Bruteforce_CWE-307",       # 0
-    "CVE-2012-2122",            # 1
-    "CVE-2014-0160",            # 2
-    "CVE-2017-7529",            # 3
-    "CVE-2018-3760",            # 4
-    "CVE-2019-5418",            # 5
-    "EPS_CWE-434",              # 6
-    "PHP_CWE-434",              # 7
-    "SQL_Injection_CWE-89",     # 8
-    "ZipSlip"                   # 9
+    "Bruteforce_CWE-307",
+    "CVE-2012-2122",
+    "CVE-2014-0160",
+    "CVE-2017-7529",
+    "CVE-2017-12635_6",
+    "CVE-2018-3760",
+    "CVE-2019-5418",
+    "CVE-2020-9484",
+    "CVE-2020-13942",
+    "CVE-2020-23839",
+    "CWE-89-SQL-Injection",
+    "EPS_CWE-434",
+    "Juice-Shop",
+    "PHP_CWE-434",
+    "ZipSlip"
 ]
 
 stats_per_scenario = {
-    "Bruteforce_CWE-307": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "CVE-2012-2122": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "CVE-2014-0160": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "CVE-2017-7529": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "CVE-2018-3760": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "CVE-2019-5418": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "EPS_CWE-434": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "PHP_CWE-434": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "SQL_Injection_CWE-89": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    },
-    "ZipSlip": {
-        "training": {},
-        "validation": {},
-        "test": {}
-    }
+    "Bruteforce_CWE-307": {},
+    "CVE-2012-2122": {},
+    "CVE-2014-0160": {},
+    "CVE-2017-7529": {},
+    "CVE-2017-12635_6": {},
+    "CVE-2018-3760": {},
+    "CVE-2019-5418": {},
+    "CVE-2020-9484": {},
+    "CVE-2020-13942": {},
+    "CVE-2020-23839": {},
+    "CWE-89-SQL-Injection": {},
+    "EPS_CWE-434": {},
+    "Juice-Shop": {},
+    "PHP_CWE-434": {},
+    "ZipSlip": {}
 }
 
 
@@ -147,16 +120,42 @@ def set_default_stat():
 
 def stats_per_category(data, category: str, stats_per_category: dict) -> dict:
     stats_recording = set_default_stat()
+    if category == 'test':
+        tmp_dict = {
+            'ATTACK': [],
+            'IDLE': [],
+            'NORMAL': [],
+            'NORMAL_AND_ATTACK': []
+        }
+    else:
+        tmp_dict = {
+            'IDLE': [],
+            'NORMAL': [],
+        }
     for recording in data:
         entry_counter = 0
+        recording_type = get_type_of_recording(recording.metadata())
+        if recording_type == RecordingType.ATTACK:
+            recording_type = 'ATTACK'
+        if recording_type == RecordingType.IDLE:
+            recording_type = 'IDLE'
+        if recording_type == RecordingType.NORMAL:
+            recording_type = 'NORMAL'
+        if recording_type == RecordingType.NORMAL_AND_ATTACK:
+            recording_type = 'NORMAL_AND_ATTACK'
         for resource in recording.resource_stats():
             stats_recording = update_stat(stats_recording,
                                           resource)
             entry_counter += 1
-        stats_recording = calc_avg(entry_counter, stats_recording)
-        stats_per_category[category].append(stats_recording)
+        for value in ['cpu_usage',
+                      'network_send',
+                      'network_received',
+                      'storage_read',
+                      'storage_written']:
+            stats_recording[value]['avg'] = stats_recording[value]['sum'] / entry_counter
+        tmp_dict[recording_type].append(stats_recording)
         stats_recording = set_default_stat()
-    return stats_per_scenario
+    return tmp_dict
 
 
 def calc_avg(counter: int, stats_recording: dict) -> dict:
@@ -165,22 +164,68 @@ def calc_avg(counter: int, stats_recording: dict) -> dict:
     return stats_recording
 
 
+def full_type_analysis(recording: dict, recording_type_dict: dict) -> dict:
+    for value in ['cpu_usage',
+                  'network_send',
+                  'network_received',
+                  'storage_read',
+                  'storage_written']:
+        if recording_type_dict[value]['min']:
+            if recording[value]['min'] < recording_type_dict['cpu_usage']['min']:
+                recording_type_dict[value]['min'] = recording['cpu_usage']['min']
+        else:
+            recording_type_dict[value]['min'] = recording[value]['min']
+        if recording[value]['max'] > recording_type_dict[value]['max']:
+            recording_type_dict[value]['max'] = recording[value]['max']
+        recording_type_dict[value]['sum'] += recording[value]['avg']
+
+    return recording_type_dict
+
+
+def calc_result_statistic(stats: dict) -> dict:
+    for scenario in stats:
+        result_dict = {
+            'training': {},
+            'validation': {},
+            'test': {},
+        }
+        for category in stats[scenario]:
+            recording_type_dict = set_default_stat()
+            for recording_type in stats[scenario][category]:
+                counter = 0
+                for recording in stats[scenario][category][recording_type]:
+                    counter += 1
+                    recording_type_dict = full_type_analysis(recording, recording_type_dict)
+                for value in ['cpu_usage',
+                              'network_send',
+                              'network_received',
+                              'storage_read',
+                              'storage_written']:
+                    recording_type_dict[value]['avg'] = recording_type_dict[value]['sum'] / counter
+                result_dict[category][recording_type] = recording_type_dict
+        with open(f'Resource_statistics/{scenario}.json', 'w') as file:
+            json.dump(result_dict, file)
+    return result_dict
+
+
 if __name__ == '__main__':
 
-    dataloader = DataLoader('../../Dataset/Bruteforce')
     for scenario in SCENARIO_NAMES:
+        dataloader = DataLoader('../../Dataset/{scenario}')
         training_data = dataloader.training_data()
-        stats_per_scenario = stats_per_category(data=training_data,
-                                                category='training',
-                                                stats_per_category=stats_per_scenario[scenario])
+        stats_per_scenario[scenario]['training'] = \
+            stats_per_category(data=training_data,
+                               category='training',
+                               stats_per_category=stats_per_scenario[scenario])
         validation_data = dataloader.validation_data()
-        stats_per_scenario = stats_per_category(data=validation_data,
-                                                category='validation',
-                                                stats_per_category=stats_per_scenario[scenario])
+        stats_per_scenario[scenario]['validation'] = \
+            stats_per_category(data=validation_data,
+                               category='validation',
+                               stats_per_category=stats_per_scenario[scenario])
         test_data = dataloader.test_data()
-        stats_per_scenario = stats_per_category(data=test_data,
-                                                category='test',
-                                                stats_per_category=stats_per_scenario[scenario])
-        break
-    print(stats_per_scenario[SCENARIO_NAMES[0]]['training'][0])
+        stats_per_scenario[scenario]['test'] = \
+            stats_per_category(data=test_data,
+                               category='test',
+                               stats_per_category=stats_per_scenario[scenario])
     result_dict = {}
+    result_dict = calc_result_statistic(stats_per_scenario)
