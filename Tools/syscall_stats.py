@@ -91,7 +91,7 @@ def append_to_textile(output_path: str, line: str):
         textfile.write(line + '\n')
 
 
-def calc_stats_for_recording_type(recording_list: list) -> dict:
+def calc_stats_for_recording_type(recording_list: list, description: str) -> dict:
     """
 
     calculates syscall statistics for one recording type represented as list of Recording Objects
@@ -110,7 +110,7 @@ def calc_stats_for_recording_type(recording_list: list) -> dict:
     distinct_thread_ids_count_list = []
     distinct_process_ids_count_list = []
 
-    for recording in recording_list:
+    for recording in tqdm(recording_list, description, unit=" recordings", smoothing=0):
         recording_count += 1
 
         # initialization of empty sets to ensure distinction of thread_ids, process_ids and user_ids
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # iterates through list of all scenarios, main loop
-    for scenario in tqdm(SCENARIO_NAMES, desc='Calculating Statistics'):
+    for scenario in SCENARIO_NAMES:
         result_dict = {}
 
         scenario_path = os.path.join(args.base_path, scenario)
@@ -210,7 +210,7 @@ if __name__ == '__main__':
         # runs calculation for every recording type of every data part in data_part dictionary
         for data_part in data_parts.keys():
             for recording_type in data_parts[data_part].keys():
-                record_results = calc_stats_for_recording_type(data_parts[data_part][recording_type])
+                record_results = calc_stats_for_recording_type(data_parts[data_part][recording_type], f"{scenario}: {data_part} - {recording_type}".rjust(45))
                 if scenario not in result_dict.keys():
                     result_dict[scenario] = {}
 
