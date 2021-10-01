@@ -19,3 +19,4 @@ pypcapkit~=0.15.5
 scapy~=2.4.4
 wget~=3.2
 filesplit~=3.0.2
+tqdm==4.62.3
