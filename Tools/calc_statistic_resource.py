@@ -282,4 +282,3 @@ if __name__ == '__main__':
                     result_dict[scenario][data_part] = {}
                 result_dict[scenario][data_part][recording_type] = record_result
         save_to_json(result_dict, args.output_path, scenario)
-        break
