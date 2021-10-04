@@ -135,6 +135,10 @@ class ResourceStatistic:
                 int: storage_written for specific timestamp
 
         """
+        raw_string = self._raw_line[ParseResource.STORAGE_WRITTEN]
         if self._storage_written is None:
-            self._storage_written = int(self._raw_line[ParseResource.STORAGE_WRITTEN])
+            if raw_string != 'NULL':
+                self._storage_written = int(self._raw_line[ParseResource.STORAGE_WRITTEN])
+            else:
+                self._storage_written = 0
         return self._storage_written
