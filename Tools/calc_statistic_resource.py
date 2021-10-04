@@ -25,25 +25,6 @@ from Tools.data_loader import RecordingType
 """
 
 
-SCENARIO_NAMES = [
-    "Bruteforce_CWE-307",
-    "CVE-2012-2122",
-    "CVE-2014-0160",
-    "CVE-2017-7529",
-    "CVE-2017-12635_6",
-    "CVE-2018-3760",
-    "CVE-2019-5418",
-    "CVE-2020-9484",
-    "CVE-2020-13942",
-    "CVE-2020-23839",
-    "CWE-89-SQL-Injection",
-    "EPS_CWE-434",
-    "Juice-Shop",
-    "PHP_CWE-434",
-    "ZipSlip"
-]
-
-
 def save_to_json(results: dict, output_path: str, scenario_name: str):
     """
     saves results for one scenario to json file located at a given path
@@ -244,8 +225,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    scenario_names = os.listdir(args.base_path)
     # iterate through list of all scenarios
-    for scenario in SCENARIO_NAMES:
+    for scenario in scenario_names:
 
         result_dict = {}
         scenario_path = os.path.join(args.base_path, scenario)
