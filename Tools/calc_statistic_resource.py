@@ -256,8 +256,9 @@ if __name__ == '__main__':
         for data_part in data_parts.keys():
             # calc for Idle, Normal, Attack and Normal and Attack
             for recording_type in data_parts[data_part].keys():
-                record_result = calc_stats_for_recording_type(data_parts[data_part][recording_type],
-                                                              scenario)
+                record_result = calc_stats_for_recording_type(
+                    data_parts[data_part][recording_type],
+                    f'{scenario}: {data_part} - {recording_type}')
                 if scenario not in result_dict.keys():
                     result_dict[scenario] = {}
                 if data_part not in result_dict[scenario].keys():
