@@ -237,6 +237,10 @@ if __name__ == "__main__":
     for scenario in scenario_names:
         print(scenario)
         dataloader = DataLoader(base_path + scenario)
-        training_data = dataloader.test_data()
-        for recording in training_data:
-            pass
+        function_list = [dataloader.training_data,
+                         dataloader.validation_data,
+                         dataloader.test_data]
+        for f in function_list:
+            data = f()
+            for recording in data:
+                pass
