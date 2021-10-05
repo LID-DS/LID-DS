@@ -30,7 +30,7 @@ def save_to_json(results: dict, output_path: str, scenario_name: str):
     saves results for one scenario to json file located at a given path
     overwrites old files
     """
-    with open(os.path.join(output_path, scenario_name + '_stats.json'), 'w') as jsonfile:
+    with open(os.path.join(output_path, scenario_name + '_res_stats.json'), 'w') as jsonfile:
         json.dump(results, jsonfile, indent=4)
 
 
