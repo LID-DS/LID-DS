@@ -174,25 +174,34 @@ class DataLoader:
         # create list of all files
         all_files = training_files + val_files + test_files
         for file in all_files:
-            with zipfile.ZipFile(file, 'r') as zip_ref:
-                # remove zip extension and create json file name
-                json_file_name = get_file_name(file) + '.json'
-                with zip_ref.open(json_file_name) as unzipped:
-                    unzipped_byte_json = unzipped.read()
-                    unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
-                    recording_type = self.get_type_of_recording(unzipped_json)
-                    temp_dict = {
-                        'recording_type': recording_type,
-                        'path': file
-                    }
-                    if TRAINING in os.path.dirname(file):
-                        metadata_dict[TRAINING][get_file_name(file)] = temp_dict
-                    elif VALIDATION in os.path.dirname(file):
-                        metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
-                    elif TEST in os.path.dirname(file):
-                        metadata_dict[TEST][get_file_name(file)] = temp_dict
-                    else:
-                        raise TypeError()
+            try:
+                with zipfile.ZipFile(file, 'r') as zip_ref:
+                    # remove zip extension and create json file name
+                    json_file_name = get_file_name(file) + '.json'
+                    with zip_ref.open(json_file_name) as unzipped:
+                        unzipped_byte_json = unzipped.read()
+                        unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
+                        recording_type = self.get_type_of_recording(unzipped_json)
+                        temp_dict = {
+                            'recording_type': recording_type,
+                            'path': file
+                        }
+                        if TRAINING in os.path.dirname(file):
+                            metadata_dict[TRAINING][get_file_name(file)] = temp_dict
+                        elif VALIDATION in os.path.dirname(file):
+                            metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
+                        elif TEST in os.path.dirname(file):
+                            metadata_dict[TEST][get_file_name(file)] = temp_dict
+                        else:
+                            raise TypeError()
+            except zipfile.BadZipFile:
+                name = file
+                if not os.path.isfile('missing_files.txt'):
+                    with open('missing_files.txt', 'w+') as file:
+                        file.write(f'Bad zipfile in recording: {name}. \n')
+                else:
+                    with open('missing_files.txt', 'a') as file:
+                        file.write(f'Bad zipfile in recording: {name}. \n')
         return metadata_dict
 
     def get_type_of_recording(self, json_dict: dict) -> RecordingType:
