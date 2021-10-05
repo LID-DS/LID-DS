@@ -1,6 +1,7 @@
 import os
 import glob
 import json
+import errno
 import zipfile
 from enum import Enum
 from recording import Recording
@@ -54,8 +55,15 @@ class DataLoader:
             scenario_path (str): path of assosiated folder
 
         """
-        self.scenario_path = scenario_path
-        self.metadata_list = self.collect_metadata()
+        if os.path.isdir(scenario_path):
+            self.scenario_path = scenario_path
+            self.metadata_list = self.collect_metadata()
+        else:
+            raise FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENONET),
+                scenario_path
+            )
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
@@ -224,12 +232,11 @@ class DataLoader:
 
 
 if __name__ == "__main__":
-    dataloader = DataLoader('../LID-DS-2021/Bruteforce_CWE-307')
-    training_data = dataloader.training_data()
-    for recording in training_data:
-        print("done")
-        pck = recording.packets()
-        for syscall in recording.syscalls():
-            print(syscall.params())
-            print(syscall.param('res'))
-
+    base_path = '../../Dataset/'
+    scenario_names = os.listdir(base_path)
+    for scenario in scenario_names:
+        print(scenario)
+        dataloader = DataLoader(base_path + scenario)
+        training_data = dataloader.test_data()
+        for recording in training_data:
+            pass
