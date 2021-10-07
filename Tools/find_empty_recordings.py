@@ -17,12 +17,23 @@ SCENARIO_NAMES = [
     "CVE-2020-9484",
     "CVE-2020-13942",
     "CVE-2020-23839",
-    "CWE-89-SQL-Injection",
+    "CWE-89-SQL-injection",
     "EPS_CWE-434",
     "Juice-Shop",
     "PHP_CWE-434",
     "ZipSlip"
 ]
+
+
+def save_to_json(results: dict, output_path: str):
+    """
+
+    saves results for one scenario to json file located at a given path
+    overwrites old files
+
+    """
+    with open(os.path.join(output_path, 'empty_recordings.json'), 'w') as jsonfile:
+        json.dump(results, jsonfile, indent=4)
 
 
 def append_to_textile(output_path: str, line: str):
@@ -47,15 +58,15 @@ def find_empty_recordings(recording_list: list, description: str):
 
     """
 
+    empty_recording_list = []
     for recording in tqdm(recording_list, description, unit=" recordings", smoothing=0):
         generator = recording.syscalls()
         try:
             syscall = next(generator)
         except:
-            append_to_textile(args.output_path, recording.path[37:])
+            empty_recording_list.append(recording.path[37:])
 
-
-
+    return empty_recording_list
 
 
 if __name__ == '__main__':
@@ -68,9 +79,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    result_dict = {}
+
     # iterates through list of all scenarios, main loop
     for scenario in SCENARIO_NAMES:
-        result_dict = {}
 
         scenario_path = os.path.join(args.base_path, scenario)
         dataloader = DataLoader(scenario_path)
@@ -96,5 +108,15 @@ if __name__ == '__main__':
         # runs calculation for every recording type of every data part in data_part dictionary
         for data_part in data_parts.keys():
             for recording_type in data_parts[data_part].keys():
-                find_empty_recordings(data_parts[data_part][recording_type], f"{scenario}: {data_part} - {recording_type}".rjust(45))
+                result = find_empty_recordings(data_parts[data_part][recording_type],
+                                               f"{scenario}: {data_part} - {recording_type}".rjust(45))
 
+                if scenario not in result_dict.keys():
+                    result_dict[scenario] = {}
+
+                if data_part not in result_dict[scenario].keys():
+                    result_dict[scenario][data_part] = {}
+
+                result_dict[scenario][data_part][recording_type] = result
+
+    save_to_json(result_dict, args.output_path)
