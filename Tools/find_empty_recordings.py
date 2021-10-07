@@ -86,7 +86,7 @@ if __name__ == '__main__':
     result_dict = {}
 
     # iterates through list of all scenarios, main loop
-    for scenario in SCENARIO_NAMES[0:8]:
+    for scenario in SCENARIO_NAMES:
 
         scenario_path = os.path.join(args.base_path, scenario)
         dataloader = DataLoader(scenario_path)
