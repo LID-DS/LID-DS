@@ -170,27 +170,32 @@ class Recording:
             bool: if check was succesfull
 
         """
-        if not os.path.isfile(self.path):
-            raise Exception(f'Missing .zip file for recording: {self.path}')
-        with zipfile.ZipFile(self.path, 'r') as zipped:
-            file_list = zipped.namelist()
-            err_str = 'Recording Error: '
-            if len(file_list) != 4:
-                if self.name + '.res' not in file_list:
-                    res_err = 'Missing .res file '
-                    err_str += res_err
-                if self.name + '.sc' not in file_list:
-                    sc_err = 'Missing .sc file '
-                    err_str += sc_err
-                if self.name + '.pcap' not in file_list:
-                    pcap_err = 'Missing .pcap file '
-                    err_str += pcap_err
-                if self.name + '.json' not in file_list:
-                    json_err = 'Missing .json file '
-                    err_str += json_err
-                if not os.path.isfile('missing_files.txt'):
-                    with open('missing_files.txt', 'w+') as file:
-                        file.write(err_str + f'in recording: {self.path}. \n')
-                else:
-                    with open('missing_files.txt', 'a') as file:
-                        file.write(err_str + f'in recording: {self.path}. \n')
+        try:
+            if not os.path.isfile(self.path):
+                raise Exception(f'Missing .zip file for recording: {self.path}')
+            with zipfile.ZipFile(self.path, 'r') as zipped:
+                file_list = zipped.namelist()
+                err_str = 'Recording Error: '
+                if len(file_list) != 4:
+                    if self.name + '.res' not in file_list:
+                        res_err = 'Missing .res file '
+                        err_str += res_err
+                    if self.name + '.sc' not in file_list:
+                        sc_err = 'Missing .sc file '
+                        err_str += sc_err
+                    if self.name + '.pcap' not in file_list:
+                        pcap_err = 'Missing .pcap file '
+                        err_str += pcap_err
+                    if self.name + '.json' not in file_list:
+                        json_err = 'Missing .json file '
+                        err_str += json_err
+                    if not os.path.isfile('missing_files.txt'):
+                        with open('missing_files.txt', 'w+') as file:
+                            file.write(err_str + f'in recording: {self.path}. \n')
+                    else:
+                        with open('missing_files.txt', 'a') as file:
+                            file.write(err_str + f'in recording: {self.path}. \n')
+            print(f'{err_str}')
+            print('Have a look in missing_files.txt file')
+        except Exception:
+            print(f'Error with file {self.name} at {self.path}')
