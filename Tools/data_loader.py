@@ -4,7 +4,6 @@ import json
 import errno
 import zipfile
 from enum import Enum
-from tqdm import tqdm
 
 from recording import Recording
 
@@ -220,7 +219,7 @@ class DataLoader:
                     with zip_ref.open(json_file_name) as unzipped:
                         unzipped_byte_json = unzipped.read()
                         unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
-                        recording_type = self.get_type_of_recording(unzipped_json)
+                        recording_type = get_type_of_recording(unzipped_json)
                         temp_dict = {
                             'recording_type': recording_type,
                             'path': file
@@ -253,9 +252,8 @@ if __name__ == "__main__":
         function_list = [dataloader.training_data,
                          dataloader.validation_data,
                          dataloader.test_data]
-        if scenario == 'CWE-89-SQL-injection':
-            for f in function_list:
-                data = f()
-                for recording in tqdm(data):
-                    for syscall in recording.syscalls():
-                        pass
+        for f in function_list:
+            data = f()
+            from tqdm import tqdm
+            for recording in tqdm(data):
+                pass
