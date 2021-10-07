@@ -1,7 +1,6 @@
 import json
 import argparse
 import os
-import nest_asyncio
 
 from tqdm import tqdm
 from Tools.data_loader import DataLoader, RecordingType
@@ -143,9 +142,6 @@ if __name__ == '__main__':
                         help='Output Path for statistics')
 
     args = parser.parse_args()
-
-    # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
-    nest_asyncio.apply()
 
     # iterates through list of all scenarios, main loop
     for scenario in SCENARIO_NAMES:
