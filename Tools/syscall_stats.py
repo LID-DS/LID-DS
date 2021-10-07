@@ -54,7 +54,7 @@ def save_to_json(results: dict, output_path: str, scenario_name: str):
     overwrites old files
 
     """
-    with open(os.path.join(output_path, scenario_name + '_stats.json'), 'w') as jsonfile:
+    with open(os.path.join(output_path, scenario_name + '_syscall_stats.json'), 'w') as jsonfile:
         json.dump(results, jsonfile, indent=4)
 
 
