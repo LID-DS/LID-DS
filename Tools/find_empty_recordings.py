@@ -64,7 +64,11 @@ def find_empty_recordings(recording_list: list, description: str):
         try:
             syscall = next(generator)
         except:
-            empty_recording_list.append(recording.path[37:])
+            # calculates index based on position of LID-DS directory in file path
+            path_parts = recording.path.split('/')
+            index = len(path_parts) - path_parts.index('LID-DS-2021') - 1
+
+            empty_recording_list.append(os.path.join(*path_parts[-index:]))
 
     return empty_recording_list
 
@@ -82,7 +86,7 @@ if __name__ == '__main__':
     result_dict = {}
 
     # iterates through list of all scenarios, main loop
-    for scenario in SCENARIO_NAMES:
+    for scenario in SCENARIO_NAMES[0:8]:
 
         scenario_path = os.path.join(args.base_path, scenario)
         dataloader = DataLoader(scenario_path)
