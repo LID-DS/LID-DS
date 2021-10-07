@@ -195,7 +195,13 @@ class Recording:
                     else:
                         with open('missing_files.txt', 'a') as file:
                             file.write(err_str + f'in recording: {self.path}. \n')
-            print(f'{err_str}')
-            print('Have a look in missing_files.txt file')
+                    print(f'{err_str}')
+                    print('Have a look in missing_files.txt file')
         except Exception:
             print(f'Error with file {self.name} at {self.path}')
+            if not os.path.isfile('missing_files.txt'):
+                with open('missing_files.txt', 'w+') as file:
+                    file.write(err_str + f'in recording: {self.path}. \n')
+            else:
+                with open('missing_files.txt', 'a') as file:
+                    file.write(err_str + f'in recording: {self.path}. \n')
