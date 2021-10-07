@@ -1,9 +1,10 @@
 import os
 import glob
 import json
-import errno
 import zipfile
 from enum import Enum
+from tqdm import tqdm
+
 from recording import Recording
 
 TRAINING = 'training'
@@ -59,11 +60,7 @@ class DataLoader:
             self.scenario_path = scenario_path
             self.metadata_list = self.collect_metadata()
         else:
-            raise FileNotFoundError(
-                errno.ENOENT,
-                os.strerror(errno.ENONET),
-                scenario_path
-            )
+            print(f'{scenario_path} not found !!!!')
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
@@ -249,7 +246,9 @@ if __name__ == "__main__":
         function_list = [dataloader.training_data,
                          dataloader.validation_data,
                          dataloader.test_data]
-        for f in function_list:
-            data = f()
-            for recording in data:
-                pass
+        if scenario == 'CWE-89-SQL-injection':
+            for f in function_list:
+                data = f()
+                for recording in tqdm(data):
+                    for syscall in recording.syscalls():
+                        pass
