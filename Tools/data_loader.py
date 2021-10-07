@@ -1,8 +1,10 @@
 import os
 import glob
 import json
+import errno
 import zipfile
 from enum import Enum
+
 from recording import Recording
 
 TRAINING = 'training'
@@ -90,8 +92,16 @@ class DataLoader:
             scenario_path (str): path of assosiated folder
 
         """
-        self.scenario_path = scenario_path
-        self.metadata_list = self.collect_metadata()
+        if os.path.isdir(scenario_path):
+            self.scenario_path = scenario_path
+            self.metadata_list = self.collect_metadata()
+        else:
+            print(f'Could not find {scenario_path}!!!!')
+            raise FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENONET),
+                scenario_path
+            )
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
@@ -202,34 +212,48 @@ class DataLoader:
         # create list of all files
         all_files = training_files + val_files + test_files
         for file in all_files:
-            with zipfile.ZipFile(file, 'r') as zip_ref:
-                # remove zip extension and create json file name
-                json_file_name = get_file_name(file) + '.json'
-                with zip_ref.open(json_file_name) as unzipped:
-                    unzipped_byte_json = unzipped.read()
-                    unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
-                    recording_type = get_type_of_recording(unzipped_json)
-                    temp_dict = {
-                        'recording_type': recording_type,
-                        'path': file
-                    }
-                    if TRAINING in os.path.dirname(file):
-                        metadata_dict[TRAINING][get_file_name(file)] = temp_dict
-                    elif VALIDATION in os.path.dirname(file):
-                        metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
-                    elif TEST in os.path.dirname(file):
-                        metadata_dict[TEST][get_file_name(file)] = temp_dict
-                    else:
-                        raise TypeError()
+            try:
+                with zipfile.ZipFile(file, 'r') as zip_ref:
+                    # remove zip extension and create json file name
+                    json_file_name = get_file_name(file) + '.json'
+                    with zip_ref.open(json_file_name) as unzipped:
+                        unzipped_byte_json = unzipped.read()
+                        unzipped_json = json.loads(unzipped_byte_json.decode('utf8'))
+                        recording_type = get_type_of_recording(unzipped_json)
+                        temp_dict = {
+                            'recording_type': recording_type,
+                            'path': file
+                        }
+                        if TRAINING in os.path.dirname(file):
+                            metadata_dict[TRAINING][get_file_name(file)] = temp_dict
+                        elif VALIDATION in os.path.dirname(file):
+                            metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
+                        elif TEST in os.path.dirname(file):
+                            metadata_dict[TEST][get_file_name(file)] = temp_dict
+                        else:
+                            raise TypeError()
+            except zipfile.BadZipFile:
+                name = file
+                if not os.path.isfile('missing_files.txt'):
+                    with open('missing_files.txt', 'w+') as file:
+                        file.write(f'Bad zipfile in recording: {name}. \n')
+                else:
+                    with open('missing_files.txt', 'a') as file:
+                        file.write(f'Bad zipfile in recording: {name}. \n')
         return metadata_dict
 
 
 if __name__ == "__main__":
-    dataloader = DataLoader('../LID-DS-2021/Bruteforce_CWE-307')
-    training_data = dataloader.training_data()
-    for recording in training_data:
-        print("done")
-        pck = recording.packets()
-        for syscall in recording.syscalls():
-            print(syscall.params())
-            print(syscall.param('res'))
+    base_path = '../../Dataset/'
+    scenario_names = os.listdir(base_path)
+    for scenario in scenario_names:
+        print(scenario)
+        dataloader = DataLoader(base_path + scenario)
+        function_list = [dataloader.training_data,
+                         dataloader.validation_data,
+                         dataloader.test_data]
+        for f in function_list:
+            data = f()
+            from tqdm import tqdm
+            for recording in tqdm(data):
+                pass
