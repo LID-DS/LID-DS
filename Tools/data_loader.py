@@ -1,6 +1,7 @@
 import os
 import glob
 import json
+import errno
 import zipfile
 from enum import Enum
 from tqdm import tqdm
@@ -60,7 +61,12 @@ class DataLoader:
             self.scenario_path = scenario_path
             self.metadata_list = self.collect_metadata()
         else:
-            print(f'{scenario_path} not found !!!!')
+            print(f'Could not find {scenario_path}!!!!')
+            raise FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENONET),
+                scenario_path
+            )
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
