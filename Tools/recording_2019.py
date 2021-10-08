@@ -32,8 +32,7 @@ class Recording:
 
     def syscalls(self) -> Syscall:
         with open(self.path, 'r') as recording_file:
-            syscalls = recording_file.readlines()
-            for syscall in syscalls:
+            for syscall in recording_file:
                 yield Syscall(syscall)
 
     def _collect_metadata(self):
