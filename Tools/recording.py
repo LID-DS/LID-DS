@@ -74,11 +74,9 @@ class Recording:
                     if file.endswith('.pcap'):
                         zipped.extract(file, 'tmp')
             obj = pcapkit.extract(fin=f'tmp/{self.name}.pcap',
-                                  engine='scapy',
+                                  engine='pyshark',
                                   store=True,
-                                  nofile=True,
-                                  tcp=True,
-                                  strict=True)
+                                  nofile=True)
         except Exception:
             print(f'Error extracting pcap file {self.name}')
             return None

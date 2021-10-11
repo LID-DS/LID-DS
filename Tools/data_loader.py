@@ -3,8 +3,9 @@ import glob
 import json
 import errno
 import zipfile
-from enum import Enum
+import nest_asyncio
 
+from enum import Enum
 from recording import Recording
 
 TRAINING = 'training'
@@ -102,6 +103,9 @@ class DataLoader:
                 os.strerror(errno.ENONET),
                 scenario_path
             )
+
+        # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
+        nest_asyncio.apply()
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
