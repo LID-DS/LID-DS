@@ -4,8 +4,8 @@ import json
 import pcapkit
 import zipfile
 
-from Tools.syscall import Syscall
-from Tools.resource_statistic import ResourceStatistic
+from dataloader.syscall import Syscall
+from dataloader.resource_statistic import ResourceStatistic
 
 
 class Recording:

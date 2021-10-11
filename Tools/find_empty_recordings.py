@@ -3,8 +3,7 @@ import argparse
 import os
 from tqdm import tqdm
 
-from Tools.data_loader import DataLoader, RecordingType
-from Tools.syscall import Direction
+from dataloader.data_loader import DataLoader, RecordingType
 
 SCENARIO_NAMES = [
     "Bruteforce_CWE-307",

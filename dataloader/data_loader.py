@@ -6,7 +6,7 @@ import zipfile
 import nest_asyncio
 
 from enum import Enum
-from recording import Recording
+from dataloader.recording import Recording
 
 TRAINING = 'training'
 VALIDATION = 'validation'

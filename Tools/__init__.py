@@ -1,3 +1,3 @@
 """
-The Tools module provides classes for data loading and statistic calculations of the LID-DS.
+The tools module provides some tool classes for data analyzing and QA.
 """

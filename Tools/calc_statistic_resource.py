@@ -4,8 +4,8 @@ from tqdm import tqdm
 import argparse
 from typing import Union
 
-from Tools.data_loader import DataLoader
-from Tools.data_loader import RecordingType
+from dataloader.data_loader import DataLoader
+from dataloader.data_loader import RecordingType
 
 """
 {

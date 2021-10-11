@@ -3,8 +3,8 @@ import argparse
 import os
 from tqdm import tqdm
 
-from Tools.data_loader import DataLoader, RecordingType
-from Tools.syscall import Direction
+from dataloader.data_loader import DataLoader, RecordingType
+from dataloader.syscall import Direction
 
 """
 data format
