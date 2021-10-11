@@ -1,17 +1,20 @@
-class BaseFeatureTransformer:
+from dataloader.syscall import Syscall
+
+
+class BaseSyscallFeatureExtractor:
     """
 
-    base class for feature transformation e.g. embedding process
+    base class for feature extraction of exactly one system call
 
     """
 
     def __init__(self):
         pass
 
-    def train_on(self, feature):
+    def train_on(self, syscall: Syscall):
         """
 
-        takes one feature instance to train transformation approach
+        takes one system call instance to train this extraction
 
         """
         pass
@@ -19,15 +22,19 @@ class BaseFeatureTransformer:
     def fit(self):
         """
 
-        finalizes training section
+        finalizes training
 
         """
         pass
 
-    def transform(self, feature):
+    def extract(self, syscall: Syscall) -> dict:
         """
 
-        transforms given feature to input data for decision engine
+        extracts feature from syscall
+
+        Returns:
+        dict: key: name of feature and
+              value: value of feature
 
         """
         pass
