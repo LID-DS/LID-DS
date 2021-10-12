@@ -35,3 +35,11 @@ class BaseStreamFeatureExtractor:
 
         """
         pass
+
+    def new_recording(self):
+        """
+
+        empty buffers and prepare for next recording
+
+        """
+        pass

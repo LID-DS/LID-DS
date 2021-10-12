@@ -49,3 +49,11 @@ class StreamNgramExtractor(BaseStreamFeatureExtractor):
                 if feature_name in features:
                     array.append(features[feature_name])
         return array
+
+    def new_recording(self):
+        """
+
+        empty buffer so ngrams consist of same recording only
+
+        """
+        self._ngram_buffer = {}
