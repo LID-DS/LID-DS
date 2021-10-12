@@ -1,3 +1,6 @@
+import typing
+
+
 class BaseStreamFeatureExtractor:
     """
 
@@ -24,7 +27,7 @@ class BaseStreamFeatureExtractor:
         """
         pass
 
-    def extract(self, syscall_features: dict) -> dict:
+    def extract(self, syscall_features: dict) -> typing.Tuple[str, object]:
         """
 
         extracts a feature from a stream of syscall features
