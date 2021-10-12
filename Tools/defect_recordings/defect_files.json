@@ -1,0 +1,524 @@
+{
+    "Bruteforce_CWE-307": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "Bruteforce_CWE-307/training/colossal_hodgkin_9011.zip",
+                "Bruteforce_CWE-307/training/cool_ganguly_6332.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "Bruteforce_CWE-307/test/normal/quick_torvalds_1233.zip",
+                "Bruteforce_CWE-307/test/normal/scarce_dirac_6224.zip",
+                "Bruteforce_CWE-307/test/normal/thundering_tereshkova_3299.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": []
+        }
+    },
+    "CVE-2012-2122": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2012-2122/training/cuddly_wu_1414.zip",
+                "CVE-2012-2122/training/damp_gould_6875.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2012-2122/test/normal/flabby_thompson_7844.zip",
+                "CVE-2012-2122/test/normal/greasy_heyrovsky_7204.zip",
+                "CVE-2012-2122/test/normal/handsome_nash_4114.zip",
+                "CVE-2012-2122/test/normal/nervous_hugle_3127.zip",
+                "CVE-2012-2122/test/normal/puny_williamson_7917.zip",
+                "CVE-2012-2122/test/normal/purring_hoover_8501.zip",
+                "CVE-2012-2122/test/normal/whining_raman_2748.zip",
+                "CVE-2012-2122/test/normal/wide_meitner_4562.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": []
+        }
+    },
+    "CVE-2014-0160": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2014-0160/training/attractive_dijkstra_1877.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2014-0160/test/normal/scary_newton_5022.zip",
+                "CVE-2014-0160/test/normal/sour_brahmagupta_1687.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": []
+        }
+    },
+    "CVE-2017-7529": {
+        "Training": {
+            "Idle": [
+                "CVE-2017-7529/training/aggressive_volhard_6320.zip",
+                "CVE-2017-7529/training/blue_gould_1138.zip",
+                "CVE-2017-7529/training/disgusting_gould_3750.zip",
+                "CVE-2017-7529/training/hollow_wescoff_5791.zip",
+                "CVE-2017-7529/training/magnificent_lumiere_4317.zip",
+                "CVE-2017-7529/training/miniature_agnesi_9544.zip",
+                "CVE-2017-7529/training/panicky_ride_1492.zip",
+                "CVE-2017-7529/training/quaint_dijkstra_5923.zip",
+                "CVE-2017-7529/training/scarce_kilby_4846.zip",
+                "CVE-2017-7529/training/unsightly_payne_8459.zip"
+            ],
+            "Normal": [
+                "CVE-2017-7529/training/ancient_swartz_1527.zip",
+                "CVE-2017-7529/training/dirty_ellis_3826.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [
+                "CVE-2017-7529/validation/beautiful_stallman_2624.zip",
+                "CVE-2017-7529/validation/dead_neumann_5732.zip",
+                "CVE-2017-7529/validation/flat_margulis_7790.zip",
+                "CVE-2017-7529/validation/kind_meninsky_4628.zip",
+                "CVE-2017-7529/validation/melodic_ellis_1386.zip",
+                "CVE-2017-7529/validation/muscular_lederberg_8767.zip",
+                "CVE-2017-7529/validation/polite_wing_2697.zip",
+                "CVE-2017-7529/validation/quick_bohr_7424.zip",
+                "CVE-2017-7529/validation/skinny_cohen_5910.zip",
+                "CVE-2017-7529/validation/whispering_volhard_4924.zip"
+            ],
+            "Normal": [
+                "CVE-2017-7529/validation/embarrassed_chandrasekhar_4296.zip",
+                "CVE-2017-7529/validation/fierce_grothendieck_8480.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [
+                "CVE-2017-7529/test/normal/black_yonath_9036.zip",
+                "CVE-2017-7529/test/normal/deafening_sinoussi_5969.zip",
+                "CVE-2017-7529/test/normal/freezing_chebyshev_4111.zip",
+                "CVE-2017-7529/test/normal/large_dubinsky_5993.zip",
+                "CVE-2017-7529/test/normal/microscopic_lovelace_8637.zip",
+                "CVE-2017-7529/test/normal/numerous_faraday_5598.zip",
+                "CVE-2017-7529/test/normal/prickly_hypatia_3571.zip",
+                "CVE-2017-7529/test/normal/rancid_joliot_2717.zip",
+                "CVE-2017-7529/test/normal/tiny_carson_6285.zip",
+                "CVE-2017-7529/test/normal/young_elion_5310.zip"
+            ],
+            "Normal": [
+                "CVE-2017-7529/test/normal/fresh_lalande_9950.zip",
+                "CVE-2017-7529/test/normal/howling_kare_6096.zip",
+                "CVE-2017-7529/test/normal/mammoth_wu_6647.zip",
+                "CVE-2017-7529/test/normal/noisy_heyrovsky_3140.zip",
+                "CVE-2017-7529/test/normal/numerous_davinci_8357.zip",
+                "CVE-2017-7529/test/normal/old-fashioned_ardinghelli_4786.zip",
+                "CVE-2017-7529/test/normal/old-fashioned_chandrasekhar_4003.zip",
+                "CVE-2017-7529/test/normal/poor_burnell_2336.zip",
+                "CVE-2017-7529/test/normal/powerful_williams_7625.zip",
+                "CVE-2017-7529/test/normal/purple_jepsen_1271.zip",
+                "CVE-2017-7529/test/normal/rancid_lumiere_3006.zip",
+                "CVE-2017-7529/test/normal/rapping_sinoussi_5633.zip",
+                "CVE-2017-7529/test/normal/red_lewin_2932.zip",
+                "CVE-2017-7529/test/normal/shallow_hamilton_1486.zip",
+                "CVE-2017-7529/test/normal/small_stallman_6344.zip",
+                "CVE-2017-7529/test/normal/small_wilson_8714.zip",
+                "CVE-2017-7529/test/normal/stocky_sutherland_5493.zip",
+                "CVE-2017-7529/test/normal/straight_almeida_9030.zip",
+                "CVE-2017-7529/test/normal/sweet_kalam_7567.zip",
+                "CVE-2017-7529/test/normal/vast_engelbart_1323.zip",
+                "CVE-2017-7529/test/normal/worried_heisenberg_4662.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "CVE-2017-7529/test/normal_and_attack/muscular_turing_1045.zip"
+            ]
+        }
+    },
+    "CVE-2017-12635_6": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2017-12635_6/training/bewildered_roentgen_6083.zip",
+                "CVE-2017-12635_6/training/clean_mclaren_6275.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [
+                "CVE-2017-12635_6/validation/delightful_davinci_7167.zip"
+            ],
+            "Normal": [
+                "CVE-2017-12635_6/validation/early_kowalevski_6203.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2017-12635_6/test/normal/hallowed_zhukovsky_5360.zip",
+                "CVE-2017-12635_6/test/normal/magnificent_shtern_1275.zip",
+                "CVE-2017-12635_6/test/normal/rapping_newton_4292.zip",
+                "CVE-2017-12635_6/test/normal/square_goodall_4581.zip",
+                "CVE-2017-12635_6/test/normal/whining_austin_1359.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "CVE-2017-12635_6/test/normal_and_attack/hissing_meitner_2532.zip"
+            ]
+        }
+    },
+    "CVE-2018-3760": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2018-3760/training/clean_goldwasser_3104.zip",
+                "CVE-2018-3760/training/cool_tereshkova_4751.zip",
+                "CVE-2018-3760/training/cuddly_elbakyan_1147.zip",
+                "CVE-2018-3760/training/curved_herschel_8265.zip",
+                "CVE-2018-3760/training/deafening_noether_7155.zip",
+                "CVE-2018-3760/training/disgusting_beaver_3321.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2018-3760/validation/fast_elbakyan_5923.zip",
+                "CVE-2018-3760/validation/fat_booth_2743.zip",
+                "CVE-2018-3760/validation/fit_liskov_7057.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2018-3760/test/normal/future_moser_3909.zip",
+                "CVE-2018-3760/test/normal/happy_stallman_3967.zip",
+                "CVE-2018-3760/test/normal/jolly_hellman_5228.zip",
+                "CVE-2018-3760/test/normal/little_swartz_9659.zip",
+                "CVE-2018-3760/test/normal/magnificent_cocks_8671.zip",
+                "CVE-2018-3760/test/normal/mushy_dewdney_7739.zip",
+                "CVE-2018-3760/test/normal/nutritious_shannon_9257.zip",
+                "CVE-2018-3760/test/normal/orange_faraday_3204.zip",
+                "CVE-2018-3760/test/normal/panicky_jackson_4159.zip",
+                "CVE-2018-3760/test/normal/pitiful_banach_2486.zip",
+                "CVE-2018-3760/test/normal/polite_turing_9285.zip",
+                "CVE-2018-3760/test/normal/purring_liskov_3354.zip",
+                "CVE-2018-3760/test/normal/red_brahmagupta_7780.zip",
+                "CVE-2018-3760/test/normal/salmon_newton_2276.zip",
+                "CVE-2018-3760/test/normal/shrilling_hellman_9788.zip",
+                "CVE-2018-3760/test/normal/squeaking_wilson_6551.zip",
+                "CVE-2018-3760/test/normal/straight_bose_3470.zip",
+                "CVE-2018-3760/test/normal/substantial_nash_5316.zip",
+                "CVE-2018-3760/test/normal/tall_black_7581.zip",
+                "CVE-2018-3760/test/normal/uninterested_tu_3978.zip",
+                "CVE-2018-3760/test/normal/unsightly_pascal_8563.zip",
+                "CVE-2018-3760/test/normal/vast_ellis_4900.zip",
+                "CVE-2018-3760/test/normal/vast_mahavira_1949.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "CVE-2018-3760/test/normal_and_attack/nutritious_goldberg_1938.zip"
+            ]
+        }
+    },
+    "CVE-2019-5418": {
+        "Training": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Validation": {
+            "Idle": [
+                "CVE-2019-5418/validation/low_cohen_7057.zip"
+            ],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2019-5418/test/normal/old-fashioned_yalow_1228.zip",
+                "CVE-2019-5418/test/normal/polite_pasteur_2744.zip",
+                "CVE-2019-5418/test/normal/short_cartwright_4083.zip",
+                "CVE-2019-5418/test/normal/square_engelbart_5897.zip",
+                "CVE-2019-5418/test/normal/thankful_mendel_5616.zip",
+                "CVE-2019-5418/test/normal/young_mclean_4622.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": []
+        }
+    },
+    "CVE-2020-9484": {
+        "Training": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2020-9484/test/normal/fancy_cartwright_6001.zip",
+                "CVE-2020-9484/test/normal/icy_stonebraker_4925.zip",
+                "CVE-2020-9484/test/normal/unimportant_galois_7023.zip",
+                "CVE-2020-9484/test/normal/wailing_perlman_1958.zip",
+                "CVE-2020-9484/test/normal/white_shockley_4532.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "CVE-2020-9484/test/normal_and_attack/freezing_goldstine_7951.zip",
+                "CVE-2020-9484/test/normal_and_attack/straight_diffie_1998.zip"
+            ]
+        }
+    },
+    "CVE-2020-13942": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2020-13942/training/clumsy_spence_4936.zip",
+                "CVE-2020-13942/training/cuddly_wright_1906.zip",
+                "CVE-2020-13942/training/fancy_borg_5316.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [
+                "CVE-2020-13942/test/normal/numerous_clarke_7956.zip"
+            ],
+            "Normal": [
+                "CVE-2020-13942/test/normal/icy_ellis_7612.zip",
+                "CVE-2020-13942/test/normal/mealy_nightingale_1766.zip",
+                "CVE-2020-13942/test/normal/plain_spence_5823.zip",
+                "CVE-2020-13942/test/normal/shrilling_margulis_9043.zip",
+                "CVE-2020-13942/test/normal/strong_mcclintock_8783.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": []
+        }
+    },
+    "CVE-2020-23839": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2020-23839/training/bald_turing_8340.zip",
+                "CVE-2020-23839/training/billions_kirch_8759.zip",
+                "CVE-2020-23839/training/chilly_jennings_1179.zip",
+                "CVE-2020-23839/training/dazzling_kowalevski_1859.zip",
+                "CVE-2020-23839/training/dazzling_turing_6293.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2020-23839/validation/enough_elion_9760.zip",
+                "CVE-2020-23839/validation/enough_maxwell_3170.zip",
+                "CVE-2020-23839/validation/fierce_goldwasser_8169.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CVE-2020-23839/test/normal/full_hawking_5699.zip",
+                "CVE-2020-23839/test/normal/gentle_tharp_8691.zip",
+                "CVE-2020-23839/test/normal/greasy_galois_1797.zip",
+                "CVE-2020-23839/test/normal/huge_sutherland_4027.zip",
+                "CVE-2020-23839/test/normal/lively_bohr_7868.zip",
+                "CVE-2020-23839/test/normal/mammoth_chaplygin_7559.zip",
+                "CVE-2020-23839/test/normal/muscular_clarke_6769.zip",
+                "CVE-2020-23839/test/normal/narrow_bell_4907.zip",
+                "CVE-2020-23839/test/normal/obnoxious_meitner_2396.zip",
+                "CVE-2020-23839/test/normal/pitiful_antonelli_5145.zip",
+                "CVE-2020-23839/test/normal/shaggy_ardinghelli_4728.zip",
+                "CVE-2020-23839/test/normal/skinny_merkle_4590.zip",
+                "CVE-2020-23839/test/normal/some_easley_9512.zip",
+                "CVE-2020-23839/test/normal/substantial_blackburn_3489.zip",
+                "CVE-2020-23839/test/normal/tight_keldysh_4872.zip",
+                "CVE-2020-23839/test/normal/uninterested_pare_5424.zip",
+                "CVE-2020-23839/test/normal/warm_hodgkin_3473.zip",
+                "CVE-2020-23839/test/normal/wet_volhard_3060.zip",
+                "CVE-2020-23839/test/normal/yummy_euler_7318.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "CVE-2020-23839/test/normal_and_attack/spicy_hugle_6944.zip"
+            ]
+        }
+    },
+    "CWE-89-SQL-injection": {
+        "Training": {
+            "Idle": [],
+            "Normal": [
+                "CWE-89-SQL-injection/training/clever_minsky_8413.zip",
+                "CWE-89-SQL-injection/training/cold_khorana_6956.zip",
+                "CWE-89-SQL-injection/training/cuddly_moore_1069.zip",
+                "CWE-89-SQL-injection/training/damp_kirch_1738.zip",
+                "CWE-89-SQL-injection/training/damp_visvesvaraya_9084.zip",
+                "CWE-89-SQL-injection/training/deafening_kapitsa_7666.zip",
+                "CWE-89-SQL-injection/training/delightful_grothendieck_2692.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": [
+                "CWE-89-SQL-injection/validation/drab_heyrovsky_9937.zip",
+                "CWE-89-SQL-injection/validation/eager_gould_3051.zip",
+                "CWE-89-SQL-injection/validation/eager_wright_2874.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "CWE-89-SQL-injection/test/normal/fat_grothendieck_5547.zip",
+                "CWE-89-SQL-injection/test/normal/fierce_matsumoto_2490.zip",
+                "CWE-89-SQL-injection/test/normal/gray_mendel_3865.zip",
+                "CWE-89-SQL-injection/test/normal/harsh_hermann_6143.zip",
+                "CWE-89-SQL-injection/test/normal/jealous_wozniak_9239.zip",
+                "CWE-89-SQL-injection/test/normal/millions_austin_8017.zip",
+                "CWE-89-SQL-injection/test/normal/miniature_leakey_3002.zip",
+                "CWE-89-SQL-injection/test/normal/modern_driscoll_6671.zip",
+                "CWE-89-SQL-injection/test/normal/narrow_tereshkova_4719.zip",
+                "CWE-89-SQL-injection/test/normal/odd_knuth_5971.zip",
+                "CWE-89-SQL-injection/test/normal/pitiful_rosalind_1684.zip",
+                "CWE-89-SQL-injection/test/normal/prickly_blackburn_6385.zip",
+                "CWE-89-SQL-injection/test/normal/slow_bhabha_6620.zip",
+                "CWE-89-SQL-injection/test/normal/uptight_clarke_4974.zip",
+                "CWE-89-SQL-injection/test/normal/young_bassi_4389.zip",
+                "CWE-89-SQL-injection/test/normal/young_lamarr_3916.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "CWE-89-SQL-injection/test/normal_and_attack/rich_chandrasekhar_4955.zip"
+            ]
+        }
+    },
+    "EPS_CWE-434": {
+        "Training": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "EPS_CWE-434/test/normal/mammoth_knuth_8856.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": []
+        }
+    },
+    "Juice-Shop": {
+        "Training": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Validation": {
+            "Idle": [],
+            "Normal": [
+                "Juice-Shop/validation/fat_khayyam_1842.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "Juice-Shop/test/normal/gifted_dewdney_2607.zip",
+                "Juice-Shop/test/normal/greasy_torvalds_9451.zip",
+                "Juice-Shop/test/normal/loose_kirch_9691.zip",
+                "Juice-Shop/test/normal/mammoth_bohr_6895.zip",
+                "Juice-Shop/test/normal/panicky_mclaren_2742.zip",
+                "Juice-Shop/test/normal/shallow_torvalds_9955.zip",
+                "Juice-Shop/test/normal/tasty_meitner_2974.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "Juice-Shop/test/normal_and_attack/ancient_curie_8716.zip"
+            ]
+        }
+    },
+    "PHP_CWE-434": {
+        "Training": {
+            "Idle": [
+                "PHP_CWE-434/training/dazzling_diffie_3776.zip"
+            ],
+            "Normal": [
+                "PHP_CWE-434/training/angry_ardinghelli_8127.zip",
+                "PHP_CWE-434/training/billions_noyce_6095.zip",
+                "PHP_CWE-434/training/brief_meitner_5062.zip",
+                "PHP_CWE-434/training/deafening_jackson_6826.zip"
+            ]
+        },
+        "Validation": {
+            "Idle": [
+                "PHP_CWE-434/validation/witty_pascal_2633.zip"
+            ],
+            "Normal": [
+                "PHP_CWE-434/validation/early_mclean_1370.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [
+                "PHP_CWE-434/test/normal/glamorous_snyder_6524.zip",
+                "PHP_CWE-434/test/normal/gray_tereshkova_4307.zip",
+                "PHP_CWE-434/test/normal/immense_blackwell_2660.zip",
+                "PHP_CWE-434/test/normal/late_chaplygin_5300.zip",
+                "PHP_CWE-434/test/normal/long_albattani_3151.zip",
+                "PHP_CWE-434/test/normal/loud_torvalds_5878.zip",
+                "PHP_CWE-434/test/normal/noisy_lehmann_8106.zip",
+                "PHP_CWE-434/test/normal/savory_kalam_7463.zip",
+                "PHP_CWE-434/test/normal/some_lalande_3115.zip",
+                "PHP_CWE-434/test/normal/strong_mcnulty_2291.zip",
+                "PHP_CWE-434/test/normal/thousands_wiles_5441.zip",
+                "PHP_CWE-434/test/normal/tight_cocks_4472.zip",
+                "PHP_CWE-434/test/normal/wooden_bhabha_2533.zip"
+            ],
+            "Attack": [],
+            "Normal and Attack": [
+                "PHP_CWE-434/test/normal_and_attack/many_chatelet_7974.zip",
+                "PHP_CWE-434/test/normal_and_attack/steep_haslett_8493.zip"
+            ]
+        }
+    },
+    "ZipSlip": {
+        "Training": {
+            "Idle": [],
+            "Normal": []
+        },
+        "Validation": {
+            "Idle": [
+                "ZipSlip/validation/important_lichterman_3276.zip"
+            ],
+            "Normal": [
+                "ZipSlip/validation/defeated_gagarin_7659.zip"
+            ]
+        },
+        "Test": {
+            "Idle": [],
+            "Normal": [],
+            "Attack": [
+                "ZipSlip/test/normal_and_attack/dirty_chebyshev_7636.zip"
+            ],
+            "Normal and Attack": [
+                "ZipSlip/test/normal_and_attack/scrawny_elbakyan_3936.zip"
+            ]
+        }
+    }
+}
