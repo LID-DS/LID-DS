@@ -1,3 +1,6 @@
+import random
+
+
 class ExampleDecisionEngine:
     """
 
@@ -36,4 +39,4 @@ class ExampleDecisionEngine:
         predicts anomaly score for feature input
 
         """
-        return self._final_list[0]
+        return random.random()

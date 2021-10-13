@@ -1,6 +1,7 @@
 import typing
 
 from collections import deque
+from collections.abc import Iterable
 from algorithms.base_stream_feature_extractor import BaseStreamFeatureExtractor
 
 
@@ -49,7 +50,7 @@ class StreamNgramExtractor(BaseStreamFeatureExtractor):
         for features in queue:
             for feature_name in self._feature_list:
                 if feature_name in features:
-                    array.append(features[feature_name])
+                    array += (features[feature_name])
         return array
 
     def new_recording(self):
