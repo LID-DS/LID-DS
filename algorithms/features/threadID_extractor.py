@@ -6,10 +6,10 @@ from dataloader.syscall import Syscall
 
 class ThreadIDExtractor(BaseSyscallFeatureExtractor):
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[str, int]:
+    def extract(self, syscall: Syscall) -> typing.Tuple[int, int]:
         """
 
         extract thread ID of syscall
 
         """
-        return 'tid', syscall.thread_id()
+        return ThreadIDExtractor.get_id(), syscall.thread_id()

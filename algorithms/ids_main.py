@@ -22,9 +22,9 @@ if __name__ == '__main__':
 
     # define the used features
     ids = IDS(
-        syscall_feature_list=[WordEmbedding(window=4, vector_size=2, thread_aware=True),
+        syscall_feature_list=[WordEmbedding(window=5, vector_size=1, thread_aware=True),
                               ThreadIDExtractor()],
-        stream_feature_list=[StreamNgramExtractor(feature_list=["w2v"], thread_aware=True, ngram_length=2)],
+        stream_feature_list=[StreamNgramExtractor(feature_list=[WordEmbedding], thread_aware=True, ngram_length=2)],
         data_loader=dataloader,
         decision_engine=example_de)
 

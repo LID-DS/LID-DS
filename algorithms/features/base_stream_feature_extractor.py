@@ -1,5 +1,7 @@
 import typing
 
+from algorithms.features.feature_id_manager import FeatureIDManager
+
 
 class BaseStreamFeatureExtractor:
     """
@@ -7,6 +9,8 @@ class BaseStreamFeatureExtractor:
     base class for feature extraction from a stream of system call features
 
     """
+    # this is the id of this class determined at runtime
+    class_id = None
 
     def __init__(self):
         pass
@@ -27,13 +31,13 @@ class BaseStreamFeatureExtractor:
         """
         pass
 
-    def extract(self, syscall_features: dict) -> typing.Tuple[str, object]:
+    def extract(self, syscall_features: dict) -> typing.Tuple[int, object]:
         """
 
         extracts a feature from a stream of syscall features
 
         Returns:
-          key: name of feature and
+          key: id of feature and
           value: value of feature
 
         """
@@ -46,3 +50,9 @@ class BaseStreamFeatureExtractor:
 
         """
         pass
+
+    @classmethod
+    def get_id(cls):
+        if cls.class_id is None:
+            cls.class_id = FeatureIDManager().get_id(cls)
+        return cls.class_id
