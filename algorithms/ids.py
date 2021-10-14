@@ -3,6 +3,7 @@ from typing import Union, Type, Generator
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
 
@@ -52,7 +53,7 @@ class IDS:
                                   data: list,
                                   description: str = "") -> Generator[list, None, None]:
         """
-        generator: given a list of recordings (like dataloader.trainint()) generates all feature vectors
+        generator: given a list of recordings (like dataloader.training()) generates all feature vectors
         """
         for recording in tqdm(data, description, unit=" recording"):
             for syscall in recording.syscalls():
@@ -60,6 +61,9 @@ class IDS:
                 feature_vector = self._extract_features_from_stream(feature_dict)
                 if len(feature_vector) > 0:
                     yield feature_vector
+            stream_feature: BaseStreamFeatureExtractor  # type hint
+            for stream_feature in self._stream_feature_list:
+                stream_feature.new_recording()
 
     def _prepare_and_build_features(self):
         """
@@ -82,6 +86,8 @@ class IDS:
                 features_of_syscall = self._extract_features_from_syscall(syscall)
                 for stream_feature in self._stream_feature_list:
                     stream_feature.train_on(features_of_syscall)
+            for stream_feature in self._stream_feature_list:
+                stream_feature.new_recording()
 
         # fit streaming features
         for stream_feature in tqdm(self._stream_feature_list, "fitting features 2/2".rjust(25), unit=" features"):
