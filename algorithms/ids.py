@@ -106,7 +106,6 @@ class IDS:
         for feature_vector in self._generate_feature_vectors(self._data_loader.test_data(),
                                                              "anomaly detection".rjust(25)):
             anomaly_score = self._decision_engine.predict(feature_vector)
-            print(f"  {feature_vector} --> {anomaly_score}")
             if anomaly_score > self._threshold:
                 pass
                 # TODO count statistics, maybe here we cant use the _generate_feature_vectors method...

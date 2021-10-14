@@ -5,6 +5,8 @@ from algorithms.features.word_embedding import WordEmbedding
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 
+from algorithms.features.feature_id_manager import FeatureIDManager
+
 if __name__ == '__main__':
     """
 
@@ -31,3 +33,7 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
+
+    # test feature_id_manager
+    print(FeatureIDManager()._feature_to_int_dict)
+
