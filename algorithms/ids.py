@@ -1,5 +1,7 @@
 from typing import Union, Type, Generator
 
+from tqdm import tqdm
+
 from algorithms.base_decision_engine import BaseDecisionEngine
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
@@ -47,11 +49,12 @@ class IDS:
         return extracted_feature_list
 
     def _generate_feature_vectors(self,
-                                  data: list) -> Generator[int, None, None]:
+                                  data: list,
+                                  description: str = "") -> Generator[list, None, None]:
         """
         generator: given a list of recordings (like dataloader.trainint()) generates all feature vectors
         """
-        for recording in data:
+        for recording in tqdm(data, description, unit=" recording"):
             for syscall in recording.syscalls():
                 feature_dict = self._extract_features_from_syscall(syscall)
                 feature_vector = self._extract_features_from_stream(feature_dict)
@@ -64,42 +67,46 @@ class IDS:
         - calls train on and fit for each syscall and stream feature on the training data
         """
         # train syscall features
-        for recording in self._data_loader.training_data():
+
+        for recording in tqdm(self._data_loader.training_data(), "preparing features 1/2".rjust(25), unit=" recording"):
             for syscall in recording.syscalls():
                 for syscall_feature in self._syscall_feature_list:
                     syscall_feature.train_on(syscall)
         # fit syscall features
-        for syscall_feature in self._syscall_feature_list:
+        for syscall_feature in tqdm(self._syscall_feature_list, "fitting features 1/2".rjust(25), unit=" features"):
             syscall_feature.fit()
 
         # train streaming features
-        for recording in self._data_loader.training_data():
+        for recording in tqdm(self._data_loader.training_data(), "preparing features 2/2".rjust(25), unit=" recording"):
             for syscall in recording.syscalls():
                 features_of_syscall = self._extract_features_from_syscall(syscall)
                 for stream_feature in self._stream_feature_list:
                     stream_feature.train_on(features_of_syscall)
 
         # fit streaming features
-        for stream_feature in self._stream_feature_list:
+        for stream_feature in tqdm(self._stream_feature_list, "fitting features 2/2".rjust(25), unit=" features"):
             stream_feature.fit()
 
     def train_decision_engine(self):
         # train of DE
-        for feature_vector in self._generate_feature_vectors(self._data_loader.training_data()):
+        for feature_vector in self._generate_feature_vectors(self._data_loader.training_data(), "train DE".rjust(25)):
             self._decision_engine.train_on(feature_vector)
         self._decision_engine.fit()
 
     def determine_threshold(self):
         max_score = 0.0
-        for feature_vector in self._generate_feature_vectors(self._data_loader.validation_data()):
+        for feature_vector in self._generate_feature_vectors(self._data_loader.validation_data(),
+                                                             "determine threshold".rjust(25)):
             anomaly_score = self._decision_engine.predict(feature_vector)
             if anomaly_score > max_score:
                 max_score = anomaly_score
         self._threshold = max_score
-        print(self._threshold)
 
     def do_detection(self):
-        for feature_vector in self._generate_feature_vectors(self._data_loader.test_data()):
+        for feature_vector in self._generate_feature_vectors(self._data_loader.test_data(),
+                                                             "anomaly detection".rjust(25)):
             anomaly_score = self._decision_engine.predict(feature_vector)
             if anomaly_score > self._threshold:
-                print("Alarm")
+                pass
+                # TODO count statistics, maybe here we cant use the _generate_feature_vectors method...
+
