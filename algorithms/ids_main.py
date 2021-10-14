@@ -1,7 +1,7 @@
-from algorithms.decision_engines.example_decision_engine import ExampleDecisionEngine
 from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
-from algorithms.features.word_embedding import WordEmbedding
+from algorithms.features.syscall_int_extractor import SyscallIntExtractor
+from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 
@@ -20,15 +20,15 @@ if __name__ == '__main__':
     dataloader = DataLoader('/home/grimmer/Work/LID-DS-2021/CVE-2017-7529/')
 
     # decision engine (DE)
-    example_de = ExampleDecisionEngine()
+    stide = Stide()
 
     # define the used features
     ids = IDS(
-        syscall_feature_list=[WordEmbedding(window=5, vector_size=1, thread_aware=True),
+        syscall_feature_list=[SyscallIntExtractor(),
                               ThreadIDExtractor()],
-        stream_feature_list=[StreamNgramExtractor(feature_list=[WordEmbedding], thread_aware=True, ngram_length=2)],
+        stream_feature_list=[StreamNgramExtractor(feature_list=[SyscallIntExtractor], thread_aware=True, ngram_length=2)],
         data_loader=dataloader,
-        decision_engine=example_de)
+        decision_engine=stide)
 
     ids.train_decision_engine()
     ids.determine_threshold()
