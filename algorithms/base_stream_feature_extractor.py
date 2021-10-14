@@ -33,8 +33,8 @@ class BaseStreamFeatureExtractor:
         extracts a feature from a stream of syscall features
 
         Returns:
-        dict: key: name of feature and
-              value: value of feature
+          key: name of feature and
+          value: value of feature
 
         """
         pass
