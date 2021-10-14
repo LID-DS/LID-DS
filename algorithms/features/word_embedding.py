@@ -1,10 +1,10 @@
 import timeit
 import typing
-
 from collections import deque
+
 from gensim.models import Word2Vec, KeyedVectors
 
-from algorithms.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
+from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 from dataloader.syscall import Syscall
 
 
@@ -65,13 +65,13 @@ class WordEmbedding(BaseSyscallFeatureExtractor):
             print(f'Took {timeit.default_timer() - t} for training.')
             self.w2v = word2vec
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[str, list]:
+    def extract(self, syscall: Syscall) -> typing.Tuple[int, list]:
         """
 
             transforms given syscall name to word embedding
 
         """
-        return 'w2v', self.w2v[syscall.name()].tolist()
+        return WordEmbedding.get_id(), self.w2v[syscall.name()].tolist()
 
     def load(self):
         """

@@ -1,9 +1,11 @@
-from algorithms.word_embedding import WordEmbedding
-from algorithms.threadID_extractor import ThreadIDExtractor
-from algorithms.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.example_decision_engine import ExampleDecisionEngine
-from dataloader.data_loader import DataLoader
+from algorithms.decision_engines.example_decision_engine import ExampleDecisionEngine
+from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
+from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.word_embedding import WordEmbedding
 from algorithms.ids import IDS
+from dataloader.data_loader import DataLoader
+
+from algorithms.features.feature_id_manager import FeatureIDManager
 
 if __name__ == '__main__':
     """
@@ -22,12 +24,16 @@ if __name__ == '__main__':
 
     # define the used features
     ids = IDS(
-        syscall_feature_list=[WordEmbedding(window=4, vector_size=2, thread_aware=True),
+        syscall_feature_list=[WordEmbedding(window=5, vector_size=1, thread_aware=True),
                               ThreadIDExtractor()],
-        stream_feature_list=[StreamNgramExtractor(feature_list=["w2v"], thread_aware=True, ngram_length=2)],
+        stream_feature_list=[StreamNgramExtractor(feature_list=[WordEmbedding], thread_aware=True, ngram_length=2)],
         data_loader=dataloader,
         decision_engine=example_de)
 
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
+
+    # test feature_id_manager
+    print(FeatureIDManager()._feature_to_int_dict)
+
