@@ -1,10 +1,10 @@
 import timeit
 import typing
-
 from collections import deque
+
 from gensim.models import Word2Vec, KeyedVectors
 
-from algorithms.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
+from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 from dataloader.syscall import Syscall
 
 

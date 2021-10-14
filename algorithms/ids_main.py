@@ -1,9 +1,9 @@
-from algorithms.word_embedding import WordEmbedding
-from algorithms.threadID_extractor import ThreadIDExtractor
-from algorithms.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.example_decision_engine import ExampleDecisionEngine
-from dataloader.data_loader import DataLoader
+from algorithms.decision_engines.example_decision_engine import ExampleDecisionEngine
+from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
+from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.word_embedding import WordEmbedding
 from algorithms.ids import IDS
+from dataloader.data_loader import DataLoader
 
 if __name__ == '__main__':
     """

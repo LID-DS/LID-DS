@@ -1,8 +1,7 @@
 import typing
-
 from collections import deque
-from collections.abc import Iterable
-from algorithms.base_stream_feature_extractor import BaseStreamFeatureExtractor
+
+from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 
 
 class StreamNgramExtractor(BaseStreamFeatureExtractor):

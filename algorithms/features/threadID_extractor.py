@@ -1,7 +1,7 @@
 import typing
 
+from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 from dataloader.syscall import Syscall
-from algorithms.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 
 
 class ThreadIDExtractor(BaseSyscallFeatureExtractor):

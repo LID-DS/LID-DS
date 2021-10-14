@@ -1,7 +1,9 @@
 import random
 
+from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 
-class ExampleDecisionEngine:
+
+class ExampleDecisionEngine(BaseDecisionEngine):
     """
 
     Base class for decision engine
@@ -10,6 +12,7 @@ class ExampleDecisionEngine:
         output: anomaly score
 
     """
+
     def __init__(self):
         self._buffer = []
         self._final_list = []

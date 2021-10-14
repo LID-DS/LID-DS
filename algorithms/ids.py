@@ -2,7 +2,7 @@ from typing import Union, Type, Generator
 
 from tqdm import tqdm
 
-from algorithms.base_decision_engine import BaseDecisionEngine
+from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
 
@@ -109,4 +109,3 @@ class IDS:
             if anomaly_score > self._threshold:
                 pass
                 # TODO count statistics, maybe here we cant use the _generate_feature_vectors method...
-
