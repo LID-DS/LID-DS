@@ -9,12 +9,7 @@ from algorithms.features.feature_id_manager import FeatureIDManager
 
 if __name__ == '__main__':
     """
-
-        combination of:
-            feature_extractor
-            stream_feature_extractor
-            decision_engine
-
+    this is an example script to show the usage uf our classes
     """
     # data loader for scenario
     dataloader = DataLoader('/home/grimmer/Work/LID-DS-2021/CVE-2017-7529/')
