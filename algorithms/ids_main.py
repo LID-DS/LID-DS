@@ -12,10 +12,10 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     # data loader for scenario
-    dataloader = DataLoader('/home/grimmer/Work/LID-DS-2021/CVE-2017-7529/')
+    dataloader = DataLoader('/home/eschulze/LID-DS-2021 Datensatz/CVE-2017-7529/')
 
     # decision engine (DE)
-    stide = Stide()
+    stide = Stide(window_length=50)
 
     # define the used features
     ids = IDS(

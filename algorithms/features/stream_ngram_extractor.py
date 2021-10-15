@@ -3,6 +3,7 @@ from collections import deque
 
 from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
+from collections.abc import Iterable
 
 
 class StreamNgramExtractor(BaseStreamFeatureExtractor):
@@ -52,7 +53,10 @@ class StreamNgramExtractor(BaseStreamFeatureExtractor):
         for feature_dict in deque_of_dicts:
             for feature_id in self._list_of_feature_ids:
                 if feature_id in feature_dict:
-                    array += (feature_dict[feature_id])
+                    if isinstance(feature_dict[feature_id], Iterable):
+                        array += feature_dict[feature_id]
+                    else:
+                        array.append(feature_dict[feature_id])
         return array
 
     def new_recording(self):
