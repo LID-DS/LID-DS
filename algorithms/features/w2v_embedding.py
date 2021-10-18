@@ -50,22 +50,22 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             k, v = feature.extract(syscall)
             syscall_feature_dict[k] = v
 
-        _, list_sentence = self._n_gram_streamer.extract(syscall_feature_dict)
+        _, sentence = self._n_gram_streamer.extract(syscall_feature_dict)
 
-        if list_sentence is not None:
-            string_sentence = ' '.join(list_sentence)
+        if sentence is not None:
+            string_sentence = sentence
             if self._distinct:
-                if string_sentence not in self._sentences:
-                    self._sentences.append(string_sentence)
+                if sentence not in self._sentences:
+                    self._sentences.append(sentence)
             else:
-                self._sentences.append(string_sentence)
+                self._sentences.append(sentence)
 
     def fit(self):
         """
             trains the w2v model on training sentences
         """
         if not self.w2vmodel:
-            model = Word2Vec(vector_size=self._vector_size, epochs=self._epochs)
+            model = Word2Vec(sentences=self._sentences, vector_size=self._vector_size, epochs=self._epochs)
             model.save(fname_or_handle=self._path)
 
             self.w2vmodel = model
