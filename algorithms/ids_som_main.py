@@ -30,7 +30,7 @@ if __name__ == '__main__':
             thread_aware=True,
             scenario_path=dataloader.scenario_path
         ), ThreadIDExtractor()],
-        stream_feature_list=[StreamNgramExtractor(feature_list=[SyscallIntExtractor],
+        stream_feature_list=[StreamNgramExtractor(feature_list=[W2VEmbedding],
                                                   thread_aware=True,
                                                   ngram_length=2)],
         data_loader=dataloader,
@@ -38,4 +38,6 @@ if __name__ == '__main__':
 
     ids.train_decision_engine()
     ids.determine_threshold()
+    print(ids._threshold)
     ids.do_detection()
+    DE.show_distance_plot()
