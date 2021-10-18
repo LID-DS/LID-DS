@@ -6,6 +6,8 @@ from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
+from dataloader.recording import Recording
+import datetime
 
 
 class IDS:
@@ -20,6 +22,7 @@ class IDS:
         self._stream_feature_list = stream_feature_list
         self._prepare_and_build_features()
         self._threshold = 0.0
+        self._performance_values = {}
 
     def _extract_features_from_syscall(self,
                                        syscall: Syscall) -> dict:
@@ -51,20 +54,34 @@ class IDS:
 
     def _generate_feature_vectors(self,
                                   data: list,
-                                  description: str = "") -> Generator[list, None, None]:
+                                  description: str = "") -> Generator[tuple, None, None]:
         """
         generator: given a list of recordings (like dataloader.training()) generates all feature vectors
+
+        yields feature vector, boolean for exploit, absolute time of exploit
+
         """
+        first_syscall_time_exist = False
+
         for recording in tqdm(data, description, unit=" recording"):
+            if recording.metadata()["exploit"] == True:
+                exploit_time = first_syscall_time + datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
+            else:
+                exploit_time = None
+
             for syscall in recording.syscalls():
-                feature_dict = self._extract_features_from_syscall(syscall)
-                feature_vector = self._extract_features_from_stream(feature_dict)
-                if len(feature_vector) > 0:
-                    yield feature_vector
-            stream_feature: BaseStreamFeatureExtractor  # type hint
-            for stream_feature in self._stream_feature_list:
-                stream_feature.new_recording()
-            self._decision_engine.new_recording()
+                if first_syscall_time_exist == False:
+                first_syscall_time = Syscall.timestamp_datetime(syscall)
+                first_syscall_time_exist = True
+                    syscall_time = Syscall.timestamp_datetime(syscall)
+                    feature_dict = self._extract_features_from_syscall(syscall)
+                    feature_vector = self._extract_features_from_stream(feature_dict)
+                    if len(feature_vector) > 0:
+                        yield feature_vector, exploit_time, syscall_time
+                stream_feature: BaseStreamFeatureExtractor  # type hint
+                for stream_feature in self._stream_feature_list:
+                    stream_feature.new_recording()
+                self._decision_engine.new_recording()
 
     def _prepare_and_build_features(self):
         """
@@ -96,13 +113,13 @@ class IDS:
 
     def train_decision_engine(self):
         # train of DE
-        for feature_vector in self._generate_feature_vectors(self._data_loader.training_data(), "train DE".rjust(25)):
+        for feature_vector, _, _ in self._generate_feature_vectors(self._data_loader.training_data(), "train DE".rjust(25)):
             self._decision_engine.train_on(feature_vector)
         self._decision_engine.fit()
 
     def determine_threshold(self):
         max_score = 0.0
-        for feature_vector in self._generate_feature_vectors(self._data_loader.validation_data(),
+        for feature_vector, _, _ in self._generate_feature_vectors(self._data_loader.validation_data(),
                                                              "determine threshold".rjust(25)):
             anomaly_score = self._decision_engine.predict(feature_vector)
             if anomaly_score > max_score:
@@ -110,9 +127,61 @@ class IDS:
         self._threshold = max_score
 
     def do_detection(self):
-        for feature_vector in self._generate_feature_vectors(self._data_loader.test_data(),
+        """
+        detects: false positives, true positives, true negatives, false, negatives, consecutive false alarms
+                 from feature_vectors and metadata
+
+        returns: counts of fp, tp, tn, fn, cfa as int, alarm
+
+        """
+        fp = 0
+        tp = 0
+        tn = 0
+        fn = 0
+        alarm = False
+        cfa_stream = 0
+        cfa_count = 0
+
+        for feature_vector, exploit_time, syscall_time in self._generate_feature_vectors(self._data_loader.test_data(),
                                                              "anomaly detection".rjust(25)):
             anomaly_score = self._decision_engine.predict(feature_vector)
+
             if anomaly_score > self._threshold:
-                pass
-                # TODO count statistics, maybe here we cant use the _generate_feature_vectors method...
+                if exploit_time is not None:
+                    if exploit_time > syscall_time:
+                         fp += 1
+                         cfa_stream += 1
+                    elif exploit_time < syscall_time and alarm == False:
+                        tp += 1
+                        alarm = True
+                else:
+                    fp += 1
+
+            if anomaly_score < self._threshold:
+                if cfa_stream > 0:
+                    cfa_stream = 0
+                    cfa_count += 1
+
+                    if exploit_time is not None:
+                        if exploit_time > syscall_time:
+                            tn += 1
+                        elif exploit_time < syscall_time:
+                            fn += 1
+                    else:
+                     tn += 1
+
+        self._performance_values = {"false positives": fp,
+                                    "true positives": tp,
+                                    "true negatives": tn,
+                                    "false negatives": fn,
+                                    "Alarm?": alarm,
+                                    "consecutive false alarms": cfa_count }
+
+
+    def get_performance(self):
+
+        """
+        returns dict with performance values
+        """
+
+        return self._performance_values

@@ -28,3 +28,4 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
+    print(ids.get_performance())
