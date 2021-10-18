@@ -13,7 +13,7 @@ class IDS:
                  syscall_feature_list: list,
                  stream_feature_list: list,
                  data_loader: Union[DataLoader, DataLoader],
-                 decision_engine: Type[BaseDecisionEngine]):
+                 decision_engine: BaseDecisionEngine):
         self._data_loader = data_loader
         self._decision_engine = decision_engine
         self._syscall_feature_list = syscall_feature_list
