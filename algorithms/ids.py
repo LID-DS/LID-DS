@@ -64,6 +64,7 @@ class IDS:
             stream_feature: BaseStreamFeatureExtractor  # type hint
             for stream_feature in self._stream_feature_list:
                 stream_feature.new_recording()
+            self._decision_engine.new_recording()
 
     def _prepare_and_build_features(self):
         """

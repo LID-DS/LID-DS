@@ -33,3 +33,11 @@ class BaseDecisionEngine:
 
         """
         pass
+
+    def new_recording(self):
+        """
+        after every recording
+         e.g. clears window after score calculation
+
+        """
+        pass
