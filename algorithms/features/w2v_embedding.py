@@ -20,7 +20,12 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             -> thread and file awareness given
     """
 
-    def __init__(self, vector_size: int, window_size: int, epochs: int, scenario_path: str, path: str = 'Models',
+    def __init__(self,
+                 vector_size: int,
+                 window_size: int,
+                 epochs: int,
+                 scenario_path: str,
+                 path: str = 'Models',
                  force_train: bool = False,
                  distinct: bool = True,
                  thread_aware=True):
@@ -53,7 +58,6 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
         _, sentence = self._n_gram_streamer.extract(syscall_feature_dict)
 
         if sentence is not None:
-            string_sentence = sentence
             if self._distinct:
                 if sentence not in self._sentences:
                     self._sentences.append(sentence)
@@ -96,8 +100,6 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
 
     def new_recording(self):
         """
-
             tells n_gram streamer to clear buffer after beginning of new recording
-
         """
         self._n_gram_streamer.new_recording()
