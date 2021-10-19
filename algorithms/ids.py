@@ -77,6 +77,8 @@ class IDS:
             for syscall in recording.syscalls():
                 for syscall_feature in self._syscall_feature_list:
                     syscall_feature.train_on(syscall)
+            for syscall_feature in self._syscall_feature_list:
+                syscall_feature.new_recording()
         # fit syscall features
         for syscall_feature in tqdm(self._syscall_feature_list, "fitting features 1/2".rjust(25), unit=" features"):
             syscall_feature.fit()

@@ -44,6 +44,14 @@ class BaseSyscallFeatureExtractor:
         """
         pass
 
+    def new_recording(self):
+        """
+
+        empties buffer and prepares for next recording
+
+        """
+        pass
+
     @classmethod
     def get_id(cls):
         if cls.class_id is None:
