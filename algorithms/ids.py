@@ -50,6 +50,7 @@ class IDS:
         extracted_feature_list = []
         for key in stream_feature_dict.keys():
             extracted_feature_list += stream_feature_dict[key]
+
         return extracted_feature_list
 
     def _generate_feature_vectors(self,
@@ -61,23 +62,27 @@ class IDS:
         yields feature vector, boolean for exploit, absolute time of exploit
 
         """
-        first_syscall_time_exist = False
+        first_syscall_time = None
 
         for recording in tqdm(data, description, unit=" recording"):
-            if recording.metadata()["exploit"] == True:
-                exploit_time = first_syscall_time + datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
+            if recording.metadata()["exploit"] is True:
+                if first_syscall_time is None:
+                    exploit_time = datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
+
+                elif first_syscall_time:
+                    exploit_time = first_syscall_time + datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
             else:
                 exploit_time = None
 
             for syscall in recording.syscalls():
-                if first_syscall_time_exist == False:
-                first_syscall_time = Syscall.timestamp_datetime(syscall)
-                first_syscall_time_exist = True
-                    syscall_time = Syscall.timestamp_datetime(syscall)
-                    feature_dict = self._extract_features_from_syscall(syscall)
-                    feature_vector = self._extract_features_from_stream(feature_dict)
-                    if len(feature_vector) > 0:
-                        yield feature_vector, exploit_time, syscall_time
+                if first_syscall_time is None:
+                    first_syscall_time = Syscall.timestamp_datetime(syscall)
+                syscall_time = Syscall.timestamp_datetime(syscall)
+                feature_dict = self._extract_features_from_syscall(syscall)
+                #print(feature_dict)
+                feature_vector = self._extract_features_from_stream(feature_dict)
+                if len(feature_vector) > 0:
+                    yield feature_vector, exploit_time, syscall_time
                 stream_feature: BaseStreamFeatureExtractor  # type hint
                 for stream_feature in self._stream_feature_list:
                     stream_feature.new_recording()

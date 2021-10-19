@@ -22,6 +22,7 @@ if __name__ == '__main__':
         stream_feature_list=[StreamNgramExtractor(feature_list=[SyscallIntExtractor],
                                                   thread_aware=True,
                                                   ngram_length=2)],
+
         data_loader=dataloader,
         decision_engine=stide)
 
