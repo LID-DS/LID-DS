@@ -38,6 +38,5 @@ if __name__ == '__main__':
 
     ids.train_decision_engine()
     ids.determine_threshold()
-    print(ids._threshold)
     ids.do_detection()
     DE.show_distance_plot()
