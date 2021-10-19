@@ -98,7 +98,7 @@ class DataPreprocessor:
         else:
             return None
 
-    def reset_recording(self):
+    def new_recording(self):
         stream_feature: BaseStreamFeatureExtractor  # type hint
         for stream_feature in self._stream_feature_list:
             stream_feature.new_recording()

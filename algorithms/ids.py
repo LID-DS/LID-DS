@@ -26,7 +26,7 @@ class IDS:
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
                 if feature_vector is not None:
                     self._decision_engine.train_on(feature_vector)
-            self._data_preprocessor.reset_recording()
+            self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
         self._decision_engine.fit()
 
@@ -41,7 +41,7 @@ class IDS:
                     anomaly_score = self._decision_engine.predict(feature_vector)
                     if anomaly_score > max_score:
                         max_score = anomaly_score
-            self._data_preprocessor.reset_recording()
+            self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
         self._threshold = max_score
 
@@ -55,5 +55,5 @@ class IDS:
                     anomaly_score = self._decision_engine.predict(feature_vector)
                     if anomaly_score > self._threshold:
                         pass
-            self._data_preprocessor.reset_recording()
+            self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
