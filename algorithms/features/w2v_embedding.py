@@ -30,7 +30,7 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
                  distinct: bool = True,
                  thread_aware=True):
         super().__init__()
-        scenario_name = scenario_path.split('/')[-1]
+        scenario_name = os.path.basename(os.path.normpath(scenario_path))
 
         self._vector_size = vector_size
         self._epochs = epochs
