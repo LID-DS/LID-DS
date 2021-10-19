@@ -6,7 +6,6 @@ from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
-from dataloader.recording import Recording
 import datetime
 
 
@@ -23,6 +22,7 @@ class IDS:
         self._prepare_and_build_features()
         self._threshold = 0.0
         self._performance_values = {}
+        self._alarm = False
 
     def _extract_features_from_syscall(self,
                                        syscall: Syscall) -> dict:
@@ -62,11 +62,16 @@ class IDS:
         yields feature vector, boolean for exploit, absolute time of exploit
 
         """
+
         first_syscall_time = None
 
         for recording in tqdm(data, description, unit=" recording"):
+
+            if self._alarm is not False:
+                self._alarm = False
             if recording.metadata()["exploit"] is True:
                 if first_syscall_time is None:
+                    print("hier")
                     exploit_time = datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
 
                 elif first_syscall_time:
@@ -78,8 +83,9 @@ class IDS:
                 if first_syscall_time is None:
                     first_syscall_time = Syscall.timestamp_datetime(syscall)
                 syscall_time = Syscall.timestamp_datetime(syscall)
+                #print(f"sct = {syscall_time},"
+                #      f"ext = {exploit_time}")
                 feature_dict = self._extract_features_from_syscall(syscall)
-                #print(feature_dict)
                 feature_vector = self._extract_features_from_stream(feature_dict)
                 if len(feature_vector) > 0:
                     yield feature_vector, exploit_time, syscall_time
@@ -143,8 +149,8 @@ class IDS:
         tp = 0
         tn = 0
         fn = 0
-        alarm = False
         cfa_stream = 0
+        alarm_count = 0
         cfa_count = 0
 
         for feature_vector, exploit_time, syscall_time in self._generate_feature_vectors(self._data_loader.test_data(),
@@ -154,26 +160,29 @@ class IDS:
             if anomaly_score > self._threshold:
                 if exploit_time is not None:
                     if exploit_time > syscall_time:
-                         fp += 1
-                         cfa_stream += 1
-                    elif exploit_time < syscall_time and alarm == False:
+                        fp += 1
+                        cfa_stream += 1
+                    elif exploit_time < syscall_time and self._alarm is False:
                         tp += 1
-                        alarm = True
+                        alarm_count += 1
+                        self._alarm = True
+                    elif exploit_time < syscall_time and self._alarm is True:
+                        tp += 1
                 else:
                     fp += 1
 
             if anomaly_score < self._threshold:
-                if cfa_stream > 0:
-                    cfa_stream = 0
-                    cfa_count += 1
+                if exploit_time is not None:
+                    if cfa_stream > 0:
+                        cfa_stream = 0
+                        cfa_count += 1
 
-                    if exploit_time is not None:
-                        if exploit_time > syscall_time:
-                            tn += 1
-                        elif exploit_time < syscall_time:
-                            fn += 1
+                    if exploit_time > syscall_time:
+                        tn += 1
+                    elif exploit_time < syscall_time:
+                        fn += 1
                     else:
-                     tn += 1
+                         tn += 1
 
         re = tp/(tp+fn)
         pr = tp/(tp+fp)
@@ -182,7 +191,7 @@ class IDS:
                                     "true positives": tp,
                                     "true negatives": tn,
                                     "false negatives": fn,
-                                    "Alarm?": alarm,
+                                    "Alarm?": alarm_count,
                                     "consecutive false alarms": cfa_count,
                                     "Recall": re,
                                     "Precision": pr,

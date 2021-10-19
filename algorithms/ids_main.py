@@ -13,7 +13,7 @@ if __name__ == '__main__':
     dataloader = DataLoader('/home/eschulze/LID-DS-2021 Datensatz/CVE-2017-7529/')
 
     # decision engine (DE)
-    stide = Stide(window_length=50)
+    stide = Stide(window_length=10000)
 
     # define the used features
     ids = IDS(
@@ -21,7 +21,7 @@ if __name__ == '__main__':
                               ThreadIDExtractor()],
         stream_feature_list=[StreamNgramExtractor(feature_list=[SyscallIntExtractor],
                                                   thread_aware=True,
-                                                  ngram_length=2)],
+                                                  ngram_length=5)],
 
         data_loader=dataloader,
         decision_engine=stide)
