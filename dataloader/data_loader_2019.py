@@ -1,7 +1,7 @@
 import os
 import csv
 import random
-from recording_2019 import Recording
+from dataloader.recording_2019 import Recording
 
 TRAINING_SIZE = 200
 VALIDATION_SIZE = 50
@@ -21,6 +21,7 @@ class DataLoader:
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
         self._normal_recordings = None
         self._exploit_recordings = None
+        self._distinct_syscalls = None
 
         self.extract_recordings()
 
@@ -77,3 +78,26 @@ class DataLoader:
 
         self._normal_recordings = normal_recordings
         self._exploit_recordings = exploit_recordings
+
+    def distinct_syscalls_training_data(self):
+        """
+
+        calculate distinct syscall names in training data
+
+        Returns:
+        int: distinct syscalls in training data
+
+        """
+        if self._distinct_syscalls is not None:
+            return self._distinct_syscalls
+        else:
+            syscall_dict = {}
+            for recording in self.training_data():
+                for syscall in recording.syscalls():
+                    if syscall.name() in syscall_dict:
+                        continue
+                    else:
+                        syscall_dict[syscall.name()] = True
+            self._distinct_syscalls = len(syscall_dict)
+            print(self._distinct_syscalls)
+            return self._distinct_syscalls

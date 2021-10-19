@@ -96,6 +96,7 @@ class DataLoader:
         if os.path.isdir(scenario_path):
             self.scenario_path = scenario_path
             self.metadata_list = self.collect_metadata()
+            self._distinct_syscalls = None
         else:
             print(f'Could not find {scenario_path}!!!!')
             raise FileNotFoundError(
@@ -245,6 +246,28 @@ class DataLoader:
                     with open('missing_files.txt', 'a') as file:
                         file.write(f'Bad zipfile in recording: {name}. \n')
         return metadata_dict
+
+    def distinct_syscalls_training_data(self):
+        """
+
+        calculate distinct syscall names in training data
+
+        Returns:
+        int: distinct syscalls in training data
+
+        """
+        if self._distinct_syscalls is not None:
+            return self._distinct_syscalls
+        else:
+            syscall_dict = {}
+            for recording in self.training_data():
+                for syscall in recording.syscalls():
+                    if syscall.name() in syscall_dict:
+                        continue
+                    else:
+                        syscall_dict[syscall.name()] = True
+            self._distinct_syscalls = len(syscall_dict)
+            return self._distinct_syscalls
 
 
 if __name__ == "__main__":
