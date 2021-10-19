@@ -10,7 +10,7 @@ from numpy.linalg import norm
 
 
 class Som(BaseDecisionEngine):
-    def __init__(self, epochs, sigma=1.0, learning_rate=0.5):
+    def __init__(self, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5):
         """
             Anomaly Detection Engine based on Teuvo Kohonen's Self-Organizing-Map (SOM)
 
@@ -49,7 +49,7 @@ class Som(BaseDecisionEngine):
         som_size += 1
         return int(som_size)
 
-    def train_on(self, input_array):
+    def train_on(self, input_array: list):
         """
             creates distinct input data buffer used for training
         """
@@ -72,7 +72,7 @@ class Som(BaseDecisionEngine):
             for vector in self._buffer:
                 self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
 
-    def predict(self, input_array):
+    def predict(self, input_array: list) -> float:
         """
             calculates euclidean distance between input and codebook vector which is used as anomaly score
 
