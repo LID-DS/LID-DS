@@ -83,10 +83,10 @@ class IDS:
                 feature_vector = self._extract_features_from_stream(feature_dict)
                 if len(feature_vector) > 0:
                     yield feature_vector, exploit_time, syscall_time
-                stream_feature: BaseStreamFeatureExtractor  # type hint
-                for stream_feature in self._stream_feature_list:
-                    stream_feature.new_recording()
-                self._decision_engine.new_recording()
+            stream_feature: BaseStreamFeatureExtractor  # type hint
+            for stream_feature in self._stream_feature_list:
+                stream_feature.new_recording()
+            self._decision_engine.new_recording()
 
     def _prepare_and_build_features(self):
         """
@@ -175,12 +175,18 @@ class IDS:
                     else:
                      tn += 1
 
+        re = tp/(tp+fn)
+        pr = tp/(tp+fp)
+
         self._performance_values = {"false positives": fp,
                                     "true positives": tp,
                                     "true negatives": tn,
                                     "false negatives": fn,
                                     "Alarm?": alarm,
-                                    "consecutive false alarms": cfa_count }
+                                    "consecutive false alarms": cfa_count,
+                                    "Recall": re,
+                                    "Precision": pr,
+                                    "F1": 2*((pr*re)/(pr+re))}
 
 
     def get_performance(self):
