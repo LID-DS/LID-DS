@@ -5,6 +5,7 @@ from tqdm import tqdm
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_preprocessor import DataPreprocessor
+from dataloader.syscall import Syscall
 
 
 class IDS:
@@ -15,9 +16,6 @@ class IDS:
         self._data_loader = data_loader
         self._data_preprocessor = data_preprocessor
         self._decision_engine = decision_engine
-        self._syscall_feature_list = syscall_feature_list
-        self._stream_feature_list = stream_feature_list
-        self._prepare_and_build_features()
         self._threshold = 0.0
         self._performance_values = {}
         self._alarm = False
@@ -78,8 +76,10 @@ class IDS:
                 exploit_time = None
 
             for syscall in recording.syscalls():
+
                 syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
+
                 if feature_vector is not None:
                     anomaly_score = self._decision_engine.predict(feature_vector)
 
@@ -109,27 +109,29 @@ class IDS:
                                 fn += 1
                             else:
                                 tn += 1
-
-                re = tp / (tp + fn)
-                pr = tp / (tp + fp)
-
-                self._performance_values = {"false positives": fp,
-                                            "true positives": tp,
-                                            "true negatives": tn,
-                                            "false negatives": fn,
-                                            "alarms in recording": alarm_count,
-                                            "consecutive false alarms": cfa_count,
-                                            "Recall": re,
-                                            "Precision": pr,
-                                            "F1": 2 * ((pr * re) / (pr + re))}
-
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
+
+        re = tp / (tp + fn)
+        pr = tp / (tp + fp)
+
+        self._performance_values = {"false positives": fp,
+                                    "true positives": tp,
+                                    "true negatives": tn,
+                                    "false negatives": fn,
+                                    "alarms in recording": alarm_count,
+                                    "consecutive false alarms": cfa_count,
+                                    "Recall": re,
+                                    "Precision": pr,
+                                    "F1": 2 * ((pr * re) / (pr + re))}
+
+
 
     def get_performance(self):
 
         """
         returns dict with performance values
+
         """
 
         return self._performance_values
