@@ -4,6 +4,7 @@ from typing import Union
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
 from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
+from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 from dataloader.data_loader_2019 import DataLoader as DataLoader_2019
 
 
@@ -34,8 +35,8 @@ class DataPreprocessor:
             for syscall in recording.syscalls():
                 for syscall_feature in self._syscall_feature_list:
                     syscall_feature.train_on(syscall)
-            for syscall_feature in self._syscall_feature_list:
-                syscall_feature.new_recording()
+            self.new_recording()
+
         # fit syscall features
         for syscall_feature in tqdm(self._syscall_feature_list, "fitting features 1/2".rjust(25), unit=" features"):
             syscall_feature.fit()
@@ -46,8 +47,7 @@ class DataPreprocessor:
                 features_of_syscall = self._extract_features_from_syscall(syscall)
                 for stream_feature in self._stream_feature_list:
                     stream_feature.train_on(features_of_syscall)
-            for stream_feature in self._stream_feature_list:
-                stream_feature.new_recording()
+            self.new_recording()
 
         # fit streaming features
         for stream_feature in tqdm(self._stream_feature_list, "fitting features 2/2".rjust(25), unit=" features"):
@@ -99,6 +99,13 @@ class DataPreprocessor:
             return None
 
     def new_recording(self):
+        """
+        - this method should be called each time after a recording is done and a new recording starts
+        - it iterates over all features and calls new_recording on them
+        """
+        syscall_feature: BaseSyscallFeatureExtractor  # type hint
         stream_feature: BaseStreamFeatureExtractor  # type hint
+        for syscall_feature in self._syscall_feature_list:
+            syscall_feature.new_recording()
         for stream_feature in self._stream_feature_list:
             stream_feature.new_recording()

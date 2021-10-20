@@ -18,7 +18,7 @@ if __name__ == '__main__':
                                                 ngram_length=2)]
 
     # data loader for scenario
-    dataloader = DataLoader('../../Dataset/CVE-2017-7529/')
+    dataloader = DataLoader('/home/grimmer/Work/LID-DS-2021/CVE-2017-7529')
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,

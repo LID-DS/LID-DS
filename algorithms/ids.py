@@ -1,15 +1,13 @@
-from typing import Union
-
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_preprocessor import DataPreprocessor
-from dataloader.data_loader import DataLoader
 
 
 class IDS:
     def __init__(self,
-                 data_loader: Union[DataLoader, DataLoader],
+                 data_loader: BaseDataLoader,
                  data_preprocessor: DataPreprocessor,
                  decision_engine: BaseDecisionEngine):
         self._data_loader = data_loader
