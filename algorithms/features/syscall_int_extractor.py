@@ -5,17 +5,34 @@ from dataloader.syscall import Syscall
 
 
 class SyscallIntExtractor(BaseSyscallFeatureExtractor):
+    """
+
+        base class for feature transformation e.g. embedding process
+
+    """
 
     def __init__(self):
-        self._syscall_int_dict = {}
+        self._syscall_dict = {}
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, int]:
+    def train_on(self, syscall: Syscall):
         """
 
-        get int from syscall
+            takes one syscall and assigns integer
+            integer is current length of syscall_dict
+            keep 0 free for unknown syscalls
 
         """
-        if syscall.name() not in self._syscall_int_dict:
-            self._syscall_int_dict[syscall.name()] = len(self._syscall_int_dict) + 1
+        if syscall.name() not in self._syscall_dict:
+            self._syscall_dict[syscall.name()] = len(self._syscall_dict) + 1
 
-        return SyscallIntExtractor.get_id(), self._syscall_int_dict[syscall.name()]
+    def extract(self, syscall: Syscall) -> typing.Tuple[str, list]:
+        """
+
+            transforms given syscall name to integer
+
+        """
+        try:
+            sys_to_int = self._syscall_dict[syscall.name()]
+        except KeyError:
+            sys_to_int = 0
+        return SyscallIntExtractor.get_id(), [sys_to_int]
