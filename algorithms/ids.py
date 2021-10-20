@@ -64,18 +64,15 @@ class IDS:
 
         """
 
-
         for recording in tqdm(data, description, unit=" recording"):
             if self._alarm is not False:
                 self._alarm = False
             if recording.metadata()["exploit"] is True:
                 exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
-
             else:
                 exploit_time = None
 
             for syscall in recording.syscalls():
-
                 syscall_time = Syscall.timestamp_unix_in_ns(syscall)*(10**(-9))
                 feature_dict = self._extract_features_from_syscall(syscall)
                 feature_vector = self._extract_features_from_stream(feature_dict)

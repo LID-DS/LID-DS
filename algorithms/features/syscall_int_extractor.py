@@ -19,3 +19,6 @@ class SyscallIntExtractor(BaseSyscallFeatureExtractor):
             self._syscall_int_dict[syscall.name()] = len(self._syscall_int_dict) + 1
 
         return SyscallIntExtractor.get_id(), self._syscall_int_dict[syscall.name()]
+
+    def new_recording(self):
+        pass

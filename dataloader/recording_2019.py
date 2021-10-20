@@ -1,5 +1,5 @@
 import os
-from syscall_2019 import Syscall
+from dataloader.syscall_2019 import Syscall
 from distutils.util import strtobool
 
 from enum import IntEnum
