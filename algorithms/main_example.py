@@ -5,6 +5,7 @@ from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
+import pprint
 
 if __name__ == '__main__':
     """
@@ -15,7 +16,7 @@ if __name__ == '__main__':
                             ThreadIDExtractor()]
     stream_feature_list = [StreamNgramExtractor(feature_list=[SyscallToInt],
                                                 thread_aware=True,
-                                                ngram_length=2)]
+                                                ngram_length=5)]
 
     # data loader for scenario
     dataloader = DataLoader('../../Dataset/CVE-2017-7529/')
@@ -34,3 +35,4 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
+    pprint.pprint(ids.get_performance())

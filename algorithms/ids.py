@@ -1,8 +1,11 @@
+from typing import Union, Type, Generator
+
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_preprocessor import DataPreprocessor
+from dataloader.syscall import Syscall
 
 
 class IDS:
@@ -14,6 +17,8 @@ class IDS:
         self._data_preprocessor = data_preprocessor
         self._decision_engine = decision_engine
         self._threshold = 0.0
+        self._performance_values = {}
+        self._alarm = False
 
     def train_decision_engine(self):
         # train of DE
@@ -44,14 +49,89 @@ class IDS:
         self._threshold = max_score
 
     def do_detection(self):
+        """
+            detects: false positives, true positives, true negatives, false negatives, consecutive false alarms
+                         from feature_vectors and metadata
+
+            returns: counts of fp, tp, tn, fn, cfa as int, alarms per rec
+
+        """
+        fp = 0
+        tp = 0
+        tn = 0
+        fn = 0
+        cfa_stream = 0
+        alarm_count = 0
+        cfa_count = 0
+
         data = self._data_loader.test_data()
         description = 'anomaly detection: '
+
         for recording in tqdm(data, description, unit=" recording"):
+            if self._alarm is not False:
+                self._alarm = False
+            if recording.metadata()["exploit"] is True:
+                exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
+            else:
+                exploit_time = None
+
             for syscall in recording.syscalls():
+
+                syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
+
                 if feature_vector is not None:
                     anomaly_score = self._decision_engine.predict(feature_vector)
+
                     if anomaly_score > self._threshold:
-                        pass
+                        if exploit_time is not None:
+                            if exploit_time > syscall_time:
+                                fp += 1
+                                cfa_stream += 1
+                            elif exploit_time < syscall_time and self._alarm is False:
+                                tp += 1
+                                alarm_count += 1
+                                self._alarm = True
+                            elif exploit_time < syscall_time and self._alarm is True:
+                                tp += 1
+                        else:
+                            fp += 1
+
+                    if anomaly_score < self._threshold:
+                        if exploit_time is not None:
+                            if cfa_stream > 0:
+                                cfa_stream = 0
+                                cfa_count += 1
+
+                            if exploit_time > syscall_time:
+                                tn += 1
+                            elif exploit_time < syscall_time:
+                                fn += 1
+                            else:
+                                tn += 1
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
+
+        re = tp / (tp + fn)
+        pr = tp / (tp + fp)
+
+        self._performance_values = {"false positives": fp,
+                                    "true positives": tp,
+                                    "true negatives": tn,
+                                    "false negatives": fn,
+                                    "alarms in recording": alarm_count,
+                                    "consecutive false alarms": cfa_count,
+                                    "Recall": re,
+                                    "Precision": pr,
+                                    "F1": 2 * ((pr * re) / (pr + re))}
+
+
+
+    def get_performance(self):
+
+        """
+        returns dict with performance values
+
+        """
+
+        return self._performance_values
