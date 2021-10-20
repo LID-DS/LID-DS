@@ -4,6 +4,8 @@ from algorithms.features.syscall_int_extractor import SyscallIntExtractor
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
+import pprint
+
 
 if __name__ == '__main__':
     """
@@ -29,4 +31,5 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
-    print(ids.get_performance())
+    pprint.pprint(ids.get_performance())
+

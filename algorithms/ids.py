@@ -6,7 +6,8 @@ from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 from dataloader.data_loader import DataLoader
 from dataloader.syscall import Syscall
-import datetime
+from dataloader.recording import Recording
+
 
 
 class IDS:
@@ -59,32 +60,23 @@ class IDS:
         """
         generator: given a list of recordings (like dataloader.training()) generates all feature vectors
 
-        yields feature vector, boolean for exploit, absolute time of exploit
+        yields feature vector, absolute unix time in seconds for exploit time and syscall time
 
         """
 
-        first_syscall_time = None
 
         for recording in tqdm(data, description, unit=" recording"):
-
             if self._alarm is not False:
                 self._alarm = False
             if recording.metadata()["exploit"] is True:
-                if first_syscall_time is None:
-                    print("hier")
-                    exploit_time = datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
+                exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
 
-                elif first_syscall_time:
-                    exploit_time = first_syscall_time + datetime.timedelta(seconds=recording.metadata()["time"]["exploit"][0]["relative"])
             else:
                 exploit_time = None
 
             for syscall in recording.syscalls():
-                if first_syscall_time is None:
-                    first_syscall_time = Syscall.timestamp_datetime(syscall)
-                syscall_time = Syscall.timestamp_datetime(syscall)
-                #print(f"sct = {syscall_time},"
-                #      f"ext = {exploit_time}")
+
+                syscall_time = Syscall.timestamp_unix_in_ns(syscall)*(10**(-9))
                 feature_dict = self._extract_features_from_syscall(syscall)
                 feature_vector = self._extract_features_from_stream(feature_dict)
                 if len(feature_vector) > 0:
@@ -139,10 +131,10 @@ class IDS:
 
     def do_detection(self):
         """
-        detects: false positives, true positives, true negatives, false, negatives, consecutive false alarms
+        detects: false positives, true positives, true negatives, false negatives, consecutive false alarms
                  from feature_vectors and metadata
 
-        returns: counts of fp, tp, tn, fn, cfa as int, alarm
+        returns: counts of fp, tp, tn, fn, cfa as int, alarms per rec
 
         """
         fp = 0
@@ -191,7 +183,7 @@ class IDS:
                                     "true positives": tp,
                                     "true negatives": tn,
                                     "false negatives": fn,
-                                    "Alarm?": alarm_count,
+                                    "alarms in recording": alarm_count,
                                     "consecutive false alarms": cfa_count,
                                     "Recall": re,
                                     "Precision": pr,
