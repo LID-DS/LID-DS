@@ -1,7 +1,6 @@
 from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
-from algorithms.features.syscall_int_extractor import SyscallIntExtractor
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader

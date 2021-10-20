@@ -13,3 +13,6 @@ class ThreadIDExtractor(BaseSyscallFeatureExtractor):
 
         """
         return ThreadIDExtractor.get_id(), syscall.thread_id()
+
+    def new_recording(self):
+        pass

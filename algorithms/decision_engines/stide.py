@@ -22,7 +22,8 @@ class Stide(BaseDecisionEngine):
         """
 
         ngram = tuple(input_array)
-        if not ngram in self._normal_database:
+
+        if ngram not in self._normal_database:
             self._normal_database[ngram] = 1
 
     def predict(self, input_array):
