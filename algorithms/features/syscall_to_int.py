@@ -7,7 +7,7 @@ from dataloader.syscall import Syscall
 class SyscallToInt(BaseSyscallFeatureExtractor):
     """
 
-        base class for feature transformation e.g. embedding process
+        convert system call name to unique integer
 
     """
 
