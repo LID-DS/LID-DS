@@ -34,7 +34,7 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
 
         self._vector_size = vector_size
         self._epochs = epochs
-        self._path = os.path.join(path, f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-w2v.model')
+        self._path = os.path.join(path, f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-w2v.model')
         self._force_train = force_train
         self._distinct = distinct
         self.w2vmodel = None
@@ -50,19 +50,20 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
         """
             gives syscall features to n_gram feature stream, casts it as sentence and saves it to training corpus
         """
-        syscall_feature_dict = {}
-        for feature in self._feature_list:
-            k, v = feature.extract(syscall)
-            syscall_feature_dict[k] = v
+        if self.w2vmodel is None:
+            syscall_feature_dict = {}
+            for feature in self._feature_list:
+                k, v = feature.extract(syscall)
+                syscall_feature_dict[k] = v
 
-        _, sentence = self._n_gram_streamer.extract(syscall_feature_dict)
+            _, sentence = self._n_gram_streamer.extract(syscall_feature_dict)
 
-        if sentence is not None:
-            if self._distinct:
-                if sentence not in self._sentences:
+            if sentence is not None:
+                if self._distinct:
+                    if sentence not in self._sentences:
+                        self._sentences.append(sentence)
+                else:
                     self._sentences.append(sentence)
-            else:
-                self._sentences.append(sentence)
 
     def fit(self):
         """

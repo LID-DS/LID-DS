@@ -5,6 +5,7 @@ from algorithms.features.syscall_int_extractor import SyscallIntExtractor
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
+from dataloader.data_preprocessor import DataPreprocessor
 
 if __name__ == '__main__':
     """
@@ -18,23 +19,30 @@ if __name__ == '__main__':
         epochs=50
     )
 
+    syscall_feature_list = [ThreadIDExtractor(),
+                            W2VEmbedding(
+                                vector_size=5,
+                                epochs=50,
+                                path='Models',
+                                force_train=True,
+                                distinct=True,
+                                window_size=7,
+                                thread_aware=True,
+                                scenario_path=dataloader.scenario_path)
+                            ]
+
+    stream_feature_list = [StreamNgramExtractor(feature_list=[W2VEmbedding],
+                                                thread_aware=True,
+                                                ngram_length=2)]
+
+    dataprocessor = DataPreprocessor(dataloader,
+                                     syscall_feature_list,
+                                     stream_feature_list)
+
     # define the used features
-    ids = IDS(
-        syscall_feature_list=[W2VEmbedding(
-            vector_size=5,
-            epochs=50,
-            path='Models',
-            force_train=True,
-            distinct=True,
-            window_size=7,
-            thread_aware=True,
-            scenario_path=dataloader.scenario_path
-        ), ThreadIDExtractor()],
-        stream_feature_list=[StreamNgramExtractor(feature_list=[W2VEmbedding],
-                                                  thread_aware=True,
-                                                  ngram_length=2)],
-        data_loader=dataloader,
-        decision_engine=DE)
+    ids = IDS(data_loader=dataloader,
+              data_preprocessor=dataprocessor,
+              decision_engine=DE)
 
     ids.train_decision_engine()
     ids.determine_threshold()
