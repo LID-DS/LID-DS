@@ -7,6 +7,7 @@ from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 from dataloader.syscall import Syscall
 
+import matplotlib.pyplot as plt
 
 class IDS:
     def __init__(self,
@@ -19,6 +20,10 @@ class IDS:
         self._threshold = 0.0
         self._performance_values = {}
         self._alarm = False
+
+        self._anomaly_score_array = []
+        self._syscall_time_array = []
+        self._exploit_times_array = []
 
     def train_decision_engine(self):
         # train of DE
@@ -72,16 +77,19 @@ class IDS:
                 self._alarm = False
             if recording.metadata()["exploit"] is True:
                 exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
+                self._exploit_times.append(exploit_time)
             else:
                 exploit_time = None
 
             for syscall in recording.syscalls():
 
                 syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
+                self._syscall_time_array.append(syscall_time)
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
                 if feature_vector is not None:
                     anomaly_score = self._decision_engine.predict(feature_vector)
+                    self._anomaly_score_array.append(anomaly_score)
 
                     if anomaly_score > self._threshold:
                         if exploit_time is not None:
@@ -109,6 +117,7 @@ class IDS:
                                 fn += 1
                             else:
                                 tn += 1
+
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
 
@@ -125,8 +134,6 @@ class IDS:
                                     "Precision": pr,
                                     "F1": 2 * ((pr * re) / (pr + re))}
 
-
-
     def get_performance(self):
 
         """
@@ -135,3 +142,13 @@ class IDS:
         """
 
         return self._performance_values
+
+    def plot_performance(self):
+
+        plt.plot(self._anomaly_score_array)
+        for exploit_time in self._exploit_times_array:
+            plt.axes
+
+        plt.show()
+
+        return 0
