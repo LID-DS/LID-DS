@@ -7,6 +7,8 @@ import nest_asyncio
 from tqdm import tqdm
 
 from enum import Enum
+
+from dataloader.base_data_loader import BaseDataLoader
 from dataloader.recording import Recording
 
 TRAINING = 'training'
@@ -71,7 +73,7 @@ def get_type_of_recording(json_dict: dict) -> RecordingType:
         return RecordingType.NORMAL_AND_ATTACK
 
 
-class DataLoader:
+class DataLoader(BaseDataLoader):
     """
 
         Recieves path of scenario.
