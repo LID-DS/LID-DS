@@ -8,7 +8,7 @@ from tqdm import tqdm
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 
 
-class PytorchLSTModel(BaseDecisionEngine):
+class LSTM(BaseDecisionEngine):
 
     def __init__(self,
                  ngram_length,
@@ -20,15 +20,17 @@ class PytorchLSTModel(BaseDecisionEngine):
                  architecture=None,
                  predict_on_batch=False,
                  batch_size=1,
-                 stateful=False):
+                 model_path='Models/',
+                 force_train=False):
         self._ngram_length = ngram_length
         self._embedding_size = embedding_size
         self._extra_param = extra_param
-        self._stateful = stateful
         self._batch_size = batch_size
         self._predict_on_batch = predict_on_batch
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
+        self._model_path = model_path \
+            + f'n{self._ngram_length}-e{self._embedding_size}-p{self._extra_param}-ep{self._epochs}'
         self._training_data = {
             'x': [],
             'y': []
@@ -36,52 +38,69 @@ class PytorchLSTModel(BaseDecisionEngine):
         self._architecture = architecture
         self._lstm_layer = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        if not force_train:
+            self._set_model(self._distinct_syscalls)
+            self._lstm.load_state_dict(torch.load(self._model_path))
 
-    def _set_model(self, distinct_syscalls: int, data_shape: int):
+    def _set_model(self, distinct_syscalls: int):
         input_dim = self._ngram_length * (self._extra_param + self._embedding_size)
         hidden_dim = 64
         n_layers = 1
-        self._lstm = Net(distinct_syscalls,
+        # output layer is #distinct_syscall + 1 for unknown syscalls
+        self._lstm = Net(distinct_syscalls + 1,
                          input_dim,
                          hidden_dim,
-                         n_layers,
-                         data_shape)
+                         n_layers)
 
     def train_on(self, feature_list: list):
-        # TODO get distinct syscalls
-        x = np.array(feature_list[1:])
-        y = feature_list[0][0]
-        self._training_data['x'].append(x)
-        self._training_data['y'].append(y)
+        if self._lstm is None:
+            x = np.array(feature_list[1:])
+            y = feature_list[0][0]
+            self._training_data['x'].append(x)
+            self._training_data['y'].append(y)
+        else:
+            pass
 
     def fit(self):
-        x_tensors = Variable(torch.Tensor(self._training_data['x'])).to(self._device)
-        y_tensors = Variable(torch.Tensor(self._training_data['y'])).to(self._device)
-        y_tensors = y_tensors.long()
+        if self._lstm is None:
+            x_tensors = Variable(torch.Tensor(self._training_data['x'])).to(self._device)
+            y_tensors = Variable(torch.Tensor(self._training_data['y'])).to(self._device)
+            y_tensors = y_tensors.long()
+            x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
+            print(f"Training Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
+            self._set_model(self._distinct_syscalls)
+            self._lstm.to(self._device)
+            learning_rate = 0.001
+            criterion = torch.nn.CrossEntropyLoss()
+            optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
+            torch.manual_seed(1)
+            for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
+                outputs = self._lstm.forward(x_tensors_final)
+                optimizer.zero_grad()  # caluclate the gradient, manually setting to 0
 
-        x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
-        print("Training Shape", x_tensors_final.shape, y_tensors.shape)
+                # obtain the loss function
+                loss = criterion(outputs, y_tensors)
 
-        self._set_model(self._distinct_syscalls, x_tensors_final.shape[1])
-        self._lstm.to(self._device)
-        learning_rate = 0.001
-        criterion = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
-        torch.manual_seed(1)
-        for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
-            outputs = self._lstm.forward(x_tensors_final)
-            optimizer.zero_grad()  # caluclate the gradient, manually setting to 0
+                loss.backward()  # calculates the loss of the loss function
 
-            # obtain the loss function
-            # outputs = self._convert_to_class_indices(outputs)
-            loss = criterion(outputs, y_tensors)
+                optimizer.step()  # improve from loss, i.e backprop
+                if epoch % 10 == 0:
+                    self._accuracy(outputs, y_tensors)
+                    print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+            torch.save(self._lstm.state_dict(), self._model_path)
+        else:
+            pass
 
-            loss.backward()  # calculates the loss of the loss function
-
-            optimizer.step()  # improve from loss, i.e backprop
-            if epoch % 10 == 0:
-                self._accuracy(outputs, y_tensors)
-                print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+    def predict(self, feature_list: list) -> float:
+        x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
+        x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
+        actual_syscall = feature_list[0][0]
+        prediction_logits = self._lstm(x_tensor_final)
+        softmax = nn.Softmax()
+        prediction_probs = softmax(prediction_logits)
+        predicted_probability = prediction_probs[0][actual_syscall]
+        anomaly_score = 1 - predicted_probability
+        return anomaly_score
 
     def _accuracy(self, outputs, y_tensors):
         hit = 0
@@ -97,13 +116,12 @@ class PytorchLSTModel(BaseDecisionEngine):
 
 class Net(nn.Module):
 
-    def __init__(self, num_classes, input_size, hidden_size, num_layers, seq_length):
+    def __init__(self, num_classes, input_size, hidden_size, num_layers):
         super(Net, self).__init__()
         self.num_classes = num_classes
         self.num_layers = num_layers  # number of layers
         self.input_size = input_size  # input size
         self.hidden_size = hidden_size  # hidden state
-        self.seq_length = seq_length  # sequence length
 
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
