@@ -4,7 +4,7 @@ from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatur
 from dataloader.syscall import Syscall
 
 
-class SyscallIntExtractor(BaseSyscallFeatureExtractor):
+class SyscallToInt(BaseSyscallFeatureExtractor):
     """
 
         base class for feature transformation e.g. embedding process
@@ -35,4 +35,4 @@ class SyscallIntExtractor(BaseSyscallFeatureExtractor):
             sys_to_int = self._syscall_dict[syscall.name()]
         except KeyError:
             sys_to_int = 0
-        return SyscallIntExtractor.get_id(), [sys_to_int]
+        return SyscallToInt.get_id(), [sys_to_int]
