@@ -6,6 +6,7 @@ from algorithms.decision_engines.lstm import LSTM
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
+import pprint
 
 if __name__ == '__main__':
     """
@@ -46,3 +47,4 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
+    pprint.pprint(ids.get_performance())
