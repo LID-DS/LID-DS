@@ -10,7 +10,7 @@ class BaseDecisionEngine:
     def __init__(self):
         pass
 
-    def train_on(self, input_array):
+    def train_on(self, input_array: list):
         """
 
         takes one feature instance to train decision approach
@@ -23,10 +23,12 @@ class BaseDecisionEngine:
 
         finalizes training section
 
+        some DEs need validation data to check if training improved
+
         """
         pass
 
-    def predict(self, input_array) -> float:
+    def predict(self, input_array: list) -> float:
         """
 
         predicts anomaly score for feature input
@@ -36,6 +38,7 @@ class BaseDecisionEngine:
 
     def new_recording(self):
         """
+
         after every recording
          e.g. clears window after score calculation
 
