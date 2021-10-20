@@ -4,12 +4,13 @@ import json
 import random
 from tqdm import tqdm
 from dataloader.recording_2019 import Recording
+from dataloader.base_data_loader import BaseDataLoader
 
 TRAINING_SIZE = 200
 VALIDATION_SIZE = 50
 
 
-class DataLoader:
+class DataLoader(BaseDataLoader):
     """
 
     Loads data for LID-DS 2019 dataset
