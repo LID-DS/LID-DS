@@ -46,9 +46,10 @@ class PathEvilness(BaseSyscallFeatureExtractor):
 
             if fd is not None:
                 path_list = self._fd_preprocessing(fd)
-                if path_list not in self._cache:
-                    self._cache.append(path_list)
-                    self._build_file_tree(path_list)
+                if path_list is not None:
+                    if path_list not in self._cache:
+                        self._cache.append(path_list)
+                        self._build_file_tree(path_list)
 
     def _get_valid_fd_or_none(self, params) -> typing.Union[str, None]:
         """
@@ -67,19 +68,23 @@ class PathEvilness(BaseSyscallFeatureExtractor):
                     return fd
         return None
 
-    def _fd_preprocessing(self, fd) -> list:
+    def _fd_preprocessing(self, fd) -> typing.Union[list, None]:
         """
 
         preprocesses file descriptor by cutting front and back of the string and splitting it on '/'
 
         Returns:
-            path as list
+            path as list if / in path
+            None if no valid filepath
 
         """
         if '<f>' in fd:
             index = fd.find('<f>')  # <f> occurs at the beginning of all real file paths in file descriptors
             clean_path = fd[index + 3:-1]
-            return ['root'] + clean_path.split('/')[1:]
+            if '/' in clean_path:
+                return ['root'] + clean_path.split('/')[1:]
+            else:
+                return None
 
     def _build_file_tree(self, path_list):
         """
@@ -114,7 +119,7 @@ class PathEvilness(BaseSyscallFeatureExtractor):
         fd = self._get_valid_fd_or_none(syscall.params())
         if fd is not None:
             path_list = self._fd_preprocessing(fd)
-            if path_list not in self._cache:
+            if path_list not in self._cache and path_list is not None:
                 i = 1
                 while i < len(path_list):
                     node_id = os.path.join(*path_list[:i + 1])
