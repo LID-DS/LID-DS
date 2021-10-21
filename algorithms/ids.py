@@ -8,6 +8,8 @@ from dataloader.data_preprocessor import DataPreprocessor
 from dataloader.syscall import Syscall
 
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 26})
+
 
 class IDS:
     def __init__(self,
@@ -21,9 +23,10 @@ class IDS:
         self._performance_values = {}
         self._alarm = False
 
-        self._anomaly_score_array = []
-        self._syscall_time_array = []
-        self._exploit_times_array = []
+        self._anomaly_scores_exploits = []
+        self._anomaly_scores_no_exploits = []
+        self._syscalls_near_exploit = []
+        self._new_rec_marker = []
 
     def train_decision_engine(self):
         # train of DE
@@ -72,24 +75,42 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection: '
 
+        syscall_count_for_plot = 1
+
+
         for recording in tqdm(data, description, unit=" recording"):
             if self._alarm is not False:
                 self._alarm = False
             if recording.metadata()["exploit"] is True:
                 exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
-                self._exploit_times.append(exploit_time)
             else:
                 exploit_time = None
+
+            new_recording = True
+            first_sys_after_exploit = False
 
             for syscall in recording.syscalls():
 
                 syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
-                self._syscall_time_array.append(syscall_time)
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
+                if new_recording is True:
+                    self._new_rec_marker.append(syscall_count_for_plot)
+                    new_recording = False
+
+                if exploit_time is not None and syscall_time > exploit_time and first_sys_after_exploit is False:
+                    self._syscalls_near_exploit.append(syscall_count_for_plot)
+
+                    first_sys_after_exploit = True
+
                 if feature_vector is not None:
+                    syscall_count_for_plot += 1
                     anomaly_score = self._decision_engine.predict(feature_vector)
-                    self._anomaly_score_array.append(anomaly_score)
+                    if exploit_time is not None:
+                        self._anomaly_scores_exploits.append(anomaly_score)
+
+                    if exploit_time is None:
+                        self._anomaly_scores_no_exploits.append(anomaly_score)
 
                     if anomaly_score > self._threshold:
                         if exploit_time is not None:
@@ -145,9 +166,72 @@ class IDS:
 
     def plot_performance(self):
 
-        plt.plot(self._anomaly_score_array)
-        for exploit_time in self._exploit_times_array:
-            plt.axes
+        """
+            creates 2 plots: normal activity and exploit cases
+        """
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)  # The big subplot
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+
+
+        ax.spines['top'].set_color('none')
+        ax.spines['bottom'].set_color('none')
+        ax.spines['left'].set_color('none')
+        ax.spines['right'].set_color('none')
+        ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
+
+        #first subplot for normal activity
+        ax1.plot(self._anomaly_scores_no_exploits)
+        ax1.axhline(y=self._threshold, color="g")
+
+        #second subplot for exploits
+        done = False
+        start = 0
+        end = len(self._anomaly_scores_exploits)
+        while not done:
+            quadrat1 = self._syscalls_near_exploit[start]
+            quadrat2 = next(x for x in self._new_rec_marker if x > quadrat1)
+            ax2.axvspan(quadrat1, quadrat2, color="red", alpha=0.4)
+            start +=1
+        ax2.plot(self._anomaly_scores_exploits)
+        ax2.axhline(y=self._threshold, color="g")
+
+        # Set common labels
+        ax.set_ylabel('anomaly scores')
+
+        ax1.set_title('normal activity')
+        ax2.set_title('exploitative activity')
+
+        """fig = plt.figure()
+        fig.suptitle("Anomaly scores for normal and abnormal cases")
+        ax1 = fig.add_subplot(111)
+        ax1.plot(self._anomaly_scores_exploits)
+        ax1.title.set_text("with exploits")
+        ax2 = fig.add_subplot(212)
+        ax2.plot(self._anomaly_scores_no_exploits)
+        ax2.axhline(y=self._threshold, color="g")
+        ax2.title.set_text("normal activity")"""
+
+        """fig,(ax1, ax2) = plt.subplots(2, sharey=True)
+        ax1.plot(self._anomaly_scores_exploits)
+        ax1.set(title="anomaly scores exploits")
+        ax2.plot(self._anomaly_scores_no_exploits)
+        ax2.plot(title="anomaly scores normal activity")
+        ax1.axhline(y=self._threshold, color="g")
+        ax2.axhline(y=self._threshold, color="g")"""
+
+
+        """plt.plot(self._anomaly_scores_exploits)
+        plt.axhline(y=self._threshold, color="g")
+        for syscall in self._syscalls_near_exploit:
+            plt.axvline(x=syscall, color="r")
+
+        for marker in self._new_rec_marker:
+            plt.axvline(x=marker, color="y")"""
+
+
 
         plt.show()
 
