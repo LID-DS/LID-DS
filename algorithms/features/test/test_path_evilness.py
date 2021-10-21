@@ -23,6 +23,13 @@ def test_path_evilness():
 
     training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4]
     extractor = PathEvilness(scenario_path='/Test/test', path='algorithms/Models')
+    """
+    
+    scenario path is a mock that is only used to name the tree model
+    
+    path is overwritten to algorithms/Models because we assume pytest runs from the main LID-DS folder
+    
+    """
 
     for syscall in training_syscalls:
         extractor.train_on(syscall)
