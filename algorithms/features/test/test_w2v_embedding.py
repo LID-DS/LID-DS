@@ -1,5 +1,3 @@
-import pytest
-
 from algorithms.features.w2v_embedding import W2VEmbedding
 from dataloader.syscall import Syscall
 
