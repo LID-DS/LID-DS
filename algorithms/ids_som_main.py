@@ -1,3 +1,5 @@
+from algorithms.decision_engines.stide import Stide
+from algorithms.features.path_evilness import PathEvilness
 from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
@@ -11,12 +13,14 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     # data loader for scenario
-    dataloader = DataLoader('/home/felix/repos/LID-DS/LID-DS-2021/CVE-2017-7529')
+    dataloader = DataLoader('/home/felix/repos/LID-DS/LID-DS-2021/CVE-2018-3760')
 
     # decision engine (DE)
     DE = Som(
         epochs=50
     )
+
+    DE = Stide(3)
 
     syscall_feature_list = [ThreadIDExtractor(),
                             W2VEmbedding(
@@ -30,8 +34,10 @@ if __name__ == '__main__':
                                 scenario_path=dataloader.scenario_path)
                             ]
 
-    stream_feature_list = [StreamNgramExtractor(feature_list=[W2VEmbedding],
-                                                thread_aware=True,
+    syscall_feature_list = [PathEvilness(scenario_path=dataloader.scenario_path)]
+
+    stream_feature_list = [StreamNgramExtractor(feature_list=[PathEvilness],
+                                                thread_aware=False,
                                                 ngram_length=2)]
 
     dataprocessor = DataPreprocessor(dataloader,
@@ -42,6 +48,8 @@ if __name__ == '__main__':
     ids = IDS(data_loader=dataloader,
               data_preprocessor=dataprocessor,
               decision_engine=DE)
+
+
 
     ids.train_decision_engine()
     ids.determine_threshold()
