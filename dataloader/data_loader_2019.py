@@ -115,3 +115,14 @@ class DataLoader(BaseDataLoader):
             with open(self._scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
+
+    def get_scenario_name(self):
+
+        """
+        returns scenario name as str
+
+        """
+
+        scenario_name_str = str(self._scenario_path.split("/")[-1])
+
+        return scenario_name_str
