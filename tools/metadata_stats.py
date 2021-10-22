@@ -140,7 +140,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    scenario_names = os.listdir(args.base_path)
+    scenario_names = [name for name in os.listdir(args.base_path) if os.path.isdir(os.path.join(args.base_path, name))]
+    # scenario_names = os.listdir(args.base_path)
     # iterate through list of all scenarios
     for scenario in scenario_names:
 
