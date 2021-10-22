@@ -89,3 +89,11 @@ class BaseDataLoader:
 
         """
         pass
+
+    def get_scenario_name(self):
+
+        """
+        returns scenario name
+
+        """
+        pass

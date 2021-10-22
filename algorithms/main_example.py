@@ -37,5 +37,6 @@ if __name__ == '__main__':
     ids.do_detection()
     pprint.pprint(ids.get_performance())
 
+    print(dataloader.get_scenario_name())
     ids.plot_performance()
 

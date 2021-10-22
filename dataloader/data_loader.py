@@ -284,6 +284,16 @@ class DataLoader(BaseDataLoader):
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
 
+    def get_scenario_name(self):
+
+        """
+        returns scenario name as str
+
+        """
+
+        scenario_name_str = str(self._scenario_path.split("/")[-1])
+
+        return scenario_name_str
 
 if __name__ == "__main__":
     base_path = '../../Dataset/'

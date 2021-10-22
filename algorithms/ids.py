@@ -1,5 +1,3 @@
-from tqdm import tqdm
-
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -7,6 +5,7 @@ from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 from dataloader.syscall import Syscall
+from dataloader.data_loader import DataLoader
 
 plt.rcParams.update({'font.size': 26})
 
@@ -166,8 +165,6 @@ class IDS:
         """
             creates 2 plots: normal activity and exploit cases
         """
-        # print(f"ex = {self._first_syscall_after_exploit_list}")
-        # print(f"rec = {self._first_syscall_of_recording_list}")
 
         fig = plt.figure()
         ax = fig.add_subplot(111)  # The big subplot
@@ -207,13 +204,14 @@ class IDS:
         ax2.legend()
 
         # Set labels
-        ax1.set_ylabel('anomaly score')
-        ax2.set_ylabel('anomaly score')
+        ax1.set_ylabel("anomaly score")
+        ax1.set_xlabel("number of systemcalls")
+        ax2.set_ylabel("anomaly score")
+        ax2.set_xlabel("number of systemcalls")
 
-        ax1.set_title('normal activity')
-        ax2.set_title('exploits')
-
-
+        ax1.set_title("normal activity")
+        ax2.set_title("exploits")
+        fig.suptitle("Scenario: " + self._data_loader.get_scenario_name(), fontsize=50, weight="bold")
         plt.show()
 
         return 0
