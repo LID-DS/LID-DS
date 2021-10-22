@@ -19,7 +19,7 @@ if __name__ == '__main__':
                                                 ngram_length=5)]
 
     # data loader for scenario
-    dataloader = DataLoader('/home/eschulze/LID-DS-2021 Datensatz/CVE-2017-7529')
+    dataloader = DataLoader('/home/eschulze/LID-DS-2021/CVE-2017-7529')
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
@@ -38,3 +38,4 @@ if __name__ == '__main__':
     pprint.pprint(ids.get_performance())
 
     ids.plot_performance()
+
