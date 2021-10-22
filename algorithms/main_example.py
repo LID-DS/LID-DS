@@ -6,6 +6,7 @@ from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 import pprint
+from plot import ExploitPlot
 
 if __name__ == '__main__':
     """
@@ -37,6 +38,7 @@ if __name__ == '__main__':
     ids.do_detection()
     pprint.pprint(ids.get_performance())
 
-    print(dataloader.get_scenario_name())
-    ids.plot_performance()
+    plot = ExploitPlot(ids.get_plotting_data(), dataloader)
+
+    plot.plot_performance()
 
