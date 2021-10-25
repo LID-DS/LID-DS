@@ -71,6 +71,7 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection: '
 
+        # syscall index needed for plotting
         syscall_count_for_plot = 1
 
         for recording in tqdm(data, description, unit=" recording"):
@@ -88,21 +89,24 @@ class IDS:
                 syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
+                # getting index of first syscall after exploit of each recording for plotting
                 if exploit_time is not None and syscall_time > exploit_time and first_sys_after_exploit is False:
                     self._first_syscall_after_exploit_list.append(syscall_count_for_plot)
-
                     first_sys_after_exploit = True
 
                 if feature_vector is not None:
                     if exploit_time is not None:
                         syscall_count_for_plot += 1
                     anomaly_score = self._decision_engine.predict(feature_vector)
+
+                    # saving scores separately for plotting
                     if exploit_time is not None:
                         self._anomaly_scores_exploits.append(anomaly_score)
 
                     if exploit_time is None:
                         self._anomaly_scores_no_exploits.append(anomaly_score)
 
+                    # counting performance values
                     if anomaly_score > self._threshold:
                         if exploit_time is not None:
                             if exploit_time > syscall_time:
@@ -129,6 +133,8 @@ class IDS:
                                 fn += 1
                             else:
                                 tn += 1
+
+            # getting index of first syscall of each recording for plotting
             if exploit_time is not None:
                 self._first_syscall_of_recording_list.append(syscall_count_for_plot)
 
@@ -160,7 +166,7 @@ class IDS:
     def get_plotting_data(self):
 
         """
-           returns relevant information for plotting
+           returns relevant information for plot
 
         """
 
