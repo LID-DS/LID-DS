@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -36,13 +37,17 @@ class LSTM(BaseDecisionEngine):
             'y': []
         }
         self._architecture = architecture
-        self._lstm_layer = None
+        self._lstm = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self._device = torch.device("cpu")
         if not force_train:
-            self._set_model(self._distinct_syscalls)
-            self._lstm.load_state_dict(torch.load(self._model_path))
+            if os.path.exists(self._model_path):
+                self._set_model(self._distinct_syscalls, self._device)
+                self._lstm.load_state_dict(torch.load(self._model_path))
+            else:
+                print(f"Did not load Model {self._model_path}.")
 
-    def _set_model(self, distinct_syscalls: int):
+    def _set_model(self, distinct_syscalls: int, device: str):
         input_dim = self._ngram_length * (self._extra_param + self._embedding_size)
         hidden_dim = 64
         n_layers = 1
@@ -50,7 +55,8 @@ class LSTM(BaseDecisionEngine):
         self._lstm = Net(distinct_syscalls + 1,
                          input_dim,
                          hidden_dim,
-                         n_layers)
+                         n_layers,
+                         device=device)
 
     def train_on(self, feature_list: list):
         if self._lstm is None:
@@ -62,13 +68,14 @@ class LSTM(BaseDecisionEngine):
             pass
 
     def fit(self):
+        print(self._lstm)
         if self._lstm is None:
             x_tensors = Variable(torch.Tensor(self._training_data['x'])).to(self._device)
             y_tensors = Variable(torch.Tensor(self._training_data['y'])).to(self._device)
             y_tensors = y_tensors.long()
             x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
             print(f"Training Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
-            self._set_model(self._distinct_syscalls)
+            self._set_model(self._distinct_syscalls, self._device)
             self._lstm.to(self._device)
             learning_rate = 0.001
             criterion = torch.nn.CrossEntropyLoss()
@@ -89,6 +96,7 @@ class LSTM(BaseDecisionEngine):
                     print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
+            print(f"Net already trained. Using model {self._model_path}")
             pass
 
     def predict(self, feature_list: list) -> float:
@@ -116,7 +124,12 @@ class LSTM(BaseDecisionEngine):
 
 class Net(nn.Module):
 
-    def __init__(self, num_classes, input_size, hidden_size, num_layers):
+    def __init__(self,
+                 num_classes: int,
+                 input_size: int,
+                 hidden_size: int,
+                 num_layers: int,
+                 device: str):
         super(Net, self).__init__()
         self.num_classes = num_classes
         self.num_layers = num_layers  # number of layers
@@ -130,7 +143,7 @@ class Net(nn.Module):
         self.fc = nn.Linear(128, num_classes)  # fully connected last layer
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
-        self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self._device = torch.device(device)
 
     def forward(self, x):
         # hidden state
