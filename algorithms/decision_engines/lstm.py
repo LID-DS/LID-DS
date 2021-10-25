@@ -2,6 +2,7 @@ import os
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+from torch.utils.data import Dataset, DataLoader
 
 import numpy as np
 from tqdm import tqdm
@@ -68,12 +69,13 @@ class LSTM(BaseDecisionEngine):
             pass
 
     def fit(self):
-        print(self._lstm)
         if self._lstm is None:
             x_tensors = Variable(torch.Tensor(self._training_data['x'])).to(self._device)
             y_tensors = Variable(torch.Tensor(self._training_data['y'])).to(self._device)
             y_tensors = y_tensors.long()
             x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
+            dataset = SyscallFeatureDataSet(x_tensors_final, y_tensors)
+            dataloader = DataLoader(dataset, batch_size=self._batch_size)
             print(f"Training Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
             self._set_model(self._distinct_syscalls, self._device)
             self._lstm.to(self._device)
@@ -82,18 +84,19 @@ class LSTM(BaseDecisionEngine):
             optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
             torch.manual_seed(1)
             for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
-                outputs = self._lstm.forward(x_tensors_final)
-                optimizer.zero_grad()  # caluclate the gradient, manually setting to 0
-
-                # obtain the loss function
-                loss = criterion(outputs, y_tensors)
-
-                loss.backward()  # calculates the loss of the loss function
-
-                optimizer.step()  # improve from loss, i.e backprop
-                if epoch % 10 == 0:
-                    self._accuracy(outputs, y_tensors)
-                    print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+                for i, data in enumerate(dataloader, 0):
+                    inputs, labels = data
+                    outputs = self._lstm.forward(inputs)
+                    # caluclate the gradient, manually setting to 0
+                    optimizer.zero_grad()
+                    # obtain the loss function
+                    loss = criterion(outputs, labels)
+                    # calculates the loss of the loss function
+                    loss.backward()
+                    # improve from loss, i.e backprop
+                    optimizer.step()
+                self._accuracy(outputs, labels)
+                print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
             print(f"Net already trained. Using model {self._model_path}")
@@ -110,12 +113,12 @@ class LSTM(BaseDecisionEngine):
         anomaly_score = 1 - predicted_probability
         return anomaly_score
 
-    def _accuracy(self, outputs, y_tensors):
+    def _accuracy(self, outputs, labels):
         hit = 0
         miss = 0
         for i in range(len(outputs)):
             pred = torch.argmax(outputs[i])
-            if pred == y_tensors[i]:
+            if pred == labels[i]:
                 hit += 1
             else:
                 miss += 1
@@ -151,8 +154,26 @@ class Net(nn.Module):
         # internal state
         c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self._device)
         # Propagate input through LSTM
-        output, (hn, cn) = self.lstm(x, (h_0, c_0))  # lstm with input, hidden, and internal state
-        hn = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
+        # lstm with input, hidden, and internal state
+        output, (hn, cn) = self.lstm(x, (h_0, c_0))
+        # reshaping the data for Dense layer next
+        hn = hn.view(-1, self.hidden_size)
         out = self.tanh(hn)
         out = self.output(out)
         return out
+
+class SyscallFeatureDataSet(Dataset):
+
+    def __init__(self, X, Y):
+        self.X = X
+        self.Y = Y
+        if len(self.X) != len(self.Y):
+            raise Exception("The length of X does not match length of Y")
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, index):
+        _x = self.X[index]
+        _y = self.Y[index]
+        return _x, _y
