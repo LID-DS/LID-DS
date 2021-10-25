@@ -14,12 +14,13 @@ data format
     <scenario_name> {
         <dataset_part> {
             <recording_type> {
+                number_of_recordings: int,
                 recording_time: {
                     min: int,
                     max: int,
                     sum: int,
                     avg: float
-                }
+                },
                 normal_container: {
                     min: int,
                     max: int,
@@ -76,6 +77,7 @@ def calc_stats_for_recording_type(recording_list: list, description: str):
         metadata = recording.metadata()
         recording_time = metadata['recording_time']
         normal_container = len(metadata['container'])
+        result['number_of_recordings'] = recording_count
         result['recording_time'] = update_values(recording_time, result['recording_time'])
         result['normal_container'] = update_values(normal_container, result['normal_container'])
     result['recording_time'] = calc_avg(recording_count, result['recording_time'])
@@ -120,7 +122,10 @@ def calc_avg(count: int, stats: dict) -> dict:
         dict: stats with avg entry
 
     """
-    stats['avg'] = stats['sum'] / count
+    if count > 0:
+        stats['avg'] = stats['sum'] / count
+    else:
+        stats['avg'] = None
     return stats
 
 
@@ -135,7 +140,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    scenario_names = os.listdir(args.base_path)
+    scenario_names = [name for name in os.listdir(args.base_path) if os.path.isdir(os.path.join(args.base_path, name))]
+    # scenario_names = os.listdir(args.base_path)
     # iterate through list of all scenarios
     for scenario in scenario_names:
 

@@ -186,7 +186,8 @@ def calc_stats_recording(recordings: list) -> dict:
         for value in recording.keys():
             stats[value] = update_list_entry(recording[value], stats[value])
     for entry in stats.keys():
-        stats[entry]['avg'] = stats[entry]['sum'] / len(recordings)
+        if len(recordings) > 0:
+            stats[entry]['avg'] = stats[entry]['sum'] / len(recordings)
         del stats[entry]['sum']
     return stats
 
