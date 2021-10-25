@@ -57,7 +57,8 @@ class LSTM(BaseDecisionEngine):
                          input_dim,
                          hidden_dim,
                          n_layers,
-                         device=device)
+                         device=device,
+                         batch_size=self._batch_size)
 
     def train_on(self, feature_list: list):
         if self._lstm is None:
@@ -83,10 +84,15 @@ class LSTM(BaseDecisionEngine):
             criterion = torch.nn.CrossEntropyLoss()
             optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
             torch.manual_seed(1)
+            preds = []
+            hidden_state = None
+            cell_state = None
             for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
                 for i, data in enumerate(dataloader, 0):
                     inputs, labels = data
-                    outputs = self._lstm.forward(inputs)
+                    outputs, hidden_state, cell_state = self._lstm.forward(inputs,
+                                                                           hidden_state,
+                                                                           cell_state)
                     # caluclate the gradient, manually setting to 0
                     optimizer.zero_grad()
                     # obtain the loss function
@@ -95,30 +101,36 @@ class LSTM(BaseDecisionEngine):
                     loss.backward()
                     # improve from loss, i.e backprop
                     optimizer.step()
-                self._accuracy(outputs, labels)
+                    for i in range(len(outputs)):
+                        preds.append(torch.argmax(outputs[i]))
+                self._accuracy(preds, y_tensors)
+                preds = []
                 print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+                # reset hidden state
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
             print(f"Net already trained. Using model {self._model_path}")
             pass
 
-    def predict(self, feature_list: list) -> float:
+    def predict(self, feature_list: list, hidden_state, cell_state) -> float:
+        # self._lstm.init_hidden_state()
         x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
         x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
         actual_syscall = feature_list[0][0]
-        prediction_logits = self._lstm(x_tensor_final)
+        prediction_logits, hidden_state, cell_state = self._lstm(x_tensor_final,
+                                                                 hidden_state,
+                                                                 cell_state)
         softmax = nn.Softmax()
         prediction_probs = softmax(prediction_logits)
         predicted_probability = prediction_probs[0][actual_syscall]
         anomaly_score = 1 - predicted_probability
-        return anomaly_score
+        return anomaly_score, hidden_state, cell_state
 
     def _accuracy(self, outputs, labels):
         hit = 0
         miss = 0
-        for i in range(len(outputs)):
-            pred = torch.argmax(outputs[i])
-            if pred == labels[i]:
+        for i in range(len(outputs) - 1):
+            if outputs[i] == labels[i]:
                 hit += 1
             else:
                 miss += 1
@@ -132,7 +144,8 @@ class Net(nn.Module):
                  input_size: int,
                  hidden_size: int,
                  num_layers: int,
-                 device: str):
+                 device: str,
+                 batch_size: int):
         super(Net, self).__init__()
         self.num_classes = num_classes
         self.num_layers = num_layers  # number of layers
@@ -147,20 +160,31 @@ class Net(nn.Module):
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
         self._device = torch.device(device)
+        self._hidden_state = None  # hidden_state
+        self._cell_state = None  # cell_state
+        self.init_states(batch_size)
 
-    def forward(self, x):
-        # hidden state
-        h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self._device)
-        # internal state
-        c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self._device)
+    def forward(self, x, hidden_state, cell_state):
         # Propagate input through LSTM
-        # lstm with input, hidden, and internal state
-        output, (hn, cn) = self.lstm(x, (h_0, c_0))
+        # lstm with input, hidden, and internal cell state
+        if hidden_state is None:
+            self.init_states(x.size(0))
+        else:
+            self._hidden_state = hidden_state
+            self._cell_state = cell_state
+        output, (new_hidden_state, new_cell_state) = self.lstm(x, (self._hidden_state, self._cell_state))
+        # internal state
         # reshaping the data for Dense layer next
-        hn = hn.view(-1, self.hidden_size)
-        out = self.tanh(hn)
+        new_hidden_state = new_hidden_state.view(-1, self.hidden_size)
+        out = self.tanh(new_hidden_state)
         out = self.output(out)
-        return out
+        return out, hidden_state, cell_state
+
+    def init_states(self, batch_size: int):
+        # hidden state
+        self._hidden_state = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
+        # internal state
+        self._cell_state = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
 
 class SyscallFeatureDataSet(Dataset):
 
