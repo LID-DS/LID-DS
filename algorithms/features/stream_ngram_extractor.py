@@ -16,6 +16,7 @@ class StreamNgramExtractor(BaseStreamFeatureExtractor):
     def __init__(self, feature_list: list, thread_aware: bool, ngram_length: int):
         """
         """
+        super.__init__()
         self._ngram_buffer = {}
         self._list_of_feature_ids = []
         for feature_class in feature_list:
