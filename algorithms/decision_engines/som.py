@@ -27,7 +27,6 @@ class Som(BaseDecisionEngine):
                     (at iteration t: learning_rate(t) = learning_rate / (1 + t/T) where T is #num_iteration/2)
         """
         super().__init__()
-        self.custom_fields = {}
         self._sigma = sigma
         self._learning_rate = learning_rate
         self._buffer = []

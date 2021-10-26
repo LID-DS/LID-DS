@@ -8,6 +8,7 @@ class BaseDecisionEngine:
 
     """
     def __init__(self):
+        self.custom_fields = {}
         pass
 
     def train_on(self, input_array: list):
