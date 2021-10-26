@@ -8,15 +8,10 @@ from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureE
 
 class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
     """
-<<<<<<< HEAD
 
     extract ngram form a stream of system call features
     include n+1 system call as integer vor supervised learning
 
-=======
-    extract ngram form a stream of system call features
-    include n+1 system call as integer vor supervised learning
->>>>>>> b9650809fd06bff184a7cf7ad4d9b8dad4a918b0
     """
 
     def __init__(self, feature_list: list, thread_aware: bool, ngram_length: int):
@@ -36,13 +31,9 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
 
     def extract(self, syscall_features: dict) -> typing.Tuple[str, list]:
         """
-<<<<<<< HEAD
 
         only returns not None if ngram exists
 
-=======
-        only returns not None if ngram exists
->>>>>>> b9650809fd06bff184a7cf7ad4d9b8dad4a918b0
         """
         # get current threadID of syscall
         thread_id = 0
@@ -66,13 +57,9 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
         """
-<<<<<<< HEAD
 
         creates list of deque of features included in feature_list
 
-=======
-        creates list of deque of features included in feature_list
->>>>>>> b9650809fd06bff184a7cf7ad4d9b8dad4a918b0
         """
         array = []
         for feature_dict in deque_of_dicts:
@@ -83,12 +70,8 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
 
     def new_recording(self):
         """
-<<<<<<< HEAD
 
         empty buffer so ngrams consist of same recording only
 
-=======
-        empty buffer so ngrams consist of same recording only
->>>>>>> b9650809fd06bff184a7cf7ad4d9b8dad4a918b0
         """
         self._ngram_buffer = {}
