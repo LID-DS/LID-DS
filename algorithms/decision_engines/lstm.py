@@ -39,6 +39,8 @@ class LSTM(BaseDecisionEngine):
         }
         self._architecture = architecture
         self._lstm = None
+        self._hidden_state = None
+        self._cell_state = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self._device = torch.device("cpu")
         if not force_train:
@@ -107,6 +109,8 @@ class LSTM(BaseDecisionEngine):
                 preds = []
                 print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
                 # reset hidden state
+                hidden_state = None
+                cell_state = None
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
             print(f"Net already trained. Using model {self._model_path}")
@@ -135,6 +139,9 @@ class LSTM(BaseDecisionEngine):
             else:
                 miss += 1
         print(f"accuracy {hit/(hit+miss)}")
+
+    def new_recording(self):
+        self._lstm.init_states(self._batch_size)
 
 
 class Net(nn.Module):
@@ -185,6 +192,7 @@ class Net(nn.Module):
         self._hidden_state = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
         # internal state
         self._cell_state = Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
+
 
 class SyscallFeatureDataSet(Dataset):
 
