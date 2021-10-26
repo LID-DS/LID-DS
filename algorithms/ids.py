@@ -106,33 +106,39 @@ class IDS:
                     if exploit_time is None:
                         self._anomaly_scores_no_exploits.append(anomaly_score)
 
-                    # counting performance values
-                    if anomaly_score > self._threshold:
-                        if exploit_time is not None:
+
+                    # files with exploit
+                    if exploit_time is not None:
+                        if anomaly_score > self._threshold:
                             if exploit_time > syscall_time:
                                 fp += 1
                                 cfa_stream += 1
                             elif exploit_time < syscall_time and self._alarm is False:
-                                tp += 1
-                                alarm_count += 1
-                                self._alarm = True
-                            elif exploit_time < syscall_time and self._alarm is True:
-                                tp += 1
-                        else:
-                            fp += 1
+                                if self._alarm is False:
+                                    tp += 1
+                                    alarm_count += 1
+                                elif self._alarm is True:
+                                    tp += 1
 
-                    if anomaly_score < self._threshold:
-                        if exploit_time is not None:
+                        elif anomaly_score < self._threshold:
                             if cfa_stream > 0:
                                 cfa_stream = 0
                                 cfa_count += 1
-
                             if exploit_time > syscall_time:
                                 tn += 1
                             elif exploit_time < syscall_time:
                                 fn += 1
-                            else:
-                                tn += 1
+
+                    # files without exploit
+                    elif exploit_time is None:
+                        if anomaly_score > self._threshold:
+                            fp += 1
+                            cfa_stream += 1
+                        if anomaly_score < self._threshold:
+                            if cfa_stream > 0:
+                                cfa_stream = 0
+                                cfa_count += 1
+                            tn += 1
 
             # getting index of first syscall of each recording for plotting
             if exploit_time is not None:
