@@ -1,5 +1,3 @@
-from typing import Union, Type, Generator
-
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
@@ -124,8 +122,6 @@ class IDS:
                                     "Recall": re,
                                     "Precision": pr,
                                     "F1": 2 * ((pr * re) / (pr + re))}
-
-
 
     def get_performance(self):
 
