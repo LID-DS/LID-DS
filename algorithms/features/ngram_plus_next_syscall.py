@@ -9,6 +9,7 @@ from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureE
 class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
     """
 <<<<<<< HEAD
+<<<<<<< HEAD
     extract ngram form a stream of system call features
     include n+1 system call as integer vor supervised learning
 =======
@@ -17,6 +18,12 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
     include n+1 system call as integer vor supervised learning
 
 >>>>>>> first idea of new ids
+=======
+
+    extract ngram form a stream of system call features
+    include n+1 system call as integer vor supervised learning
+
+>>>>>>> merge errors
     """
 
     def __init__(self, feature_list: list, thread_aware: bool, ngram_length: int):
