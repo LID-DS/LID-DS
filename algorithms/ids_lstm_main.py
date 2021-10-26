@@ -1,9 +1,9 @@
-from algorithms.features.stream_ngram_plus_next_syscall import NgramPlusNextSyscall
+from algorithms.features.ngram_plus_next_syscall import NgramPlusNextSyscall
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.syscall_to_int import SyscallToInt
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.lstm import LSTM
-from algorithms.ids_lstm import IDS
+from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 import pprint
@@ -14,7 +14,7 @@ if __name__ == '__main__':
     """
     ngram_length = 2
     embedding_size = 4
-    scenario_path = '../../Dataset/CVE-2017-7529/'
+    scenario_path = '../../Dataset/Bruteforce_CWE-307/'
     syscall_feature_list = [W2VEmbedding(vector_size=embedding_size,
                                          window_size=ngram_length,
                                          epochs=100,
