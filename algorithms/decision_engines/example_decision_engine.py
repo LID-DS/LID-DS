@@ -14,9 +14,9 @@ class ExampleDecisionEngine(BaseDecisionEngine):
     """
 
     def __init__(self):
+        super().__init__()
         self._buffer = []
         self._final_list = []
-        pass
 
     def train_on(self, input_array):
         """
