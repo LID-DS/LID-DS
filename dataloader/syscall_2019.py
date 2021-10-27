@@ -1,5 +1,6 @@
 from enum import IntEnum
 from datetime import datetime, time
+from time import mktime
 
 
 class SyscallSplitPart(IntEnum):
@@ -43,6 +44,23 @@ class Syscall:
         self._name = None
         self._direction = None
         self._params = None
+
+    def timestamp_unix_in_ns(self) -> float:
+        """
+
+        casts unix timestamp from string to int
+
+        Returns:
+            int: unix timestamp of syscall
+
+        """
+        if self._timestamp_unix is None:
+            timestamp_datetime = datetime.strptime(
+                self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
+                '%H:%M:%S.%f')
+            self._timestamp_unix = mktime(timestamp_datetime.timetuple())
+
+        return self._timestamp_unix
 
     def timestamp_datetime(self) -> datetime:
         """

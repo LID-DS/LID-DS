@@ -1,5 +1,7 @@
 import datetime
 import os
+import time
+
 from dataloader.syscall_2019 import Syscall
 from distutils.util import strtobool
 
@@ -55,7 +57,7 @@ class Recording:
             transfers metadata from csv line to same same dict format as from LID-DS 2021
 
         """
-        is_exploit = strtobool(self.recording_data_list[RecordingDataParts.IS_EXECUTING_EXPLOIT].lower())
+        is_exploit = bool(strtobool(self.recording_data_list[RecordingDataParts.IS_EXECUTING_EXPLOIT].lower()))
         return {
             'image': self.recording_data_list[RecordingDataParts.IMAGE_NAME],
             'name': self.name,
@@ -63,8 +65,8 @@ class Recording:
             'recording_time': int(self.recording_data_list[RecordingDataParts.RECORDING_TIME]),
             'time': {
                 'exploit': [{
-                    'absolute': self._calc_absolute_exploit_time() if is_exploit else None,
-                    'relative': int(self.recording_data_list[RecordingDataParts.EXPLOIT_START_TIME]) if is_exploit else None
+                    'absolute': self._calc_absolute_exploit_time() if is_exploit is True else None,
+                    'relative': int(self.recording_data_list[RecordingDataParts.EXPLOIT_START_TIME]) if is_exploit is True else None
                 }],
                 'warmup_end': {
                     'relative': {
@@ -77,10 +79,10 @@ class Recording:
     def metadata(self) -> dict:
         return self._metadata
 
-    def _calc_absolute_exploit_time(self):
+    def _calc_absolute_exploit_time(self) -> float:
         """
 
-            creates missing absolute timestamp from LID-DS 2019 metadata
+            creates missing absolute unix timestamp from LID-DS 2019 metadata
 
         """
         syscall_generator = self.syscalls()
@@ -90,7 +92,10 @@ class Recording:
         relative_time = int(self.recording_data_list[RecordingDataParts.WARMUP_TIME]) - 2
         absolute_time = first_syscall_timestamp + datetime.timedelta(seconds=relative_time)
 
-        return absolute_time
+        # casting to unix timestamp
+        absolute_timestamp = time.mktime(absolute_time.timetuple())
+
+        return absolute_timestamp
 
 
 
