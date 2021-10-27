@@ -176,7 +176,10 @@ class Syscall:
             if len(self._line_list) > 7:  # check if params are given
                 for param in self._line_list[SyscallSplitPart.PARAMS_BEGIN:]:
                     split = param.split('=', 1)
-                    self._params[split[Param.NAME]] = split[Param.VALUE]
+                    try:
+                        self._params[split[Param.NAME]] = split[Param.VALUE]
+                    except:
+                        pass
         return self._params
 
     def param(self, param_name: str, b64decode: bool = False) -> (bytes, str):

@@ -20,7 +20,7 @@ class DataLoader(BaseDataLoader):
 
     """
     def __init__(self, scenario_path: str):
-        self._scenario_path = scenario_path
+        self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
         self._normal_recordings = None
         self._exploit_recordings = None
@@ -73,7 +73,7 @@ class DataLoader(BaseDataLoader):
             exploit_recordings = []
 
             for recording_line in recording_reader:
-                recording = Recording(recording_line, self._scenario_path)
+                recording = Recording(recording_line, self.scenario_path)
                 if not recording.metadata()['exploit']:
                     normal_recordings.append(recording)
                 else:
@@ -94,7 +94,7 @@ class DataLoader(BaseDataLoader):
         """
         json_path = 'distinct_syscalls.json'
         try:
-            with open(self._scenario_path + json_path, 'r') as distinct_syscalls:
+            with open(self.scenario_path + json_path, 'r') as distinct_syscalls:
                 distinct_json = json.load(distinct_syscalls)
                 self._distinct_syscalls = distinct_json['distinct_syscalls']
         except Exception:
@@ -112,7 +112,7 @@ class DataLoader(BaseDataLoader):
                     else:
                         syscall_dict[syscall.name()] = True
             self._distinct_syscalls = len(syscall_dict)
-            with open(self._scenario_path + json_path, 'w') as distinct_syscalls:
+            with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
 

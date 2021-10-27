@@ -97,7 +97,7 @@ class DataLoader(BaseDataLoader):
 
         """
         if os.path.isdir(scenario_path):
-            self._scenario_path = scenario_path
+            self.scenario_path = scenario_path
             self._metadata_list = self.collect_metadata()
             self._distinct_syscalls = None
         else:
@@ -214,9 +214,9 @@ class DataLoader(BaseDataLoader):
             'validation': {},
             'test': {}
         }
-        training_files = glob.glob(self._scenario_path + f'/{TRAINING}/*.zip')
-        val_files = glob.glob(self._scenario_path + f'/{VALIDATION}/*.zip')
-        test_files = glob.glob(self._scenario_path + f'/{TEST}/*/*.zip')
+        training_files = glob.glob(self.scenario_path + f'/{TRAINING}/*.zip')
+        val_files = glob.glob(self.scenario_path + f'/{VALIDATION}/*.zip')
+        test_files = glob.glob(self.scenario_path + f'/{TEST}/*/*.zip')
         # create list of all files
         all_files = training_files + val_files + test_files
         for file in all_files:
@@ -262,7 +262,7 @@ class DataLoader(BaseDataLoader):
         """
         json_path = '/training/distinct_syscalls.json'
         try:
-            with open(self._scenario_path + json_path, 'r') as distinct_syscalls:
+            with open(self.scenario_path + json_path, 'r') as distinct_syscalls:
                 distinct_json = json.load(distinct_syscalls)
                 self._distinct_syscalls = distinct_json['distinct_syscalls']
         except Exception:
@@ -280,7 +280,7 @@ class DataLoader(BaseDataLoader):
                     else:
                         syscall_dict[syscall.name()] = True
             self._distinct_syscalls = len(syscall_dict)
-            with open(self._scenario_path + json_path, 'w') as distinct_syscalls:
+            with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
 
