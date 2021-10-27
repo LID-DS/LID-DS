@@ -22,11 +22,8 @@ if __name__ == '__main__':
                                          scenario_path=scenario_path,
                                          distinct=False),
                             ThreadIDExtractor(),
-                            SyscallToInt(),
-                            TimeDeltaSyscalls(thread_aware=False)]
-    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding,
-                                                              SyscallToInt,
-                                                              TimeDeltaSyscalls],
+                            SyscallToInt()]
+    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding, SyscallToInt],
                                                 thread_aware=True,
                                                 ngram_length=ngram_length)]
 
@@ -41,9 +38,8 @@ if __name__ == '__main__':
     lstm = LSTM(ngram_length=ngram_length,
                 embedding_size=embedding_size,
                 distinct_syscalls=distinct_syscalls,
-                epochs=5,
+                epochs=20,
                 batch_size=256,
-                extra_param=1,
                 force_train=True)
 
     # define the used features
