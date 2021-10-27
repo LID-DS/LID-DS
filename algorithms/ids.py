@@ -79,27 +79,35 @@ class IDS:
         for recording in tqdm(data, description, unit=" recording"):
             if self._alarm is not False:
                 self._alarm = False
+
             if recording.metadata()["exploit"] is True:
+                exploit_exists = True
                 exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
                 exploit_count += 1
             else:
+                exploit_exists = False
                 exploit_time = None
 
             first_sys_after_exploit = False
+            first_sys_of_recording = False
 
             for syscall in recording.syscalls():
+                if first_sys_of_recording is False:
+                    first_syscall_of_recording_timestamp = Syscall.timestamp_datetime(syscall)
+                    first_sys_of_recording = True
 
-                syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
+                syscall_time = Syscall.timestamp_unix_in_ns(syscall)* (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
                 # getting index of first syscall after exploit of each recording for plotting
-                if exploit_time is not None and syscall_time > exploit_time and first_sys_after_exploit is False:
+                if exploit_exists is True and syscall_time >= exploit_time and first_sys_after_exploit is False:
                     self._first_syscall_after_exploit_list.append(syscall_count_for_plot)
                     first_sys_after_exploit = True
 
+                if exploit_time is not None:
+                    syscall_count_for_plot += 1
+
                 if feature_vector is not None:
-                    if exploit_time is not None:
-                        syscall_count_for_plot += 1
                     anomaly_score = self._decision_engine.predict(feature_vector)
 
                     # saving scores separately for plotting
@@ -149,6 +157,8 @@ class IDS:
 
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
+
+        print(len(self._first_syscall_after_exploit_list), len(self._last_syscall_of_recording_list))
 
         try:
             re = alarm_count / (alarm_count + (exploit_count-alarm_count))

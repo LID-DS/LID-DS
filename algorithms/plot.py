@@ -19,7 +19,9 @@ class ExploitPlot:
         creates 2 plots: normal activity and exploit cases
 
         """
-        plt.rcParams.update({'font.size': 26})
+        plt.rcParams.update({"font.size": 26,
+                             "figure.figsize": (55, 40),
+                             "agg.path.chunksize": 10000})
 
         fig = plt.figure()
         ax = fig.add_subplot(111)  # The big subplot

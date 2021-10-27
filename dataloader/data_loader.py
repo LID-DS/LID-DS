@@ -76,7 +76,7 @@ def get_type_of_recording(json_dict: dict) -> RecordingType:
 class DataLoader(BaseDataLoader):
     """
 
-        Recieves path of scenario.
+        Receives path of scenario.
 
         Args:
         scenario_path (str): path of scenario folder
@@ -93,7 +93,7 @@ class DataLoader(BaseDataLoader):
             Save path of scenario and create metadata_list.
 
             Parameter:
-            scenario_path (str): path of assosiated folder
+            scenario_path (str): path of associated folder
 
         """
         if os.path.isdir(scenario_path):
@@ -171,7 +171,7 @@ class DataLoader(BaseDataLoader):
         """
 
             Go through list of all files in specified category.
-            Instanciate new Recording object and append to recordings list.
+            Instantiate new Recording object and append to recordings list.
             If all files have been seen return list of Recordings.
 
             Parameter:
@@ -201,7 +201,7 @@ class DataLoader(BaseDataLoader):
         """
 
             Create dictionary which contains following information about recording:
-                first key: Category of recording : training, validataion, test
+                first key: Category of recording : training, validation, test
                 second key: Name of recording
                 value : {recording type: str, path: str}
 
@@ -294,6 +294,7 @@ class DataLoader(BaseDataLoader):
         scenario_name_str = str(self._scenario_path.split("/")[-1])
 
         return scenario_name_str
+
 
 if __name__ == "__main__":
     base_path = '../../Dataset/'
