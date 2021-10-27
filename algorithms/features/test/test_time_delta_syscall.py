@@ -21,7 +21,7 @@ def test_time_delta_syscalls():
 
     # legit
     syscall_5 = Syscall(
-        "1631209047762364269 0 3686303 apache2 3686304 open < out_fd=9(<f>/etc/password) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
+        "1631209047762374269 0 3686303 apache2 3686304 open < out_fd=9(<f>/etc/password) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     # legit
     syscall_6 = Syscall(
@@ -37,7 +37,7 @@ def test_time_delta_syscalls():
 
     # legit
     syscall_9 = Syscall(
-        "1631209047762764269 0 3686303 apache2 3686304 close < fd=9(<f>wackawacka) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
+        "1631209047762764269 0 3686303 apache2 3686305 close < fd=9(<f>wackawacka) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     syscalls = [syscall_1,
                 syscall_2,
@@ -64,3 +64,37 @@ def test_time_delta_syscalls():
     # timedelta of 100 nanoseconds: 100/579
     data = td.extract(syscall_3)
     assert (data[1] == 100/max_time_delta)
+
+    td = TimeDeltaSyscalls(thread_aware=True)
+    for syscall in syscalls:
+        td.train_on(syscall)
+    td.fit()
+    # biggest time delta 579 nanoseconds
+    max_time_delta = td._max_time_delta
+    # first syscall, no time delta
+    data = td.extract(syscall_1)
+    assert (data[1] == 0)
+    # second syscall has biggest time_delta -> normalized = 1
+    data = td.extract(syscall_2)
+    assert (data[1] == 1.0)
+    # timedelta of 100 nanoseconds: 100/579
+    data = td.extract(syscall_3)
+    assert (data[1] == 100/max_time_delta)
+    # new thread_id so delta = 0
+    data = td.extract(syscall_4)
+    assert (data[1] == 0)
+    # timedelta of 110 nanoseconds: 110/579
+    data = td.extract(syscall_5)
+    assert (data[1] == 110/max_time_delta)
+    # new thread_id so delta = 0
+    data = td.extract(syscall_6)
+    assert (data[1] == 0)
+    # timedelta of 110 nanoseconds: 110/579
+    data = td.extract(syscall_7)
+    assert (data[1] == 400/max_time_delta)
+    # timedelta of 290 nanoseconds: 290/579
+    data = td.extract(syscall_8)
+    assert (data[1] == 290/max_time_delta)
+    # timedelta of 300 nanoseconds: 300/579
+    data = td.extract(syscall_9)
+    assert (data[1] == 300/max_time_delta)
