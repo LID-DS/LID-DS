@@ -53,7 +53,7 @@ def test_time_delta_syscalls():
     for syscall in syscalls:
         td.train_on(syscall)
     td.fit()
-    # biggest time delta 579 microseconds
+    # biggest time delta 579 nanoseconds
     max_time_delta = td._max_time_delta
     # first syscall, no time delta
     data = td.extract(syscall_1)
