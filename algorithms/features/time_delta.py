@@ -6,7 +6,7 @@ from dataloader.syscall import Syscall
 from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 
 
-class TimeDeltaSyscalls(BaseSyscallFeatureExtractor):
+class TimeDelta(BaseSyscallFeatureExtractor):
 
     def __init__(self, thread_aware: bool):
         super().__init__()
@@ -21,29 +21,25 @@ class TimeDeltaSyscalls(BaseSyscallFeatureExtractor):
 
         """
         current_time = syscall.timestamp_datetime()
-        thread_id = 0
-        if self._thread_aware:
-            thread_id = syscall.thread_id()
-        if thread_id in self._last_time:
-            delta = current_time - self._last_time[thread_id]
-            delta = delta.microseconds
-            self._last_time[thread_id] = current_time
-        else:
-            delta = 0
-            self._last_time[thread_id] = current_time
+        delta = self._calc_delta(current_time, syscall)
         if delta > self._max_time_delta:
             self._max_time_delta = delta
 
     def fit(self):
         self._last_time = {}
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, datetime]:
+    def extract(self, syscall: Syscall) -> typing.Tuple[int, float]:
         """
 
         extract thread ID of syscall
 
         """
         current_time = syscall.timestamp_datetime()
+        delta = self._calc_delta(current_time, syscall)
+        normalized_delta = delta / self._max_time_delta
+        return TimeDelta.get_id(), normalized_delta
+
+    def _calc_delta(self, current_time: datetime, syscall: Syscall) -> float:
         thread_id = 0
         if self._thread_aware:
             thread_id = syscall.thread_id()
@@ -54,5 +50,4 @@ class TimeDeltaSyscalls(BaseSyscallFeatureExtractor):
         else:
             delta = 0
             self._last_time[thread_id] = current_time
-        normalized_delta = delta / self._max_time_delta
-        return TimeDeltaSyscalls.get_id(), normalized_delta
+        return delta
