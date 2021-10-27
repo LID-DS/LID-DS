@@ -26,12 +26,16 @@ class TimeDeltaSyscalls(BaseSyscallFeatureExtractor):
             thread_id = syscall.thread_id()
         if thread_id in self._last_time:
             delta = current_time - self._last_time[thread_id]
+            delta = delta.microseconds
             self._last_time[thread_id] = current_time
         else:
             delta = 0
             self._last_time[thread_id] = current_time
         if delta > self._max_time_delta:
             self._max_time_delta = delta
+
+    def fit(self):
+        self._last_time = {}
 
     def extract(self, syscall: Syscall) -> typing.Tuple[int, datetime]:
         """
@@ -45,10 +49,10 @@ class TimeDeltaSyscalls(BaseSyscallFeatureExtractor):
             thread_id = syscall.thread_id()
         if thread_id in self._last_time:
             delta = current_time - self._last_time[thread_id]
+            delta = delta.microseconds
             self._last_time[thread_id] = current_time
         else:
             delta = 0
             self._last_time[thread_id] = current_time
-        if delta != 0:
-            delta = delta.microsecond
-        return TimeDeltaSyscalls.get_id(), delta
+        normalized_delta = delta / self._max_time_delta
+        return TimeDeltaSyscalls.get_id(), normalized_delta
