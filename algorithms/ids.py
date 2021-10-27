@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+from datetime import timedelta
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
@@ -22,7 +22,7 @@ class IDS:
         self._anomaly_scores_exploits = []
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
-        self._first_syscall_of_recording_list = []
+        self._last_syscall_of_recording_list = []
 
     def train_decision_engine(self):
         # train of DE
@@ -74,11 +74,14 @@ class IDS:
         # syscall index needed for plotting
         syscall_count_for_plot = 1
 
+        exploit_count = 0
+
         for recording in tqdm(data, description, unit=" recording"):
             if self._alarm is not False:
                 self._alarm = False
             if recording.metadata()["exploit"] is True:
                 exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
+                exploit_count += 1
             else:
                 exploit_time = None
 
@@ -106,17 +109,17 @@ class IDS:
                     if exploit_time is None:
                         self._anomaly_scores_no_exploits.append(anomaly_score)
 
-
                     # files with exploit
                     if exploit_time is not None:
                         if anomaly_score > self._threshold:
                             if exploit_time > syscall_time:
                                 fp += 1
                                 cfa_stream += 1
-                            elif exploit_time < syscall_time and self._alarm is False:
+                            elif exploit_time < syscall_time:
                                 if self._alarm is False:
                                     tp += 1
                                     alarm_count += 1
+                                    self._alarm = True
                                 elif self._alarm is True:
                                     tp += 1
 
@@ -140,25 +143,29 @@ class IDS:
                                 cfa_count += 1
                             tn += 1
 
-            # getting index of first syscall of each recording for plotting
+            # getting index of last syscall of each recording for plotting
             if exploit_time is not None:
-                self._first_syscall_of_recording_list.append(syscall_count_for_plot)
+                self._last_syscall_of_recording_list.append(syscall_count_for_plot)
 
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
 
-        re = tp / (tp + fn)
-        pr = tp / (tp + fp)
+        try:
+            re = alarm_count / (alarm_count + (exploit_count-alarm_count))
+        except ZeroDivisionError:
+            print("Division by Zero not possible, there is a problem with tp/fn/fp values.")
 
         self._performance_values = {"false positives": fp,
                                     "true positives": tp,
                                     "true negatives": tn,
                                     "false negatives": fn,
-                                    "alarms in recording": alarm_count,
+                                    "recording with detected alarm count/true positives on file level": alarm_count,
+                                    "exploit count": exploit_count,
+                                    "false negatives on file level": exploit_count - alarm_count,
+                                    "detection rate": alarm_count/exploit_count,
                                     "consecutive false alarms": cfa_count,
-                                    "Recall": re,
-                                    "Precision": pr,
-                                    "F1": 2 * ((pr * re) / (pr + re))}
+                                    "recall file level": re,
+                                    }
 
     def get_performance(self):
 
@@ -176,4 +183,4 @@ class IDS:
 
         """
 
-        return self._threshold, self._first_syscall_after_exploit_list, self._first_syscall_of_recording_list, self._anomaly_scores_exploits, self._anomaly_scores_no_exploits
+        return self._threshold, self._first_syscall_after_exploit_list, self._last_syscall_of_recording_list, self._anomaly_scores_exploits, self._anomaly_scores_no_exploits
