@@ -89,12 +89,8 @@ class IDS:
                 exploit_time = None
 
             first_sys_after_exploit = False
-            first_sys_of_recording = False
 
             for syscall in recording.syscalls():
-                if first_sys_of_recording is False:
-                    first_syscall_of_recording_timestamp = Syscall.timestamp_datetime(syscall)
-                    first_sys_of_recording = True
 
                 syscall_time = Syscall.timestamp_unix_in_ns(syscall)* (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
