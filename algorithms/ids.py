@@ -158,8 +158,6 @@ class IDS:
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
 
-        print(len(self._first_syscall_after_exploit_list), len(self._last_syscall_of_recording_list))
-
         try:
             re = alarm_count / (alarm_count + (exploit_count-alarm_count))
         except ZeroDivisionError:

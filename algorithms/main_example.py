@@ -20,7 +20,7 @@ if __name__ == '__main__':
                                                 ngram_length=5)]
 
     # data loader for scenario
-    dataloader = DataLoader('/home/eschulze/LID-DS-2021 Datensatz/CVE-2017-7529')
+    dataloader = DataLoader('/home/eschulze/LID-DS-2021/CVE-2017-7529')
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
@@ -38,7 +38,10 @@ if __name__ == '__main__':
     ids.do_detection()
     pprint.pprint(ids.get_performance())
 
-    plot = ExploitPlot(ids.get_plotting_data(), dataloader)
+    # creating plot
+    plot = ExploitPlot(plotting_data=ids.get_plotting_data(),
+                       scenario_path=dataloader.scenario_path)
 
-    plot.plot_performance()
+    plot.feed_figure()
+    plot.show_plot()
 
