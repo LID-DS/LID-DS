@@ -1,5 +1,6 @@
 from algorithms.features.ngram_plus_next_syscall import NgramPlusNextSyscall
 from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.time_delta_syscalls import TimeDeltaSyscalls
 from algorithms.features.syscall_to_int import SyscallToInt
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.lstm import LSTM
@@ -14,15 +15,18 @@ if __name__ == '__main__':
     """
     ngram_length = 2
     embedding_size = 4
-    scenario_path = '../../Dataset/Bruteforce_CWE-307/'
+    scenario_path = '../../Dataset/CVE-2017-7529/'
     syscall_feature_list = [W2VEmbedding(vector_size=embedding_size,
                                          window_size=ngram_length,
                                          epochs=100,
                                          scenario_path=scenario_path,
                                          distinct=False),
                             ThreadIDExtractor(),
-                            SyscallToInt()]
-    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding, SyscallToInt],
+                            SyscallToInt(),
+                            TimeDeltaSyscalls(thread_aware=False)]
+    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding,
+                                                              SyscallToInt,
+                                                              TimeDeltaSyscalls],
                                                 thread_aware=True,
                                                 ngram_length=ngram_length)]
 
@@ -37,8 +41,9 @@ if __name__ == '__main__':
     lstm = LSTM(ngram_length=ngram_length,
                 embedding_size=embedding_size,
                 distinct_syscalls=distinct_syscalls,
-                epochs=20,
+                epochs=5,
                 batch_size=256,
+                extra_param=1,
                 force_train=True)
 
     # define the used features
