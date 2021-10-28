@@ -189,7 +189,7 @@ class LSTM(BaseDecisionEngine):
         """
         x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
         x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
-        actual_syscall = feature_list[0][0]
+        actual_syscall = feature_list[0]
         prediction_logits, hidden_state, cell_state = self._lstm(x_tensor_final,
                                                                  self._hidden_state,
                                                                  self._cell_state)
@@ -252,8 +252,8 @@ class Net(nn.Module):
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
         self.fc_1 = nn.Linear(hidden_size, 128)  # fully connected 1
-        self.output = nn.Linear(hidden_size, num_classes)  # fully connected 1
         self.fc = nn.Linear(128, num_classes)  # fully connected last layer
+        self.output = nn.Linear(hidden_size, num_classes)  # fully connected 1
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
         self._device = torch.device(device)
@@ -277,6 +277,10 @@ class Net(nn.Module):
         new_hidden_state = new_hidden_state.view(-1, self.hidden_size)
         out = self.tanh(new_hidden_state)
         out = self.output(out)
+        # out = self.relu(out)
+        # out = self.fc(out)
+        # out = self.tanh(new_hidden_state)
+        # out = self.output(out)
         return out, hidden_state, cell_state
 
     def init_states(self, batch_size: int):
