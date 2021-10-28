@@ -139,7 +139,6 @@ class IDS:
                     # files without exploit
                     elif exploit_time is None:
                         if anomaly_score > self._threshold:
-                            print(vars(syscall))
                             fp += 1
                             cfa_stream += 1
                         if anomaly_score < self._threshold:

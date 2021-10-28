@@ -7,6 +7,7 @@ from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
+from algorithms.plot import ScorePlot
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 from dataloader.direction import Direction
@@ -54,3 +55,8 @@ if __name__ == '__main__':
     ids.do_detection()
     pprint.pprint(ids.get_performance())
 
+    # creating plot
+    plot = ScorePlot(scenario_path=dataloader.scenario_path)
+
+    plot.feed_figure(ids.get_plotting_data())
+    plot.show_plot()
