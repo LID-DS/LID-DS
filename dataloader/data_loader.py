@@ -9,6 +9,7 @@ from tqdm import tqdm
 from enum import Enum
 
 from dataloader.base_data_loader import BaseDataLoader
+from dataloader.direction import Direction
 from dataloader.recording import Recording
 
 TRAINING = 'training'
@@ -87,7 +88,7 @@ class DataLoader(BaseDataLoader):
 
     """
 
-    def __init__(self, scenario_path):
+    def __init__(self, scenario_path, direction: Direction = Direction.OPEN):
         """
 
             Save path of scenario and create metadata_list.
@@ -96,10 +97,12 @@ class DataLoader(BaseDataLoader):
             scenario_path (str): path of associated folder
 
         """
+        super().__init__(scenario_path, direction)
         if os.path.isdir(scenario_path):
             self.scenario_path = scenario_path
             self._metadata_list = self.collect_metadata()
             self._distinct_syscalls = None
+            self._direction = direction
         else:
             print(f'Could not find {scenario_path}!!!!')
             raise FileNotFoundError(
@@ -191,10 +194,12 @@ class DataLoader(BaseDataLoader):
             if recording_type:
                 if self._metadata_list[category][file]['recording_type'] == recording_type:
                     recordings.append(Recording(name=file,
-                                                path=self._metadata_list[category][file]['path']))
+                                                path=self._metadata_list[category][file]['path'],
+                                                direction=self._direction))
             else:
                 recordings.append(Recording(name=file,
-                                            path=self._metadata_list[category][file]['path']))
+                                            path=self._metadata_list[category][file]['path'],
+                                            direction=self._direction))
         return recordings
 
     def collect_metadata(self) -> dict:

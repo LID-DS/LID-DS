@@ -1,5 +1,7 @@
 import datetime
 import os
+
+from dataloader.direction import Direction
 import time
 
 from dataloader.syscall_2019 import Syscall, Direction
@@ -29,13 +31,13 @@ class Recording:
         base_path (str): the base path of the LID-DS 2019 scenario
 
     """
-    def __init__(self, recording_data_list: list, base_path: str):
+    def __init__(self, recording_data_list: list, base_path: str, direction: Direction):
         self.name = recording_data_list[RecordingDataParts.RECORDING_NAME]
         self.path = os.path.join(base_path, f'{self.name}.txt')
         self.recording_data_list = recording_data_list
         self._metadata = self._collect_metadata()
         self.name = self._metadata['name']
-
+        self._direction = direction
 
     def syscalls(self) -> Generator[Syscall, None, None]:
         """
@@ -50,8 +52,11 @@ class Recording:
         with open(self.path, 'r') as recording_file:
             for syscall in recording_file:
                 syscall_object = Syscall(syscall)
-                if syscall_object.direction() == Direction.OPEN and syscall_object.name() != 'switch':
-                    yield syscall_object
+                if self._direction != Direction.BOTH:
+                    if syscall_object.direction() == self._direction and syscall_object.name() != 'switch':
+                        yield syscall_object
+                elif syscall_object.name() != 'switch':
+                    yield Syscall(syscall)
 
     def _collect_metadata(self):
         """

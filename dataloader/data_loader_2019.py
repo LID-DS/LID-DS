@@ -3,6 +3,8 @@ import csv
 import json
 import random
 from tqdm import tqdm
+
+from dataloader.direction import Direction
 from dataloader.recording_2019 import Recording
 from dataloader.base_data_loader import BaseDataLoader
 
@@ -19,12 +21,14 @@ class DataLoader(BaseDataLoader):
           scenario_path (str): path to LID-DS 2019 scenario
 
     """
-    def __init__(self, scenario_path: str):
+    def __init__(self, scenario_path: str, direction: Direction = Direction.OPEN):
+        super().__init__(scenario_path, direction)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
         self._normal_recordings = None
         self._exploit_recordings = None
         self._distinct_syscalls = None
+        self._direction = Direction
 
         self.extract_recordings()
 
@@ -73,14 +77,12 @@ class DataLoader(BaseDataLoader):
             exploit_recordings = []
 
             for recording_line in recording_reader:
-                recording = Recording(recording_line, self.scenario_path)
-                if not recording.metadata()['exploit'] is True:
+                recording = Recording(recording_line, self.scenario_path, self._direction)
+                if not recording.metadata()['exploit']:
                     normal_recordings.append(recording)
                 else:
                     exploit_recordings.append(recording)
 
-        print(len(normal_recordings))
-        print(len(exploit_recordings))
         self._normal_recordings = normal_recordings
         self._exploit_recordings = exploit_recordings
 
@@ -117,14 +119,3 @@ class DataLoader(BaseDataLoader):
             with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
-
-    def get_scenario_name(self):
-
-        """
-        returns scenario name as str
-
-        """
-
-        scenario_name_str = str(self._scenario_path.split("/")[-1])
-
-        return scenario_name_str

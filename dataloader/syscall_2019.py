@@ -2,6 +2,8 @@ from enum import IntEnum
 from datetime import datetime, time
 from time import mktime
 
+from dataloader.direction import Direction
+
 
 class SyscallSplitPart(IntEnum):
     TIMESTAMP = 1
@@ -12,11 +14,6 @@ class SyscallSplitPart(IntEnum):
     DIRECTION = 6
     SYSCALL_NAME = 7
     PARAMS_BEGIN = 8  # use [SyscallSplitPart.PARAMS_BEGIN:] to retrieve all args as list
-
-
-class Direction(IntEnum):
-    OPEN = 0
-    CLOSE = 1
 
 
 class Param(IntEnum):
