@@ -4,6 +4,7 @@ import json
 import pcapkit
 import zipfile
 
+from dataloader.direction import Direction
 from dataloader.syscall import Syscall
 from dataloader.resource_statistic import ResourceStatistic
 
@@ -24,7 +25,7 @@ class Recording:
 
     """
 
-    def __init__(self, path: str, name: str):
+    def __init__(self, path: str, name: str, direction: Direction):
         """
 
             Save name and path of recording.
@@ -37,6 +38,7 @@ class Recording:
         self.path = path
         self.name = name
         self.check_recording()
+        self._direction = direction
 
     def syscalls(self) -> str:
         """
@@ -52,7 +54,13 @@ class Recording:
             with zipfile.ZipFile(self.path, 'r') as zipped:
                 with zipped.open(self.name + '.sc') as unzipped:
                     for syscall in unzipped:
-                        yield Syscall(syscall.decode('utf-8').rstrip())
+                        syscall_object = Syscall(syscall.decode('utf-8').rstrip())
+                        if self._direction != Direction.BOTH:
+                            if syscall_object.direction() == self._direction:
+                                yield syscall_object
+                        else:
+                            yield syscall_object
+
         except Exception:
             raise Exception(f'Error while working with file: {self.name} at {self.path}')
 

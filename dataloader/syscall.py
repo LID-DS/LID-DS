@@ -2,6 +2,8 @@ from enum import IntEnum
 from datetime import datetime
 import base64
 
+from dataloader.direction import Direction
+
 
 class SyscallSplitPart(IntEnum):
     TIMESTAMP = 0
@@ -12,12 +14,6 @@ class SyscallSplitPart(IntEnum):
     SYSCALL_NAME = 5
     DIRECTION = 6
     PARAMS_BEGIN = 7  # use [SyscallSplitPart.PARAMS_BEGIN:] to retrieve all args as list
-
-
-class Direction(IntEnum):
-    OPEN = 0
-    CLOSE = 1
-
 
 class Param(IntEnum):
     NAME = 0
