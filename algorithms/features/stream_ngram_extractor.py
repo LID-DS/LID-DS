@@ -44,7 +44,9 @@ class StreamNgramExtractor(BaseStreamFeatureExtractor):
 
             ngram_value = self._collect_features(self._ngram_buffer[thread_id])
 
+
         return StreamNgramExtractor.get_id(), ngram_value
+
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
         """

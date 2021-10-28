@@ -1,6 +1,5 @@
 import typing
 from collections import deque
-from collections import Iterable
 
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.syscall_to_int import SyscallToInt
@@ -60,10 +59,7 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
         for feature_dict in deque_of_dicts:
             for feature_id in self._list_of_feature_ids:
                 if feature_id in feature_dict:
-                    if isinstance(feature_dict[feature_id], Iterable):
-                        array += feature_dict[feature_id]
-                    else:
-                        array.append(feature_dict[feature_id])
+                    array.extend(feature_dict[feature_id])
         return array
 
     def new_recording(self):
