@@ -28,7 +28,7 @@ class DataLoader(BaseDataLoader):
         self._normal_recordings = None
         self._exploit_recordings = None
         self._distinct_syscalls = None
-        self._direction = Direction
+        self._direction = direction
 
         self.extract_recordings()
 
