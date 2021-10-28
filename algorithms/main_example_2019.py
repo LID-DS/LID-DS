@@ -3,7 +3,7 @@ from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.syscall_to_int import SyscallToInt
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
-from dataloader.data_loader import DataLoader
+from dataloader.data_loader_2019 import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 import pprint
 from plot import ScorePlot
@@ -20,7 +20,7 @@ if __name__ == '__main__':
                                                 ngram_length=5)]
 
     # data loader for scenario
-    dataloader = DataLoader('/home/felix/repos/LID-DS/LID-DS-2021/CVE-2017-7529')
+    dataloader = DataLoader('/home/felix/repos/LID-DS/LID-DS-2019/CVE-2017-7529')
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,

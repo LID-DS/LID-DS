@@ -92,7 +92,7 @@ class IDS:
 
             for syscall in recording.syscalls():
 
-                syscall_time = Syscall.timestamp_unix_in_ns(syscall)* (10 ** (-9))
+                syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
                 # getting index of first syscall after exploit of each recording for plotting
@@ -139,6 +139,7 @@ class IDS:
                     # files without exploit
                     elif exploit_time is None:
                         if anomaly_score > self._threshold:
+                            print(vars(syscall))
                             fp += 1
                             cfa_stream += 1
                         if anomaly_score < self._threshold:

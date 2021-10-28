@@ -74,11 +74,13 @@ class DataLoader(BaseDataLoader):
 
             for recording_line in recording_reader:
                 recording = Recording(recording_line, self.scenario_path)
-                if not recording.metadata()['exploit']:
+                if not recording.metadata()['exploit'] is True:
                     normal_recordings.append(recording)
                 else:
                     exploit_recordings.append(recording)
 
+        print(len(normal_recordings))
+        print(len(exploit_recordings))
         self._normal_recordings = normal_recordings
         self._exploit_recordings = exploit_recordings
 

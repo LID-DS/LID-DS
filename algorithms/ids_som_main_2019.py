@@ -1,8 +1,11 @@
+import pprint
+
 from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
+from algorithms.plot import ScorePlot
 from dataloader.data_loader_2019 import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 
@@ -21,17 +24,17 @@ if __name__ == '__main__':
     syscall_feature_list = [ThreadIDExtractor(),
                             W2VEmbedding(
                                 vector_size=5,
-                                epochs=50,
+                                epochs=100,
                                 path='Models',
                                 force_train=True,
                                 distinct=True,
-                                window_size=7,
+                                window_size=5,
                                 thread_aware=True,
                                 scenario_path=dataloader.scenario_path)
                             ]
 
     stream_feature_list = [StreamNgramExtractor(feature_list=[W2VEmbedding],
-                                                thread_aware=False,
+                                                thread_aware=True,
                                                 ngram_length=7)]
 
     dataprocessor = DataPreprocessor(dataloader,
@@ -46,4 +49,10 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
-    DE.show_distance_plot()
+    pprint.pprint(ids.get_performance())
+
+    # creating plot
+    plot = ScorePlot(scenario_path=dataloader.scenario_path)
+
+    plot.feed_figure(ids.get_plotting_data())
+    plot.show_plot()

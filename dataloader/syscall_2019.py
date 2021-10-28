@@ -48,7 +48,7 @@ class Syscall:
     def timestamp_unix_in_ns(self) -> float:
         """
 
-        casts unix timestamp from string to int
+        casts timestamp object to unix timestamp in nanoseconds
 
         Returns:
             int: unix timestamp of syscall
@@ -58,13 +58,13 @@ class Syscall:
             timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
-            self._timestamp_unix = mktime(timestamp_datetime.timetuple())
+            self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 10 ** 9
 
         return self._timestamp_unix
 
     def timestamp_datetime(self) -> datetime:
         """
-        casts unix timestamp from string to python datetime object
+        casts timestamp from string to python datetime object
         Returns:
             datetime: casted datetime object of syscall timestamp
         """

@@ -2,7 +2,7 @@ import datetime
 import os
 import time
 
-from dataloader.syscall_2019 import Syscall
+from dataloader.syscall_2019 import Syscall, Direction
 from distutils.util import strtobool
 
 from enum import IntEnum
@@ -49,7 +49,9 @@ class Recording:
         """
         with open(self.path, 'r') as recording_file:
             for syscall in recording_file:
-                yield Syscall(syscall)
+                syscall_object = Syscall(syscall)
+                if syscall_object.direction() == Direction.OPEN and syscall_object.name() != 'switch':
+                    yield syscall_object
 
     def _collect_metadata(self):
         """
@@ -90,6 +92,8 @@ class Recording:
 
         # subtracting 2 seconds because of bad precision of relative timestamp in LID-DS 2019
         relative_time = int(self.recording_data_list[RecordingDataParts.WARMUP_TIME]) - 2
+
+        # multiplying with 10⁹ to get nanoseconds from seconds
         absolute_time = first_syscall_timestamp + datetime.timedelta(seconds=relative_time)
 
         # casting to unix timestamp
