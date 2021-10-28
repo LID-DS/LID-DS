@@ -84,7 +84,7 @@ class LSTM(BaseDecisionEngine):
         create LSTM Net with outputlayer of distinct_syscalls + 1 (one extra for unknown syscalls)
 
         """
-        input_dim = self._ngram_length * (self._extra_param + self._embedding_size)
+        input_dim = self._ngram_length * self._embedding_size + self._extra_param
         hidden_dim = 64
         n_layers = 1
         # output layer is #distinct_syscall + 1 for unknown syscalls
@@ -107,7 +107,7 @@ class LSTM(BaseDecisionEngine):
         """
         if self._lstm is None:
             x = np.array(feature_list[1:])
-            y = feature_list[0][0]
+            y = feature_list[0]
             self._training_data['x'].append(x)
             self._training_data['y'].append(y)
             self._current_batch.append(self._batch_counter)
@@ -141,7 +141,7 @@ class LSTM(BaseDecisionEngine):
             x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
             dataset = SyscallFeatureDataSet(x_tensors_final, y_tensors)
             # for custom batches
-            dataloader = DataLoader(dataset, batch_sampler=self._batch_indices)  # batch_size=self._batch_size)
+            dataloader = DataLoader(dataset, batch_sampler=self._batch_indices)
             print(f"Training Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
             self._set_model(self._distinct_syscalls, self._device)
             self._lstm.to(self._device)
