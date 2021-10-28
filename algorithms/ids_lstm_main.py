@@ -1,11 +1,12 @@
 from algorithms.features.ngram_plus_next_syscall import NgramPlusNextSyscall
 from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.thread_change_flag import ThreadChangeFlag
 from algorithms.features.syscall_to_int import SyscallToInt
 from algorithms.features.w2v_embedding import W2VEmbedding
+from dataloader.data_preprocessor import DataPreprocessor
+from dataloader.data_loader_2019 import DataLoader
 from algorithms.decision_engines.lstm import LSTM
 from algorithms.ids import IDS
-from dataloader.data_loader import DataLoader
-from dataloader.data_preprocessor import DataPreprocessor
 import pprint
 
 if __name__ == '__main__':
@@ -14,16 +15,20 @@ if __name__ == '__main__':
     """
     ngram_length = 2
     embedding_size = 4
-    scenario_path = '../../Dataset/Bruteforce_CWE-307/'
+    thread_aware = True
+    scenario_path = '../../Dataset/CVE-2017-7529/'
     syscall_feature_list = [W2VEmbedding(vector_size=embedding_size,
                                          window_size=ngram_length,
                                          epochs=100,
                                          scenario_path=scenario_path,
                                          distinct=False),
                             ThreadIDExtractor(),
-                            SyscallToInt()]
-    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding, SyscallToInt],
-                                                thread_aware=True,
+                            SyscallToInt(),
+                            ThreadChangeFlag(thread_aware=thread_aware)]
+    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding,
+                                                              SyscallToInt,
+                                                              ThreadChangeFlag],
+                                                thread_aware=thread_aware,
                                                 ngram_length=ngram_length)]
 
     # data loader for scenario
@@ -39,7 +44,8 @@ if __name__ == '__main__':
                 distinct_syscalls=distinct_syscalls,
                 epochs=20,
                 batch_size=256,
-                force_train=True)
+                force_train=True,
+                extra_param=1)
 
     # define the used features
     ids = IDS(data_loader=dataloader,
