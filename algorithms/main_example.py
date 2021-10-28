@@ -44,3 +44,4 @@ if __name__ == '__main__':
     plot.feed_figure(ids.get_plotting_data())
     plot.show_plot()
 
+

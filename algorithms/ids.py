@@ -1,10 +1,8 @@
-from datetime import timedelta
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_preprocessor import DataPreprocessor
-from dataloader.syscall import Syscall
 
 
 class IDS:
@@ -18,7 +16,6 @@ class IDS:
         self._threshold = 0.0
         self._performance_values = {}
         self._alarm = False
-
         self._anomaly_scores_exploits = []
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
@@ -54,10 +51,8 @@ class IDS:
 
     def do_detection(self):
         """
-            detects: false positives, true positives, true negatives, false negatives, consecutive false alarms
-                         from feature_vectors and metadata
-
-            returns: counts of fp, tp, tn, fn, cfa as int, alarms per rec
+            detects: false positives, true positives:alarms, true negatives, false negatives, consecutive false alarms,
+                     detection rate based on anomaly scores and metadata
 
         """
         fp = 0
@@ -71,9 +66,9 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection: '
 
-        # syscall index needed for plotting
-        syscall_count_for_plot = 1
-
+        # syscall index and exploit count needed for plotting
+        syscall_count_for_plot_exploit_recordings = 1
+        syscall_cnt = 0
         exploit_count = 0
 
         for recording in tqdm(data, description, unit=" recording"):
@@ -91,17 +86,17 @@ class IDS:
             first_sys_after_exploit = False
 
             for syscall in recording.syscalls():
-
-                syscall_time = Syscall.timestamp_unix_in_ns(syscall)* (10 ** (-9))
+                syscall_cnt += 1
+                syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
                 # getting index of first syscall after exploit of each recording for plotting
                 if exploit_exists is True and syscall_time >= exploit_time and first_sys_after_exploit is False:
-                    self._first_syscall_after_exploit_list.append(syscall_count_for_plot)
+                    self._first_syscall_after_exploit_list.append(syscall_count_for_plot_exploit_recordings)
                     first_sys_after_exploit = True
 
                 if exploit_time is not None:
-                    syscall_count_for_plot += 1
+                    syscall_count_for_plot_exploit_recordings += 1
 
                 if feature_vector is not None:
                     anomaly_score = self._decision_engine.predict(feature_vector)
@@ -109,7 +104,6 @@ class IDS:
                     # saving scores separately for plotting
                     if exploit_time is not None:
                         self._anomaly_scores_exploits.append(anomaly_score)
-
                     if exploit_time is None:
                         self._anomaly_scores_no_exploits.append(anomaly_score)
 
@@ -149,13 +143,15 @@ class IDS:
 
             # getting index of last syscall of each recording for plotting
             if exploit_time is not None:
-                self._last_syscall_of_recording_list.append(syscall_count_for_plot)
+                self._last_syscall_of_recording_list.append(syscall_count_for_plot_exploit_recordings)
 
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
 
+        print(syscall_cnt)
+
         try:
-            re = alarm_count / (alarm_count + (exploit_count-alarm_count))
+            re = alarm_count / exploit_count
         except ZeroDivisionError:
             print("Division by Zero not possible, there is a problem with tp/fn/fp values.")
 
