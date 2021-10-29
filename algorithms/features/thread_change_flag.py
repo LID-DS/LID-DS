@@ -9,7 +9,10 @@ from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureE
 class ThreadChangeFlag(BaseStreamFeatureExtractor):
     """
     extract ngram form a stream of system call features
-    include n+1 system call as integer vor supervised learning
+    include n+1 system call as integer for supervised learning
+    also add thread change flag information
+    set thread change flag to 1 if ngram predecessor is from different thread
+    othrewise 0
     """
 
     def __init__(self, feature_list: list, thread_aware: bool, ngram_length: int):
