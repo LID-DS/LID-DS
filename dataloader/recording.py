@@ -37,8 +37,8 @@ class Recording:
         """
         self.path = path
         self.name = name
-        self.check_recording()
         self._direction = direction
+        self.check_recording()
 
     def syscalls(self) -> str:
         """

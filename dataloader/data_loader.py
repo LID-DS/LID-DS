@@ -100,9 +100,9 @@ class DataLoader(BaseDataLoader):
         super().__init__(scenario_path, direction)
         if os.path.isdir(scenario_path):
             self.scenario_path = scenario_path
+            self._direction = direction
             self._metadata_list = self.collect_metadata()
             self._distinct_syscalls = None
-            self._direction = direction
         else:
             print(f'Could not find {scenario_path}!!!!')
             raise FileNotFoundError(
