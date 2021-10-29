@@ -1,3 +1,5 @@
+import pprint
+
 from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
@@ -47,3 +49,6 @@ if __name__ == '__main__':
     ids.determine_threshold()
     ids.do_detection()
     DE.show_distance_plot()
+
+    pprint.pprint(ids.get_performance())
+
