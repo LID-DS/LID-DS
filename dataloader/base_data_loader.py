@@ -1,3 +1,6 @@
+from dataloader.direction import Direction
+
+
 class BaseDataLoader:
     """
 
@@ -12,7 +15,7 @@ class BaseDataLoader:
 
     """
 
-    def __init__(self, scenario_path: str):
+    def __init__(self, scenario_path: str, direction: Direction):
         """
 
             Save path of scenario and create metadata_list.
