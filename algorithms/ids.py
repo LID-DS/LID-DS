@@ -77,7 +77,7 @@ class IDS:
 
             for syscall in recording.syscalls():
 
-                syscall_time = Syscall.timestamp_unix_in_ns(syscall) * (10 ** (-9))
+                syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
 
                 if feature_vector is not None:
