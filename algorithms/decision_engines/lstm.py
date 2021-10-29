@@ -29,7 +29,9 @@ class LSTM(BaseDecisionEngine):
                  ngram_length: int,
                  embedding_size: int,
                  distinct_syscalls: int,
-                 extra_param=0,
+                 time_delta=0,
+                 thread_change_flag=0,
+                 return_value=0,
                  epochs=300,
                  architecture=None,
                  batch_size=1,
@@ -51,12 +53,18 @@ class LSTM(BaseDecisionEngine):
         """
         self._ngram_length = ngram_length
         self._embedding_size = embedding_size
-        self._extra_param = extra_param
+        # input dim:
+        #   time_delta and return value per syscall,
+        #   thread change flag per ngram
+        self._input_dim = (self._ngram_length
+                           * (self._embedding_size+return_value+time_delta)
+                           + thread_change_flag)
         self._batch_size = batch_size
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
         self._model_path = model_path \
-            + f'n{self._ngram_length}-e{self._embedding_size}-p{self._extra_param}-ep{self._epochs}'
+            + f'n{self._ngram_length}-e{self._embedding_size}-r{bool(return_value)}' \
+            + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}'
         self._training_data = {
             'x': [],
             'y': []
@@ -84,12 +92,12 @@ class LSTM(BaseDecisionEngine):
         create LSTM Net with outputlayer of distinct_syscalls + 1 (one extra for unknown syscalls)
 
         """
-        input_dim = self._ngram_length * self._embedding_size + self._extra_param
-        hidden_dim = 64
+        hidden_dim = 128
         n_layers = 1
         # output layer is #distinct_syscall + 1 for unknown syscalls
-        self._lstm = Net(distinct_syscalls + 1,
-                         input_dim,
+        output_neurons = distinct_syscalls + 1
+        self._lstm = Net(output_neurons,
+                         self._input_dim,
                          hidden_dim,
                          n_layers,
                          device=device,
@@ -120,7 +128,6 @@ class LSTM(BaseDecisionEngine):
 
     def fit(self):
         """
-
         fit model only if it could not be loaded
         set model state.
         convert training data to tensors and feed into custom dataset
@@ -129,8 +136,6 @@ class LSTM(BaseDecisionEngine):
         create actual net for fitting
         define hyperparameters, iterate through DataSet and train Net
         keep hidden and cell state over batches, only reset with new recording
-
-
         """
         if self._state == 'build_training_data':
             self._state = 'fitting'
@@ -150,15 +155,15 @@ class LSTM(BaseDecisionEngine):
             learning_rate = 0.001
             criterion = torch.nn.CrossEntropyLoss()
             optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
-            self._hidden_state = None
-            self._cell_state = None
+            self._hidden = None
             torch.manual_seed(1)
             for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
                 for i, data in enumerate(dataloader, 0):
                     inputs, labels = data
-                    outputs, self._hidden_state, self_cell_state = self._lstm.forward(inputs,
-                                                                                      self._hidden_state,
-                                                                                      self._cell_state)
+                    outputs, hidden = self._lstm.forward(inputs, self._hidden)
+                    # detach hidden otherwise overflow????
+                    self._hidden = tuple(state.detach() for state in hidden)
+                    # if last batch is smaller than batch size hidden states cannot be used
                     # caluclate the gradient, manually setting to 0
                     optimizer.zero_grad()
                     # obtain the loss function
@@ -190,9 +195,8 @@ class LSTM(BaseDecisionEngine):
         x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
         x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
         actual_syscall = feature_list[0]
-        prediction_logits, hidden_state, cell_state = self._lstm(x_tensor_final,
-                                                                 self._hidden_state,
-                                                                 self._cell_state)
+        prediction_logits, self._hidden = self._lstm(x_tensor_final,
+                                                     self._hidden)
         softmax = nn.Softmax()
         prediction_probs = softmax(prediction_logits)
         predicted_probability = prediction_probs[0][actual_syscall]
@@ -228,8 +232,7 @@ class LSTM(BaseDecisionEngine):
                 self._batch_indices.append(self._current_batch)
                 self._current_batch = []
         elif self._state == 'fitting':
-            self._hidden_state = None
-            self._cell_state = None
+            self._hidden = None
         else:
             pass
 
@@ -257,34 +260,34 @@ class Net(nn.Module):
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
         self._device = torch.device(device)
-        self._hidden_state = None  # hidden_state
-        self._cell_state = None  # cell_state
-        self.init_states(batch_size)
 
-    def forward(self, x, hidden_state, cell_state):
+    def forward(self, x, hidden):
         # Propagate input through LSTM
-        # lstm with input, hidden, and internal cell state
-        if hidden_state is None:
-            self.init_states(x.size(0))
+        # lstm with input, hidden and internal cell state in tuple (hidden)
+        # if provided hidden state size doesnt match batch size 
+        # and if it was not provided call lstm without hidden state
+        if hidden is None:
+            output, hidden = self.lstm(x)
+        elif list(x.size())[0] != list(hidden[0].size())[1]:
+            output, hidden = self.lstm(x)
         else:
-            self._hidden_state = hidden_state
-            self._cell_state = cell_state
-        output, (new_hidden_state, new_cell_state) = self.lstm(x,
-                                                               (self._hidden_state,
-                                                                self._cell_state))
+            output, hidden = self.lstm(x, hidden)
         # internal state
         # reshaping the data for Dense layer next
-        new_hidden_state = new_hidden_state.view(-1, self.hidden_size)
-        out = self.tanh(new_hidden_state)
+        reshaped_hidden = hidden[0].view(-1, self.hidden_size)
+        out = self.tanh(reshaped_hidden)
         out = self.output(out)
         # out = self.relu(out)
         # out = self.fc(out)
         # out = self.tanh(new_hidden_state)
         # out = self.output(out)
-        return out, hidden_state, cell_state
+        # if list(hidden[0].size())[0] != self._batch_size:
+        # self._hidden = None
+        return out, hidden
 
     def init_states(self, batch_size: int):
         # hidden state
+        print(batch_size)
         self._hidden_state = Variable(
             torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
         # internal state
