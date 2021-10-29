@@ -33,9 +33,9 @@ class Recording:
         self.name = recording_data_list[RecordingDataParts.RECORDING_NAME]
         self.path = os.path.join(base_path, f'{self.name}.txt')
         self.recording_data_list = recording_data_list
+        self._direction = direction
         self._metadata = self._collect_metadata()
         self.name = self._metadata['name']
-        self._direction = direction
 
     def syscalls(self) -> Generator[Syscall, None, None]:
         """
@@ -98,11 +98,3 @@ class Recording:
         absolute_time = first_syscall_timestamp + datetime.timedelta(seconds=relative_time)
 
         return absolute_time
-
-
-
-
-
-
-
-
