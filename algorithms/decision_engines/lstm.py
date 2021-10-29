@@ -64,7 +64,8 @@ class LSTM(BaseDecisionEngine):
         self._distinct_syscalls = distinct_syscalls
         self._model_path = model_path \
             + f'n{self._ngram_length}-e{self._embedding_size}-r{bool(return_value)}' \
-            + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}'
+            + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}' \
+            + f'b{self._batch_size}'
         self._training_data = {
             'x': [],
             'y': []
