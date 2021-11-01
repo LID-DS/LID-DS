@@ -7,6 +7,7 @@ from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 import pprint
 
+
 if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes
@@ -19,7 +20,7 @@ if __name__ == '__main__':
                                                 ngram_length=5)]
 
     # data loader for scenario
-    dataloader = DataLoader('../../Dataset/CVE-2017-7529/')
+    dataloader = DataLoader('/home/eschulze/LID-DS-2021/CVE-2017-7529')
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
@@ -36,3 +37,4 @@ if __name__ == '__main__':
     ids.determine_threshold()
     ids.do_detection()
     pprint.pprint(ids.get_performance())
+
