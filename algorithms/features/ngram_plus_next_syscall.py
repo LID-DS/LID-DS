@@ -19,10 +19,6 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
         self._ngram_buffer = {}
         self._list_of_feature_ids = []
         for feature_class in feature_list:
-            # skip systoint which is needed for y value in list
-            # y is label for syscall to predict
-            if feature_class.get_id() == SyscallToInt.get_id():
-                continue
             self._list_of_feature_ids.append(feature_class.get_id())
         self._thread_aware = thread_aware
         self._ngram_length = ngram_length
@@ -44,7 +40,7 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
         if thread_id in self._ngram_buffer:
             if len(self._ngram_buffer[thread_id]) == self._ngram_length:
                 ngram_value = self._collect_features(self._ngram_buffer[thread_id])
-                ngram_value = [syscall_features[SyscallToInt.get_id()]] + ngram_value
+                ngram_value = syscall_features[SyscallToInt.get_id()] + ngram_value
         # but also add syscall to buffer
         if thread_id not in self._ngram_buffer:
             self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)
