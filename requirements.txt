@@ -21,3 +21,5 @@ wget~=3.2
 filesplit~=3.0.2
 tqdm==4.62.3
 nest-asyncio==1.5.1
+gensim==4.1.2
+torch==1.9.1
