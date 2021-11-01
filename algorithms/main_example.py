@@ -8,6 +8,7 @@ from dataloader.data_preprocessor import DataPreprocessor
 import pprint
 from score_plot import ScorePlot
 
+
 if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes

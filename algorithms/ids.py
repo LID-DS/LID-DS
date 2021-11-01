@@ -148,7 +148,7 @@ class IDS:
         try:
             re = alarm_count / exploit_count
         except ZeroDivisionError:
-            print("Division by Zero not possible, there is a problem with tp/fn/fp values.")
+            print("Division by Zero not possible, no exploits counted.")
 
         self._performance_values = {"false positives": fp,
                                     "true positives": tp,
