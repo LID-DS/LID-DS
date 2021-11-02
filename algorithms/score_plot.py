@@ -1,18 +1,14 @@
 from enum import IntEnum
+
 import matplotlib.pyplot as plt
+
+from dataloader.recording import Recording
+from dataloader.syscall import Syscall
 
 # adjusting plot parameters
 plt.rcParams.update({"font.size": 26,
                      "figure.figsize": (55, 40),
                      "agg.path.chunksize": 10000})
-
-
-class ExploitParamsIndex(IntEnum):
-    THRESHOLD = 0
-    FIRST_SYSCALL_AFTER_EXPLOIT_LIST = 1
-    FIRST_SYSCALL_OF_RECORDING_LIST = 2
-    ANOMALY_SCORES_EXPLOITS = 3
-    ANOMALY_SCORES_NO_EXPLOITS = 4
 
 
 class ScorePlot:
@@ -21,20 +17,46 @@ class ScorePlot:
 
         self._scenario_path = scenario_path
         self._figure = None
+        self._anomaly_scores_exploits = []
+        self._anomaly_scores_no_exploits = []
+        self._first_syscall_of_exploit_recording_index_list = []
+        self._first_syscall_of_normal_recording_index_list = []
+        self._first_syscall_after_exploit_index_list = []
+        self._exploit_time = None
+        self._first_sys_after_exploit = False
+        self.threshold = 0.0
 
-    def feed_figure(self, plotting_data: tuple):
+    def new_recording(self, recording: Recording):
+        if recording.metadata()["exploit"] is True:
+            self._first_syscall_of_exploit_recording_index_list.append(len(self._anomaly_scores_exploits))
+            self._exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
+            self._first_sys_after_exploit = False
+        else:
+            self._first_syscall_of_normal_recording_index_list.append(len(self._anomaly_scores_no_exploits))
+            self._exploit_time = None
+
+    def add_to_plot_data(self, score: float, syscall: Syscall):
+        # saving scores separately for plotting
+        if self._exploit_time is not None:
+            self._anomaly_scores_exploits.append(score)
+            syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
+
+            # getting index of first syscall after exploit of each recording for plotting
+            if syscall_time >= self._exploit_time and self._first_sys_after_exploit is False:
+                self._first_syscall_after_exploit_index_list.append(len(self._anomaly_scores_exploits))
+                self._first_sys_after_exploit = True
+
+        if self._exploit_time is None:
+            self._anomaly_scores_no_exploits.append(score)
+
+    def feed_figure(self):
 
         """
         creates figure with subplots
         """
-        threshold = plotting_data[ExploitParamsIndex.THRESHOLD]
-        first_syscall_after_exploit_list = plotting_data[ExploitParamsIndex.FIRST_SYSCALL_AFTER_EXPLOIT_LIST]
-        first_syscall_of_recording_list = plotting_data[ExploitParamsIndex.FIRST_SYSCALL_OF_RECORDING_LIST]
-        anomaly_scores_exploits = plotting_data[ExploitParamsIndex.ANOMALY_SCORES_EXPLOITS]
-        anomaly_scores_no_exploits = plotting_data[ExploitParamsIndex.ANOMALY_SCORES_NO_EXPLOITS]
 
         self._figure = plt.figure()
-        plt.tight_layout(pad=2, h_pad=3, w_pad=3,)
+        plt.tight_layout(pad=2, h_pad=3, w_pad=3, )
         ax = self._figure.add_subplot(111)  # The big subplot
         ax1 = self._figure.add_subplot(211)
         ax2 = self._figure.add_subplot(212)
@@ -46,8 +68,10 @@ class ScorePlot:
         ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
 
         # first subplot for normal activity
-        ax1.plot(anomaly_scores_no_exploits)
-        ax1.axhline(y=threshold, color="g", label="threshold", linewidth=2)
+        ax1.plot(self._anomaly_scores_no_exploits)
+        ax1.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
+        for index in self._first_syscall_of_normal_recording_index_list:
+            ax1.axvline(x=index, color="yellow")
         ax1.legend()
 
         # second subplot for exploits
@@ -55,19 +79,19 @@ class ScorePlot:
         recording_start_index = 0
         done = False
         while not done:
-            exploit_window_start = first_syscall_after_exploit_list[exploit_start_index]
-            for i in range(recording_start_index, len(first_syscall_of_recording_list)):
-                if first_syscall_of_recording_list[i] > exploit_window_start:
-                    exploit_window_end = first_syscall_of_recording_list[i]
+            exploit_window_start = self._first_syscall_after_exploit_index_list[exploit_start_index]
+            for i in range(recording_start_index, len(self._first_syscall_of_exploit_recording_index_list)):
+                if self._first_syscall_of_exploit_recording_index_list[i] > exploit_window_start:
+                    exploit_window_end = self._first_syscall_of_exploit_recording_index_list[i]
                     recording_start_index = i
                     break
             ax2.axvspan(exploit_window_start, exploit_window_end, color="lightcoral")
             exploit_start_index += 1
-            if exploit_start_index == len(first_syscall_after_exploit_list):
+            if exploit_start_index == len(self._first_syscall_after_exploit_index_list):
                 done = True
 
-        ax2.plot(anomaly_scores_exploits)
-        ax2.axhline(y=threshold, color="g", label="threshold", linewidth=2)
+        ax2.plot(self._anomaly_scores_exploits)
+        ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
         ax2.legend()
 
         # setting labels
