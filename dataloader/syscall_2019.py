@@ -1,5 +1,6 @@
 from enum import IntEnum
-from datetime import datetime, time
+from datetime import datetime
+from time import mktime
 
 from dataloader.direction import Direction
 
@@ -40,6 +41,20 @@ class Syscall:
         self._name = None
         self._direction = None
         self._params = None
+
+    def timestamp_unix_in_ns(self) -> float:
+        """
+        casts timestamp object to unix timestamp in nanoseconds
+        Returns:
+            float: unix timestamp of syscall
+        """
+        if self._timestamp_unix is None:
+            timestamp_datetime = datetime.strptime(
+                self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
+                '%H:%M:%S.%f')
+            self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 10 ** 9
+
+        return self._timestamp_unix
 
     def timestamp_datetime(self) -> datetime:
         """
@@ -137,7 +152,6 @@ class Syscall:
     def param(self, param_name: str) -> (bytes, str):
         """
         runs the params() method and returns the requested
-        decodes base64 strings if activated
         Returns:
             str or bytes: syscall parameter value
         """
