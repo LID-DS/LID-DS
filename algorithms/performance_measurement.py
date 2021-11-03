@@ -37,6 +37,10 @@ class PerformanceMeasurement:
         self._threshold = threshold
 
     def new_recording(self, recording: Recording):
+        """
+        at beginning of each recording: saves exploit time, resets flags and counts
+
+        """
         if self._alarm is not False:
             self._alarm = False
 
@@ -60,6 +64,12 @@ class PerformanceMeasurement:
             self._cfp_counter_wait_normal = False
 
     def analyze_syscall(self, syscall: Syscall, anomaly_score: float):
+        """
+        counts performance values with syscall and anomaly score as input,
+        differentiates between normal and exploit files
+
+        """
+
         syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
 
         # files with exploit
@@ -114,9 +124,18 @@ class PerformanceMeasurement:
                 self._tn += 1
 
     def get_cfp_indices(self):
+        """
+        returns cfp syscall indices in lists for plotting
+
+        """
         return self._first_syscall_of_cfp_list_exploits, self._last_syscall_of_cfp_list_exploits, self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal
 
     def get_performance(self):
+        """
+        calculates detection rate and precision based on counts,
+        returns dict of performance values
+
+        """
 
         detection_rate = self._alarm_count / self._exploit_count
         precision_cfa = self._alarm_count / (self._alarm_count + self._cfp_count_normal + self._cfp_count_exploits)
