@@ -62,6 +62,8 @@ class LSTM(BaseDecisionEngine):
         self._batch_size = batch_size
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
         self._model_path = model_path \
             + f'n{self._ngram_length}-e{self._embedding_size}-r{bool(return_value)}' \
             + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}' \
@@ -81,6 +83,7 @@ class LSTM(BaseDecisionEngine):
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self._device = torch.device("cpu")
         if not force_train:
+            print(self._model_path)
             if os.path.exists(self._model_path):
                 self._set_model(self._distinct_syscalls, self._device)
                 self._lstm.load_state_dict(torch.load(self._model_path))
@@ -265,12 +268,25 @@ class Net(nn.Module):
     def forward(self, x, hidden):
         # Propagate input through LSTM
         # lstm with input, hidden and internal cell state in tuple (hidden)
-        # if provided hidden state size doesnt match batch size 
+        # if provided hidden state size doesnt match batch size
         # and if it was not provided call lstm without hidden state
         if hidden is None:
             output, hidden = self.lstm(x)
         elif list(x.size())[0] != list(hidden[0].size())[1]:
-            output, hidden = self.lstm(x)
+            new_size = list(x.size())[0]
+            old_size = list(hidden[0].size())[1]
+            if new_size > old_size:
+                hidden = None
+                output, hidden = self.lstm(x)
+            elif new_size < old_size:
+                hidden_state = hidden[0]
+                new_hidden = hidden_state[0][old_size - new_size:][:]
+                new_hidden = new_hidden[None, :]
+                cell_state = hidden[1]
+                new_cell = cell_state[0][old_size - new_size:][:]
+                new_cell = new_cell[None, :]
+                hidden = (new_hidden, new_cell)
+                output, hidden = self.lstm(x, hidden)
         else:
             output, hidden = self.lstm(x, hidden)
         # internal state
