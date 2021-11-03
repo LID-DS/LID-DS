@@ -25,6 +25,10 @@ class ScorePlot:
         self._exploit_time = None
         self._first_sys_after_exploit = False
         self.threshold = 0.0
+        self._first_syscall_of_cfp_list_exploit = []
+        self._last_syscall_of_cfp_list_exploit = []
+        self._first_syscall_of_cfp_list_normal = []
+        self._last_syscall_of_cfp_list_normal = []
 
     def new_recording(self, recording: Recording):
         if recording.metadata()["exploit"] is True:
@@ -35,7 +39,7 @@ class ScorePlot:
             self._first_syscall_of_normal_recording_index_list.append(len(self._anomaly_scores_no_exploits))
             self._exploit_time = None
 
-    def add_to_plot_data(self, score: float, syscall: Syscall):
+    def add_to_plot_data(self, score: float, syscall: Syscall, cfa_indices: tuple):
         # saving scores separately for plotting
         if self._exploit_time is not None:
             self._anomaly_scores_exploits.append(score)
@@ -48,6 +52,11 @@ class ScorePlot:
 
         if self._exploit_time is None:
             self._anomaly_scores_no_exploits.append(score)
+
+        self._first_syscall_of_cfp_list_exploit = cfa_indices[0]
+        self._last_syscall_of_cfp_list_exploit = cfa_indices[1]
+        self._first_syscall_of_cfp_list_normal = cfa_indices[2]
+        self._last_syscall_of_cfp_list_normal = cfa_indices[3]
 
     def feed_figure(self):
 
@@ -70,11 +79,13 @@ class ScorePlot:
         # first subplot for normal activity
         ax1.plot(self._anomaly_scores_no_exploits)
         ax1.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
-        for index in self._first_syscall_of_normal_recording_index_list:
-            ax1.axvline(x=index, color="yellow")
         ax1.legend()
 
-        # second subplot for exploits
+        # cfp windows for normal subplot
+        for i, j in zip(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal):
+            ax1.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
+
+        # exploit windows for exploit subplot
         exploit_start_index = 0
         recording_start_index = 0
         done = False
@@ -89,6 +100,10 @@ class ScorePlot:
             exploit_start_index += 1
             if exploit_start_index == len(self._first_syscall_after_exploit_index_list):
                 done = True
+
+        # cfp windows for exploit subplot
+        for i, j in zip(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit):
+            ax2.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
 
         ax2.plot(self._anomaly_scores_exploits)
         ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
@@ -111,6 +126,8 @@ class ScorePlot:
         """
 
         if self._figure is not None:
+            print(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit)
+            print(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal)
             plt.show()
         else:
             "There is no plot to show."

@@ -69,7 +69,7 @@ class IDS:
                     anomaly_score = self._decision_engine.predict(feature_vector)
 
                     self.performance.analyze_syscall(syscall, anomaly_score)
-                    self.plot.add_to_plot_data(anomaly_score, syscall)
+                    self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
 
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
