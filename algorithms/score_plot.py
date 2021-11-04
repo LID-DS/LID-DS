@@ -1,5 +1,3 @@
-from enum import IntEnum
-
 import matplotlib.pyplot as plt
 
 from dataloader.recording import Recording
@@ -85,6 +83,11 @@ class ScorePlot:
         for i, j in zip(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal):
             ax1.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
 
+        # second subplot for exploits
+        ax2.plot(self._anomaly_scores_exploits)
+        ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
+        ax2.legend()
+
         # exploit windows for exploit subplot
         exploit_start_index = 0
         recording_start_index = 0
@@ -105,10 +108,6 @@ class ScorePlot:
         for i, j in zip(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit):
             ax2.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
 
-        ax2.plot(self._anomaly_scores_exploits)
-        ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
-        ax2.legend()
-
         # setting labels
         ax1.set_ylabel("anomaly score")
         ax1.set_xlabel("number of systemcalls")
@@ -126,8 +125,6 @@ class ScorePlot:
         """
 
         if self._figure is not None:
-            print(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit)
-            print(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal)
             plt.show()
         else:
             "There is no plot to show."

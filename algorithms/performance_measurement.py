@@ -36,11 +36,58 @@ class PerformanceMeasurement:
     def set_threshold(self, threshold: float):
         self._threshold = threshold
 
+    def _cfp_start_exploits(self):
+        """
+        appends respective lists with cfa indices (exploit cases),
+        sets flags for correct index counting
+
+        """
+        if self._cfp_counter_wait_exploits is False:
+            self._first_syscall_of_cfp_list_exploits.append(self._exploit_anomaly_score_count)
+            self._cfp_counter_wait_exploits = True
+
+    def _cfp_end_exploits(self):
+        """
+        appends respective lists with cfa indices (exploit cases),
+        sets flags for correct index counting
+
+        """
+        if self._cfp_counter_wait_exploits is True:
+            if self._current_cfp_stream_exploits > 0:
+                self._current_cfp_stream_exploits = 0
+                self._cfp_count_exploits += 1
+                self._last_syscall_of_cfp_list_exploits.append(self._exploit_anomaly_score_count)
+                self._cfp_counter_wait_exploits = False
+
+    def _cfp_start_normal(self):
+        """
+        appends respective lists with cfa indices (normal cases),
+        sets flags for correct index counting
+
+        """
+        if self._cfp_counter_wait_normal is False:
+            self._first_syscall_of_cfp_list_normal.append(self._normal_score_count)
+            self._cfp_counter_wait_normal = True
+
+    def _cfp_end_normal(self):
+        """
+        appends respective lists with cfa indices (normal cases),
+        sets flags for correct index counting
+
+        """
+        if self._cfp_counter_wait_normal is True:
+            if self._current_cfp_stream_normal > 0:
+                self._current_cfp_stream_normal = 0
+                self._cfp_count_normal += 1
+                self._last_syscall_of_cfp_list_normal.append(self._normal_score_count)
+                self._cfp_counter_wait_normal = False
+
     def new_recording(self, recording: Recording):
         """
         at beginning of each recording: saves exploit time, resets flags and counts
 
         """
+        # making sure there is only one true detected alarm in each exploit recording
         if self._alarm is not False:
             self._alarm = False
 
@@ -51,17 +98,9 @@ class PerformanceMeasurement:
         else:
             self._current_exploit_time = None
 
-        if self._cfp_counter_wait_exploits is True:
-            self._current_cfp_stream_exploits = 0
-            self._cfp_count_exploits += 1
-            self._last_syscall_of_cfp_list_exploits.append(self._exploit_anomaly_score_count)
-            self._cfp_counter_wait_exploits = False
-
-        if self._cfp_counter_wait_normal is True:
-            self._current_cfp_stream_normal = 0
-            self._cfp_count_normal += 1
-            self._last_syscall_of_cfp_list_normal.append(self._normal_score_count)
-            self._cfp_counter_wait_normal = False
+        # ending cfa before new recording starts
+        self._cfp_end_exploits()
+        self._cfp_end_normal()
 
     def analyze_syscall(self, syscall: Syscall, anomaly_score: float):
         """
@@ -79,15 +118,9 @@ class PerformanceMeasurement:
                 if self._current_exploit_time > syscall_time:
                     self._fp += 1
                     self._current_cfp_stream_exploits += 1
-                    if self._cfp_counter_wait_exploits is False:
-                        self._first_syscall_of_cfp_list_exploits.append(self._exploit_anomaly_score_count)
-                        self._cfp_counter_wait_exploits = True
+                    self._cfp_start_exploits()
                 elif self._current_exploit_time <= syscall_time:
-                    if self._current_cfp_stream_exploits > 0:
-                        self._current_cfp_stream_exploits = 0
-                        self._cfp_count_exploits += 1
-                        self._last_syscall_of_cfp_list_exploits.append(self._exploit_anomaly_score_count)
-                        self._cfp_counter_wait_exploits = False
+                    self._cfp_end_exploits()
                     if self._alarm is False:
                         self._tp += 1
                         self._alarm_count += 1
@@ -96,11 +129,7 @@ class PerformanceMeasurement:
                         self._tp += 1
 
             elif anomaly_score <= self._threshold:
-                if self._current_cfp_stream_exploits > 0:
-                    self._current_cfp_stream_exploits = 0
-                    self._cfp_count_exploits += 1
-                    self._last_syscall_of_cfp_list_exploits.append(self._exploit_anomaly_score_count)
-                    self._cfp_counter_wait_exploits = False
+                self._cfp_end_exploits()
                 if self._current_exploit_time > syscall_time:
                     self._tn += 1
                 elif self._current_exploit_time <= syscall_time:
@@ -112,15 +141,9 @@ class PerformanceMeasurement:
             if anomaly_score > self._threshold:
                 self._fp += 1
                 self._current_cfp_stream_normal += 1
-                if self._cfp_counter_wait_normal is False:
-                    self._first_syscall_of_cfp_list_normal.append(self._normal_score_count)
-                    self._cfp_counter_wait_normal = True
+                self._cfp_start_normal()
             if anomaly_score <= self._threshold:
-                if self._current_cfp_stream_normal > 0:
-                    self._current_cfp_stream_normal = 0
-                    self._cfp_count_normal += 1
-                    self._last_syscall_of_cfp_list_normal.append(self._normal_score_count)
-                    self._cfp_counter_wait_normal = False
+                self._cfp_end_normal()
                 self._tn += 1
 
     def get_cfp_indices(self):
