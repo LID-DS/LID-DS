@@ -190,9 +190,13 @@ class LSTM(BaseDecisionEngine):
     def predict(self, feature_list: list) -> float:
         """
 
-        remove label from feature_list and feed into model.
-        calc possibility of prediction_probs[0][actual_call] and return
-        1 - calculated possibility as anomaly score
+        remove label from feature_list and feed feature_list and hidden state into model.
+        model returns probabilities of every syscall seen in training + index 0 for unknown syscall
+        index of actual syscall gives predicted_prob
+        1 - predicted_prob is anomaly score
+
+        Returns:
+            float: anomaly score
 
         """
         x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
