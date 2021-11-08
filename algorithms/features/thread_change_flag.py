@@ -22,7 +22,7 @@ class ThreadChangeFlag(BaseStreamFeatureExtractor):
         self._list_of_feature_ids = []
         for feature_class in stream_feature_list:
             self._list_of_feature_ids.append(feature_class.get_id())
-        self._last_thread_id = 0
+        self._last_thread_id = None
         self._syscall_feature_list = syscall_feature_list
         if ThreadIDExtractor not in syscall_feature_list:
             raise KeyError('No thread id in features')
@@ -40,7 +40,6 @@ class ThreadChangeFlag(BaseStreamFeatureExtractor):
             thread_id = syscall_features[ThreadIDExtractor.get_id()]
         except KeyError:
             raise KeyError('No thread id in features')
-
         if self._last_thread_id is None:
             self._last_thread_id = thread_id
             thread_change_flag = 0
