@@ -6,6 +6,8 @@ from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 import pprint
+from score_plot import ScorePlot
+
 
 if __name__ == '__main__':
     """
@@ -19,7 +21,7 @@ if __name__ == '__main__':
                                                 ngram_length=5)]
 
     # data loader for scenario
-    dataloader = DataLoader('../../Dataset/CVE-2017-7529/')
+    dataloader = DataLoader('/home/eschulze/LID-DS-2021/CVE-2017-7529')
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
@@ -36,3 +38,9 @@ if __name__ == '__main__':
     ids.determine_threshold()
     ids.do_detection()
     pprint.pprint(ids.get_performance())
+
+    # creating plot
+    plot = ScorePlot(scenario_path=dataloader.scenario_path)
+
+    plot.feed_figure(ids.get_plotting_data())
+    plot.show_plot()

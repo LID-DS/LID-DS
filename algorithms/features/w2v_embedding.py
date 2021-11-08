@@ -40,6 +40,7 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
         self.w2vmodel = None
         self._sentences = []
         self._feature_list = [SyscallName(), ThreadIDExtractor()]
+        self._window_size = window_size
         self._n_gram_streamer = StreamNgramExtractor(feature_list=[SyscallName()],
                                                      thread_aware=thread_aware,
                                                      ngram_length=window_size)
@@ -70,9 +71,10 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             trains the w2v model on training sentences
         """
         if not self.w2vmodel:
-            model = Word2Vec(sentences=self._sentences, vector_size=self._vector_size, epochs=self._epochs)
-            model.save(fname_or_handle=self._path)
+            model = Word2Vec(sentences=self._sentences, vector_size=self._vector_size, epochs=self._epochs,
+                             window=self._window_size, min_count=1)
 
+            model.save(fname_or_handle=self._path)
             self.w2vmodel = model
 
     def extract(self, syscall: Syscall) -> typing.Tuple[int, list]:

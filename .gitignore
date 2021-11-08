@@ -40,3 +40,7 @@ runs.log
 *.h5
 
 /venv/
+
+# Models
+
+algorithms/Models/*
