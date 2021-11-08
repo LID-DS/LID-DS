@@ -89,6 +89,7 @@ class ScorePlot:
         ax2.legend()
 
         # exploit windows for exploit subplot
+        self._first_syscall_of_exploit_recording_index_list.append(len(self._anomaly_scores_exploits))
         exploit_start_index = 0
         recording_start_index = 0
         done = False
@@ -103,6 +104,7 @@ class ScorePlot:
             exploit_start_index += 1
             if exploit_start_index == len(self._first_syscall_after_exploit_index_list):
                 done = True
+
 
         # cfp windows for exploit subplot
         for i, j in zip(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit):
