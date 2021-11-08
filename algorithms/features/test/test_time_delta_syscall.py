@@ -1,8 +1,8 @@
-from algorithms.features.time_delta_syscalls import TimeDeltaSyscalls
+from algorithms.features.time_delta import TimeDelta
 from dataloader.syscall import Syscall
 
 
-def test_time_delta_syscalls():
+def test_time_delta():
     # legit
     syscall_1 = Syscall(
         "1631209047761484608 0 3686302 apache2 3686303 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
@@ -49,7 +49,7 @@ def test_time_delta_syscalls():
                 syscall_8,
                 syscall_9]
 
-    td = TimeDeltaSyscalls(thread_aware=False)
+    td = TimeDelta(thread_aware=False)
     for syscall in syscalls:
         td.train_on(syscall)
     td.fit()
@@ -65,7 +65,7 @@ def test_time_delta_syscalls():
     data = td.extract(syscall_3)
     assert (data[1] == 100/max_time_delta)
 
-    td = TimeDeltaSyscalls(thread_aware=True)
+    td = TimeDelta(thread_aware=True)
     for syscall in syscalls:
         td.train_on(syscall)
     td.fit()
