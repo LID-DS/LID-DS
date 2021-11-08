@@ -2,7 +2,7 @@ from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.som import Som
-from algorithms.ids_old import IDS
+from algorithms.ids import IDS
 from dataloader.data_loader_2019 import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 

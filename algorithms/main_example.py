@@ -32,7 +32,8 @@ if __name__ == '__main__':
     # define the used features
     ids = IDS(data_loader=dataloader,
               data_preprocessor=dataprocessor,
-              decision_engine=stide)
+              decision_engine=stide,
+              plot=True)
 
     ids.train_decision_engine()
     ids.determine_threshold()

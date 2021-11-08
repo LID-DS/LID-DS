@@ -11,10 +11,12 @@ class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
                  data_preprocessor: DataPreprocessor,
-                 decision_engine: BaseDecisionEngine):
+                 decision_engine: BaseDecisionEngine,
+                 plot: bool):
         self._data_loader = data_loader
         self._data_preprocessor = data_preprocessor
         self._decision_engine = decision_engine
+        self.plotting = plot
         self.threshold = 0.0
         self._alarm = False
         self._anomaly_scores_exploits = []
@@ -22,7 +24,7 @@ class IDS:
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
         self.performance = PerformanceMeasurement()
-        self.plot = ScorePlot(data_loader.scenario_path)
+        self.plot = ScorePlot(data_loader.scenario_path, self.plotting)
 
     def train_decision_engine(self):
         # train of DE
