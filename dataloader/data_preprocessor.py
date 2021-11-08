@@ -18,10 +18,12 @@ class DataPreprocessor:
     def __init__(self,
                  data_loader: Union[DataLoader, DataLoader_2019],
                  syscall_feature_list: list,
-                 stream_feature_list: list):
+                 stream_feature_list: list,
+                 feature_of_stream_feature_list: list):
         self._data_loader = data_loader
         self._syscall_feature_list = syscall_feature_list
         self._stream_feature_list = stream_feature_list
+        self._feature_of_stream_feature_list = feature_of_stream_feature_list
         self._prepare_and_build_features()
 
     def _prepare_and_build_features(self):
@@ -69,13 +71,32 @@ class DataPreprocessor:
                                       syscall_features: dict) -> list:
         """
         This method applies the passed feature extractors to the passed dict of system call features
-        and creates the final array (list) of feature values.
         """
         stream_feature_dict = {}
         for stream_feature in self._stream_feature_list:
             k, v = stream_feature.extract(syscall_features)
             if v is not None:
                 stream_feature_dict[k] = v
+        return stream_feature_dict
+
+    def _extract_features_from_stream_features(self,
+                                               syscall_features: dict,
+                                               stream_features: dict) -> list:
+        """
+        This method applies the passed feature extractors to the passed dict of system call features
+        """
+        stream_feature_dict = {}
+        for stream_feature in self._feature_of_stream_feature_list:
+            k, v = stream_feature.extract(syscall_features, stream_features)
+            if v is not None:
+                stream_feature_dict[k] = v
+        return stream_feature_dict
+
+    def _convert_feature_dict_to_list(self,
+                                      stream_feature_dict: dict) -> list:
+        """
+        This method creates the final array (list) of feature values.
+        """
         extracted_feature_list = []
         for key in stream_feature_dict.keys():
             extracted_feature_list += stream_feature_dict[key]
@@ -91,8 +112,12 @@ class DataPreprocessor:
         list: feature_vector
 
         """
-        feature_dict = self._extract_features_from_syscall(syscall)
-        feature_vector = self._extract_features_from_stream(feature_dict)
+        syscall_feature_dict = self._extract_features_from_syscall(syscall)
+        # print(syscall_feature_dict)
+        stream_feature_dict = self._extract_features_from_stream(syscall_feature_dict)
+        feature_dict = self._extract_features_from_stream_features(syscall_feature_dict,
+                                                                   stream_feature_dict)
+        feature_vector = self._convert_feature_dict_to_list(feature_dict)
         if len(feature_vector) > 0:
             return feature_vector
         else:
