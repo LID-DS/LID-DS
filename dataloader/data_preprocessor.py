@@ -19,7 +19,7 @@ class DataPreprocessor:
                  data_loader: Union[DataLoader, DataLoader_2019],
                  syscall_feature_list: list,
                  stream_feature_list: list,
-                 feature_of_stream_feature_list: list):
+                 feature_of_stream_feature_list: list = []):
         self._data_loader = data_loader
         self._syscall_feature_list = syscall_feature_list
         self._stream_feature_list = stream_feature_list
