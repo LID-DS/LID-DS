@@ -19,7 +19,7 @@ class DataPreprocessor:
                  data_loader: Union[DataLoader, DataLoader_2019],
                  syscall_feature_list: list,
                  stream_feature_list: list,
-                 feature_of_stream_feature_list: list):
+                 feature_of_stream_feature_list: list = []):
         self._data_loader = data_loader
         self._syscall_feature_list = syscall_feature_list
         self._stream_feature_list = stream_feature_list
@@ -85,6 +85,8 @@ class DataPreprocessor:
         """
         This method applies the passed feature extractors to the passed dict of system call features
         """
+        if len(self._feature_of_stream_feature_list) == 0:
+            return stream_features
         stream_feature_dict = {}
         for stream_feature in self._feature_of_stream_feature_list:
             k, v = stream_feature.extract(syscall_features, stream_features)
@@ -113,7 +115,6 @@ class DataPreprocessor:
 
         """
         syscall_feature_dict = self._extract_features_from_syscall(syscall)
-        # print(syscall_feature_dict)
         stream_feature_dict = self._extract_features_from_stream(syscall_feature_dict)
         feature_dict = self._extract_features_from_stream_features(syscall_feature_dict,
                                                                    stream_feature_dict)

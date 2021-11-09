@@ -1,12 +1,11 @@
 import typing
-from collections import deque
 from collections.abc import Iterable
 
 from algorithms.features.threadID_extractor import ThreadIDExtractor
-from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
+from algorithms.features.base_feature_of_stream_feature_extractor import BaseFeatureOfStreamFeatureExtractor
 
 
-class ThreadChangeFlag(BaseStreamFeatureExtractor):
+class ThreadChangeFlag(BaseFeatureOfStreamFeatureExtractor):
     """
     receives ngram stream feature and threadID feature
     set thread change flag to 1 if ngram predecessor is from different thread
@@ -52,7 +51,7 @@ class ThreadChangeFlag(BaseStreamFeatureExtractor):
         features.append(thread_change_flag)
         return ThreadChangeFlag.get_id(), features
 
-    def _collect_features(self, stream_feature_dict: deque) -> list:
+    def _collect_features(self, stream_feature_dict: dict) -> list:
         """
         creates list of features included in stream_feature_list
 
