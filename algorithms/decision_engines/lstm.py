@@ -62,6 +62,8 @@ class LSTM(BaseDecisionEngine):
         self._batch_size = batch_size
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
         self._model_path = model_path \
             + f'n{self._ngram_length}-e{self._embedding_size}-r{bool(return_value)}' \
             + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}' \
@@ -76,11 +78,11 @@ class LSTM(BaseDecisionEngine):
         self._batch_indices = []
         self._current_batch = []
         self._batch_counter = 0
-        self._hidden_state = None
-        self._cell_state = None
+        self._hidden = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self._device = torch.device("cpu")
         if not force_train:
+            print(self._model_path)
             if os.path.exists(self._model_path):
                 self._set_model(self._distinct_syscalls, self._device)
                 self._lstm.load_state_dict(torch.load(self._model_path))
@@ -93,7 +95,7 @@ class LSTM(BaseDecisionEngine):
         create LSTM Net with outputlayer of distinct_syscalls + 1 (one extra for unknown syscalls)
 
         """
-        hidden_dim = 128
+        hidden_dim = 64
         n_layers = 1
         # output layer is #distinct_syscall + 1 for unknown syscalls
         output_neurons = distinct_syscalls + 1
@@ -188,9 +190,13 @@ class LSTM(BaseDecisionEngine):
     def predict(self, feature_list: list) -> float:
         """
 
-        remove label from feature_list and feed into model.
-        calc possibility of prediction_probs[0][actual_call] and return
-        1 - calculated possibility as anomaly score
+        remove label from feature_list and feed feature_list and hidden state into model.
+        model returns probabilities of every syscall seen in training + index 0 for unknown syscall
+        index of actual syscall gives predicted_prob
+        1 - predicted_prob is anomaly score
+
+        Returns:
+            float: anomaly score
 
         """
         x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
@@ -198,10 +204,9 @@ class LSTM(BaseDecisionEngine):
         actual_syscall = feature_list[0]
         prediction_logits, self._hidden = self._lstm(x_tensor_final,
                                                      self._hidden)
-        softmax = nn.Softmax()
-        prediction_probs = softmax(prediction_logits)
-        predicted_probability = prediction_probs[0][actual_syscall]
-        anomaly_score = 1 - predicted_probability
+        softmax = nn.Softmax(dim=0)
+        predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
+        anomaly_score = 1 - predicted_prob
         return anomaly_score
 
     def _accuracy(self, outputs, labels):
@@ -255,8 +260,8 @@ class Net(nn.Module):
 
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
-        self.fc_1 = nn.Linear(hidden_size, 128)  # fully connected 1
-        self.fc = nn.Linear(128, num_classes)  # fully connected last layer
+        self.fc_1 = nn.Linear(hidden_size, 64)  # fully connected 1
+        self.fc = nn.Linear(64, num_classes)  # fully connected last layer
         self.output = nn.Linear(hidden_size, num_classes)  # fully connected 1
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()
@@ -265,12 +270,25 @@ class Net(nn.Module):
     def forward(self, x, hidden):
         # Propagate input through LSTM
         # lstm with input, hidden and internal cell state in tuple (hidden)
-        # if provided hidden state size doesnt match batch size 
+        # if provided hidden state size doesnt match batch size
         # and if it was not provided call lstm without hidden state
         if hidden is None:
             output, hidden = self.lstm(x)
         elif list(x.size())[0] != list(hidden[0].size())[1]:
             output, hidden = self.lstm(x)
+            new_size = list(x.size())[0]
+            old_size = list(hidden[0].size())[1]
+            if new_size > old_size:
+                hidden = None
+                output, hidden = self.lstm(x)
+            elif new_size < old_size:
+                # last batch smaller than batch_size
+                # cut current hidden state to match current size of batch
+                new_hidden = hidden[0][0][old_size - new_size:][:]
+                new_hidden = new_hidden[None, :]
+                new_cell = hidden[0][0][old_size - new_size:][:]
+                new_cell = new_cell[None, :]
+                output, hidden = self.lstm(x, (new_hidden, new_cell))
         else:
             output, hidden = self.lstm(x, hidden)
         # internal state
@@ -285,15 +303,6 @@ class Net(nn.Module):
         # if list(hidden[0].size())[0] != self._batch_size:
         # self._hidden = None
         return out, hidden
-
-    def init_states(self, batch_size: int):
-        # hidden state
-        print(batch_size)
-        self._hidden_state = Variable(
-            torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
-        # internal state
-        self._cell_state = Variable(
-            torch.zeros(self.num_layers, batch_size, self.hidden_size)).to(self._device)
 
 
 class SyscallFeatureDataSet(Dataset):

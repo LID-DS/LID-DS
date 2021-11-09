@@ -24,7 +24,7 @@ class BaseDataLoader:
             scenario_path (str): path of assosiated folder
 
         """
-        pass
+        self.scenario_path = scenario_path
 
     def training_data(self) -> list:
         """

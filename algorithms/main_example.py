@@ -5,13 +5,13 @@ from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
-import pprint
-from score_plot import ScorePlot
+from pprint import pprint
 
 
 if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes
+    
     """
 
     syscall_feature_list = [SyscallToInt(),
@@ -32,15 +32,15 @@ if __name__ == '__main__':
     # define the used features
     ids = IDS(data_loader=dataloader,
               data_preprocessor=dataprocessor,
-              decision_engine=stide)
+              decision_engine=stide,
+              plot_switch=True)
 
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
-    pprint.pprint(ids.get_performance())
+    pprint(ids.performance.get_performance())
 
-    # creating plot
-    plot = ScorePlot(scenario_path=dataloader.scenario_path)
+    # plotting / save_plot() must be called before show_plot()
+    ids.plot.feed_figure()
+    ids.plot.show_plot()
 
-    plot.feed_figure(ids.get_plotting_data())
-    plot.show_plot()
