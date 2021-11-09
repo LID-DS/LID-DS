@@ -43,10 +43,10 @@ if __name__ == '__main__':
                 distinct_syscalls=distinct_syscalls,
                 epochs=20,
                 batch_size=128,
-                force_train=False)
+                force_train=False,
                 # time_delta=0,
                 # thread_change_flag=0,
-                # return_value=0)
+                return_value=0)
 
     # define the used features
     ids = IDS(data_loader=dataloader,
