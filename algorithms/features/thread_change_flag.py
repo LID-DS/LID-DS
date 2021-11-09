@@ -52,7 +52,7 @@ class ThreadChangeFlag(BaseStreamFeatureExtractor):
         features.append(thread_change_flag)
         return ThreadChangeFlag.get_id(), features
 
-    def _collect_features(self, stream_feature_dict: deque) -> list:
+    def _collect_features(self, stream_feature_dict: dict) -> list:
         """
         creates list of features included in stream_feature_list
 
