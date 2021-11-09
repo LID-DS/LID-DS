@@ -16,7 +16,7 @@ class IDS:
         self._data_loader = data_loader
         self._data_preprocessor = data_preprocessor
         self._decision_engine = decision_engine
-        self.plotting = plot
+        self.plot_switch = plot
         self.threshold = 0.0
         self._alarm = False
         self._anomaly_scores_exploits = []
@@ -24,7 +24,8 @@ class IDS:
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
         self.performance = PerformanceMeasurement()
-        self.plot = ScorePlot(data_loader.scenario_path, self.plotting)
+        if self.plot_switch is True:
+            self.plot = ScorePlot(data_loader.scenario_path, self.plot_switch)
 
     def train_decision_engine(self):
         # train of DE
@@ -63,7 +64,8 @@ class IDS:
 
         for recording in tqdm(data, description, unit="recording"):
             self.performance.new_recording(recording)
-            self.plot.new_recording(recording)
+            if self.plot:
+                self.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
@@ -71,7 +73,8 @@ class IDS:
                     anomaly_score = self._decision_engine.predict(feature_vector)
 
                     self.performance.analyze_syscall(syscall, anomaly_score)
-                    self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
+                    if self.plot:
+                        self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
 
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
