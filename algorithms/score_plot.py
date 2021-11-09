@@ -29,6 +29,12 @@ class ScorePlot:
         self._last_syscall_of_cfp_list_normal = []
 
     def new_recording(self, recording: Recording):
+        """
+        called in ids at beginning of each new recording:
+            sets exploit time,
+            appends lists of indices of first syscalls of exploit/normal recordings
+
+        """
         if recording.metadata()["exploit"] is True:
             self._first_syscall_of_exploit_recording_index_list.append(len(self._anomaly_scores_exploits))
             self._exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
@@ -38,6 +44,13 @@ class ScorePlot:
             self._exploit_time = None
 
     def add_to_plot_data(self, score: float, syscall: Syscall, cfa_indices: tuple):
+        """
+        called in ids for every syscall:
+            appends lists of anomaly scores,
+            appends syscall indices of exploit starting points to list,
+            saves cfa indices given in argument in member lists
+
+        """
         # saving scores separately for plotting
         if self._exploit_time is not None:
             self._anomaly_scores_exploits.append(score)
@@ -131,12 +144,14 @@ class ScorePlot:
         else:
             "There is no plot to show."
 
-    def save_plot(self):
+    def save_plot(self, path: str):
 
         """
-        saving plot as .png file if there is one
+        saving plot as file if there is one,
+        input: destination path as string
+
         """
         if self._figure is not None:
-            plt.savefig("anomaly_scores_plot.png")
+            plt.savefig(path)
         else:
             print("There is no plot to save.")

@@ -12,7 +12,7 @@ class IDS:
                  data_loader: BaseDataLoader,
                  data_preprocessor: DataPreprocessor,
                  decision_engine: BaseDecisionEngine,
-                 plot: bool):
+                 plot_switch: bool):
         self._data_loader = data_loader
         self._data_preprocessor = data_preprocessor
         self._decision_engine = decision_engine
@@ -23,10 +23,14 @@ class IDS:
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
         self.performance = PerformanceMeasurement()
-        if plot is True:
+        if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
 
     def train_decision_engine(self):
+        """
+        trains decision engine with training data
+
+        """
         # train of DE
         data = self._data_loader.training_data()
         description = 'Training: '
@@ -40,6 +44,11 @@ class IDS:
         self._decision_engine.fit()
 
     def determine_threshold(self):
+        """
+        decision engine calculates anomaly scores using validation data,
+        saves biggest score as threshold for detection phase
+
+        """
         max_score = 0.0
         data = self._data_loader.validation_data()
         description = 'Threshold calculation: '
@@ -54,9 +63,16 @@ class IDS:
             self._decision_engine.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
-        self.plot.threshold = max_score
+        if self.plot:
+            self.plot.threshold = max_score
 
     def do_detection(self):
+        """
+        detecting performance values using the test data,
+        calling performance object for measurement and
+        plot object if plot_switch is True
+
+        """
 
         data = self._data_loader.test_data()
         description = 'anomaly detection: '
