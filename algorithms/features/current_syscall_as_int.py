@@ -12,7 +12,7 @@ class CurrentSyscallAsInt(BaseStreamFeatureExtractor):
 
     """
 
-    def extract(self, syscall_feature: dict, stream_feature: dict) -> typing.Tuple[int, list]:
+    def extract(self, syscall_features: dict, stream_features: dict) -> typing.Tuple[int, list]:
         """
 
         takes syscall feature (sys_to_int) and NgramMinusOne and combines them
@@ -23,10 +23,11 @@ class CurrentSyscallAsInt(BaseStreamFeatureExtractor):
           value: list [sys_to_int, ngramMinusOne]
 
         """
-        sys_to_int = syscall_feature[SyscallToInt.get_id()]
-        ngram = stream_feature[NgramMinusOne.get_id()]
+        if len(stream_features) == 0:
+            return CurrentSyscallAsInt.get_id(), None
+        sys_to_int = syscall_features[SyscallToInt.get_id()]
+        ngram = stream_features[NgramMinusOne.get_id()]
         value = []
-        value.append(sys_to_int)
+        value.append(sys_to_int[0])
         value += ngram
-        print(value)
         return CurrentSyscallAsInt.get_id(), value

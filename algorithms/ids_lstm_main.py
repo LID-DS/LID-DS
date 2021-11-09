@@ -1,12 +1,13 @@
-from algorithms.features.ngram_plus_next_syscall import NgramPlusNextSyscall
-from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.current_syscall_as_int import CurrentSyscallAsInt
 # from algorithms.features.time_delta_syscalls import TimeDeltaSyscalls
 # from algorithms.features.thread_change_flag import ThreadChangeFlag
+from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.ngram_minus_one import NgramMinusOne
 from algorithms.features.syscall_to_int import SyscallToInt
 from algorithms.features.w2v_embedding import W2VEmbedding
 from dataloader.data_preprocessor import DataPreprocessor
-from dataloader.data_loader import DataLoader
 from algorithms.decision_engines.lstm import LSTM
+from dataloader.data_loader import DataLoader
 from algorithms.ids import IDS
 
 import pprint
@@ -26,16 +27,18 @@ if __name__ == '__main__':
                                          distinct=False),
                             ThreadIDExtractor(),
                             SyscallToInt()]
-    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding],
-                                                thread_aware=thread_aware,
-                                                ngram_length=ngram_length)]
+    stream_feature_list = [NgramMinusOne(feature_list=[W2VEmbedding],
+                                         thread_aware=thread_aware,
+                                         ngram_length=ngram_length)]
+    feature_of_stream_feature_list = [CurrentSyscallAsInt()]
 
     # data loader for scenario
     dataloader = DataLoader(scenario_path)
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
-                                     stream_feature_list)
+                                     stream_feature_list,
+                                     feature_of_stream_feature_list)
     # decision engine (DE)
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
     lstm = LSTM(ngram_length=ngram_length,
