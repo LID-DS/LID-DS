@@ -16,7 +16,6 @@ class IDS:
         self._data_loader = data_loader
         self._data_preprocessor = data_preprocessor
         self._decision_engine = decision_engine
-        self._plot_switch = plot
         self.threshold = 0.0
         self._alarm = False
         self._anomaly_scores_exploits = []
@@ -24,8 +23,8 @@ class IDS:
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
         self.performance = PerformanceMeasurement()
-        if self._plot_switch is True:
-            self.plot = ScorePlot(data_loader.scenario_path, self._plot_switch)
+        if plot is True:
+            self.plot = ScorePlot(data_loader.scenario_path)
 
     def train_decision_engine(self):
         # train of DE

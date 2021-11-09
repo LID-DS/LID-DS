@@ -11,10 +11,9 @@ plt.rcParams.update({"font.size": 26,
 
 class ScorePlot:
 
-    def __init__(self, scenario_path, plot_switch: bool):
+    def __init__(self, scenario_path):
 
         self._scenario_path = scenario_path
-        self._plot_switch = plot_switch
         self._figure = None
         self._anomaly_scores_exploits = []
         self._anomaly_scores_no_exploits = []
@@ -62,84 +61,82 @@ class ScorePlot:
         """
         creates figure with subplots
         """
-        if self._plot_switch is True:
-            self._figure = plt.figure()
-            plt.tight_layout(pad=2, h_pad=3, w_pad=3, )
-            ax = self._figure.add_subplot(111)  # The big subplot
-            ax1 = self._figure.add_subplot(211)
-            ax2 = self._figure.add_subplot(212)
-            plt.subplots_adjust(hspace=0.4)
 
-            ax.spines['top'].set_color('none')
-            ax.spines['bottom'].set_color('none')
-            ax.spines['left'].set_color('none')
-            ax.spines['right'].set_color('none')
-            ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
+        self._figure = plt.figure()
+        plt.tight_layout(pad=2, h_pad=3, w_pad=3, )
+        ax = self._figure.add_subplot(111)  # The big subplot
+        ax1 = self._figure.add_subplot(211)
+        ax2 = self._figure.add_subplot(212)
+        plt.subplots_adjust(hspace=0.4)
 
-            # first subplot for normal activity
-            ax1.plot(self._anomaly_scores_no_exploits)
-            ax1.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
-            ax1.legend()
+        ax.spines['top'].set_color('none')
+        ax.spines['bottom'].set_color('none')
+        ax.spines['left'].set_color('none')
+        ax.spines['right'].set_color('none')
+        ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
 
-            # cfp windows for normal subplot
-            if len(self._first_syscall_of_cfp_list_normal) > 1 and len(self._last_syscall_of_cfp_list_normal) > 1:
-                for i, j in zip(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal):
-                    ax1.axvspan(i-1, j-1, color="mediumaquamarine", alpha=0.5)
+        # first subplot for normal activity
+        ax1.plot(self._anomaly_scores_no_exploits)
+        ax1.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
+        ax1.legend()
 
-            # second subplot for exploits
-            ax2.plot(self._anomaly_scores_exploits)
-            ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
-            ax2.legend()
+        # cfp windows for normal subplot
+        if len(self._first_syscall_of_cfp_list_normal) > 1 and len(self._last_syscall_of_cfp_list_normal) > 1:
+            for i, j in zip(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal):
+                ax1.axvspan(i-1, j-1, color="mediumaquamarine", alpha=0.5)
 
-            # exploit windows for exploit subplot
-            self._first_syscall_of_exploit_recording_index_list.append(len(self._anomaly_scores_exploits))
-            exploit_start_index = 0
-            recording_start_index = 0
-            done = False
-            while not done:
-                exploit_window_start = self._first_syscall_after_exploit_index_list[exploit_start_index]
-                for i in range(recording_start_index, len(self._first_syscall_of_exploit_recording_index_list)):
-                    if self._first_syscall_of_exploit_recording_index_list[i] > exploit_window_start:
-                        exploit_window_end = self._first_syscall_of_exploit_recording_index_list[i]
-                        recording_start_index = i
-                        break
-                ax2.axvspan(exploit_window_start, exploit_window_end, color="lightcoral")
-                exploit_start_index += 1
-                if exploit_start_index == len(self._first_syscall_after_exploit_index_list):
-                    done = True
+        # second subplot for exploits
+        ax2.plot(self._anomaly_scores_exploits)
+        ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
+        ax2.legend()
 
-            # cfp windows for exploit subplot
-            for i, j in zip(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit):
-                ax2.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
+        # exploit windows for exploit subplot
+        self._first_syscall_of_exploit_recording_index_list.append(len(self._anomaly_scores_exploits))
+        exploit_start_index = 0
+        recording_start_index = 0
+        done = False
+        while not done:
+            exploit_window_start = self._first_syscall_after_exploit_index_list[exploit_start_index]
+            for i in range(recording_start_index, len(self._first_syscall_of_exploit_recording_index_list)):
+                if self._first_syscall_of_exploit_recording_index_list[i] > exploit_window_start:
+                    exploit_window_end = self._first_syscall_of_exploit_recording_index_list[i]
+                    recording_start_index = i
+                    break
+            ax2.axvspan(exploit_window_start, exploit_window_end, color="lightcoral")
+            exploit_start_index += 1
+            if exploit_start_index == len(self._first_syscall_after_exploit_index_list):
+                done = True
 
-            # setting labels
-            ax1.set_ylabel("anomaly score")
-            ax1.set_xlabel("number of systemcalls")
-            ax2.set_ylabel("anomaly score")
-            ax2.set_xlabel("number of systemcalls")
+        # cfp windows for exploit subplot
+        for i, j in zip(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit):
+            ax2.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
 
-            ax1.set_title("normal activity")
-            ax2.set_title("exploits")
-            self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
+        # setting labels
+        ax1.set_ylabel("anomaly score")
+        ax1.set_xlabel("number of systemcalls")
+        ax2.set_ylabel("anomaly score")
+        ax2.set_xlabel("number of systemcalls")
+
+        ax1.set_title("normal activity")
+        ax2.set_title("exploits")
+        self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
 
     def show_plot(self):
 
         """
         shows plot if there is one
         """
-        if self._plot_switch is True:
-            if self._figure is not None:
-                plt.show()
-            else:
-                "There is no plot to show."
+        if self._figure is not None:
+            plt.show()
+        else:
+            "There is no plot to show."
 
     def save_plot(self):
 
         """
         saving plot as .png file if there is one
         """
-        if self._plot_switch is True:
-            if self._figure is not None:
-                plt.savefig("anomaly_scores_plot.png")
-            else:
-                print("There is no plot to save.")
+        if self._figure is not None:
+            plt.savefig("anomaly_scores_plot.png")
+        else:
+            print("There is no plot to save.")
