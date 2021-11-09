@@ -15,12 +15,17 @@ import pprint
 
 if __name__ == '__main__':
     """
-    this is an example script to show the usage uf our classes
+    this is an example script to show how to use the LSTM DE with the following settings:
+
+        convert syscall name to vector with length of embedding_size
+        create thread aware ngrams of size ngram_length
+        ignore current syscall in ngram (NgramMinusOne)
+        add current syscall as int with (CurrentSyscallAsInt)
     """
-    ngram_length = 3
+    ngram_length = 4
     embedding_size = 4
     thread_aware = True
-    scenario = "CVE-2014-0160"
+    scenario = "CVE-2017-7529"
     scenario_path = f'../../Dataset_old/{scenario}/'
     syscall_feature_list = [W2VEmbedding(vector_size=embedding_size,
                                          window_size=ngram_length,
@@ -31,7 +36,7 @@ if __name__ == '__main__':
                             SyscallToInt()]
     stream_feature_list = [NgramMinusOne(feature_list=[W2VEmbedding],
                                          thread_aware=thread_aware,
-                                         ngram_length=ngram_length)]
+                                         ngram_length=ngram_length + 1)]
     feature_of_stream_feature_list = [CurrentSyscallAsInt()]
 
     # data loader for scenario
