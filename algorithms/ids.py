@@ -25,6 +25,8 @@ class IDS:
         self.performance = PerformanceMeasurement()
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
+        else:
+            self.plot = None
 
     def train_decision_engine(self):
         """
@@ -63,7 +65,7 @@ class IDS:
             self._decision_engine.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
-        if self.plot:
+        if self.plot is not None:
             self.plot.threshold = max_score
 
     def do_detection(self):
@@ -79,7 +81,7 @@ class IDS:
 
         for recording in tqdm(data, description, unit="recording"):
             self.performance.new_recording(recording)
-            if self.plot:
+            if self.plot is not None:
                 self.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
@@ -88,7 +90,7 @@ class IDS:
                     anomaly_score = self._decision_engine.predict(feature_vector)
 
                     self.performance.analyze_syscall(syscall, anomaly_score)
-                    if self.plot:
+                    if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
 
             self._data_preprocessor.new_recording()

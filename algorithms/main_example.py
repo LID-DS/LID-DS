@@ -40,6 +40,7 @@ if __name__ == '__main__':
     ids.do_detection()
     pprint(ids.performance.get_performance())
 
-    # plotting
+    # plotting / save_plot() must be called before show_plot()
     ids.plot.feed_figure()
-    ids.plot.show_plot("exploit_plot.png")
+    ids.plot.show_plot()
+
