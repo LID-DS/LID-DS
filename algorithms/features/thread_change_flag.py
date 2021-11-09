@@ -17,7 +17,7 @@ class ThreadChangeFlag(BaseFeatureOfStreamFeatureExtractor):
     def __init__(self, syscall_feature_list: list, stream_feature_list: list):
         """
         """
-        super().__init__()
+        super().__init__(syscall_feature_list, stream_feature_list)
         self._list_of_feature_ids = []
         for feature_class in stream_feature_list:
             self._list_of_feature_ids.append(feature_class.get_id())

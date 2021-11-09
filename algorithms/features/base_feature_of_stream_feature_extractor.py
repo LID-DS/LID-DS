@@ -1,5 +1,7 @@
 import typing
 
+from algorithms.features.feature_id_manager import FeatureIDManager
+
 
 class BaseFeatureOfStreamFeatureExtractor:
     """
@@ -7,6 +9,8 @@ class BaseFeatureOfStreamFeatureExtractor:
     base class for feature extraction from stream features and syscall features
 
     """
+    # this is the id of this class determined at runtime
+    class_id = None
 
     def __init__(self, syscall_feature_list: list, stream_feature_list: list):
         pass
@@ -24,3 +28,9 @@ class BaseFeatureOfStreamFeatureExtractor:
           value: value of feature
 
         """
+
+    @classmethod
+    def get_id(cls):
+        if cls.class_id is None:
+            cls.class_id = FeatureIDManager().get_id(cls)
+        return cls.class_id
