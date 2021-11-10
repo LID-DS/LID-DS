@@ -53,8 +53,8 @@ class Recording:
         try:
             with zipfile.ZipFile(self.path, 'r') as zipped:
                 with zipped.open(self.name + '.sc') as unzipped:
-                    for syscall in unzipped:
-                        syscall_object = Syscall(syscall.decode('utf-8').rstrip())
+                    for line_id, syscall in enumerate(unzipped, start=1):
+                        syscall_object = Syscall(syscall.decode('utf-8').rstrip(), line_id=line_id)
                         if self._direction != Direction.BOTH:
                             if syscall_object.direction() == self._direction:
                                 yield syscall_object

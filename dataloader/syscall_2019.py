@@ -29,9 +29,10 @@ class Syscall:
     all attributes need to be retrieved by corresponding methods
     """
 
-    def __init__(self, syscall_line: str):
+    def __init__(self, syscall_line: str, line_id: int = -1):
         self.syscall_line = syscall_line.rstrip()
         self._line_list = self.syscall_line.split(' ')
+        self._line_id = line_id
         self._timestamp_unix = None
         self._timestamp_datetime = None
         self._user_id = None

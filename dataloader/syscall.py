@@ -29,9 +29,10 @@ class Syscall:
 
     """
 
-    def __init__(self, syscall_line: str):
+    def __init__(self, syscall_line: str, line_id: int = -1):
         self.syscall_line = syscall_line
         self._line_list = syscall_line.split(' ')
+        self._line_id = line_id
         self._timestamp_unix = None
         self._timestamp_datetime = None
         self._user_id = None
