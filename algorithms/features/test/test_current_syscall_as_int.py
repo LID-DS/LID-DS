@@ -4,6 +4,7 @@ from algorithms.features.current_syscall_as_int import CurrentSyscallAsInt
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.ngram_minus_one import NgramMinusOne
 from algorithms.features.syscall_name import SyscallName
+from algorithms.features.syscall_to_int import SyscallToInt
 from dataloader.syscall import Syscall
 
 
@@ -61,10 +62,13 @@ def test_current_syscall_as_int():
                 syscall_7,
                 syscall_8,
                 syscall_9,
-                syscall_10,
-                syscall_11]
+                syscall_10]
 
-    feature_list = [ThreadIDExtractor(), SyscallName()]
+    feature_list = [ThreadIDExtractor(), SyscallName(), SyscallToInt()]
+
+    for syscall in syscalls:
+        for feature in feature_list:
+            feature.train_on(syscall)
 
     ngram_streamer = NgramMinusOne(
         feature_list=[SyscallName],
@@ -84,75 +88,124 @@ def test_current_syscall_as_int():
     if ngram[1] is not None:
         stream_dict[ngram[0]] = ngram[1]
     feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
-    print(feature)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    assert feature == (CurrentSyscallAsInt.get_id(), None)
 
     # SYSCALL 2
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_2)[0]] = feature.extract(syscall_2)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), None)
 
     # SYSCALL 3
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_3)[0]] = feature.extract(syscall_3)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), [3, 'open', 'close'])
 
     # SYSCALL 4
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_4)[0]] = feature.extract(syscall_4)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), None)
 
     # SYSCALL 5
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_5)[0]] = feature.extract(syscall_5)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), None)
 
     # SYSCALL 6
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_6)[0]] = feature.extract(syscall_6)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), None)
 
     # SYSCALL 7
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_7)[0]] = feature.extract(syscall_7)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), [4, 'open', 'close', 'poll'])
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), [4, 'close', 'poll'])
 
     # SYSCALL 8
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_8)[0]] = feature.extract(syscall_8)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), None)
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), [1, 'mmap', 'open'])
 
     # SYSCALL 9
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_9)[0]] = feature.extract(syscall_9)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), [2, 'mmap', 'open', 'open'])
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), [2, 'open', 'open'])
 
     # SYSCALL 10
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_10)[0]] = feature.extract(syscall_10)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), [7, 'close', 'poll', 'mmap'])
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), [6, 'poll', 'mmap'])
 
-    # SYSCALL 12 not in training data
+    # SYSCALL 11 not in training data
     syscall_dict = {}
     for feature in feature_list:
         syscall_dict[feature.extract(syscall_11)[0]] = feature.extract(syscall_11)[1]
     ngram = ngram_streamer .extract(syscall_dict)
-    assert ngram == (NgramMinusOne.get_id(), [0, 'poll', 'mmap', 'hello'])
+    stream_dict = {}
+    # check if value is not None
+    if ngram[1] is not None:
+        stream_dict[ngram[0]] = ngram[1]
+    feature = current_syscall_as_int.extract(syscall_dict, stream_dict)
+    assert feature == (CurrentSyscallAsInt.get_id(), [0, 'mmap', 'hello'])
