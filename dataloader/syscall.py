@@ -197,4 +197,4 @@ class Syscall:
             else:
                 return param_value
         except KeyError:
-            print("Parameter not in Parameter List of Syscall")
+            pass
