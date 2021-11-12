@@ -161,4 +161,4 @@ class Syscall:
             param_value = params[param_name]
             return param_value
         except KeyError:
-            print("Parameter not in Parameter List of Syscall")
+            pass
