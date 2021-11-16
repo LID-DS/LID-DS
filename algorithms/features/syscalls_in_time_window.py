@@ -11,7 +11,7 @@ from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatur
 from dataloader.syscall import Syscall
 
 
-class SyscallsInTimeWindows(BaseSyscallFeatureExtractor):
+class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
     """
         implementation of the w2v embedding approach based on BaseSyscallFeatureExtractor
 
@@ -36,7 +36,7 @@ class SyscallsInTimeWindows(BaseSyscallFeatureExtractor):
         for buffered_syscall in self._syscall_buffer:
             difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
             if difference > self.window_length:
-                self._syscall_buffer.remove(syscall)
+                self._syscall_buffer.remove(buffered_syscall)
             else:
                 break
 
@@ -66,17 +66,16 @@ class SyscallsInTimeWindows(BaseSyscallFeatureExtractor):
             for buffered_syscall in self._syscall_buffer:
                 difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
                 if difference > self.window_length:
-                    self._syscall_buffer.remove(syscall)
+                    self._syscall_buffer.remove(buffered_syscall)
                 else:
                     break
 
             syscalls_in_window = len(self._syscall_buffer)
-            self._syscall_buffer.pop(0)
             normalized_count = syscalls_in_window / self._training_max
-            return SyscallsInTimeWindows.get_id(), normalized_count
+            return SyscallsInTimeWindow.get_id(), normalized_count
 
         else:
-            return SyscallsInTimeWindows.get_id(), 0
+            return SyscallsInTimeWindow.get_id(), 0
 
 
 
