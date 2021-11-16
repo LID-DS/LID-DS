@@ -28,7 +28,7 @@ data format
 """
 
 SCENARIO_NAMES = [
-    "Bruteforce_CWE-307",
+    # "Bruteforce_CWE-307",
     "CVE-2012-2122",
     "CVE-2014-0160",
     "CVE-2017-7529",
@@ -38,7 +38,7 @@ SCENARIO_NAMES = [
     "CVE-2020-9484",
     "CVE-2020-13942",
     "CVE-2020-23839",
-    "CWE-89-SQL-Injection",
+    "CWE-89-SQL-injection",
     "EPS_CWE-434",
     "Juice-Shop",
     "PHP_CWE-434",
@@ -97,31 +97,34 @@ def calc_stats_for_recording_type(recording_list: list, description: str) -> dic
         distinct_ip_addresses = set([])
         extraction = recording.packets()
 
-        for packet in extraction.frame:
-            package_count += 1
+        try:
+            for packet in extraction.frame:
+                package_count += 1
 
-            # retrieves data for every sublayer of one packet, nonexistent values return None
-            for layer in packet.layers:
-                protocol = layer.layer_name
-                ip = layer.get_field_value('src')
-                http_method = layer.get_field_value('request_method')
+                # retrieves data for every sublayer of one packet, nonexistent values return None
+                for layer in packet.layers:
+                    protocol = layer.layer_name
+                    ip = layer.get_field_value('src')
+                    http_method = layer.get_field_value('request_method')
 
-                if protocol not in protocol_distribution.keys():
-                    protocol_distribution[protocol] = 1
-                else:
-                    protocol_distribution[protocol] += 1
-
-                if ip is not None:
-                    distinct_ip_addresses.add(ip)
-
-                if http_method is not None:
-                    if http_method not in http_method_distribution.keys():
-                        http_method_distribution[http_method] = 1
+                    if protocol not in protocol_distribution.keys():
+                        protocol_distribution[protocol] = 1
                     else:
-                        http_method_distribution[http_method] += 1
+                        protocol_distribution[protocol] += 1
 
-        distinct_ip_count_list.append(len(distinct_ip_addresses))
-        package_count_list.append(package_count)
+                    if ip is not None:
+                        distinct_ip_addresses.add(ip)
+
+                    if http_method is not None:
+                        if http_method not in http_method_distribution.keys():
+                            http_method_distribution[http_method] = 1
+                        else:
+                            http_method_distribution[http_method] += 1
+
+            distinct_ip_count_list.append(len(distinct_ip_addresses))
+            package_count_list.append(package_count)
+        except:
+            print(f'Error occurred in {recording.name}')
 
     # joining the results
     recording_type_results = {
