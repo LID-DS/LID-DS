@@ -1,8 +1,8 @@
 import pytest
 
 from algorithms.features.ngram_plus_next_syscall import NgramPlusNextSyscall
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-from algorithms.features.syscall_to_int import SyscallToInt
+from algorithms.features.threadID import ThreadID
+from algorithms.features.int_embedding import IntEmbedding
 from algorithms.features.syscall_name import SyscallName
 from dataloader.syscall import Syscall
 
@@ -69,7 +69,7 @@ def test_ngram_plus_next_syscall():
                 syscall_10,
                 syscall_11]
 
-    feature_list = [ThreadIDExtractor(), SyscallName(), SyscallToInt()]
+    feature_list = [ThreadID(), SyscallName(), IntEmbedding()]
 
     for syscall in syscalls:
         for feature in feature_list:

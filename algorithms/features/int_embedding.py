@@ -1,20 +1,21 @@
 import typing
 
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
+from algorithms.features.base_feature import BaseFeature
 from dataloader.syscall import Syscall
 
 
-class SyscallToInt(BaseSyscallFeatureExtractor):
+class IntEmbedding(BaseFeature):
     """
-
         convert system call name to unique integer
-
     """
 
     def __init__(self):
         self._syscall_dict = {}
 
-    def train_on(self, syscall: Syscall):
+    def depends_on(self):
+        return []
+
+    def train_on(self, syscall: Syscall, features: dict):
         """
 
             takes one syscall and assigns integer
@@ -25,7 +26,7 @@ class SyscallToInt(BaseSyscallFeatureExtractor):
         if syscall.name() not in self._syscall_dict:
             self._syscall_dict[syscall.name()] = len(self._syscall_dict) + 1
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[str, list]:
+    def extract(self, syscall: Syscall, features: dict) -> typing.Tuple[int, int]:
         """
 
             transforms given syscall name to integer
@@ -35,4 +36,4 @@ class SyscallToInt(BaseSyscallFeatureExtractor):
             sys_to_int = self._syscall_dict[syscall.name()]
         except KeyError:
             sys_to_int = 0
-        return SyscallToInt.get_id(), [sys_to_int]
+        return IntEmbedding.get_id(), sys_to_int

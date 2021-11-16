@@ -1,4 +1,4 @@
-from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.threadID import ThreadID
 from dataloader.syscall import Syscall
 import pytest
 
@@ -12,13 +12,13 @@ def test_syscall_thread_id_extract():
     # str instead of int
     syscall_3 = Syscall("1631209047762210355 33 3686303 apache2 gibberish getuid < uid=33(www-data) ")
 
-    extractor = ThreadIDExtractor()
+    extractor = ThreadID()
 
     id = extractor.extract(syscall_1)
-    assert id == (ThreadIDExtractor.get_id(), 3686302)
+    assert id == (ThreadID.get_id(), 3686302)
 
     id = extractor.extract(syscall_2)
-    assert id == (ThreadIDExtractor.get_id(), 717)
+    assert id == (ThreadID.get_id(), 717)
 
     with pytest.raises(ValueError):
         id = extractor.extract(syscall_3)

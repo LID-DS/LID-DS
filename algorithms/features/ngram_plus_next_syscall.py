@@ -1,8 +1,8 @@
 import typing
 from collections import deque
 
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-from algorithms.features.syscall_to_int import SyscallToInt
+from algorithms.features.threadID import ThreadID
+from algorithms.features.int_embedding import IntEmbedding
 from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
 
 
@@ -31,7 +31,7 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
         thread_id = 0
         if self._thread_aware:
             try:
-                thread_id = syscall_features[ThreadIDExtractor.get_id()]
+                thread_id = syscall_features[ThreadID.get_id()]
             except Exception:
                 raise KeyError('No thread id in features')
         # if current buffer for thread is full append syscall integer
@@ -40,7 +40,7 @@ class NgramPlusNextSyscall(BaseStreamFeatureExtractor):
         if thread_id in self._ngram_buffer:
             if len(self._ngram_buffer[thread_id]) == self._ngram_length:
                 ngram_value = self._collect_features(self._ngram_buffer[thread_id])
-                ngram_value = syscall_features[SyscallToInt.get_id()] + ngram_value
+                ngram_value = syscall_features[IntEmbedding.get_id()] + ngram_value
         # but also add syscall to buffer
         if thread_id not in self._ngram_buffer:
             self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)

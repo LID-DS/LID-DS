@@ -1,6 +1,6 @@
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-from algorithms.features.syscall_to_int import SyscallToInt
+from algorithms.features.ngram import Ngram
+from algorithms.features.threadID import ThreadID
+from algorithms.features.int_embedding import IntEmbedding
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
@@ -14,11 +14,11 @@ if __name__ == '__main__':
     
     """
 
-    syscall_feature_list = [SyscallToInt(),
-                            ThreadIDExtractor()]
-    stream_feature_list = [StreamNgramExtractor(feature_list=[SyscallToInt],
-                                                thread_aware=True,
-                                                ngram_length=5)]
+    syscall_feature_list = [IntEmbedding(),
+                            ThreadID()]
+    stream_feature_list = [Ngram(feature_list=[IntEmbedding],
+                                 thread_aware=True,
+                                 ngram_length=5)]
 
     # data loader for scenario
     dataloader = DataLoader('/home/eschulze/LID-DS-2021/CVE-2017-7529')

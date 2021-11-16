@@ -1,12 +1,13 @@
 import typing
 from collections import deque
-
-from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
-from algorithms.features.threadID_extractor import ThreadIDExtractor
 from collections.abc import Iterable
 
+from algorithms.features.base_feature import BaseFeature
+from algorithms.features.ngram import Ngram
+from algorithms.features.threadID import ThreadID
 
-class NgramMinusOne(BaseStreamFeatureExtractor):
+
+class NgramMinusOne(BaseFeature):
     """
 
     extract ngram form a stream of system call features
@@ -18,13 +19,20 @@ class NgramMinusOne(BaseStreamFeatureExtractor):
     def __init__(self, feature_list: list, thread_aware: bool, ngram_length: int):
         """
         """
-        super().__init__()
         self._ngram_buffer = {}
         self._list_of_feature_ids = []
         for feature_class in feature_list:
             self._list_of_feature_ids.append(feature_class.get_id())
         self._thread_aware = thread_aware
         self._ngram_length = ngram_length
+        self._dependency_list = []
+        if thread_aware:
+            self._dependency_list.append(ThreadID())
+        self._dependency_list.extend(feature_list)
+
+
+    def depends_on(self):
+        return self._dependency_list
 
     def extract(self, syscall_features: dict) -> typing.Tuple[int, list]:
         """
@@ -35,7 +43,7 @@ class NgramMinusOne(BaseStreamFeatureExtractor):
         thread_id = 0
         if self._thread_aware:
             try:
-                thread_id = syscall_features[ThreadIDExtractor.get_id()]
+                thread_id = syscall_features[ThreadID.get_id()]
             except Exception:
                 raise KeyError('No thread id in features')
         if thread_id not in self._ngram_buffer:
@@ -44,7 +52,6 @@ class NgramMinusOne(BaseStreamFeatureExtractor):
         ngram_value = None
 
         if len(self._ngram_buffer[thread_id]) == self._ngram_length:
-
             ngram_value = self._collect_features(self._ngram_buffer[thread_id])
 
         return NgramMinusOne.get_id(), ngram_value

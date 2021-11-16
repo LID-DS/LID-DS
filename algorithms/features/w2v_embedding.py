@@ -3,15 +3,14 @@ import typing
 
 from gensim.models import KeyedVectors, Word2Vec
 
+from algorithms.features.base_feature import BaseFeature
+from algorithms.features.ngram import Ngram
 from algorithms.features.syscall_name import SyscallName
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
+from algorithms.features.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class W2VEmbedding(BaseSyscallFeatureExtractor):
+class W2VEmbedding(BaseFeature):
     """
         implementation of the w2v embedding approach based on BaseSyscallFeatureExtractor
 
@@ -29,25 +28,30 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
                  force_train: bool = False,
                  distinct: bool = True,
                  thread_aware=True):
-        super().__init__()
         scenario_name = os.path.basename(os.path.normpath(scenario_path))
 
         self._vector_size = vector_size
         self._epochs = epochs
-        self._path = os.path.join(path, f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-w2v.model')
+        self._path = os.path.join(path,
+                                  f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-w2v.model')
         self._force_train = force_train
         self._distinct = distinct
         self.w2vmodel = None
         self._sentences = []
-        self._feature_list = [SyscallName(), ThreadIDExtractor()]
+        self._feature_list = [SyscallName(), ThreadID()]
         self._window_size = window_size
-        self._n_gram_streamer = StreamNgramExtractor(feature_list=[SyscallName()],
-                                                     thread_aware=thread_aware,
-                                                     ngram_length=window_size)
+        self._n_gram_streamer = Ngram(feature_list=[SyscallName()],
+                                      thread_aware=thread_aware,
+                                      ngram_length=window_size)
         if not force_train:
             self.load()
 
-    def train_on(self, syscall: Syscall):
+        self._dependency_list = []
+
+    def depends_on(self):
+        return self._dependency_list
+
+    def train_on(self, syscall: Syscall, features: dict):
         """
             gives syscall features to n_gram feature stream, casts it as sentence and saves it to training corpus
         """
@@ -77,7 +81,7 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             model.save(fname_or_handle=self._path)
             self.w2vmodel = model
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, list]:
+    def extract(self, syscall: Syscall, features: dict) -> typing.Tuple[int, list]:
         """
             embeds one system call in w2v model
 

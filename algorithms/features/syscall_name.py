@@ -1,13 +1,19 @@
 import typing
 
+from algorithms.features.base_feature import BaseFeature
 from dataloader.syscall import Syscall
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 
 
-class SyscallName(BaseSyscallFeatureExtractor):
+class SyscallName(BaseFeature):
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, list]:
+    def __init__(self):
+        pass
+
+    def extract(self, syscall: Syscall) -> typing.Tuple[int, str]:
         """
         extract name of syscall
         """
-        return SyscallName.get_id(), [syscall.name()]
+        return SyscallName.get_id(), syscall.name()
+
+    def depends_on(self):
+        return []

@@ -1,7 +1,7 @@
 import pytest
 
 from algorithms.features.ngram_minus_one import NgramMinusOne
-from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.threadID import ThreadID
 from algorithms.features.syscall_name import SyscallName
 from dataloader.syscall import Syscall
 
@@ -64,7 +64,7 @@ def test_ngram_minus_one():
                 syscall_11
                 ]
 
-    feature_list = [ThreadIDExtractor(), SyscallName()]
+    feature_list = [ThreadID(), SyscallName()]
 
     n_gram_streamer = NgramMinusOne(
         feature_list=[SyscallName],
