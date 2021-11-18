@@ -2,17 +2,16 @@ import os
 import pickle
 import typing
 
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
-from dataloader.syscall import Syscall
-
 from treelib import Tree
 from treelib.exceptions import DuplicatedNodeIdError
 
+from algorithms.features.base_feature import BaseFeature
+from dataloader.syscall import Syscall
 
-class PathEvilness(BaseSyscallFeatureExtractor):
+
+class PathEvilness(BaseFeature):
     def __init__(self, scenario_path, path='Models', force_retrain=False, ):
         """
-        
         Feature Extractor that builds a tree for all existing paths in the 
         training data while training.
         
@@ -22,11 +21,8 @@ class PathEvilness(BaseSyscallFeatureExtractor):
         If a path is not present in the tree the extractor checks the height 
         of the anomaly in the tree and returns 1/height resulting in a return
         value that is always 0 < return_value < 1
-        
         """
-        super().__init__()
         scenario_name = os.path.basename(os.path.normpath(scenario_path))
-
         self._file_tree = Tree()
         self._file_tree.create_node('root', 'root')
         self._path = os.path.join(path, f'{scenario_name}-files.tree')
@@ -35,11 +31,9 @@ class PathEvilness(BaseSyscallFeatureExtractor):
         if not force_retrain:
             self._load()
 
-    def train_on(self, syscall: Syscall):
+    def train_on(self, syscall: Syscall, features: dict):
         """
-
         takes one systemcall and builds the training buffer
-
         """
         if not self._tree_was_loaded:
             fd = self._get_valid_fd_or_none(syscall.params())
@@ -53,12 +47,9 @@ class PathEvilness(BaseSyscallFeatureExtractor):
 
     def _get_valid_fd_or_none(self, params) -> typing.Union[str, None]:
         """
-
         checks syscall params for file descriptor tags and extracts its value if present, if not it returns None
-
         Returns:
             value of file descriptor param or None
-
         """
         param_names = ['fd', 'in_fd', 'out_fd']  # params to investigate
         for param in param_names:
@@ -70,13 +61,10 @@ class PathEvilness(BaseSyscallFeatureExtractor):
 
     def _fd_preprocessing(self, fd) -> typing.Union[list, None]:
         """
-
         preprocesses file descriptor by cutting front and back of the string and splitting it on '/'
-
         Returns:
             path as list if / in path
             None if no valid filepath
-
         """
         if '<f>' in fd:
             index = fd.find('<f>')  # <f> occurs at the beginning of all real file paths in file descriptors
@@ -88,9 +76,7 @@ class PathEvilness(BaseSyscallFeatureExtractor):
 
     def _build_file_tree(self, path_list):
         """
-
         builds the file tree on given path
-
         """
         i = 1
         while i < len(path_list):
@@ -100,19 +86,16 @@ class PathEvilness(BaseSyscallFeatureExtractor):
             try:
                 self._file_tree.create_node(child, child_id, parent_id)
             except DuplicatedNodeIdError:
-                pass
+                pass  # Todo if this is the correct behaviour it should be explained in a comment here
             i += 1
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, object]:
+    def extract(self, syscall: Syscall, features: dict):
         """
-
         calculates evilness by checking if path exists in cache
         if not it calculates evilness by looking for the height of the first
         deviating path part
-
         Returns:
             evilness between 0 and 1
-
         """
         evilness = 0
 
@@ -130,23 +113,18 @@ class PathEvilness(BaseSyscallFeatureExtractor):
                         parent_node = self._file_tree.get_node(parent_id)
                         evilness = 1 / (self._file_tree.depth(parent_node) + 1)
                         break
-
-        return PathEvilness.get_id(), evilness
+        features[PathEvilness.get_id()] = evilness
 
     def fit(self):
         """
-
         persists tree and finalizes training
-
         """
         file_handler = open(self._path, 'wb')
         pickle.dump(self._file_tree, file_handler)
 
     def _load(self):
         """
-
         loads tree from models folder if it already exists
-
         """
         try:
             file_handler = open(self._path, 'rb')

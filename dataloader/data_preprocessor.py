@@ -1,11 +1,11 @@
-from tqdm import tqdm
 from typing import Union
 
+from tqdm import tqdm
+
+from algorithms.features.feature_dependency_manager import FeatureDependencyManager
 from dataloader.data_loader import DataLoader
-from dataloader.syscall import Syscall
-from algorithms.features.base_stream_feature_extractor import BaseStreamFeatureExtractor
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 from dataloader.data_loader_2019 import DataLoader as DataLoader_2019
+from dataloader.syscall import Syscall
 
 
 class DataPreprocessor:
@@ -15,43 +15,42 @@ class DataPreprocessor:
         Training data, validation data and test data can than be returned as feature lists.
 
     """
+
     def __init__(self,
                  data_loader: Union[DataLoader, DataLoader_2019],
-                 syscall_feature_list: list,
-                 stream_feature_list: list):
+                 feature_manager: FeatureDependencyManager
+                 ):
         self._data_loader = data_loader
-        self._syscall_feature_list = syscall_feature_list
-        self._stream_feature_list = stream_feature_list
+        self._feature_manager = feature_manager
         self._prepare_and_build_features()
 
     def _prepare_and_build_features(self):
         """
         preprocessing for features
-        - calls train on and fit for each syscall and stream feature on the training data
+        - calls train on and fit for each feature on the training data in the order given by the feature_extractor
         """
-        # train syscall features
 
-        for recording in tqdm(self._data_loader.training_data(), "preparing features 1/2".rjust(25), unit=" recording"):
-            for syscall in recording.syscalls():
-                for syscall_feature in self._syscall_feature_list:
-                    syscall_feature.train_on(syscall)
-            self.new_recording()
+        num_generations = len(self._feature_manager.feature_generations)
+        for current_generation in range(0, num_generations):
+            for recording in tqdm(self._data_loader.training_data(),
+                                  f"preparing features {current_generation + 1}/{num_generations}".rjust(25),
+                                  unit=" recording"):
+                for syscall in recording.syscalls():
+                    feature_dict = {}
+                    # calculate already fitted features
+                    for previous_generation in range(0, current_generation - 1):
+                        for previous_feature in self._feature_manager.feature_generations[previous_generation]:
+                            previous_feature.extract(syscall, feature_dict)
+                    # call train_on for current iteration features
+                    for current_feature in self._feature_manager.feature_generations[current_generation]:
+                        current_feature.train_on(syscall, feature_dict)
+                self.new_recording()
 
-        # fit syscall features
-        for syscall_feature in tqdm(self._syscall_feature_list, "fitting features 1/2".rjust(25), unit=" features"):
-            syscall_feature.fit()
-
-        # train streaming features
-        for recording in tqdm(self._data_loader.training_data(), "preparing features 2/2".rjust(25), unit=" recording"):
-            for syscall in recording.syscalls():
-                features_of_syscall = self._extract_features_from_syscall(syscall)
-                for stream_feature in self._stream_feature_list:
-                    stream_feature.train_on(features_of_syscall)
-            self.new_recording()
-
-        # fit streaming features
-        for stream_feature in tqdm(self._stream_feature_list, "fitting features 2/2".rjust(25), unit=" features"):
-            stream_feature.fit()
+            # fit current generation features
+            for current_feature in tqdm(self._feature_manager.feature_generations[current_generation],
+                                f"fitting features {current_generation + 1}/{num_generations}".rjust(25),
+                                unit=" features"):
+                current_feature.fit()
 
     def _extract_features_from_syscall(self,
                                        syscall: Syscall) -> dict:

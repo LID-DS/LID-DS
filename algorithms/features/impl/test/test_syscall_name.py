@@ -1,4 +1,4 @@
-from algorithms.features.syscall_name import SyscallName
+from algorithms.features.impl.syscall_name import SyscallName
 from dataloader.syscall import Syscall
 
 
@@ -11,9 +11,9 @@ def test_syscall_name_extract():
 
     sn = SyscallName()
 
-    data = sn.extract(syscall_1)
-    assert (data[1][0] == 'open')
-    data = sn.extract(syscall_2)
-    assert (data[1][0] == 'open')
-    data = sn.extract(syscall_3)
-    assert (data[1][0] == "getuid")
+    data = sn.extract(syscall_1, None)
+    assert (data[1] == 'open')
+    data = sn.extract(syscall_2, None)
+    assert (data[1] == 'open')
+    data = sn.extract(syscall_3, None)
+    assert (data[1] == "getuid")

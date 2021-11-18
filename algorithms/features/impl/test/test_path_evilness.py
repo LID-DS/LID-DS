@@ -1,4 +1,4 @@
-from algorithms.features.path_evilness import PathEvilness
+from algorithms.features.impl.path_evilness import PathEvilness
 from dataloader.syscall import Syscall
 
 
@@ -47,7 +47,6 @@ def test_path_evilness():
     syscall_11 = Syscall(
         "1631209047762064269 0 3686303 apache2 3686303 open < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
-
     # only valid training data
     training_syscalls_round_1 = [syscall_1, syscall_2, syscall_3, syscall_4]
     extractor_round_1 = PathEvilness(scenario_path='/Test/test', path='algorithms/Models')
@@ -60,28 +59,28 @@ def test_path_evilness():
     """
 
     for syscall in training_syscalls_round_1:
-        extractor_round_1.train_on(syscall)
+        extractor_round_1.train_on(syscall, None)
 
     extractor_round_1.fit()
 
     # deviation at depth 2
-    evilness = extractor_round_1.extract(syscall_5)
+    evilness = extractor_round_1.extract(syscall_5, None)
     assert evilness == (PathEvilness.get_id(), 0.5)
 
     # deviation at depth 4
-    evilness = extractor_round_1.extract(syscall_6)
+    evilness = extractor_round_1.extract(syscall_6, None)
     assert evilness == (PathEvilness.get_id(), 0.25)
 
     # invalid fd
-    evilness = extractor_round_1.extract(syscall_9)
+    evilness = extractor_round_1.extract(syscall_9, None)
     assert evilness == (PathEvilness.get_id(), 0)
 
     # fd is ip
-    evilness = extractor_round_1.extract(syscall_11)
+    evilness = extractor_round_1.extract(syscall_11, None)
     assert evilness == (PathEvilness.get_id(), 0)
 
     # filepath is known
-    evilness = extractor_round_1.extract(syscall_1)
+    evilness = extractor_round_1.extract(syscall_1, None)
     assert evilness == (PathEvilness.get_id(), 0)
 
     # also invalid training data
@@ -89,27 +88,24 @@ def test_path_evilness():
     extractor_round_2 = PathEvilness(scenario_path='/Test/test', path='algorithms/Models')
 
     for syscall in training_syscalls_round_2:
-        extractor_round_2.train_on(syscall)
+        extractor_round_2.train_on(syscall, None)
 
     # deviation at depth 2
-    evilness = extractor_round_2.extract(syscall_5)
+    evilness = extractor_round_2.extract(syscall_5, None)
     assert evilness == (PathEvilness.get_id(), 0.5)
 
     # deviation at depth 4
-    evilness = extractor_round_2.extract(syscall_6)
+    evilness = extractor_round_2.extract(syscall_6, None)
     assert evilness == (PathEvilness.get_id(), 0.25)
 
     # invalid fd
-    evilness = extractor_round_2.extract(syscall_9)
+    evilness = extractor_round_2.extract(syscall_9, None)
     assert evilness == (PathEvilness.get_id(), 0)
 
     # fd is ip
-    evilness = extractor_round_2.extract(syscall_11)
+    evilness = extractor_round_2.extract(syscall_11, None)
     assert evilness == (PathEvilness.get_id(), 0)
 
     # filepath is known
-    evilness = extractor_round_2.extract(syscall_1)
+    evilness = extractor_round_2.extract(syscall_1, None)
     assert evilness == (PathEvilness.get_id(), 0)
-
-
-

@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-class FeatureExtractor:
+class FeatureDependencyManager:
     def __init__(self, list_of_features):
         self._dependency_graph = nx.DiGraph()
 
@@ -26,6 +26,8 @@ class FeatureExtractor:
         print(dot)
 
         # determine order of calculation by topological sorting the underlying DAG
-        # topological_sort = list(reversed(list(nx.topological_generations(self._dependency_graph))))
-        for i in nx.topological_generations(self._dependency_graph):
-            print(i)
+        # save the order as list of generations
+        self.feature_generations = []
+        for generation in nx.topological_generations(self._dependency_graph):
+            self.feature_generations.append(generation)
+        self.feature_generations.reverse()

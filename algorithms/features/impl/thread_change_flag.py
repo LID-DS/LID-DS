@@ -1,12 +1,11 @@
-import typing
-
 from algorithms.features.base_feature import BaseFeature
-from algorithms.features.ngram import Ngram
-from algorithms.features.threadID import ThreadID
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.threadID import ThreadID
+from algorithms.features.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ThreadChangeFlag(BaseFeature):
+class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
     """
     if a ngram is full: check whether it has another thread id as the last seen ngram
     0 -> no change in thread id
@@ -14,17 +13,13 @@ class ThreadChangeFlag(BaseFeature):
     """
 
     def __init__(self):
-        """
-        """
         self._last_thread_id = 0
-
-        self._dependency_list = []
-        self._dependency_list.append(ThreadID())
+        self._dependency_list = [ThreadID()]
 
     def depends_on(self):
         return self._dependency_list
 
-    def extract(self, syscall: Syscall, features: dict) -> typing.Tuple[str, list]:
+    def extract(self, syscall: Syscall, features: dict):
         """
         only returns not None if ngram exists
         """
@@ -33,7 +28,7 @@ class ThreadChangeFlag(BaseFeature):
             if syscall.thread_id() != self._last_thread_id:
                 self._last_thread_id = syscall.thread_id()
                 tcf = 1
-        return ThreadChangeFlag.get_id(), tcf
+        features[ThreadChangeFlag.get_id()] = tcf
 
     def new_recording(self):
         """

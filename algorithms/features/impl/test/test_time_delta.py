@@ -1,4 +1,4 @@
-from algorithms.features.time_delta import TimeDelta
+from algorithms.features.impl.time_delta import TimeDelta
 from dataloader.syscall import Syscall
 
 
@@ -51,50 +51,50 @@ def test_time_delta():
 
     td = TimeDelta(thread_aware=False)
     for syscall in syscalls:
-        td.train_on(syscall)
+        td.train_on(syscall, None)
     td.fit()
     # biggest time delta 579 nanoseconds
     max_time_delta = td._max_time_delta
     # first syscall, no time delta
-    data = td.extract(syscall_1)
+    data = td.extract(syscall_1, None)
     assert (data[1] == 0)
     # second syscall has biggest time_delta -> normalized = 1
-    data = td.extract(syscall_2)
+    data = td.extract(syscall_2, None)
     assert (data[1] == 1.0)
     # timedelta of 100 nanoseconds: 100/579
-    data = td.extract(syscall_3)
-    assert (data[1] == 100/max_time_delta)
+    data = td.extract(syscall_3, None)
+    assert (data[1] == 100 / max_time_delta)
 
     td = TimeDelta(thread_aware=True)
     for syscall in syscalls:
-        td.train_on(syscall)
+        td.train_on(syscall, None)
     td.fit()
     # biggest time delta 579 nanoseconds
     max_time_delta = td._max_time_delta
     # first syscall, no time delta
-    data = td.extract(syscall_1)
+    data = td.extract(syscall_1, None)
     assert (data[1] == 0)
     # second syscall has biggest time_delta -> normalized = 1
-    data = td.extract(syscall_2)
+    data = td.extract(syscall_2, None)
     assert (data[1] == 1.0)
     # timedelta of 100 nanoseconds: 100/579
-    data = td.extract(syscall_3)
-    assert (data[1] == 100/max_time_delta)
+    data = td.extract(syscall_3, None)
+    assert (data[1] == 100 / max_time_delta)
     # new thread_id so delta = 0
-    data = td.extract(syscall_4)
+    data = td.extract(syscall_4, None)
     assert (data[1] == 0)
     # timedelta of 110 nanoseconds: 110/579
-    data = td.extract(syscall_5)
-    assert (data[1] == 110/max_time_delta)
+    data = td.extract(syscall_5, None)
+    assert (data[1] == 110 / max_time_delta)
     # new thread_id so delta = 0
-    data = td.extract(syscall_6)
+    data = td.extract(syscall_6, None)
     assert (data[1] == 0)
     # timedelta of 110 nanoseconds: 110/579
-    data = td.extract(syscall_7)
-    assert (data[1] == 400/max_time_delta)
+    data = td.extract(syscall_7, None)
+    assert (data[1] == 400 / max_time_delta)
     # timedelta of 290 nanoseconds: 290/579
-    data = td.extract(syscall_8)
-    assert (data[1] == 290/max_time_delta)
+    data = td.extract(syscall_8, None)
+    assert (data[1] == 290 / max_time_delta)
     # timedelta of 300 nanoseconds: 300/579
-    data = td.extract(syscall_9)
-    assert (data[1] == 300/max_time_delta)
+    data = td.extract(syscall_9, None)
+    assert (data[1] == 300 / max_time_delta)

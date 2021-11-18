@@ -6,9 +6,7 @@ from dataloader.syscall import Syscall
 
 class BaseFeature:
     """
-
     base class for a feature
-
     """
     # this is the id of this class determined at runtime
     class_id = None
@@ -18,37 +16,26 @@ class BaseFeature:
 
     def train_on(self, syscall: Syscall, features: dict):
         """
-
         takes one system call instance and the given features to train this extraction
-
         """
         pass
 
     def fit(self):
         """
-
         finalizes training
-
         """
         pass
 
-    def extract(self, syscall: Syscall, features: dict) -> typing.Tuple[int, object]:
+    def extract(self, syscall: Syscall, features: dict):
         """
-
         calculates features on the given syscall and other already calculated features given in features
-
-        Returns:
-                key: id of the newly calculated feature
-                value: the value(s) of the feature
-
+        writes its result into the given feature dict with key = get_id()
         """
         pass
 
     def new_recording(self):
         """
-
         empties buffer and prepares for next recording
-
         """
         pass
 

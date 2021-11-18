@@ -1,11 +1,11 @@
 import pytest
 
-from algorithms.features.ngram import Ngram
-from algorithms.features.threadID import ThreadID
-from algorithms.features.syscall_name import SyscallName
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.threadID import ThreadID
+from algorithms.features.impl.syscall_name import SyscallName
 from dataloader.syscall import Syscall
 
-def test_stream_n_gram_extractor():
+def test_ngram():
     # legit
     syscall_1 = Syscall(
         "1631209047761484608 0 3686302 apache2 3686303 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
@@ -66,7 +66,7 @@ def test_stream_n_gram_extractor():
     feature_list = [ThreadID(), SyscallName()]
 
     n_gram_streamer = Ngram(
-        feature_list=[SyscallName],
+        feature_list=[SyscallName()],
         thread_aware=True,
         ngram_length=3
     )
@@ -74,76 +74,82 @@ def test_stream_n_gram_extractor():
     # SYSCALL 1
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_1)[0]] = feature.extract(syscall_1)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
-    assert n_gram == (Ngram.get_id(), None)
+        feature.extract(syscall_1, syscall_dict)
+    n_gram_streamer.extract(syscall_1, syscall_dict)
+    assert syscall_dict[Ngram.get_id()] is None
 
     # SYSCALL 2
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_2)[0]] = feature.extract(syscall_2)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
-    assert n_gram == (Ngram.get_id(), None)
+        feature.extract(syscall_2, syscall_dict)
+    n_gram_streamer.extract(syscall_2, syscall_dict)
+    assert syscall_dict[Ngram.get_id()] is None
 
     # SYSCALL 3
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_3)[0]] = feature.extract(syscall_3)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
-    assert n_gram == (Ngram.get_id(), ['open', 'close', 'poll'])
+        feature.extract(syscall_3, syscall_dict)
+    n_gram_streamer.extract(syscall_3, syscall_dict)
+    assert syscall_dict[Ngram.get_id()] == ['open', 'close', 'poll']
 
     # SYSCALL 4
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_4)[0]] = feature.extract(syscall_4)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
-    assert n_gram == (Ngram.get_id(), None)
+        feature.extract(syscall_4, syscall_dict)
+    n_gram_streamer.extract(syscall_4, syscall_dict)
+    assert syscall_dict[Ngram.get_id()] is None
 
     # SYSCALL 5
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_5)[0]] = feature.extract(syscall_5)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
-    assert n_gram == (Ngram.get_id(), None)
+        feature.extract(syscall_5, syscall_dict)
+    n_gram_streamer.extract(syscall_5, syscall_dict)
+    assert syscall_dict[Ngram.get_id()] is None
 
     # SYSCALL 6
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_6)[0]] = feature.extract(syscall_6)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+        k, v = feature.extract(syscall_6, None)
+        syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(syscall_6, syscall_dict)
     assert n_gram == (Ngram.get_id(), None)
 
     # SYSCALL 7
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_7)[0]] = feature.extract(syscall_7)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+        k, v = feature.extract(syscall_7, None)
+        syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(syscall_7, syscall_dict)
     assert n_gram == (Ngram.get_id(), ['close', 'poll', 'mmap'])
 
     # SYSCALL 8
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_8)[0]] = feature.extract(syscall_8)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+        k, v = feature.extract(syscall_8, None)
+        syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(syscall_8, syscall_dict)
     assert n_gram == (Ngram.get_id(), ['mmap', 'open', 'open'])
 
     # SYSCALL 9
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_9)[0]] = feature.extract(syscall_9)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+        k, v = feature.extract(syscall_9, None)
+        syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(syscall_9, syscall_dict)
     assert n_gram == (Ngram.get_id(), ['poll', 'mmap', 'close'])
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
         syscall_dict = {}
         for feature in feature_list:
-            syscall_dict[feature.extract(syscall_10)[0]] = feature.extract(syscall_10)[1]
-        n_gram_streamer.extract(syscall_dict)
+            k, v = feature.extract(syscall_10, None)
+            syscall_dict[k] = v
+        n_gram_streamer.extract(syscall_10, syscall_dict)
 
     # SYSCALL 11
     syscall_dict = {}
     for feature in feature_list:
-        syscall_dict[feature.extract(syscall_11)[0]] = feature.extract(syscall_11)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+        k, v = feature.extract(syscall_11, None)
+        syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(syscall_11, syscall_dict)
     assert n_gram == (Ngram.get_id(), ['mmap', 'close', 'hello'])

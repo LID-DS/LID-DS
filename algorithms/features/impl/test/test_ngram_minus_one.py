@@ -1,8 +1,9 @@
 import pytest
 
-from algorithms.features.ngram_minus_one import NgramMinusOne
-from algorithms.features.threadID import ThreadID
-from algorithms.features.syscall_name import SyscallName
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.ngram_minus_one import NgramMinusOne
+from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
@@ -64,87 +65,117 @@ def test_ngram_minus_one():
                 syscall_11
                 ]
 
-    feature_list = [ThreadID(), SyscallName()]
+    feature_list_1 = [ThreadID(), SyscallName()]
 
-    n_gram_streamer = NgramMinusOne(
-        feature_list=[SyscallName],
-        thread_aware=True,
-        ngram_length=3
-    )
+    ng = Ngram(feature_list=[SyscallName], thread_aware=True, ngram_length=3)
+    n_gram_streamer = NgramMinusOne(ngram=ng)
 
     # SYSCALL 1
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_1)[0]] = feature.extract(syscall_1)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_1, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), None)
 
     # SYSCALL 2
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_2)[0]] = feature.extract(syscall_2)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_2, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), None)
 
     # SYSCALL 3
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_3)[0]] = feature.extract(syscall_3)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_3, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), ['open', 'close'])
 
     # SYSCALL 4
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_4)[0]] = feature.extract(syscall_4)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_4, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), None)
 
     # SYSCALL 5
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_5)[0]] = feature.extract(syscall_5)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_5, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), None)
 
     # SYSCALL 6
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_6)[0]] = feature.extract(syscall_6)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_6, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), None)
 
     # SYSCALL 7
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_7)[0]] = feature.extract(syscall_7)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_7, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), ['close', 'poll'])
 
     # SYSCALL 8
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_8)[0]] = feature.extract(syscall_8)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_8, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), ['mmap', 'open'])
 
     # SYSCALL 9
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_9)[0]] = feature.extract(syscall_9)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_9, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), ['poll', 'mmap'])
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
         syscall_dict = {}
-        for feature in feature_list:
-            syscall_dict[feature.extract(syscall_10)[0]] = feature.extract(syscall_10)[1]
-        n_gram_streamer.extract(syscall_dict)
+        for feature in feature_list_1:
+            k, v = feature.extract(syscall_10, None)
+            syscall_dict[k] = v
+        k, v = ng.extract(None, syscall_dict)
+        syscall_dict[k] = v
+        n_gram_streamer.extract(None, syscall_dict)
 
     # SYSCALL 11
     syscall_dict = {}
-    for feature in feature_list:
-        syscall_dict[feature.extract(syscall_11)[0]] = feature.extract(syscall_11)[1]
-    n_gram = n_gram_streamer.extract(syscall_dict)
+    for feature in feature_list_1:
+        k, v = feature.extract(syscall_11, None)
+        syscall_dict[k] = v
+    k, v = ng.extract(None, syscall_dict)
+    syscall_dict[k] = v
+    n_gram = n_gram_streamer.extract(None, syscall_dict)
     assert n_gram == (NgramMinusOne.get_id(), ['mmap', 'close'])

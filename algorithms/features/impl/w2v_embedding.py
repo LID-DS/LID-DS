@@ -1,12 +1,11 @@
 import os.path
-import typing
 
 from gensim.models import KeyedVectors, Word2Vec
 
 from algorithms.features.base_feature import BaseFeature
-from algorithms.features.ngram import Ngram
-from algorithms.features.syscall_name import SyscallName
-from algorithms.features.threadID import ThreadID
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
@@ -58,10 +57,10 @@ class W2VEmbedding(BaseFeature):
         if self.w2vmodel is None:
             syscall_feature_dict = {}
             for feature in self._feature_list:
-                k, v = feature.extract(syscall)
+                k, v = feature.extract(syscall, None)
                 syscall_feature_dict[k] = v
 
-            _, sentence = self._n_gram_streamer.extract(syscall_feature_dict)
+            _, sentence = self._n_gram_streamer.extract(None, syscall_feature_dict)
 
             if sentence is not None:
                 if self._distinct:
@@ -81,7 +80,7 @@ class W2VEmbedding(BaseFeature):
             model.save(fname_or_handle=self._path)
             self.w2vmodel = model
 
-    def extract(self, syscall: Syscall, features: dict) -> typing.Tuple[int, list]:
+    def extract(self, syscall: Syscall, features: dict):
         """
             embeds one system call in w2v model
 
@@ -91,9 +90,9 @@ class W2VEmbedding(BaseFeature):
                 syscall vector
         """
         try:
-            return W2VEmbedding.get_id(), self.w2vmodel.wv[syscall.name()].tolist()
+            features[W2VEmbedding.get_id()] = self.w2vmodel.wv[syscall.name()].tolist()
         except KeyError:
-            return W2VEmbedding.get_id(), [0] * self._vector_size
+            features[W2VEmbedding.get_id()] = [0] * self._vector_size
 
     def load(self):
         """

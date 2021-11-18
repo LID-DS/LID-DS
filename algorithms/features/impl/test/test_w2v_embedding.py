@@ -1,8 +1,8 @@
-from algorithms.features.w2v_embedding import W2VEmbedding
+from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from dataloader.syscall import Syscall
 
 
-def test_path_evilness():
+def test_w2v_embedding():
     # legit
     syscall_1 = Syscall(
         "1631209047761484608 0 3686302 apache2 3686303 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
@@ -47,7 +47,6 @@ def test_path_evilness():
     syscall_11 = Syscall(
         "1631209047762064269 0 3686303 apache2 3686303 627272 < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
-
     vector_size = 3
     embedding = W2VEmbedding(
         vector_size=vector_size,
@@ -60,20 +59,21 @@ def test_path_evilness():
 
     training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_5, syscall_6, syscall_7, syscall_8]
 
+    features = {}
+
     for syscall in training_syscalls:
-        embedding.train_on(syscall)
+        embedding.train_on(syscall, features)
 
     embedding.fit()
 
-    return_value = embedding.extract(syscall_9)
+    return_value = embedding.extract(syscall_9, features)
     assert return_value[0] == W2VEmbedding.get_id()
     assert type(return_value[1]) == list
 
-    return_value = embedding.extract(syscall_10)
+    return_value = embedding.extract(syscall_10, features)
     assert return_value[0] == W2VEmbedding.get_id()
     assert return_value[1] == [0] * vector_size
 
-    return_value = embedding.extract(syscall_11)
+    return_value = embedding.extract(syscall_11, features)
     assert return_value[0] == W2VEmbedding.get_id()
     assert return_value[1] == [0] * vector_size
-
