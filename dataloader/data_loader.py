@@ -88,7 +88,7 @@ class DataLoader(BaseDataLoader):
 
     """
 
-    def __init__(self, scenario_path, direction: Direction = Direction.OPEN):
+    def __init__(self, scenario_path, direction: Direction = Direction.BOTH):
         """
 
             Save path of scenario and create metadata_list.
