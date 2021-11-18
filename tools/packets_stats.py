@@ -28,7 +28,7 @@ data format
 """
 
 SCENARIO_NAMES = [
-    # "Bruteforce_CWE-307",
+    "Bruteforce_CWE-307",
     "CVE-2012-2122",
     "CVE-2014-0160",
     "CVE-2017-7529",
