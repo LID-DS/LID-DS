@@ -61,7 +61,9 @@ if __name__ == '__main__':
                     except FileExistsError:
                         pass
 
-                with zipfile.ZipFile(src_zip) as inzip, zipfile.ZipFile(dst_zip, "w") as outzip:
+                with zipfile.ZipFile(src_zip) as inzip, zipfile.ZipFile(dst_zip, "w",
+                                                                        zipfile.ZIP_DEFLATED,
+                                                                        compresslevel=8) as outzip:
                     # Iterate the input files
                     for inzipinfo in inzip.infolist():
                         with inzip.open(inzipinfo) as infile:
