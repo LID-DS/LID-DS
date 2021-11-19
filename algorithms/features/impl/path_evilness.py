@@ -31,6 +31,12 @@ class PathEvilness(BaseFeature):
         if not force_retrain:
             self._load()
 
+    def depends_on(self) -> list:
+        """
+        gives information about the dependencies of this feature
+        """
+        return []
+
     def train_on(self, syscall: Syscall, features: dict):
         """
         takes one systemcall and builds the training buffer

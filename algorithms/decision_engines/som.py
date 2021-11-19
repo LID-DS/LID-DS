@@ -67,7 +67,7 @@ class Som(BaseDecisionEngine):
                             sigma=self._sigma,
                             learning_rate=self._learning_rate)
 
-        for epoch in tqdm(range(self._epochs), desc='Training SOM'):
+        for epoch in tqdm(range(self._epochs), desc='Training SOM'.rjust(27)):
             for vector in self._buffer:
                 self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
 

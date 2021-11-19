@@ -12,9 +12,9 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
     1 -> thread id changed
     """
 
-    def __init__(self):
+    def __init__(self, ngram: Ngram):
         self._last_thread_id = 0
-        self._dependency_list = [ThreadID()]
+        self._dependency_list = [ThreadID(), ngram]
 
     def depends_on(self):
         return self._dependency_list

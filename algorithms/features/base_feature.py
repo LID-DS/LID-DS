@@ -1,5 +1,3 @@
-import typing
-
 from algorithms.features.feature_id_manager import FeatureIDManager
 from dataloader.syscall import Syscall
 
@@ -44,6 +42,19 @@ class BaseFeature:
         gives information about the dependencies of this feature
         """
         pass
+
+    def __str__(self) -> str:
+        """
+        gives a more or less human readable str representation of this object
+        returns: "Name_of_class(memory_address)"
+        """
+        return f"{self.__class__.__name__}({hex(id(self))})"
+
+    def __repr__(self):
+        """
+        same for __repr__
+        """
+        return self.__str__()
 
     @classmethod
     def get_id(cls):

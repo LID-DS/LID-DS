@@ -22,7 +22,6 @@ class Ngram(BaseFeature):
         self._list_of_feature_ids = []
         for feature in feature_list:
             self._list_of_feature_ids.append(feature.get_id())
-        self.number_of_features = len(self._list_of_feature_ids)
         self._thread_aware = thread_aware
         self._ngram_length = ngram_length
 
