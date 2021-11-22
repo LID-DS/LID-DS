@@ -123,7 +123,8 @@ def calc_stats_for_recording_type(recording_list: list, description: str) -> dic
 
             distinct_ip_count_list.append(len(distinct_ip_addresses))
             package_count_list.append(package_count)
-        except:
+        except Exception as e:
+            print(e)
             print(f'Error occurred in {recording.name}')
 
     # joining the results
@@ -143,46 +144,48 @@ if __name__ == '__main__':
                         help='LID-DS Base Path')
     parser.add_argument('-o', dest='output_path', action='store', type=str, required=True,
                         help='Output Path for statistics')
+    parser.add_argument('-s', dest='scenario_number', action='store', type=int, required=True,
+                        help='Output Path for statistics')
 
     args = parser.parse_args()
 
     # iterates through list of all scenarios, main loop
-    for scenario in SCENARIO_NAMES:
-        result_dict = {}
+    scenario = SCENARIO_NAMES[args.scenario_number]
+    result_dict = {}
 
-        scenario_path = os.path.join(args.base_path, scenario)
-        dataloader = DataLoader(scenario_path)
+    scenario_path = os.path.join(args.base_path, scenario)
+    dataloader = DataLoader(scenario_path)
 
-        # dict to describe dataset structure
-        data_parts = {
-            'Training': {
-                'Idle': dataloader.training_data(recording_type=RecordingType.IDLE),
-                'Normal': dataloader.training_data(recording_type=RecordingType.NORMAL)
-            },
-            'Validation': {
-                'Idle': dataloader.validation_data(recording_type=RecordingType.IDLE),
-                'Normal': dataloader.validation_data(recording_type=RecordingType.NORMAL)
-            },
-            'Test': {
-                'Idle': dataloader.test_data(recording_type=RecordingType.IDLE),
-                'Normal': dataloader.test_data(recording_type=RecordingType.NORMAL),
-                'Attack': dataloader.test_data(recording_type=RecordingType.ATTACK),
-                'Normal and Attack': dataloader.test_data(recording_type=RecordingType.NORMAL_AND_ATTACK)
-            }
+    # dict to describe dataset structure
+    data_parts = {
+        'Training': {
+            'Idle': dataloader.training_data(recording_type=RecordingType.IDLE),
+            'Normal': dataloader.training_data(recording_type=RecordingType.NORMAL)
+        },
+        'Validation': {
+            'Idle': dataloader.validation_data(recording_type=RecordingType.IDLE),
+            'Normal': dataloader.validation_data(recording_type=RecordingType.NORMAL)
+        },
+        'Test': {
+            'Idle': dataloader.test_data(recording_type=RecordingType.IDLE),
+            'Normal': dataloader.test_data(recording_type=RecordingType.NORMAL),
+            'Attack': dataloader.test_data(recording_type=RecordingType.ATTACK),
+            'Normal and Attack': dataloader.test_data(recording_type=RecordingType.NORMAL_AND_ATTACK)
         }
+    }
 
-        # runs calculation for every recording type of every data part in data_part dictionary
-        for data_part in data_parts.keys():
-            for recording_type in data_parts[data_part].keys():
-                record_results = calc_stats_for_recording_type(data_parts[data_part][recording_type],
-                                                               f"{scenario}: {data_part} - {recording_type}".rjust(45))
-                if scenario not in result_dict.keys():
-                    result_dict[scenario] = {}
+    # runs calculation for every recording type of every data part in data_part dictionary
+    for data_part in data_parts.keys():
+        for recording_type in data_parts[data_part].keys():
+            record_results = calc_stats_for_recording_type(data_parts[data_part][recording_type],
+                                                           f"{scenario}: {data_part} - {recording_type}".rjust(45))
+            if scenario not in result_dict.keys():
+                result_dict[scenario] = {}
 
-                if data_part not in result_dict[scenario].keys():
-                    result_dict[scenario][data_part] = {}
+            if data_part not in result_dict[scenario].keys():
+                result_dict[scenario][data_part] = {}
 
-                result_dict[scenario][data_part][recording_type] = record_results
+            result_dict[scenario][data_part][recording_type] = record_results
 
-        # saving the result
-        save_to_json(result_dict, args.output_path, scenario)
+    # saving the result
+    save_to_json(result_dict, args.output_path, scenario)
