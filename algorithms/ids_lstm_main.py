@@ -46,7 +46,7 @@ if __name__ == '__main__':
                 force_train=False,
                 # time_delta=0,
                 # thread_change_flag=0,
-                return_value=0)
+                return_value=1)
 
     # define the used features
     ids = IDS(data_loader=dataloader,

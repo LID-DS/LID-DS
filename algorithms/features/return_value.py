@@ -8,9 +8,6 @@ class ReturnValue(BaseSyscallFeatureExtractor):
 
     def __init__(self):
         super().__init__()
-        self._max_time_delta = 0
-        self._last_time = {}
-        self.type_dict = {}
         self._max_returned_bytes_read = 0
         self._max_returned_bytes_write = 0
 
@@ -46,10 +43,6 @@ class ReturnValue(BaseSyscallFeatureExtractor):
                         # print(b)
             except Exception:
                 pass
-                #print(syscall.name(), return_value_string)
-        # delta = self._calc_delta(current_time, syscall)
-        # if delta > self._max_time_delta:
-        # self._max_time_delta = delta
 
     def fit(self):
         print(self._max_returned_bytes_read)
@@ -70,8 +63,8 @@ class ReturnValue(BaseSyscallFeatureExtractor):
                         return_type = 'write'
                     else:
                         # print("else")
-                        print(max_returned_bytes_read)
-                        print(max_returned_bytes_write)
+                        print(self._max_returned_bytes_read)
+                        print(self._max_returned_bytes_write)
                         print(syscall.name(), return_value_string)
                         b = 'write' in return_value_string
                         # print(b)
@@ -82,4 +75,3 @@ class ReturnValue(BaseSyscallFeatureExtractor):
             else:
                 normalized_bytes = current_bytes/self._max_retruned_bytes_write
             return normalized_bytes
-
