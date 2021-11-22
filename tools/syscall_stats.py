@@ -39,7 +39,7 @@ SCENARIO_NAMES = [
     "CVE-2020-9484",
     "CVE-2020-13942",
     "CVE-2020-23839",
-    "CWE-89-SQL-Injection",
+    "CWE-89-SQL-injection",
     "EPS_CWE-434",
     "Juice-Shop",
     "PHP_CWE-434",

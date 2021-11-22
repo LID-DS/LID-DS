@@ -49,13 +49,13 @@ class Recording:
 
         """
         with open(self.path, 'r') as recording_file:
-            for syscall in recording_file:
-                syscall_object = Syscall(syscall)
+            for line_id, syscall in enumerate(recording_file, start=1):
+                syscall_object = Syscall(syscall, line_id=line_id)
                 if self._direction != Direction.BOTH:
                     if syscall_object.direction() == self._direction and syscall_object.name() != 'switch':
                         yield syscall_object
                 elif syscall_object.name() != 'switch':
-                    yield Syscall(syscall)
+                    yield Syscall(syscall, line_id=line_id)
 
     def _collect_metadata(self):
         """

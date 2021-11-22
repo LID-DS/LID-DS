@@ -1,25 +1,28 @@
 import pprint
 
+from algorithms.decision_engines.stide import Stide
+from algorithms.features.path_evilness import PathEvilness
 from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.threadID_extractor import ThreadIDExtractor
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
+from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 from dataloader.direction import Direction
-from dataloader.dataloader_factory import dataloader_factory
 
 if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes
     """
     # data loader for scenario
-    dataloader = dataloader_factory('/home/felix/repos/LID-DS/', direction=Direction.OPEN)
+    dataloader = DataLoader('/home/felix/repos/LID-DS/LID-DS-2021/CVE-2017-7529', direction=Direction.OPEN)
 
     # decision engine (DE)
     DE = Som(
         epochs=50
     )
+
 
     syscall_feature_list = [ThreadIDExtractor(),
                             W2VEmbedding(
