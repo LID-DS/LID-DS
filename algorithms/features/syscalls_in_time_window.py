@@ -1,26 +1,19 @@
-import os.path
 import typing
 
-from gensim.models import KeyedVectors, Word2Vec
-
-from algorithms.features.syscall_name import SyscallName
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
 from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
 from dataloader.syscall import Syscall
 
 
 class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
-    """
-        implementation of the w2v embedding approach based on BaseSyscallFeatureExtractor
 
-        Special for this one:
-            uses n_gram feature stream to create sentences for word corpus
-            -> thread and file awareness given
-    """
+    def __init__(self, window_length_in_s: int):
+        """
+            FeatureExtractor that extracts number of syscalls in time window
+            before current syscall, acts thread aware
 
-    def __init__(self, window_length_in_s):
+            args:
+                window_length_in_s = window length in seconds
+        """
         super().__init__()
         self.window_length = window_length_in_s
         self._count_in_window = 0
@@ -29,70 +22,83 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
 
     def train_on(self, syscall: Syscall):
         """
-
+            trains the extractor by finding the biggest count of syscalls
+            in time window needed for normalization of feature
         """
         current_timestamp = syscall.timestamp_datetime()
         thread_id = syscall.thread_id()
-        if not thread_id in self._syscall_buffer:
+        if thread_id not in self._syscall_buffer.keys():
             self._syscall_buffer[thread_id] = []
         self._syscall_buffer[thread_id].append(syscall)
-        for buffered_syscall in self._syscall_buffer[thread_id]:
+
+        last_index = 0
+        i = 0
+        while i < len(self._syscall_buffer[thread_id]):
+            buffered_syscall = self._syscall_buffer[thread_id][i]
+            i += 1
             difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
-            if difference > self.window_length:
-                self._syscall_buffer[thread_id].remove(buffered_syscall)
-            else:
+
+            # saving the index of the first element that is in time window
+            if difference <= self.window_length:
+                last_index = i
                 break
 
+        # clear first n elements from buffer where time difference > time window
+        self._syscall_buffer[thread_id] = self._syscall_buffer[thread_id][last_index - 1:]
+
+        # window count is the length of the left buffer
         syscalls_in_window = len(self._syscall_buffer[thread_id])
         if syscalls_in_window > self._training_max:
             self._training_max = syscalls_in_window
 
     def fit(self):
         """
-            trains the w2v model on training sentences
+            clears the syscall buffer
         """
         self._syscall_buffer = {}
 
     def extract(self, syscall: Syscall) -> typing.Tuple[int, float]:
         """
-            embeds one system call in w2v model
-
-            if word is not in corpus a zero-vector with correct size is returned
-
-            Returns:
-                syscall vector
+            extracts count of syscalls in time window before current syscall
+            returns normalized value based on training data
         """
         current_timestamp = syscall.timestamp_datetime()
         thread_id = syscall.thread_id()
 
-
-        if thread_id not in self._syscall_buffer:
+        if thread_id not in self._syscall_buffer.keys():
             self._syscall_buffer[thread_id] = []
 
         self._syscall_buffer[thread_id].append(syscall)
+        last_index = 0
 
-
-        if (current_timestamp - self._syscall_buffer[thread_id][0].timestamp_datetime()).total_seconds() >= self.window_length:
-            for buffered_syscall in self._syscall_buffer[thread_id]:
+        if (current_timestamp - self._syscall_buffer[thread_id][0].timestamp_datetime()).total_seconds() \
+                >= self.window_length:
+            i = 0
+            while i < len(self._syscall_buffer[thread_id]):
+                buffered_syscall = self._syscall_buffer[thread_id][i]
+                i += 1
                 difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
-                if difference > self.window_length:
-                    print(difference)
-                    self._syscall_buffer[thread_id].remove(buffered_syscall)
-                else:
+
+                # saving the index of the first element that is in time window
+                if difference <= self.window_length:
+                    last_index = i
                     break
 
-            syscalls_in_window = len(self._syscall_buffer)
+            # clear first n elements from buffer where time difference > time window
+            self._syscall_buffer[thread_id] = self._syscall_buffer[thread_id][last_index - 1:]
+
+            # window count is the length of the left buffer
+            syscalls_in_window = len(self._syscall_buffer[thread_id])
+
+            # normalizing the return value with maximum count from training data
             normalized_count = syscalls_in_window / self._training_max
             return SyscallsInTimeWindow.get_id(), normalized_count
 
         else:
-            print('here')
             return SyscallsInTimeWindow.get_id(), 0
-
-
 
     def new_recording(self):
         """
-            tells n_gram streamer to clear buffer after beginning of new recording
+            clears syscall buffer
         """
         self._syscall_buffer = {}
