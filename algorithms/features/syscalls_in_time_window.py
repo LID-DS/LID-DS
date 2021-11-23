@@ -24,7 +24,7 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
         super().__init__()
         self.window_length = window_length_in_s
         self._count_in_window = 0
-        self._syscall_buffer = []
+        self._syscall_buffer = {}
         self._training_max = 0
 
     def train_on(self, syscall: Syscall):
@@ -32,15 +32,18 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
 
         """
         current_timestamp = syscall.timestamp_datetime()
-        self._syscall_buffer.append(syscall)
-        for buffered_syscall in self._syscall_buffer:
+        thread_id = syscall.thread_id()
+        if not thread_id in self._syscall_buffer:
+            self._syscall_buffer[thread_id] = []
+        self._syscall_buffer[thread_id].append(syscall)
+        for buffered_syscall in self._syscall_buffer[thread_id]:
             difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
             if difference > self.window_length:
-                self._syscall_buffer.remove(buffered_syscall)
+                self._syscall_buffer[thread_id].remove(buffered_syscall)
             else:
                 break
 
-        syscalls_in_window = len(self._syscall_buffer)
+        syscalls_in_window = len(self._syscall_buffer[thread_id])
         if syscalls_in_window > self._training_max:
             self._training_max = syscalls_in_window
 
@@ -48,7 +51,7 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
         """
             trains the w2v model on training sentences
         """
-        self._syscall_buffer = []
+        self._syscall_buffer = {}
 
     def extract(self, syscall: Syscall) -> typing.Tuple[int, float]:
         """
@@ -60,13 +63,21 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
                 syscall vector
         """
         current_timestamp = syscall.timestamp_datetime()
-        self._syscall_buffer.append(syscall)
+        thread_id = syscall.thread_id()
 
-        if not (current_timestamp - self._syscall_buffer[0].timestamp_datetime()).total_seconds() > self.window_length:
-            for buffered_syscall in self._syscall_buffer:
+
+        if thread_id not in self._syscall_buffer:
+            self._syscall_buffer[thread_id] = []
+
+        self._syscall_buffer[thread_id].append(syscall)
+
+
+        if (current_timestamp - self._syscall_buffer[thread_id][0].timestamp_datetime()).total_seconds() >= self.window_length:
+            for buffered_syscall in self._syscall_buffer[thread_id]:
                 difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
                 if difference > self.window_length:
-                    self._syscall_buffer.remove(buffered_syscall)
+                    print(difference)
+                    self._syscall_buffer[thread_id].remove(buffered_syscall)
                 else:
                     break
 
@@ -75,6 +86,7 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
             return SyscallsInTimeWindow.get_id(), normalized_count
 
         else:
+            print('here')
             return SyscallsInTimeWindow.get_id(), 0
 
 
@@ -83,4 +95,4 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
         """
             tells n_gram streamer to clear buffer after beginning of new recording
         """
-        self._syscall_buffer = []
+        self._syscall_buffer = {}
