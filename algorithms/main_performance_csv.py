@@ -57,6 +57,12 @@ if __name__ == '__main__':
             for ngram_config in N_GRAM_PARAMS:
                 for window_config in WINDOW_LENGTH_PARAMS:
 
+                    print('Running STIDE algorithm with config:')
+                    print(f'   Scenario: {name}')
+                    print(f'   Thread Aware: {flag}')
+                    print(f'   n_gram Size: {ngram_config}')
+                    print(f'   Window Size: {window_config}')
+
                     stream_feature_list = [StreamNgramExtractor(feature_list=[SyscallToInt],
                                                                 thread_aware=flag,
                                                                 ngram_length=ngram_config)]
@@ -83,7 +89,7 @@ if __name__ == '__main__':
                     performance_dict["window_length"] = f"{window_config}"
                     # pprint(perf_dict)
 
-                    with open(args.output_path + "/performance.csv", 'a') as performance_csv:
+                    with open(os.path.join(args.output_path, "performance.csv"), "a") as performance_csv:
                         fieldnames = ["scenario",
                                       "thread_aware",
                                       "n_gram",
