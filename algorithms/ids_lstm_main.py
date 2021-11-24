@@ -11,7 +11,7 @@ from algorithms.decision_engines.lstm import LSTM
 from algorithms.ids import IDS
 from score_plot import ScorePlot
 
-import pprint
+from pprint import pprint
 
 if __name__ == '__main__':
     """
@@ -55,15 +55,14 @@ if __name__ == '__main__':
     # define the used features
     ids = IDS(data_loader=dataloader,
               data_preprocessor=dataprocessor,
-              decision_engine=lstm)
+              decision_engine=lstm,
+              plot_switch=True)
 
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
-    pprint.pprint(ids.get_performance())
+    pprint(ids.performance.get_performance())
 
-    # creating plot
-    plot = ScorePlot(scenario_path=dataloader.scenario_path)
-
-    plot.feed_figure(ids.get_plotting_data())
-    plot.show_plot()
+    ids.plot.feed_figure()
+    ids.plot.show_plot()
+    
