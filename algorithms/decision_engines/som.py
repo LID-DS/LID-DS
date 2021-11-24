@@ -79,6 +79,7 @@ class Som(BaseDecisionEngine):
                 distance (float): euclidian distance/anomaly score
         """
         tupled = tuple(input_array)
+        # print(len(input_array))
         if tupled not in self._cache:
             codebook_vector = np.array(self._som.quantization([input_array])[0])
             vector = np.array(input_array)
