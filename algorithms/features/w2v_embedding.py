@@ -31,7 +31,9 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
                  thread_aware=True):
         super().__init__()
         scenario_name = os.path.basename(os.path.normpath(scenario_path))
-
+        path = path + f'/{scenario_name}'
+        if not os.path.exists(path):
+            os.makedirs(path)
         self._vector_size = vector_size
         self._epochs = epochs
         self._path = os.path.join(path, f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-w2v.model')
