@@ -8,11 +8,19 @@ from dataloader.data_loader import DataLoader
 from dataloader.data_preprocessor import DataPreprocessor
 from pprint import pprint
 import os
+import argparse
 
 
 if __name__ == '__main__':
 
-    dataset_folder_path = "/home/eschulze/LID-DS-2021/"
+    parser = argparse.ArgumentParser(description='Saving Stide Performance to csv.')
+
+    parser.add_argument('-d', dest='base_path', action='store', type=str, required=True,
+                        help='LID-DS base path')
+    parser.add_argument('-o', dest='output_path', action='store', type=str, required=True,
+                        help='output path for performance')
+
+    args = parser.parse_args()
 
     # lists of config parameters to iterate through
     THREAD_AWARE = [True, False]
@@ -43,7 +51,7 @@ if __name__ == '__main__':
 
     # data loader for scenario
     for name in SCENARIO_NAMES:
-        dataloader = DataLoader(os.path.join(dataset_folder_path, name))
+        dataloader = DataLoader(os.path.join(args.base_path))
 
         for flag in THREAD_AWARE:
             for ngram_config in N_GRAM_PARAMS:
@@ -75,7 +83,7 @@ if __name__ == '__main__':
                     performance_dict["window_length"] = f"{window_config}"
                     # pprint(perf_dict)
 
-                    with open("performance.csv", 'a') as performance_csv:
+                    with open(args.output_path + "/performance.csv", 'a') as performance_csv:
                         fieldnames = ["scenario",
                                       "thread_aware",
                                       "n_gram",
