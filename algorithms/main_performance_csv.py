@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     # data loader for scenario
     for name in SCENARIO_NAMES:
-        dataloader = DataLoader(os.path.join(args.base_path))
+        dataloader = DataLoader(os.path.join(args.base_path, name))
 
         for flag in THREAD_AWARE:
             for ngram_config in N_GRAM_PARAMS:
