@@ -19,10 +19,27 @@ if __name__ == '__main__':
     N_GRAM_PARAMS = [3, 5, 8]
     WINDOW_LENGTH_PARAMS = [100, 1000, 10000]
 
-    SCENARIO_NAMES = ["CVE-2017-7529"]
+    SCENARIO_NAMES = ["Bruteforce_CWE-307",
+                      "CVE-2012-2122",
+                      "CVE-2014-0160",
+                      "CVE-2017-7529",
+                      "CVE-2017-12635_6",
+                      "CVE-2018-3760",
+                      "CVE-2019-5418",
+                      "CVE-2020-9484",
+                      "CVE-2020-13942",
+                      "CVE-2020-23839",
+                      "CWE-89-SQL-Injection",
+                      "CWE-89-SQL-injection",
+                      "EPS_CWE-434",
+                      "Juice-Shop",
+                      "PHP_CWE-434",
+                      "ZipSlip"]
 
     syscall_feature_list = [SyscallToInt(),
                             ThreadIDExtractor()]
+
+    header_exists = False
 
     # data loader for scenario
     for name in SCENARIO_NAMES:
@@ -31,6 +48,7 @@ if __name__ == '__main__':
         for flag in THREAD_AWARE:
             for ngram_config in N_GRAM_PARAMS:
                 for window_config in WINDOW_LENGTH_PARAMS:
+
                     stream_feature_list = [StreamNgramExtractor(feature_list=[SyscallToInt],
                                                                 thread_aware=flag,
                                                                 ngram_length=ngram_config)]
@@ -51,13 +69,49 @@ if __name__ == '__main__':
                     ids.determine_threshold()
                     ids.do_detection()
                     performance_dict = ids.performance.get_performance()
+                    performance_dict["scenario"] = f"{name}"
+                    performance_dict["thread_aware"] = f"{flag}"
+                    performance_dict["n_gram"] = f"{ngram_config}"
+                    performance_dict["window_length"] = f"{window_config}"
                     # pprint(perf_dict)
 
                     with open("performance.csv", 'a') as performance_csv:
-                        writer = csv.writer(performance_csv)
-                        writer.writerow([f"{name} / ta? {flag}, n_gram: {ngram_config}, window: {window_config}"])
-                        for key, value in performance_dict.items():
-                            writer.writerow([key, value])
+                        fieldnames = ["scenario",
+                                      "thread_aware",
+                                      "n_gram",
+                                      "window_length",
+                                      "false_positives",
+                                      "true_positives",
+                                      "true_negatives",
+                                      "alarm_count",
+                                      "exploit_count",
+                                      "detection_rate",
+                                      "consecutive_false_positives_normal",
+                                      "consecutive_false_positives_exploits",
+                                      "recall",
+                                      "precision_with_cfa",
+                                      "precision_with_syscalls"]
+
+                        writer = csv.DictWriter(performance_csv, fieldnames=fieldnames)
+                        if header_exists is False:
+                            writer.writeheader()
+                            header_exists = True
+
+                        writer.writerow({"scenario": performance_dict["scenario"],
+                                         "thread_aware": performance_dict["thread_aware"],
+                                         "n_gram": performance_dict["n_gram"],
+                                         "window_length": performance_dict["window_length"],
+                                         "false_positives": performance_dict["false_positives"],
+                                         "true_positives": performance_dict["true_positives"],
+                                         "true_negatives": performance_dict["true_negatives"],
+                                         "alarm_count": performance_dict["alarm_count"],
+                                         "exploit_count": performance_dict["exploit_count"],
+                                         "detection_rate": performance_dict["detection_rate"],
+                                         "consecutive_false_positives_normal": performance_dict["consecutive_false_positives_normal"],
+                                         "consecutive_false_positives_exploits": performance_dict["consecutive_false_positives_exploits"],
+                                         "recall": performance_dict["recall"],
+                                         "precision_with_cfa": performance_dict["precision_with_cfa"],
+                                         "precision_with_syscalls":performance_dict["precision_with_syscalls"]})
 
 
 
