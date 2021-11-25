@@ -19,6 +19,14 @@ class BaseDecisionEngine:
         """
         pass
 
+    def val_on(self, input_array: list):
+        """
+
+        takes one feature instalnce to validate decision approach
+
+        """
+
+
     def fit(self):
         """
 

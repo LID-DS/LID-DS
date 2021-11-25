@@ -72,12 +72,19 @@ class LSTM(BaseDecisionEngine):
             'x': [],
             'y': []
         }
+        self._validation_data = {
+            'x': [],
+            'y': []
+        }
         self._state = 'build_training_data'
         self._architecture = architecture
         self._lstm = None
         self._batch_indices = []
+        self._batch_indices_val = []
         self._current_batch = []
+        self._current_batch_val = []
         self._batch_counter = 0
+        self._batch_counter_val = 0
         self._hidden = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self._device = torch.device("cpu")
@@ -129,6 +136,45 @@ class LSTM(BaseDecisionEngine):
         else:
             pass
 
+    def val_on(self, feature_list: list):
+        """
+
+        create validation data and keep track of batch indices
+        batch indices are later used for creation of batches
+
+        Args:
+            feature_list (int): list of prepared features for DE
+
+        """
+        if self._lstm is None:
+            x = np.array(feature_list[1:])
+            y = feature_list[0]
+            self._validation_data['x'].append(x)
+            self._validation_data['y'].append(y)
+            self._current_batch_val.append(self._batch_counter_val)
+            self._batch_counter_val += 1
+            if len(self._current_batch_val) == self._batch_size:
+                self._batch_indices_val.append(self._current_batch_val)
+                self._current_batch_val = []
+        else:
+            pass
+
+    def _create_train_data(self, val: bool):
+        if not val:
+            x_tensors = Variable(torch.Tensor(self._training_data['x'])).to(self._device)
+            y_tensors = Variable(torch.Tensor(self._training_data['y'])).to(self._device)
+            y_tensors = y_tensors.long()
+            x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
+            print(f"Training Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
+            return SyscallFeatureDataSet(x_tensors_final, y_tensors), y_tensors
+        else:
+            x_tensors = Variable(torch.Tensor(self._validation_data['x'])).to(self._device)
+            y_tensors = Variable(torch.Tensor(self._validation_data['y'])).to(self._device)
+            y_tensors = y_tensors.long()
+            x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
+            print(f"Validation Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
+            return SyscallFeatureDataSet(x_tensors_final, y_tensors), y_tensors
+
     def fit(self):
         """
         fit model only if it could not be loaded
@@ -143,14 +189,11 @@ class LSTM(BaseDecisionEngine):
         if self._state == 'build_training_data':
             self._state = 'fitting'
         if self._lstm is None:
-            x_tensors = Variable(torch.Tensor(self._training_data['x'])).to(self._device)
-            y_tensors = Variable(torch.Tensor(self._training_data['y'])).to(self._device)
-            y_tensors = y_tensors.long()
-            x_tensors_final = torch.reshape(x_tensors, (x_tensors.shape[0], 1, x_tensors.shape[1]))
-            dataset = SyscallFeatureDataSet(x_tensors_final, y_tensors)
+            train_dataset, y_tensors = self._create_train_data(val=False)
+            val_dataset, y_tensors_val = self._create_train_data(val=True)
             # for custom batches
-            dataloader = DataLoader(dataset, batch_sampler=self._batch_indices)
-            print(f"Training Shape x: {x_tensors_final.shape} y: {y_tensors.shape}")
+            train_dataloader = DataLoader(train_dataset, batch_sampler=self._batch_indices)
+            val_dataloader = DataLoader(val_dataset, batch_sampler=self._batch_indices_val)
             self._set_model(self._distinct_syscalls, self._device)
             self._lstm.to(self._device)
             preds = []
@@ -161,7 +204,7 @@ class LSTM(BaseDecisionEngine):
             self._hidden = None
             torch.manual_seed(1)
             for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
-                for i, data in enumerate(dataloader, 0):
+                for i, data in enumerate(train_dataloader, 0):
                     inputs, labels = data
                     outputs, hidden = self._lstm.forward(inputs, self._hidden)
                     # detach hidden otherwise overflow????
@@ -170,18 +213,31 @@ class LSTM(BaseDecisionEngine):
                     # caluclate the gradient, manually setting to 0
                     optimizer.zero_grad()
                     # obtain the loss function
-                    loss = criterion(outputs, labels)
+                    train_loss = criterion(outputs, labels)
                     # calculates the loss of the loss function
-                    loss.backward()
-                    # improve from loss, i.e backprop
+                    train_loss.backward()
+                    # improve from loss, i.e backpro, val_loss: %1.5fp
                     optimizer.step()
-                    for i in range(len(outputs)):
-                        preds.append(torch.argmax(outputs[i]))
-                self._accuracy(preds, y_tensors)
+                    for j in range(len(outputs)):
+                        preds.append(torch.argmax(outputs[j]))
+                accuracy = self._accuracy(preds, y_tensors)
                 preds = []
-                print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
                 # reset hidden state
                 self.new_recording()
+                val_loss = 0.0
+                for data in val_dataloader:
+                    inputs, labels = data
+                    outputs, hidden = self._lstm.forward(inputs, self._hidden)
+                    self._hidden = tuple(state.detach() for state in hidden)
+                    optimizer.zero_grad()
+                    loss = criterion(outputs, labels)
+                    val_loss = loss.item() * inputs.size(0)
+                    for j in range(len(outputs)):
+                        preds.append(torch.argmax(outputs[j]))
+                val_accuracy = self._accuracy(preds, y_tensors_val)
+                preds = []
+                print("Epoch: %d, loss: %1.5f, accuracy: %1.5f, val_loss: %1.5f,  val_accuracy: %1.5f" % \
+                      (epoch, train_loss.item(), accuracy, val_loss, val_accuracy))
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
             print(f"Net already trained. Using model {self._model_path}")
@@ -222,9 +278,9 @@ class LSTM(BaseDecisionEngine):
                 hit += 1
             else:
                 miss += 1
-        print(f"accuracy {hit/(hit+miss)}")
+        return hit/(hit+miss)
 
-    def new_recording(self):
+    def new_recording(self, val: bool=False):
         """
 
         while creation of dataset:
@@ -234,9 +290,14 @@ class LSTM(BaseDecisionEngine):
 
         """
         if self._lstm is None and self._state == 'build_training_data':
-            if len(self._current_batch) > 0:
-                self._batch_indices.append(self._current_batch)
-                self._current_batch = []
+            if not val:
+                if len(self._current_batch) > 0:
+                    self._batch_indices.append(self._current_batch)
+                    self._current_batch = []
+            else:
+                if len(self._current_batch_val) > 0:
+                    self._batch_indices_val.append(self._current_batch_val)
+                    self._current_batch_val = []
         elif self._state == 'fitting':
             self._hidden = None
         else:
