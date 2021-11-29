@@ -8,13 +8,13 @@ from dataloader.syscall import Syscall
 class SyscallName(BaseFeature, metaclass=Singleton):
 
     def __init__(self):
-        pass
+        super().__init__()
 
     def extract(self, syscall: Syscall, features: dict):
         """
         extract name of syscall
         """
-        features[SyscallName.get_id()] = syscall.name()
+        features[self.get_id()] = syscall.name()
 
     def depends_on(self):
         return []

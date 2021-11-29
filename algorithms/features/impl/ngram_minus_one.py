@@ -13,6 +13,7 @@ class NgramMinusOne(BaseFeature):
     """
 
     def __init__(self, ngram: Ngram, element_size: int):
+        super().__init__()
         self._dependency_list = []
         self._dependency_list.append(ngram)
         self._ngram = ngram
@@ -28,7 +29,7 @@ class NgramMinusOne(BaseFeature):
             k (int),v (list): key is ID of this class, ngram_value as list
         """
         ngram_value = None
-        if Ngram.get_id() in features:
-            if features[Ngram.get_id()] is not None:
-                ngram_value = features[Ngram.get_id()][:-self._element_size]
-        features[NgramMinusOne.get_id()] = ngram_value
+        if self._ngram.get_id() in features:
+            if features[self._ngram.get_id()] is not None:
+                ngram_value = features[self._ngram.get_id()][:-self._element_size]
+        features[self.get_id()] = ngram_value

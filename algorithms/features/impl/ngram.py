@@ -18,6 +18,7 @@ class Ngram(BaseFeature):
         thread_aware: True or False
         ngram_length: length of the ngram
         """
+        super().__init__()
         self._ngram_buffer = {}
         self._list_of_feature_ids = []
         for feature in feature_list:
@@ -41,7 +42,7 @@ class Ngram(BaseFeature):
         thread_id = 0
         if self._thread_aware:
             try:
-                thread_id = features[ThreadID.get_id()]
+                thread_id = features[ThreadID().get_id()]
             except Exception:
                 raise KeyError('No thread id in features')
         if thread_id not in self._ngram_buffer:
@@ -50,7 +51,7 @@ class Ngram(BaseFeature):
         ngram_value = None
         if len(self._ngram_buffer[thread_id]) == self._ngram_length:
             ngram_value = self._collect_features(self._ngram_buffer[thread_id])
-        features[Ngram.get_id()] = ngram_value
+        features[self.get_id()] = ngram_value
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
         """

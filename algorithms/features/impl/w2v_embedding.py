@@ -27,6 +27,7 @@ class W2VEmbedding(BaseFeature):
                  force_train: bool = False,
                  distinct: bool = True,
                  thread_aware=True):
+        super().__init__()
         scenario_name = os.path.basename(os.path.normpath(scenario_path))
 
         self._vector_size = vector_size
@@ -59,7 +60,7 @@ class W2VEmbedding(BaseFeature):
             for feature in self._feature_list:
                 feature.extract(syscall, features)
             self._n_gram_streamer.extract(None, features)
-            sentence = features[Ngram.get_id()]
+            sentence = features[self._n_gram_streamer.get_id()]
             if sentence is not None:
                 if self._distinct:
                     if sentence not in self._sentences:
@@ -88,9 +89,9 @@ class W2VEmbedding(BaseFeature):
                 syscall vector
         """
         try:
-            features[W2VEmbedding.get_id()] = self.w2vmodel.wv[syscall.name()].tolist()
+            features[self.get_id()] = self.w2vmodel.wv[syscall.name()].tolist()
         except KeyError:
-            features[W2VEmbedding.get_id()] = [0] * self._vector_size
+            features[self.get_id()] = [0] * self._vector_size
 
     def load(self):
         """

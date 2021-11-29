@@ -22,11 +22,11 @@ def test_int_embedding():
 
     # detection
     si.extract(syscall_1, features)
-    assert (features[IntEmbedding.get_id()] == 1)
+    assert (features[si.get_id()] == 1)
     si.extract(syscall_2, features)
-    assert (features[IntEmbedding.get_id()] == 1)
+    assert (features[si.get_id()] == 1)
     si.extract(syscall_3, features)
-    assert (features[IntEmbedding.get_id()] == 2)
+    assert (features[si.get_id()] == 2)
 
     si.extract(syscall_4, features)
-    assert (features[IntEmbedding.get_id()] == 0)
+    assert (features[si.get_id()] == 0)

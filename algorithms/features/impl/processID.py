@@ -6,13 +6,13 @@ from dataloader.syscall import Syscall
 class ProcessID(BaseFeature, metaclass=Singleton):
 
     def __init__(self):
-        pass
+        super().__init__()
 
     def extract(self, syscall: Syscall, features: dict):
         """
         extract process ID of syscall
         """
-        features[ProcessID.get_id()] = syscall.process_id()
+        features[self.get_id()] = syscall.process_id()
 
     def depends_on(self):
         return []

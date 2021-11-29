@@ -19,8 +19,8 @@ def test_thread_id():
     features = {}
 
     tid.extract(syscall_1, features)
-    assert features[ThreadID.get_id()] == 3686302
+    assert features[tid.get_id()] == 3686302
     tid.extract(syscall_2, features)
-    assert features[ThreadID.get_id()] == 717
+    assert features[tid.get_id()] == 717
     with pytest.raises(ValueError):
         tid.extract(syscall_3, features)

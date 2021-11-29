@@ -63,10 +63,10 @@ def test_ngram_minus_one():
 
     features = [ThreadID(), SyscallName()]
 
-    ng = Ngram(feature_list=[SyscallName], thread_aware=True, ngram_length=3)
+    ng = Ngram(feature_list=[SyscallName()], thread_aware=True, ngram_length=3)
     ngm = NgramMinusOne(ngram=ng, element_size=1)
 
-    id = NgramMinusOne.get_id()
+    id = ngm.get_id()
 
     # SYSCALL 1
     assert helper(syscall_1, features, ng, ngm, id) is None

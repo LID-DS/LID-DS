@@ -22,6 +22,7 @@ class PathEvilness(BaseFeature):
         of the anomaly in the tree and returns 1/height resulting in a return
         value that is always 0 < return_value < 1
         """
+        super().__init__()
         scenario_name = os.path.basename(os.path.normpath(scenario_path))
         self._file_tree = Tree()
         self._file_tree.create_node('root', 'root')
@@ -119,7 +120,7 @@ class PathEvilness(BaseFeature):
                         parent_node = self._file_tree.get_node(parent_id)
                         evilness = 1 / (self._file_tree.depth(parent_node) + 1)
                         break
-        features[PathEvilness.get_id()] = evilness
+        features[self.get_id()] = evilness
 
     def fit(self):
         """

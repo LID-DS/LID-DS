@@ -57,7 +57,7 @@ def test_time_delta():
     max_time_delta = td._max_time_delta
 
     features = {}
-    id = TimeDelta.get_id()
+    id = td.get_id()
     # first syscall, no time delta
     td.extract(syscall_1, features)
     assert features[id] == 0
@@ -69,6 +69,7 @@ def test_time_delta():
     assert features[id] == 100 / max_time_delta
 
     td = TimeDelta(thread_aware=True)
+    id = td.get_id()
     for syscall in syscalls:
         td.train_on(syscall, None)
     td.fit()

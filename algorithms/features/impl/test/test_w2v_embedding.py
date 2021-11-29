@@ -66,7 +66,7 @@ def test_w2v_embedding():
     embedding.fit()
 
     features = {}
-    id = W2VEmbedding.get_id()
+    id = embedding.get_id()
     embedding.extract(syscall_9, features)
     assert type(features[id]) == list
 

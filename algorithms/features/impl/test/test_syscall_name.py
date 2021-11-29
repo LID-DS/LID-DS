@@ -12,8 +12,8 @@ def test_syscall_name_extract():
     sn = SyscallName()
     feature_dict = {}
     sn.extract(syscall_1, feature_dict)
-    assert feature_dict[SyscallName.get_id()] == 'open'
+    assert feature_dict[sn.get_id()] == 'open'
     sn.extract(syscall_2, feature_dict)
-    assert feature_dict[SyscallName.get_id()] == 'open'
+    assert feature_dict[sn.get_id()] == 'open'
     sn.extract(syscall_3, feature_dict)
-    assert feature_dict[SyscallName.get_id()] == 'getuid'
+    assert feature_dict[sn.get_id()] == 'getuid'

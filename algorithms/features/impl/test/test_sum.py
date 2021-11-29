@@ -1,20 +1,22 @@
 import pytest
 
+from algorithms.features.impl.maximum import Maximum
 from algorithms.features.impl.minimum import Minimum
 from algorithms.features.impl.processID import ProcessID
+from algorithms.features.impl.sum import Sum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
 
-def eva(syscall, tid, min):
+def eva(syscall, tid, sum):
     syscall_dict = {}
     ThreadID().extract(syscall,syscall_dict)
     tid.extract(syscall, syscall_dict)
-    min.extract(syscall, syscall_dict)
-    return syscall_dict[min.get_id()]
+    sum.extract(syscall, syscall_dict)
+    return syscall_dict[sum.get_id()]
 
 
-def test_minimum():
+def test_sum():
     # legit
     syscall_1 = Syscall2021(
         "1631209047761484608 0 10 apache2 10 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
@@ -69,36 +71,36 @@ def test_minimum():
 
 
     pid = ProcessID()
-    min = Minimum(feature=pid, thread_aware=False, window_length=3)
+    sum = Sum(feature=pid, thread_aware=True, window_length=3)
 
-    assert eva(syscall_1, pid, min) == 10  # 10
-    assert eva(syscall_2, pid, min) == 10  # 11
-    assert eva(syscall_3, pid, min) == 10  # 12
-    assert eva(syscall_4, pid, min) == 11  # 13
-    assert eva(syscall_5, pid, min) == 12  # 12
-    assert eva(syscall_6, pid, min) == 9  # 9
-    assert eva(syscall_7, pid, min) == 8  # 8
-    assert eva(syscall_8, pid, min) == 8  # 9
-    assert eva(syscall_9, pid, min) == 6  # 6
-    assert eva(syscall_1, pid, min) == 6  # 10
-    assert eva(syscall_1, pid, min) == 6  # 10
-    assert eva(syscall_1, pid, min) == 10  # 10
+    assert eva(syscall_1, pid, sum) == 10  # 10
+    assert eva(syscall_2, pid, sum) == 11  # 11
+    assert eva(syscall_3, pid, sum) == 12  # 12
+    assert eva(syscall_4, pid, sum) == 13  # 13
+    assert eva(syscall_5, pid, sum) == 24  # 12
+    assert eva(syscall_6, pid, sum) == 9  # 9
+    assert eva(syscall_7, pid, sum) == 8  # 8
+    assert eva(syscall_8, pid, sum) == 18  # 9
+    assert eva(syscall_9, pid, sum) == 6  # 6
+    assert eva(syscall_1, pid, sum) == 20  # 10
+    assert eva(syscall_1, pid, sum) == 30  # 10
+    assert eva(syscall_1, pid, sum) == 30  # 10
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
-        assert eva(syscall_10, pid, min) == "XXX"
+        assert eva(syscall_10, pid, sum) == "XXX"
 
-    min = Minimum(feature=pid, thread_aware=True, window_length=3)
-    assert eva(syscall_1, pid, min) == 10  # 10
-    assert eva(syscall_2, pid, min) == 11  # 11
-    assert eva(syscall_3, pid, min) == 12  # 12
-    assert eva(syscall_4, pid, min) == 13  # 13
-    assert eva(syscall_5, pid, min) == 12  # 12
-    assert eva(syscall_6, pid, min) == 9  # 9
-    assert eva(syscall_7, pid, min) == 8  # 8
-    assert eva(syscall_8, pid, min) == 9  # 9
-    assert eva(syscall_9, pid, min) == 6  # 6
+    sum = Sum(feature=pid, thread_aware=False, window_length=3)
+    assert eva(syscall_1, pid, sum) == 10  # 10
+    assert eva(syscall_2, pid, sum) == 21  # 11
+    assert eva(syscall_3, pid, sum) == 33  # 12
+    assert eva(syscall_4, pid, sum) == 36  # 13
+    assert eva(syscall_5, pid, sum) == 37  # 12
+    assert eva(syscall_6, pid, sum) == 34  # 9
+    assert eva(syscall_7, pid, sum) == 29  # 8
+    assert eva(syscall_8, pid, sum) == 26  # 9
+    assert eva(syscall_9, pid, sum) == 23  # 6
 
-    assert eva(syscall_11, pid, min) == 10  # 10
-    assert eva(syscall_12, pid, min) == 10  # 10
-    assert eva(syscall_13, pid, min) == 11  # 11
+    assert eva(syscall_11, pid, sum) == 26  # 11
+    assert eva(syscall_12, pid, sum) == 29  # 12
+    assert eva(syscall_13, pid, sum) == 36  # 13

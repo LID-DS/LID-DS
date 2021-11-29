@@ -13,6 +13,7 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
     """
 
     def __init__(self, ngram: Ngram):
+        super().__init__()
         self._last_thread_id = 0
         self._dependency_list = [ThreadID(), ngram]
 

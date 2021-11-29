@@ -6,11 +6,9 @@ class BaseFeature:
     """
     base class for a feature
     """
-    # this is the id of this class determined at runtime
-    class_id = None
 
     def __init__(self):
-        raise NotImplementedError('No feature should call this init method.')
+        self._class_id = None
 
     def train_on(self, syscall: Syscall, features: dict):
         """
@@ -56,8 +54,7 @@ class BaseFeature:
         """
         return self.__str__()
 
-    @classmethod
-    def get_id(cls):
-        if cls.class_id is None:
-            cls.class_id = FeatureIDManager().get_id(cls)
-        return cls.class_id
+    def get_id(self):
+        if self._class_id is None:
+            self._class_id = FeatureIDManager().get_id(self)
+        return self._class_id

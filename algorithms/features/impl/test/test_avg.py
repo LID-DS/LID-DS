@@ -1,20 +1,24 @@
 import pytest
 
+from algorithms.features.impl.average import Average
+from algorithms.features.impl.maximum import Maximum
 from algorithms.features.impl.minimum import Minimum
 from algorithms.features.impl.processID import ProcessID
+from algorithms.features.impl.sum import Sum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
 
-def eva(syscall, tid, min):
-    syscall_dict = {}
-    ThreadID().extract(syscall,syscall_dict)
-    tid.extract(syscall, syscall_dict)
-    min.extract(syscall, syscall_dict)
-    return syscall_dict[min.get_id()]
+def eva(syscall, tid, avg):
+    feature_dict = {}
+    ThreadID().extract(syscall, feature_dict)
+    tid.extract(syscall, feature_dict)
+    avg._sum.extract(syscall, feature_dict)
+    avg.extract(syscall, feature_dict)
+    return feature_dict[avg.get_id()]
 
 
-def test_minimum():
+def test_avg():
     # legit
     syscall_1 = Syscall2021(
         "1631209047761484608 0 10 apache2 10 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
@@ -69,36 +73,36 @@ def test_minimum():
 
 
     pid = ProcessID()
-    min = Minimum(feature=pid, thread_aware=False, window_length=3)
+    avg = Average(feature=pid, thread_aware=True, window_length=3)
 
-    assert eva(syscall_1, pid, min) == 10  # 10
-    assert eva(syscall_2, pid, min) == 10  # 11
-    assert eva(syscall_3, pid, min) == 10  # 12
-    assert eva(syscall_4, pid, min) == 11  # 13
-    assert eva(syscall_5, pid, min) == 12  # 12
-    assert eva(syscall_6, pid, min) == 9  # 9
-    assert eva(syscall_7, pid, min) == 8  # 8
-    assert eva(syscall_8, pid, min) == 8  # 9
-    assert eva(syscall_9, pid, min) == 6  # 6
-    assert eva(syscall_1, pid, min) == 6  # 10
-    assert eva(syscall_1, pid, min) == 6  # 10
-    assert eva(syscall_1, pid, min) == 10  # 10
+    assert eva(syscall_1, pid, avg) == 10 / 3  # 10
+    assert eva(syscall_2, pid, avg) == 11 / 3  # 11
+    assert eva(syscall_3, pid, avg) == 12 / 3  # 12
+    assert eva(syscall_4, pid, avg) == 13 / 3  # 13
+    assert eva(syscall_5, pid, avg) == 24 / 3  # 12
+    assert eva(syscall_6, pid, avg) == 9 / 3  # 9
+    assert eva(syscall_7, pid, avg) == 8 / 3  # 8
+    assert eva(syscall_8, pid, avg) == 18 / 3  # 9
+    assert eva(syscall_9, pid, avg) == 6 / 3  # 6
+    assert eva(syscall_1, pid, avg) == 20 / 3  # 10
+    assert eva(syscall_1, pid, avg) == 30 / 3  # 10
+    assert eva(syscall_1, pid, avg) == 30 / 3  # 10
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
-        assert eva(syscall_10, pid, min) == "XXX"
+        assert eva(syscall_10, pid, avg) == "XXX"
 
-    min = Minimum(feature=pid, thread_aware=True, window_length=3)
-    assert eva(syscall_1, pid, min) == 10  # 10
-    assert eva(syscall_2, pid, min) == 11  # 11
-    assert eva(syscall_3, pid, min) == 12  # 12
-    assert eva(syscall_4, pid, min) == 13  # 13
-    assert eva(syscall_5, pid, min) == 12  # 12
-    assert eva(syscall_6, pid, min) == 9  # 9
-    assert eva(syscall_7, pid, min) == 8  # 8
-    assert eva(syscall_8, pid, min) == 9  # 9
-    assert eva(syscall_9, pid, min) == 6  # 6
+    avg = Average(feature=pid, thread_aware=False, window_length=3)
+    assert eva(syscall_1, pid, avg) == 10 / 3  # 10
+    assert eva(syscall_2, pid, avg) == 21 / 3  # 11
+    assert eva(syscall_3, pid, avg) == 33 / 3  # 12
+    assert eva(syscall_4, pid, avg) == 36 / 3  # 13
+    assert eva(syscall_5, pid, avg) == 37 / 3  # 12
+    assert eva(syscall_6, pid, avg) == 34 / 3  # 9
+    assert eva(syscall_7, pid, avg) == 29 / 3  # 8
+    assert eva(syscall_8, pid, avg) == 26 / 3  # 9
+    assert eva(syscall_9, pid, avg) == 23 / 3  # 6
 
-    assert eva(syscall_11, pid, min) == 10  # 10
-    assert eva(syscall_12, pid, min) == 10  # 10
-    assert eva(syscall_13, pid, min) == 11  # 11
+    assert eva(syscall_11, pid, avg) == 26 / 3  # 11
+    assert eva(syscall_12, pid, avg) == 29 / 3  # 12
+    assert eva(syscall_13, pid, avg) == 36 / 3  # 13

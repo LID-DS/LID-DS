@@ -7,6 +7,7 @@ from dataloader.syscall import Syscall
 class TimeDelta(BaseFeature):
 
     def __init__(self, thread_aware: bool):
+        super().__init__()
         self._max_time_delta = 0
         self._last_time = {}
         self._thread_aware = thread_aware
@@ -30,7 +31,7 @@ class TimeDelta(BaseFeature):
         current_time = syscall.timestamp_datetime()
         delta = self._calc_delta(current_time, syscall)
         normalized_delta = delta / self._max_time_delta
-        features[TimeDelta.get_id()] = normalized_delta
+        features[self.get_id()] = normalized_delta
 
     def _calc_delta(self, current_time: datetime, syscall: Syscall) -> float:
         """

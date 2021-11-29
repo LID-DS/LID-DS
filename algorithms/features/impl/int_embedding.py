@@ -11,6 +11,7 @@ class IntEmbedding(BaseFeature, metaclass=Singleton):
     """
 
     def __init__(self):
+        super().__init__()
         self._syscall_dict = {}
 
     def depends_on(self):
@@ -33,4 +34,4 @@ class IntEmbedding(BaseFeature, metaclass=Singleton):
             sys_to_int = self._syscall_dict[syscall.name()]
         except KeyError:
             sys_to_int = 0
-        features[IntEmbedding.get_id()] = sys_to_int
+        features[self.get_id()] = sys_to_int
