@@ -34,13 +34,22 @@ class IDS:
 
         """
         # train of DE
-        data = self._data_loader.training_data()
+        train_data = self._data_loader.training_data()
         description = 'Training: '
-        for recording in tqdm(data, description, unit=" recording"):
+        for recording in tqdm(train_data, description, unit=" recording"):
             for syscall in recording.syscalls():
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
                 if feature_vector is not None:
                     self._decision_engine.train_on(feature_vector)
+            self._data_preprocessor.new_recording()
+            self._decision_engine.new_recording()
+        val_data = self._data_loader.validation_data()
+        description = 'Validation: '
+        for recording in tqdm(val_data, description, unit=" recording"):
+            for syscall in recording.syscalls():
+                feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
+                if feature_vector is not None:
+                    self._decision_engine.val_on(feature_vector)
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
         self._decision_engine.fit()
