@@ -51,6 +51,7 @@ class Ngram(BaseFeature):
         ngram_value = None
         if len(self._ngram_buffer[thread_id]) == self._ngram_length:
             ngram_value = self._collect_features(self._ngram_buffer[thread_id])
+
         features[self.get_id()] = ngram_value
 
     def _collect_features(self, deque_of_dicts: deque) -> list:

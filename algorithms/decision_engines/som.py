@@ -59,6 +59,7 @@ class Som(BaseDecisionEngine):
         """
             finalizes the training step for the som
         """
+        print(f"som training: {len(self._buffer)} data points")
         som_size = self._estimate_som_size()
         vector_size = len(self._buffer[0])
 
