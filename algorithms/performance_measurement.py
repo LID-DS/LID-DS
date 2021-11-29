@@ -161,8 +161,16 @@ class PerformanceMeasurement:
         """
 
         detection_rate = self._alarm_count / self._exploit_count
-        precision_cfa = self._alarm_count / (self._alarm_count + self._cfp_count_normal + self._cfp_count_exploits)
-        precision_sys = self._alarm_count / (self._alarm_count + self._fp)
+        if (self._alarm_count
+            + self._cfp_count_normal
+            + self._cfp_count_exploits) == 0:
+            precision_cfa = 0
+        else:
+            precision_cfa = self._alarm_count / (self._alarm_count + self._cfp_count_normal + self._cfp_count_exploits)
+        if (self._alarm_count + self._fp) == 0:
+            precision_sys = 0
+        else:
+            precision_sys = self._alarm_count / (self._alarm_count + self._fp)
 
         performance_values = {"false_positives": self._fp,
                               "true_positives": self._tp,
