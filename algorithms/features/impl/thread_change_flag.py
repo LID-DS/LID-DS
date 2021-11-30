@@ -16,6 +16,7 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
         super().__init__()
         self._last_thread_id = 0
         self._dependency_list = [ThreadID(), ngram]
+        self._ngram = ngram
 
     def depends_on(self):
         return self._dependency_list
@@ -25,11 +26,11 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
         only returns not None if ngram exists
         """
         tcf = 0
-        if Ngram.get_id() in features:
+        if self._ngram.get_id() in features:
             if syscall.thread_id() != self._last_thread_id:
                 self._last_thread_id = syscall.thread_id()
                 tcf = 1
-        features[ThreadChangeFlag.get_id()] = tcf
+        features[self.get_id()] = tcf
 
     def new_recording(self):
         """
