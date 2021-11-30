@@ -52,25 +52,25 @@ def get_type_of_recording(json_dict: dict) -> RecordingType:
     """
     data = json_dict
 
-    normal_behavoiur = False
+    normal_behavior = False
     exploit = False
 
     # check for normal behaviour:
     for container in data["container"]:
         if container["role"] == "normal":
-            normal_behavoiur = True
+            normal_behavior = True
             break
     # check for exploit
     if data["exploit"]:
         exploit = True
 
-    if normal_behavoiur is False and exploit is False:
+    if normal_behavior is False and exploit is False:
         return RecordingType.IDLE
-    if normal_behavoiur is False and exploit is True:
+    if normal_behavior is False and exploit is True:
         return RecordingType.ATTACK
-    if normal_behavoiur is True and exploit is False:
+    if normal_behavior is True and exploit is False:
         return RecordingType.NORMAL
-    if normal_behavoiur is True and exploit is True:
+    if normal_behavior is True and exploit is True:
         return RecordingType.NORMAL_AND_ATTACK
 
 

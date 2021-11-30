@@ -1,17 +1,15 @@
 import os.path
-import typing
 
 from gensim.models import KeyedVectors, Word2Vec
 
-from algorithms.features.syscall_name import SyscallName
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
+from algorithms.features.base_feature import BaseFeature
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class W2VEmbedding(BaseSyscallFeatureExtractor):
+class W2VEmbedding(BaseFeature):
     """
         implementation of the w2v embedding approach based on BaseSyscallFeatureExtractor
 
@@ -36,31 +34,35 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             os.makedirs(path)
         self._vector_size = vector_size
         self._epochs = epochs
-        self._path = os.path.join(path, f'v{vector_size}-w{window_size}-t{thread_aware}-d{distinct}-w2v.model')
+        self._path = os.path.join(path,
+                                  f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-w2v.model')
         self._force_train = force_train
         self._distinct = distinct
         self.w2vmodel = None
         self._sentences = []
-        self._feature_list = [SyscallName(), ThreadIDExtractor()]
+        self._feature_list = [SyscallName(), ThreadID()]
         self._window_size = window_size
-        self._n_gram_streamer = StreamNgramExtractor(feature_list=[SyscallName()],
-                                                     thread_aware=thread_aware,
-                                                     ngram_length=window_size)
+        self._n_gram_streamer = Ngram(feature_list=[SyscallName()],
+                                      thread_aware=thread_aware,
+                                      ngram_length=window_size)
         if not force_train:
             self.load()
 
-    def train_on(self, syscall: Syscall):
+        self._dependency_list = []
+
+    def depends_on(self):
+        return self._dependency_list
+
+    def train_on(self, syscall: Syscall, features: dict):
         """
             gives syscall features to n_gram feature stream, casts it as sentence and saves it to training corpus
         """
         if self.w2vmodel is None:
-            syscall_feature_dict = {}
+            features = {}
             for feature in self._feature_list:
-                k, v = feature.extract(syscall)
-                syscall_feature_dict[k] = v
-
-            _, sentence = self._n_gram_streamer.extract(syscall_feature_dict)
-
+                feature.extract(syscall, features)
+            self._n_gram_streamer.extract(None, features)
+            sentence = features[self._n_gram_streamer.get_id()]
             if sentence is not None:
                 if self._distinct:
                     if sentence not in self._sentences:
@@ -79,7 +81,7 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             model.save(fname_or_handle=self._path)
             self.w2vmodel = model
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, list]:
+    def extract(self, syscall: Syscall, features: dict):
         """
             embeds one system call in w2v model
 
@@ -89,9 +91,9 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
                 syscall vector
         """
         try:
-            return W2VEmbedding.get_id(), self.w2vmodel.wv[syscall.name()].tolist()
+            features[self.get_id()] = self.w2vmodel.wv[syscall.name()].tolist()
         except KeyError:
-            return W2VEmbedding.get_id(), [0] * self._vector_size
+            features[self.get_id()] = [0] * self._vector_size
 
     def load(self):
         """
@@ -108,3 +110,4 @@ class W2VEmbedding(BaseSyscallFeatureExtractor):
             tells n_gram streamer to clear buffer after beginning of new recording
         """
         self._n_gram_streamer.new_recording()
+

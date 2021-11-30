@@ -3,7 +3,7 @@ import os
 import time
 
 from dataloader.direction import Direction
-from dataloader.syscall_2019 import Syscall
+from dataloader.syscall_2019 import Syscall, Syscall2019
 from distutils.util import strtobool
 
 from enum import IntEnum
@@ -50,12 +50,12 @@ class Recording:
         """
         with open(self.path, 'r') as recording_file:
             for line_id, syscall in enumerate(recording_file, start=1):
-                syscall_object = Syscall(syscall, line_id=line_id)
+                syscall_object = Syscall2019(syscall, line_id=line_id)
                 if self._direction != Direction.BOTH:
                     if syscall_object.direction() == self._direction and syscall_object.name() != 'switch':
                         yield syscall_object
                 elif syscall_object.name() != 'switch':
-                    yield Syscall(syscall, line_id=line_id)
+                    yield Syscall2019(syscall, line_id=line_id)
 
     def _collect_metadata(self):
         """

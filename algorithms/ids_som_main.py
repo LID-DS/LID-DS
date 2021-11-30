@@ -1,8 +1,8 @@
 from pprint import pprint
 
 from algorithms.features.path_evilness import PathEvilness
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.ngram import Ngram
+from algorithms.features.threadID import ThreadID
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.features.syscalls_in_time_window import SyscallsInTimeWindow
 from algorithms.decision_engines.som import Som
@@ -23,7 +23,7 @@ if __name__ == '__main__':
         epochs=50
     )
 
-    syscall_feature_list = [ThreadIDExtractor(),
+    syscall_feature_list = [ThreadID(),
                             W2VEmbedding(
                                 vector_size=5,
                                 epochs=100,
@@ -33,18 +33,19 @@ if __name__ == '__main__':
                                 window_size=7,
                                 thread_aware=True,
                                 scenario_path=dataloader.scenario_path),
-                            SyscallsInTimeWindow(
-                                window_length_in_s=5
-                            ),
+                            # not yet implemented in new version
+                            # SyscallsInTimeWindow(
+                                # window_length_in_s=5
+                            # ),
                             PathEvilness(
                                  scenario_path=dataloader.scenario_path,
                                  force_retrain=True
                             )
                             ]
 
-    stream_feature_list = [StreamNgramExtractor(feature_list=[W2VEmbedding, SyscallsInTimeWindow, PathEvilness],
-                                                thread_aware=True,
-                                                ngram_length=7)]
+    stream_feature_list = [Ngram(feature_list=[W2VEmbedding],
+                                 thread_aware=True,
+                                 ngram_length=7)]
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
