@@ -8,7 +8,7 @@ class BaseFeature:
     """
 
     def __init__(self):
-        self._class_id = None
+        self._instance_id = None
 
     def train_on(self, syscall: Syscall, features: dict):
         """
@@ -27,7 +27,7 @@ class BaseFeature:
         calculates features on the given syscall and other already calculated features given in features
         writes its result into the given feature dict with key = get_id()
         """
-        pass
+        raise NotImplementedError
 
     def new_recording(self):
         """
@@ -39,7 +39,7 @@ class BaseFeature:
         """
         gives information about the dependencies of this feature
         """
-        pass
+        raise NotImplementedError
 
     def __str__(self) -> str:
         """
@@ -55,6 +55,9 @@ class BaseFeature:
         return self.__str__()
 
     def get_id(self):
-        if self._class_id is None:
-            self._class_id = FeatureIDManager().get_id(self)
-        return self._class_id
+        """
+        returns the id of this feature instance - used to differ between different features
+        """
+        if self._instance_id is None:
+            self._instance_id = FeatureIDManager().get_id(self)
+        return self._instance_id

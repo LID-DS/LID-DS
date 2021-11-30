@@ -12,6 +12,9 @@ class TimeDelta(BaseFeature):
         self._last_time = {}
         self._thread_aware = thread_aware
 
+    def depends_on(self) -> list:
+        return []
+
     def train_on(self, syscall: Syscall, features: dict):
         """
         calc max time delta
