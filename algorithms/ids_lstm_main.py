@@ -1,10 +1,9 @@
 from algorithms.features.ngram_plus_next_syscall import NgramPlusNextSyscall
-# from algorithms.features.ngram_minus_one import NgramMinusOne
-from algorithms.features.threadID_extractor import ThreadIDExtractor
-from algorithms.features.return_value import ReturnValue
+from algorithms.features.ngram_minus_one import NgramMinusOne
+from algorithms.features.threadID import ThreadID
 # from algorithms.features.time_delta_syscalls import TimeDeltaSyscalls
 # from algorithms.features.thread_change_flag import ThreadChangeFlag
-from algorithms.features.syscall_to_int import SyscallToInt
+from algorithms.features.int_embedding import IntEmbedding
 from algorithms.features.w2v_embedding import W2VEmbedding
 
 from algorithms.decision_engines.lstm import LSTM
@@ -32,10 +31,9 @@ if __name__ == '__main__':
                                          epochs=100,
                                          scenario_path=scenario_path,
                                          distinct=False),
-                            ThreadIDExtractor(),
-                            SyscallToInt(),
-                            ReturnValue()]
-    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding, ReturnValue],
+                            ThreadID(),
+                            IntEmbedding()]
+    stream_feature_list = [NgramPlusNextSyscall(feature_list=[W2VEmbedding],
                                                 thread_aware=thread_aware,
                                                 ngram_length=ngram_length)]
 
@@ -65,6 +63,3 @@ if __name__ == '__main__':
     ids.determine_threshold()
     ids.do_detection()
     pprint(ids.performance.get_performance())
-
-    ids.plot.feed_figure(ids.get_plotting_data())
-    ids.plot.show_plot()

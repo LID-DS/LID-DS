@@ -1,12 +1,11 @@
-import os
-import json
 import argparse
-
-from tqdm import tqdm
+import json
+import os
 from typing import Union
 
-from dataloader.data_loader import DataLoader, RecordingType
+from tqdm import tqdm
 
+from dataloader.data_loader import DataLoader, RecordingType
 
 """
 data format
@@ -76,7 +75,8 @@ def calc_stats_for_recording_type(recording_list: list, description: str):
         recording_count += 1
         metadata = recording.metadata()
         recording_time = metadata['recording_time']
-        normal_container = len(metadata['container'])
+        normal_container = len(metadata['container']) - 1 if metadata['exploit'] is False else len(
+            metadata['container']) - 2
         result['number_of_recordings'] = recording_count
         result['recording_time'] = update_values(recording_time, result['recording_time'])
         result['normal_container'] = update_values(normal_container, result['normal_container'])

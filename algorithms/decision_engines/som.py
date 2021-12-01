@@ -59,6 +59,7 @@ class Som(BaseDecisionEngine):
         """
             finalizes the training step for the som
         """
+        print(f"som training: {len(self._buffer)} data points")
         som_size = self._estimate_som_size()
         vector_size = len(self._buffer[0])
 
@@ -67,7 +68,7 @@ class Som(BaseDecisionEngine):
                             sigma=self._sigma,
                             learning_rate=self._learning_rate)
 
-        for epoch in tqdm(range(self._epochs), desc='Training SOM'):
+        for epoch in tqdm(range(self._epochs), desc='Training SOM'.rjust(27)):
             for vector in self._buffer:
                 self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
 
@@ -79,6 +80,7 @@ class Som(BaseDecisionEngine):
                 distance (float): euclidian distance/anomaly score
         """
         tupled = tuple(input_array)
+        # print(len(input_array))
         if tupled not in self._cache:
             codebook_vector = np.array(self._som.quantization([input_array])[0])
             vector = np.array(input_array)

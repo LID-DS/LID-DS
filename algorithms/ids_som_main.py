@@ -1,8 +1,10 @@
-import pprint
+from pprint import pprint
 
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.path_evilness import PathEvilness
+from algorithms.features.ngram import Ngram
+from algorithms.features.threadID import ThreadID
 from algorithms.features.w2v_embedding import W2VEmbedding
+from algorithms.features.syscalls_in_time_window import SyscallsInTimeWindow
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
 from dataloader.data_preprocessor import DataPreprocessor
@@ -14,14 +16,14 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     # data loader for scenario
-    dataloader = dataloader_factory('/home/felix/repos/LID-DS/', direction=Direction.OPEN)
+    dataloader = dataloader_factory('/home/felix/repos/LID-DS/LID-DS-2019/CVE-2017-7529', direction=Direction.OPEN)
 
     # decision engine (DE)
     DE = Som(
         epochs=50
     )
 
-    syscall_feature_list = [ThreadIDExtractor(),
+    syscall_feature_list = [ThreadID(),
                             W2VEmbedding(
                                 vector_size=5,
                                 epochs=100,
@@ -30,12 +32,20 @@ if __name__ == '__main__':
                                 distinct=True,
                                 window_size=7,
                                 thread_aware=True,
-                                scenario_path=dataloader.scenario_path)
+                                scenario_path=dataloader.scenario_path),
+                            # not yet implemented in new version
+                            # SyscallsInTimeWindow(
+                                # window_length_in_s=5
+                            # ),
+                            PathEvilness(
+                                 scenario_path=dataloader.scenario_path,
+                                 force_retrain=True
+                            )
                             ]
 
-    stream_feature_list = [StreamNgramExtractor(feature_list=[W2VEmbedding],
-                                                thread_aware=True,
-                                                ngram_length=7)]
+    stream_feature_list = [Ngram(feature_list=[W2VEmbedding],
+                                 thread_aware=True,
+                                 ngram_length=7)]
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
@@ -44,10 +54,15 @@ if __name__ == '__main__':
     # define the used features
     ids = IDS(data_loader=dataloader,
               data_preprocessor=dataprocessor,
-              decision_engine=DE)
+              decision_engine=DE,
+              plot_switch=False)
 
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
-    pprint.pprint(ids.get_performance())
+
+    pprint(ids.performance.get_performance())
+
+    DE.show_distance_plot()
+
 

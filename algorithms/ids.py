@@ -1,20 +1,20 @@
 from tqdm import tqdm
 
 from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
-from dataloader.base_data_loader import BaseDataLoader
-from dataloader.data_preprocessor import DataPreprocessor
 from algorithms.performance_measurement import PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
+from dataloader.base_data_loader import BaseDataLoader
+from dataloader.data_preprocessor import DataPreprocessor
 
 
 class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
-                 data_preprocessor: DataPreprocessor,
+                 feature_list: list,
                  decision_engine: BaseDecisionEngine,
                  plot_switch: bool):
         self._data_loader = data_loader
-        self._data_preprocessor = data_preprocessor
+        self._data_preprocessor = DataPreprocessor(self._data_loader, feature_list)
         self._decision_engine = decision_engine
         self.threshold = 0.0
         self._alarm = False
@@ -34,13 +34,22 @@ class IDS:
 
         """
         # train of DE
-        data = self._data_loader.training_data()
-        description = 'Training: '
-        for recording in tqdm(data, description, unit=" recording"):
+        train_data = self._data_loader.training_data()
+        description = 'Training'.rjust(27)
+        for recording in tqdm(train_data, description, unit=" recording"):
             for syscall in recording.syscalls():
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
                 if feature_vector is not None:
                     self._decision_engine.train_on(feature_vector)
+            self._data_preprocessor.new_recording()
+            self._decision_engine.new_recording()
+        val_data = self._data_loader.validation_data()
+        description = 'Validation'.rjust(27)
+        for recording in tqdm(val_data, description, unit=" recording"):
+            for syscall in recording.syscalls():
+                feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
+                if feature_vector is not None:
+                    self._decision_engine.val_on(feature_vector)
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
         self._decision_engine.fit()
@@ -53,7 +62,7 @@ class IDS:
         """
         max_score = 0.0
         data = self._data_loader.validation_data()
-        description = 'Threshold calculation: '
+        description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
             for syscall in recording.syscalls():
                 feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
@@ -77,9 +86,9 @@ class IDS:
         """
 
         data = self._data_loader.test_data()
-        description = 'anomaly detection: '
+        description = 'anomaly detection'.rjust(27)
 
-        for recording in tqdm(data, description, unit="recording"):
+        for recording in tqdm(data, description, unit=" recording"):
             self.performance.new_recording(recording)
             if self.plot is not None:
                 self.plot.new_recording(recording)
@@ -96,7 +105,8 @@ class IDS:
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
 
-
-
-
-
+    def draw_plot(self):
+        # plot data if wanted
+        if self.plot is not None:
+            self.plot.feed_figure()
+            self.plot.show_plot()

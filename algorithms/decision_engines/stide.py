@@ -26,6 +26,9 @@ class Stide(BaseDecisionEngine):
         if ngram not in self._normal_database:
             self._normal_database[ngram] = 1
 
+    def fit(self):
+        print(f"STIDE normal db: {len(self._normal_database)}")
+
     def predict(self, input_array):
 
         """

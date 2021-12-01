@@ -1,7 +1,7 @@
 import pprint
 
-from algorithms.features.stream_ngram_extractor import StreamNgramExtractor
-from algorithms.features.threadID_extractor import ThreadIDExtractor
+from algorithms.features.ngram import Ngram
+from algorithms.features.threadID import ThreadID
 from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
@@ -21,7 +21,7 @@ if __name__ == '__main__':
         epochs=50
     )
 
-    syscall_feature_list = [ThreadIDExtractor(),
+    syscall_feature_list = [ThreadID(),
                             W2VEmbedding(
                                 vector_size=5,
                                 epochs=50,
@@ -33,9 +33,9 @@ if __name__ == '__main__':
                                 scenario_path=dataloader.scenario_path)
                             ]
 
-    stream_feature_list = [StreamNgramExtractor(feature_list=[W2VEmbedding],
-                                                thread_aware=False,
-                                                ngram_length=7)]
+    stream_feature_list = [Ngram(feature_list=[W2VEmbedding],
+                                 thread_aware=False,
+                                 ngram_length=7)]
 
     dataprocessor = DataPreprocessor(dataloader,
                                      syscall_feature_list,
