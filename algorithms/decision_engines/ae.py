@@ -44,6 +44,7 @@ class AE(BaseDecisionEngine):
         self._loss_function = torch.nn.MSELoss()
         self._epochs = 10
         self._training_data = []
+        self._val_data = []
         self._optimizer = torch.optim.Adam(            
             self._nn.parameters(),
             lr = 1e-1,
@@ -63,9 +64,10 @@ class AE(BaseDecisionEngine):
         for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
             for input_vector in self._training_data:
                 # Output of Autoencoder
-                ae_output = self._nn(input_vector)                    
+                in_t = torch.from_numpy(input_vector)
+                ae_output_t = self._nn(in_t)
                 # Calculating the loss function
-                loss = self._loss_function(ae_output, input_vector)
+                loss = self._loss_function(ae_output_t,  in_t)
                     
                 # The gradients are set to zero,
                 # the the gradient is computed and stored.
@@ -76,9 +78,10 @@ class AE(BaseDecisionEngine):
 
     def predict(self, input_array: list) -> float:
         # Output of Autoencoder
-        ae_output = self._nn(input_array)                    
+        in_t = torch.from_numpy(input_array)
+        ae_output_t = self._nn(in_t)
         # Calculating the loss function
-        loss = self._loss_function(ae_output, input_array)
+        loss = self._loss_function(ae_output_t, in_t)
         return loss
 
     def new_recording(self):
