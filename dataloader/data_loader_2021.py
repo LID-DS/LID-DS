@@ -10,7 +10,7 @@ from enum import Enum
 
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.direction import Direction
-from dataloader.recording import Recording
+from dataloader.recording_2021 import Recording2021
 
 TRAINING = 'training'
 VALIDATION = 'validation'
@@ -74,7 +74,7 @@ def get_type_of_recording(json_dict: dict) -> RecordingType:
         return RecordingType.NORMAL_AND_ATTACK
 
 
-class DataLoader(BaseDataLoader):
+class DataLoader2021(BaseDataLoader):
     """
 
         Recieves path of scenario.
@@ -193,11 +193,11 @@ class DataLoader(BaseDataLoader):
             # check filter
             if recording_type:
                 if self._metadata_list[category][file]['recording_type'] == recording_type:
-                    recordings.append(Recording(name=file,
+                    recordings.append(Recording2021(name=file,
                                                 path=self._metadata_list[category][file]['path'],
                                                 direction=self._direction))
             else:
-                recordings.append(Recording(name=file,
+                recordings.append(Recording2021(name=file,
                                             path=self._metadata_list[category][file]['path'],
                                             direction=self._direction))
         return recordings
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     scenario_names = os.listdir(base_path)
     for scenario in scenario_names:
         print(scenario)
-        dataloader = DataLoader(base_path + scenario)
+        dataloader = DataLoader2021(base_path + scenario)
         function_list = [dataloader.training_data,
                          dataloader.validation_data,
                          dataloader.test_data]

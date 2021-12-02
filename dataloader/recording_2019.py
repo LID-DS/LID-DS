@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+from dataloader.base_recording import BaseRecording
 
 from dataloader.direction import Direction
 from dataloader.syscall_2019 import Syscall, Syscall2019
@@ -20,7 +21,7 @@ class RecordingDataParts(IntEnum):
     EXPLOIT_START_TIME = 5
 
 
-class Recording:
+class Recording2019(BaseRecording):
     """
 
     Single Recording built out of one line from runs.csv of LID-DS 2019

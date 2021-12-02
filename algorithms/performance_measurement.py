@@ -1,4 +1,4 @@
-from dataloader.recording import Recording
+from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
 
@@ -82,7 +82,7 @@ class PerformanceMeasurement:
                 self._last_syscall_of_cfp_list_normal.append(self._normal_score_count)
                 self._cfp_counter_wait_normal = False
 
-    def new_recording(self, recording: Recording):
+    def new_recording(self, recording: BaseRecording):
         """
         at beginning of each recording: saves exploit time, resets flags and counts
 
