@@ -1,9 +1,9 @@
-# from algorithms.features.time_delta_syscalls import TimeDeltaSyscalls
 from algorithms.features.impl.thread_change_flag import ThreadChangeFlag
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.features.impl.return_value import ReturnValue
+from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.ngram import Ngram
 
@@ -25,18 +25,16 @@ if __name__ == '__main__':
     ngram_length = 4
     embedding_size = 5
     thread_aware = True
-    return_value = True
-    element_size = embedding_size
-    if return_value:
-        element_size += 1
-    if time_delta:
-        element_size += 1
+    use_return_value = True
+    use_thread_change_flag = True
+    use_time_delta = False
     scenario = "CVE-2017-7529"
     scenario_path = f'../../Dataset/{scenario}/'
 
     # data loader for scenario
     dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
 
+    element_size = embedding_size
     # embedding
     w2v = W2VEmbedding(
         vector_size=embedding_size,
@@ -48,9 +46,17 @@ if __name__ == '__main__':
         distinct=True,
         thread_aware=True
     )
-    return_value = ReturnValue()
+    feature_list = [w2v]
+    if use_return_value:
+        element_size += 1
+        rv = ReturnValue()
+        feature_list.append(rv)
+    if use_time_delta:
+        td = TimeDelta()
+        element_size += 1
+        feature_list.append(td)
     ngram = Ngram(
-        feature_list=[w2v],
+        feature_list=feature_list,
         thread_aware=thread_aware,
         ngram_length=ngram_length + 1
     )
@@ -59,19 +65,23 @@ if __name__ == '__main__':
         element_size=element_size
     )
     int_embedding = IntEmbedding()
+    if use_thread_change_flag:
+        tcf = ThreadChangeFlag(ngram_minus_one)
+    feature_list = [int_embedding,
+                    ngram_minus_one]
+    if use_thread_change_flag:
+        feature_list.append(tcf)
 
     # decision engine (DE)
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
-    lstm = LSTM(ngram_length=ngram_length,
-                embedding_size=embedding_size,
+    lstm = LSTM(element_size=element_size,
+                use_thread_change_flag=use_thread_change_flag,
+                ngram_length=ngram_length,
                 distinct_syscalls=distinct_syscalls,
                 epochs=20,
                 batch_size=256,
-                force_train=False,
-                model_path=f'Models/{scenario}/',
-                time_delta=0,
-                thread_change_flag=0,
-                return_value=0)
+                force_train=True,
+                model_path=f'Models/{scenario}/LSTM/')
 
     # define the used features
     ids = IDS(data_loader=dataloader,
