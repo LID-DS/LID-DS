@@ -12,7 +12,7 @@ TRAINING_SIZE = 200
 VALIDATION_SIZE = 50
 
 
-class DataLoader(BaseDataLoader):
+class DataLoader2019(BaseDataLoader):
     """
 
     Loads data for LID-DS 2019 dataset
