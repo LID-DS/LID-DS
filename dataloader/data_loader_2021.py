@@ -10,7 +10,7 @@ from enum import Enum
 
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.direction import Direction
-from dataloader.recording import Recording
+from dataloader.recording_2021 import Recording2021
 
 TRAINING = 'training'
 VALIDATION = 'validation'
@@ -193,11 +193,11 @@ class DataLoader2021(BaseDataLoader):
             # check filter
             if recording_type:
                 if self._metadata_list[category][file]['recording_type'] == recording_type:
-                    recordings.append(Recording(name=file,
+                    recordings.append(Recording2021(name=file,
                                                 path=self._metadata_list[category][file]['path'],
                                                 direction=self._direction))
             else:
-                recordings.append(Recording(name=file,
+                recordings.append(Recording2021(name=file,
                                             path=self._metadata_list[category][file]['path'],
                                             direction=self._direction))
         return recordings

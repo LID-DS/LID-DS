@@ -3,6 +3,7 @@ import csv
 import json
 import pcapkit
 import zipfile
+from dataloader.base_recording import BaseRecording
 
 from dataloader.direction import Direction
 from dataloader.syscall import Syscall
@@ -10,7 +11,7 @@ from dataloader.resource_statistic import ResourceStatistic
 from dataloader.syscall_2021 import Syscall2021
 
 
-class Recording:
+class Recording2021(BaseRecording):
     """
 
         Single recording captured in 4 ways

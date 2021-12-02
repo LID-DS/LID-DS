@@ -5,7 +5,7 @@ import random
 from tqdm import tqdm
 
 from dataloader.direction import Direction
-from dataloader.recording_2019 import Recording
+from dataloader.recording_2019 import Recording2019
 from dataloader.base_data_loader import BaseDataLoader
 
 TRAINING_SIZE = 200
@@ -77,7 +77,7 @@ class DataLoader2019(BaseDataLoader):
             exploit_recordings = []
 
             for recording_line in recording_reader:
-                recording = Recording(recording_line, self.scenario_path, self._direction)
+                recording = Recording2019(recording_line, self.scenario_path, self._direction)
                 if not recording.metadata()['exploit']:
                     normal_recordings.append(recording)
                 else:

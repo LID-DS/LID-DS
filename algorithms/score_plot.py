@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from dataloader.recording import Recording
+from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
 # adjusting plot parameters
@@ -28,7 +28,7 @@ class ScorePlot:
         self._first_syscall_of_cfp_list_normal = []
         self._last_syscall_of_cfp_list_normal = []
 
-    def new_recording(self, recording: Recording):
+    def new_recording(self, recording: BaseRecording):
         """
         called in ids at beginning of each new recording:
             sets exploit time,
