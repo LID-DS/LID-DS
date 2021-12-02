@@ -140,20 +140,17 @@ class Recording2021(BaseRecording):
              "time":{
                     "container_ready": {
                         "absolute": float,
-                        "relative": float,
                         "source": str
                     },
                     "exploit": [
                         {
                             "absolute": float,
                             "name": str,
-                            "relative": float,
                             "source": str
                         }
                     ]
                     "warmup_end": {
                         "absolute": float,
-                        "relative": float,
                         "source": str
                     }
                 }
