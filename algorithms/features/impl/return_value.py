@@ -37,7 +37,8 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         return_value_string = syscall.param('res')
         send_socket = ['sendfile', 'sendmsg']
         not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
-        if return_value_string is not None:
+        interesting = send_socket + ["write", "read", "getdents", "recv"]
+        if return_value_string is not None and return_value_string in interesting:
             try:
                 current_bytes = int(return_value_string)
                 if current_bytes > 1 and current_bytes < 1000000000:
@@ -73,14 +74,17 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         """
         return_value_string = syscall.param('res')
         return_type = None
+        send_socket = ['sendfile', 'sendmsg']
+        not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
+        interesting = send_socket + ["write", "read", "getdents", "recv"]
         normalized_bytes = 0
-        if return_value_string is not None:
+        if return_value_string is not None and return_value_string in interesting:
             try:
                 current_bytes = int(return_value_string)
                 if current_bytes > 1 and current_bytes < 1000000000:
                     if "write" in syscall.name():
                         return_type = 'write'
-                    elif "sendfile" in syscall.name():
+                    elif syscall.name() in send_socket:
                         return_type = 'send_socket'
                     elif "read" in syscall.name():
                         return_type = 'read'
