@@ -64,7 +64,8 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         print("not handled")
                         print(syscall.name(), return_value_string)
             except Exception:
-                pass
+                print('Return Value: Could not cast return value to int')
+                print(f' Return string: {return_value_string}')
 
     def extract(self, syscall: Syscall, features: dict):
         """
@@ -97,10 +98,9 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                 except ZeroDivisionError:
                     normalized_bytes = 0
             except Exception:
-                pass
-            features[self.get_id()] = normalized_bytes
-        else:
-            features[self.get_id()] = 0
+                print('Return Value: Could not cast return value to int')
+                print(f' Return string: {return_value_string}')
+        features[self.get_id()] = normalized_bytes
 
     def depends_on(self):
         return []
