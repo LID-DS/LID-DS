@@ -28,7 +28,7 @@ if __name__ == '__main__':
     use_return_value = True
     use_thread_change_flag = True
     use_time_delta = False
-    scenario = "CVE-2017-7529"
+    scenario = "CVE-2012-2122"
     scenario_path = f'../../Dataset/{scenario}/'
 
     # data loader for scenario
@@ -65,11 +65,10 @@ if __name__ == '__main__':
         element_size=element_size
     )
     int_embedding = IntEmbedding()
-    if use_thread_change_flag:
-        tcf = ThreadChangeFlag(ngram_minus_one)
     feature_list = [int_embedding,
                     ngram_minus_one]
     if use_thread_change_flag:
+        tcf = ThreadChangeFlag(ngram_minus_one)
         feature_list.append(tcf)
 
     # decision engine (DE)
@@ -85,8 +84,7 @@ if __name__ == '__main__':
 
     # define the used features
     ids = IDS(data_loader=dataloader,
-              feature_list=[int_embedding,
-                            ngram_minus_one],
+              feature_list=feature_list,
               decision_engine=lstm,
               plot_switch=True)
 
