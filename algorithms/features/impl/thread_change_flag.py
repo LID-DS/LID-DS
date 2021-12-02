@@ -9,7 +9,7 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
     """
     if a ngram is full: check whether it has another thread id as the last seen ngram
     0 -> no change in thread id
-    1 -> thread id changed
+    1 -> thread id changed or first thread id
     """
 
     def __init__(self, ngram: Ngram):
@@ -26,7 +26,7 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
         only returns not None if ngram exists
         """
         tcf = 0
-        if self._ngram.get_id() in features:
+        if features[self._ngram.get_id()] is not None:
             if syscall.thread_id() != self._last_thread_id:
                 self._last_thread_id = syscall.thread_id()
                 tcf = 1
