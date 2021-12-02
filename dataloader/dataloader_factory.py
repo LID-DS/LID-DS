@@ -1,10 +1,11 @@
 from os import listdir, path
-from dataloader.data_loader_2019 import DataLoader as DataLoader2019
-from dataloader.data_loader import DataLoader as DataLoader2021
+from dataloader.base_data_loader import BaseDataLoader
+from dataloader.data_loader_2019 import DataLoader2019
+from dataloader.data_loader_2021 import DataLoader2021
 from dataloader.direction import Direction
 
 
-def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN):
+def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN) -> BaseDataLoader:
     """
     creates DataLoader 2019 or 2021 by detecting the dataset specific file structure
     """

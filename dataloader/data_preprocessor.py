@@ -3,8 +3,7 @@ from typing import Union
 from tqdm import tqdm
 
 from algorithms.features.feature_manager import FeatureManager
-from dataloader.data_loader import DataLoader
-from dataloader.data_loader_2019 import DataLoader as DataLoader_2019
+from dataloader.base_data_loader import BaseDataLoader
 from dataloader.syscall import Syscall
 
 
@@ -17,7 +16,7 @@ class DataPreprocessor:
     """
 
     def __init__(self,
-                 data_loader: Union[DataLoader, DataLoader_2019],
+                 data_loader: BaseDataLoader,
                  feature_list: list
                  ):
         self._data_loader = data_loader
