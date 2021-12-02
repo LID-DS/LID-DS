@@ -30,11 +30,13 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
             'send_socket': 0
         }
 
-    def train_on(self, syscall: Syscall):
+    def train_on(self, syscall: Syscall, features: dict):
         """
         save max value of each specified syscall
         """
         return_value_string = syscall.param('res')
+        send_socket = ['sendfile', 'sendmsg']
+        not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
         if return_value_string is not None:
             try:
                 current_bytes = int(return_value_string)
@@ -42,7 +44,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                     if "write" in syscall.name():
                         if current_bytes >= self._max['write']:
                             self._max['write'] = current_bytes
-                    elif "sendfile" in syscall.name():
+                    elif syscall.name() in send_socket:
                         if current_bytes >= self._max['send_socket']:
                             self._max['send_socket'] = current_bytes
                     elif "read" in syscall.name():
@@ -56,19 +58,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         # bytes received
                         if current_bytes >= self._max['recv_socket']:
                             self._max['recv_socket'] = current_bytes
-                    elif "clone" in syscall.name():
-                        # open child process
-                        pass
-                    elif "getcwd" in syscall.name():
-                        # get current working directory
-                        pass
-                    elif "lseek" in syscall.name():
-                        # reposition file offset
-                        pass
-                    elif "fcntl" in syscall.name():
-                        # perform action on fd
-                        pass
-                    elif "futex" in syscall.name():
+                    elif syscall.name() in not_interesting:
                         pass
                     else:
                         print("not handled")

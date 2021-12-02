@@ -23,8 +23,8 @@ if __name__ == '__main__':
     ngram_length = 3
     embedding_size = 4
     thread_aware = True
-    scenario = "Bruteforce_CWE-307"
-    scenario_path = f'../../Dataset_old/{scenario}/'
+    scenario = "CVE-2017-7529"
+    scenario_path = f'../../Dataset/{scenario}/'
 
     # data loader for scenario
     dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # ngrams
     ngram = Ngram(feature_list=[w2v, return_value],
                   thread_aware=True,
-                  ngram_length=ngram_length
+                  ngram_length=ngram_length + 1
                   )
     ngram_minus_one = NgramMinusOne(ngram=ngram,
                                     element_size=embedding_size + 1)  # plus 1 for return value
