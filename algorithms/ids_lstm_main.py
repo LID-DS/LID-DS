@@ -16,6 +16,7 @@ from dataloader.direction import Direction
 
 from pprint import pprint
 import time
+import csv
 
 if __name__ == '__main__':
     """
@@ -27,7 +28,8 @@ if __name__ == '__main__':
     use_return_value = True
     use_thread_change_flag = True
     use_time_delta = False
-    scenario = "CVE-2017-7529"
+    batch_size = 2048
+    scenario = "CVE-2014-0160"
     scenario_path = f'../../Dataset/{scenario}/'
 
     # data loader for scenario
@@ -77,8 +79,8 @@ if __name__ == '__main__':
                 ngram_length=ngram_length,
                 distinct_syscalls=distinct_syscalls,
                 epochs=20,
-                batch_size=256,
-                force_train=True,
+                batch_size=batch_size,
+                force_train=False,
                 model_path=f'Models/{scenario}/LSTM/')
 
     # define the used features
@@ -100,6 +102,7 @@ if __name__ == '__main__':
     stats = {}
     stats['scenario'] = scenario
     stats['ngram'] = ngram_length
+    stats['batch_size'] = batch_size
     stats['embedding_size'] = embedding_size
     stats['return_value'] = use_return_value
     stats['thread_change_flag'] = use_thread_change_flag
@@ -114,6 +117,7 @@ if __name__ == '__main__':
     csv_file = "stats.csv"
     csv_columns = ['scenario',
                    'ngram',
+                   'batch_size',
                    'embedding_size',
                    'return_value',
                    'thread_change_flag',
