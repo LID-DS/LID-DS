@@ -70,7 +70,7 @@ def test_syscalls_in_time_window():
     assert features[id] == 2
 
     # syscall time difference to last one is 4s, only syscall in window is this one, leads to 1/2 = 0.5
-    assert extractor.extract(syscall_12, features)
+    extractor.extract(syscall_12, features)
     assert features[id] == 0.5
 
 
