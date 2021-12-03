@@ -7,8 +7,6 @@ from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.ngram import Ngram
 
-from dataloader.data_loader_2019 import DataLoader
-
 from algorithms.decision_engines.lstm import LSTM
 
 from algorithms.ids import IDS
@@ -28,7 +26,7 @@ if __name__ == '__main__':
     use_return_value = True
     use_thread_change_flag = True
     use_time_delta = False
-    scenario = "CVE-2012-2122"
+    scenario = "CVE-2017-7529"
     scenario_path = f'../../Dataset/{scenario}/'
 
     # data loader for scenario
@@ -92,7 +90,38 @@ if __name__ == '__main__':
     ids.train_decision_engine()
     # threshold
     ids.determine_threshold()
-    # detection
+    start = time.time()
     ids.do_detection()
-    # print(results)
-    pprint(ids.performance.get_performance())
+    end = time.time()
+    detection_time = end - start
+    performance = ids.performance.get_performance()
+    pprint(performance)
+    stats = {}
+    stats['scenario'] = scenario
+    stats['ngram'] = ngram_length
+    stats['embedding_size'] = embedding_size
+    stats['return_value'] = return_value
+    stats['thread_change_flag'] = thread_change_flag
+    stats['time_delta'] = time_delta
+    stats['alarm_count'] = performance['alarm_count']
+    stats['cfp_exp'] = performance['consecutive_false_positives_exploits']
+    stats['cfp_norm'] = performance['consecutive_false_positives_normal']
+    stats['detection_rate'] = performance['detection_rate']
+    stats['fp'] = performance['false_positives']
+    stats['detection_time'] = detection_time
+
+    csv_file = "stats.csv"
+    csv_columns = ['scenario',
+                   'alarm_count',
+                   'cfp_exp',
+                   'cfp_norm',
+                   'detection_rate',
+                   'fp',
+                   'detection_time']
+    try:
+        with open(csv_file, 'a') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=csv_columns)
+            # writer.writeheader()
+            writer.writerow(stats)
+    except IOError:
+        print("I/O error")
