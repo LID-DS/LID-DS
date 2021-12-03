@@ -25,10 +25,7 @@ class Ngram(BaseFeature):
             self._list_of_feature_ids.append(feature.get_id())
         self._thread_aware = thread_aware
         self._ngram_length = ngram_length
-
         self._dependency_list = []
-        if thread_aware:
-            self._dependency_list.append(ThreadID())
         self._dependency_list.extend(feature_list)
 
     def depends_on(self):
@@ -41,10 +38,7 @@ class Ngram(BaseFeature):
         """
         thread_id = 0
         if self._thread_aware:
-            try:
-                thread_id = features[ThreadID().get_id()]
-            except Exception:
-                raise KeyError('No thread id in features')
+            thread_id = syscall.thread_id()
         if thread_id not in self._ngram_buffer:
             self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)
         self._ngram_buffer[thread_id].append(features)
