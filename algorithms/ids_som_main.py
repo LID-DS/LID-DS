@@ -4,7 +4,6 @@ from algorithms.features.path_evilness import PathEvilness
 from algorithms.features.ngram import Ngram
 from algorithms.features.threadID import ThreadID
 from algorithms.features.w2v_embedding import W2VEmbedding
-from algorithms.features.syscalls_in_time_window import SyscallsInTimeWindow
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
 from dataloader.data_preprocessor import DataPreprocessor
