@@ -5,7 +5,6 @@ from gensim.models import KeyedVectors, Word2Vec
 from algorithms.features.base_feature import BaseFeature
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
@@ -40,7 +39,7 @@ class W2VEmbedding(BaseFeature):
         self._distinct = distinct
         self.w2vmodel = None
         self._sentences = []
-        self._feature_list = [SyscallName(), ThreadID()]
+        self._syscall_name_feature = SyscallName()
         self._window_size = window_size
         self._n_gram_streamer = Ngram(feature_list=[SyscallName()],
                                       thread_aware=thread_aware,
@@ -58,11 +57,10 @@ class W2VEmbedding(BaseFeature):
             gives syscall features to n_gram feature stream, casts it as sentence and saves it to training corpus
         """
         if self.w2vmodel is None:
-            features = {}
-            for feature in self._feature_list:
-                feature.extract(syscall, features)
-            self._n_gram_streamer.extract(None, features)
-            sentence = features[self._n_gram_streamer.get_id()]
+            local_features = {}
+            self._syscall_name_feature.extract(syscall, local_features)
+            self._n_gram_streamer.extract(syscall, local_features)
+            sentence = local_features[self._n_gram_streamer.get_id()]
             if sentence is not None:
                 if self._distinct:
                     if sentence not in self._sentences:
@@ -110,4 +108,3 @@ class W2VEmbedding(BaseFeature):
             tells n_gram streamer to clear buffer after beginning of new recording
         """
         self._n_gram_streamer.new_recording()
-
