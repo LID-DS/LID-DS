@@ -15,6 +15,7 @@ from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
 from pprint import pprint
+import time
 
 if __name__ == '__main__':
     """
@@ -100,9 +101,9 @@ if __name__ == '__main__':
     stats['scenario'] = scenario
     stats['ngram'] = ngram_length
     stats['embedding_size'] = embedding_size
-    stats['return_value'] = return_value
-    stats['thread_change_flag'] = thread_change_flag
-    stats['time_delta'] = time_delta
+    stats['return_value'] = use_return_value
+    stats['thread_change_flag'] = use_thread_change_flag
+    stats['time_delta'] = use_time_delta
     stats['alarm_count'] = performance['alarm_count']
     stats['cfp_exp'] = performance['consecutive_false_positives_exploits']
     stats['cfp_norm'] = performance['consecutive_false_positives_normal']
@@ -112,6 +113,11 @@ if __name__ == '__main__':
 
     csv_file = "stats.csv"
     csv_columns = ['scenario',
+                   'ngram',
+                   'embedding_size',
+                   'return_value',
+                   'thread_change_flag',
+                   'time_delta',
                    'alarm_count',
                    'cfp_exp',
                    'cfp_norm',
