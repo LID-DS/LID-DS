@@ -3,8 +3,8 @@ import os
 
 from dataloader.dataloader_factory import dataloader_factory
 
-from dataloader.data_loader_2019 import DataLoader as DataLoader2019
-from dataloader.data_loader import DataLoader as DataLoader2021
+from dataloader.data_loader_2019 import DataLoader2019
+from dataloader.data_loader_2021 import DataLoader2021
 
 from shutil import rmtree
 

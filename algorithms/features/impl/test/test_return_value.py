@@ -70,9 +70,9 @@ def test_return_value():
     ]
 
     rv = ReturnValue()
-    for syscall in syscalls:
-        rv.train_on(syscall)
     features = {}
+    for syscall in syscalls:
+        rv.train_on(syscall, features)
 
     # {'read': 512, 'write': 1525, 'recv_socket': 118, 'get_dents': 576, 'send_socket': 612}
 

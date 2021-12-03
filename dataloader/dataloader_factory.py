@@ -1,10 +1,11 @@
 from os import listdir, path
-from dataloader.data_loader_2019 import DataLoader as DataLoader2019
-from dataloader.data_loader import DataLoader as DataLoader2021
+from dataloader.base_data_loader import BaseDataLoader
+from dataloader.data_loader_2019 import DataLoader2019
+from dataloader.data_loader_2021 import DataLoader2021
 from dataloader.direction import Direction
 
 
-def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN):
+def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN) -> BaseDataLoader:
     """
     creates DataLoader 2019 or 2021 by detecting the dataset specific file structure
     """
@@ -12,7 +13,7 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     file_list.sort()
 
     _, base_file_extension = path.splitext(file_list[0])
-
+    print(base_file_extension)
 
     """
     LID-DS 2019 Dataset has txt files or one csv file in root folder which lead to return of
@@ -22,7 +23,8 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     if subdirs are detected the dataset subdir with normal test data is opened
     if it contains zip files a DataLoader 2021 Object is returned
     """
-    if base_file_extension == '.txt' or base_file_extension == '.csv':
+    # if base_file_extension == '.txt' or base_file_extension == '.csv':
+    if "runs.csv" in file_list:
         print('LID-DS 2019 detected, initializing Dataloader')
         return DataLoader2019(scenario_path, direction)
     elif base_file_extension == '':
