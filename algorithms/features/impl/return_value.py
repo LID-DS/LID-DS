@@ -11,13 +11,15 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
     Include:
         write and writev are summarized as           write
         read, readv and are summarized as            read
-        sendfile as                                  send_socket
-        recv as                                      recv_socket
+        sendfile and sendmsg as                      send_socket
+        recvfrom recv and recvmsg as                 recv_socket
         getdents as                                  get_dents
     Training phase:
         save highest value.
     Extraction phase:
         normalize with highest value of training phase
+        return value is error code return -1
+        Error codes included only : EAGAIN, EINVAL
     """
 
     def __init__(self):
@@ -35,6 +37,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         self.recv_socket =  ['recvfrom', 'recv', 'recvmsg']
         self.get_dents =  ['getdents']
         self.not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
+        self.error_codes = ['EAGAIN', 'EINVAL']
         self.interesting = self.read \
                            + self.write \
                            + self.send_socket \
@@ -72,10 +75,16 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                     else:
                         print("not handled")
                         print(syscall.name(), return_value_string)
-                except Exception as e:
-                    print(e)
-                    print('Return Value: Could not cast return value to int')
-                    print(f' Return string: {return_value_string}')
+                except ValueError as e:
+                    if any(error in return_value_string for error in self.error_codes):
+                        # error code was returned so ValueError is expected
+                        # in extraction -1 is returned
+                        pass
+                    else:
+                        print(e)
+                        print('Return Value: Could not cast return value to int')
+                        print(f' Return string: {return_value_string}')
+                        print(f' Syscall: {syscall.name()}')
 
     def extract(self, syscall: Syscall, features: dict):
         """
@@ -100,14 +109,19 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         return_type = 'get_dents'
                     else:
                         pass
-                except Exception as e:
-                    print(e)
-                    print('Return Value: Could not cast return value to int')
-                    print(f' Return string: {return_value_string}')
-                try:
-                    if return_type:
-                        normalized_bytes = current_bytes/self._max[return_type]
+                except ValueError as e:
+                    if any(error in return_value_string for error in self.error_codes):
+                        return_type = 'error'
+                        normalized_bytes = -1
                     else:
+                        print(e)
+                        print('Return Value: Could not cast return value to int')
+                        print(f' Return string: {return_value_string}')
+                        print(f' Syscall: {syscall.name()}')
+                try:
+                    if return_type is not None and return_type is not 'error':
+                        normalized_bytes = current_bytes/self._max[return_type]
+                    elif return_type is not 'error':
                         normalized_bytes = 0
                 except ZeroDivisionError:
                     normalized_bytes = 0
