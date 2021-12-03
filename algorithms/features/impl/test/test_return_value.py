@@ -24,8 +24,8 @@ def test_return_value():
     syscall_19 = Syscall('20004 10:24:48.109091028 3 33 apache2 1461 < read res=227 data=FUVSXW:$apr1$op6xtN3b$vaDs6F5DnMZ8sQRThkBNM/.HXUPXI:$apr1$OO6XOIe.$k0RuEZLlnnZBX')
     syscall_20 = Syscall('20006 10:24:48.109105388 3 33 apache2 1461 < close res=0')
     syscall_21 = Syscall('20008 10:24:48.110844264 3 33 apache2 1461 < setitimer')
-    syscall_22 = Syscall('20010 10:24:48.110850315 3 33 apache2 1461 < rt_sigaction')
-    syscall_23 = Syscall('20012 10:24:48.110856014 3 33 apache2 1461 < rt_sigprocmask')
+    syscall_22 = Syscall('20010 10:24:48.110850315 3 33 apache2 1461 < recvmsg res=-11(EAGAIN)')
+    syscall_23 = Syscall('20012 10:24:48.110856014 3 33 apache2 1461 < sendfile res=-22(EINVAL)')
     syscall_24 = Syscall('20014 10:24:48.111053057 3 33 apache2 1461 < poll res=1 fds=12:41')
     syscall_25 = Syscall('20016 10:24:48.111068240 3 33 apache2 1461 < read res=268 data=.....p..')
     syscall_26 = Syscall('4578 11:09:03.156969938 7 33 apache2 19902 < getdents res=576')
@@ -140,10 +140,10 @@ def test_return_value():
     assert features[rv.get_id()] == 0
 
     rv.extract(syscall_22, features)
-    assert features[rv.get_id()] == 0
+    assert features[rv.get_id()] == -1
 
     rv.extract(syscall_23, features)
-    assert features[rv.get_id()] == 0
+    assert features[rv.get_id()] == -1
 
     rv.extract(syscall_24, features)
     assert features[rv.get_id()] == 0
