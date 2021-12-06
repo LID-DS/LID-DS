@@ -1,10 +1,8 @@
-import typing
-
-from algorithms.features.base_syscall_feature_extractor import BaseSyscallFeatureExtractor
+from algorithms.features.base_feature import BaseFeature
 from dataloader.syscall import Syscall
 
 
-class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
+class SyscallsInTimeWindow(BaseFeature):
 
     def __init__(self, window_length_in_s: int):
         """
@@ -20,7 +18,12 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
         self._syscall_buffer = {}
         self._training_max = 0
 
-    def train_on(self, syscall: Syscall):
+        self._dependency_list = []
+
+    def depends_on(self):
+        return self._dependency_list
+
+    def train_on(self, syscall: Syscall, features: dict):
         """
             trains the extractor by finding the biggest count of syscalls
             in time window needed for normalization of feature
@@ -57,7 +60,7 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
         """
         self._syscall_buffer = {}
 
-    def extract(self, syscall: Syscall) -> typing.Tuple[int, float]:
+    def extract(self, syscall: Syscall, features: dict):
         """
             extracts count of syscalls in time window before current syscall
             returns normalized value based on training data
@@ -92,10 +95,10 @@ class SyscallsInTimeWindow(BaseSyscallFeatureExtractor):
 
             # normalizing the return value with maximum count from training data
             normalized_count = syscalls_in_window / self._training_max
-            return SyscallsInTimeWindow.get_id(), normalized_count
+            features[self.get_id()] = normalized_count
 
         else:
-            return SyscallsInTimeWindow.get_id(), 0
+            features[self.get_id()] = 0
 
     def new_recording(self):
         """

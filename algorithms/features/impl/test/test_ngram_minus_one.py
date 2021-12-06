@@ -11,8 +11,8 @@ def helper(syscall, feature_list, ngram, ngram_mo, cid):
     syscall_dict = {}
     for feature in feature_list:
         feature.extract(syscall, syscall_dict)
-    ngram.extract(None, syscall_dict)
-    ngram_mo.extract(None, syscall_dict)
+    ngram.extract(syscall, syscall_dict)
+    ngram_mo.extract(syscall, syscall_dict)
     return syscall_dict[cid]
 
 
