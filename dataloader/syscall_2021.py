@@ -31,7 +31,7 @@ class Syscall2021(Syscall):
 
     """
 
-    def __init__(self, syscall_line: str, line_id: int = -1):
+    def __init__(self, recording_path: str, syscall_line: str, line_id: int = -1):
         self.syscall_line = syscall_line
         self._line_list = syscall_line.split(' ')
         self._line_id = line_id
@@ -44,6 +44,7 @@ class Syscall2021(Syscall):
         self._name = None
         self._direction = None
         self._params = None
+        self.recording_path = recording_path
 
     def timestamp_unix_in_ns(self) -> int:
         """

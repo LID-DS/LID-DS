@@ -9,6 +9,8 @@ class Syscall:
     """
 
     def __init__(self):
+        self.recording_path = None
+        self.line_id = None
         raise NotImplemented
 
     def timestamp_unix_in_ns(self) -> int:
