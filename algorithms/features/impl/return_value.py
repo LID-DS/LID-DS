@@ -37,7 +37,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         self.recv_socket =  ['recvfrom', 'recv', 'recvmsg']
         self.get_dents =  ['getdents']
         self.not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
-        self.error_codes = ['EAGAIN', 'EINVAL']
+        self.error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET']
         self.interesting = self.read \
                            + self.write \
                            + self.send_socket \
