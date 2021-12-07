@@ -1,6 +1,10 @@
+from algorithms.features.impl.thread_change_flag import ThreadChangeFlag
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.return_value import ReturnValue
+from algorithms.features.impl.time_delta import TimeDelta
+from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.ngram import Ngram
 
 from algorithms.decision_engines.lstm import LSTM
@@ -59,51 +63,69 @@ if __name__ == '__main__':
     thread_aware = False
     if args.thread_aware:
         thread_aware = True
-    return_value = False
+    use_return_value = False
     if args.return_value:
-        return_value = True
+        use_return_value = True
     thread_change_flag = False
     if args.thread_change_flag:
-        thread_change_flag = True
+        use_thread_change_flag = True
     time_delta = False
     if args.time_delta:
-        time_delta = True
+        use_time_delta = True
 
     dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
+
+    element_size = embedding_size
 
     w2v = W2VEmbedding(
         vector_size=embedding_size,
         window_size=10,
         epochs=5000,
-        scnenario_path=scenario_path,
+        scenario_path=scenario_path,
         path=f'Models/{scenario}/W2V/',
         force_train=True,
         distinct=True,
         thread_aware=True
     )
+    feature_list = [w2v]
+    if use_return_value:
+        element_size += 1
+        rv = ReturnValue()
+        feature_list.append(rv)
+    if use_time_delta:
+        td = TimeDelta()
+        element_size += 1
+        feature_list.append(td)
     ngram = Ngram(
-        feature_list=[w2v],
+        feature_list=feature_list,
         thread_aware=thread_aware,
-        ngram_length=ngram_length
+        ngram_length=ngram_length + 1
     )
     ngram_minus_one = NgramMinusOne(
-        ngram,
-        embedding_size
+        ngram=ngram,
+        element_size=element_size
     )
     int_embedding = IntEmbedding()
+    feature_list = [int_embedding,
+                    ngram_minus_one]
+    if use_thread_change_flag:
+        tcf = ThreadChangeFlag(ngram_minus_one)
+        feature_list.append(tcf)
+
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
     de = LSTM(
+        element_size=element_size,
+        use_thread_change_flag=use_thread_change_flag,
         ngram_length=ngram_length,
-        embedding_size=embedding_size,
         distinct_syscalls=distinct_syscalls,
         epochs=epochs,
         batch_size=batch_size,
-        force_train=False,
+        force_train=True,
         model_path=f'Models/{scenario}/LSTM'
     )
     # define the used features
     ids = IDS(data_loader=dataloader,
-              feature_list=[int_embedding, ngram],
+              feature_list=feature_list,
               decision_engine=de,
               plot_switch=False)
 
@@ -118,10 +140,11 @@ if __name__ == '__main__':
     stats = {}
     stats['scenario'] = scenario
     stats['ngram'] = ngram_length
+    stats['batch_size'] = batch_size
     stats['embedding_size'] = embedding_size
-    stats['return_value'] = return_value
-    stats['thread_change_flag'] = thread_change_flag
-    stats['time_delta'] = time_delta
+    stats['return_value'] = use_return_value
+    stats['thread_change_flag'] = use_thread_change_flag
+    stats['time_delta'] = use_time_delta
     stats['alarm_count'] = performance['alarm_count']
     stats['cfp_exp'] = performance['consecutive_false_positives_exploits']
     stats['cfp_norm'] = performance['consecutive_false_positives_normal']
@@ -131,6 +154,12 @@ if __name__ == '__main__':
 
     csv_file = "stats.csv"
     csv_columns = ['scenario',
+                   'ngram',
+                   'batch_size',
+                   'embedding_size',
+                   'return_value',
+                   'thread_change_flag',
+                   'time_delta',
                    'alarm_count',
                    'cfp_exp',
                    'cfp_norm',
