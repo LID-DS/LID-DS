@@ -37,4 +37,4 @@ if [ $9 == "True" ]; then
     flags="$flags$return_value_flag"
 fi
 echo $flags
-srun python hpc_ids_lstm_main.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 $flags
+srun python lstm_cluster_main.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 $flags
