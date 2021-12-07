@@ -66,10 +66,10 @@ if __name__ == '__main__':
     use_return_value = False
     if args.return_value:
         use_return_value = True
-    thread_change_flag = False
+    use_thread_change_flag = False
     if args.thread_change_flag:
         use_thread_change_flag = True
-    time_delta = False
+    use_time_delta = False
     if args.time_delta:
         use_time_delta = True
 
