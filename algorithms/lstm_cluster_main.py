@@ -82,7 +82,7 @@ if __name__ == '__main__':
         window_size=10,
         epochs=5000,
         scenario_path=scenario_path,
-        path=f'Models/{scenario}/W2V/',
+        path=f'Models/{scenario}/W2V',
         force_train=True,
         distinct=True,
         thread_aware=True
