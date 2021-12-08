@@ -3,7 +3,6 @@ from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 import torch
 import torch.utils.data.dataset as td
 import torch.nn as nn
-import numpy as np
 from tqdm import tqdm
 import math
 
@@ -34,34 +33,38 @@ class AENetwork(nn.Module):
     def __init__(self, input_size, hidden_size):
         super().__init__()
         self._input_size = input_size
-        
+        self._factor = 0.7
         # Building an linear encoder with Linear
         # layer followed by SELU activation function
         self.encoder = torch.nn.Sequential(
-            torch.nn.Linear(self._input_size, 100),
-            torch.nn.SELU(),
-            torch.nn.Linear(100, 70),
-            torch.nn.SELU(),
-            torch.nn.Linear(70, 50),
-            torch.nn.SELU(),
-            torch.nn.Linear(50, 35),
-            torch.nn.SELU(),
-            torch.nn.Linear(35, hidden_size),
-            torch.nn.SELU(),
+            torch.nn.Linear(
+                self._input_size, 
+                int(self._input_size * self._factor)),
+            torch.nn.SELU(),                    
+            torch.nn.Linear(
+                int(self._input_size * self._factor), 
+                int(self._input_size * self._factor * self._factor)),
+            torch.nn.SELU(),            
+            torch.nn.Linear(
+                int(self._input_size * self._factor * self._factor), 
+                hidden_size),
+            torch.nn.SELU()           
         )
           
         # Building an linear decoder with Linear
         # layer followed by SELU activation function
         self.decoder = torch.nn.Sequential(
-            torch.nn.Linear(hidden_size, 35),
-            torch.nn.SELU(),                   
-            torch.nn.Linear(35, 50),
+            torch.nn.Linear(
+                hidden_size, 
+                int(self._input_size*self._factor*self._factor)),
+            torch.nn.SELU(),                             
+            torch.nn.Linear(
+                int(self._input_size*self._factor*self._factor), 
+                int(self._input_size*self._factor)),            
             torch.nn.SELU(),       
-            torch.nn.Linear(50, 70),
-            torch.nn.SELU(),       
-            torch.nn.Linear(70, 100),
-            torch.nn.SELU(),
-            torch.nn.Linear(100, self._input_size),
+            torch.nn.Linear(
+                int(self._input_size*self._factor), 
+                self._input_size),
             torch.nn.SELU()
         )
 
@@ -78,55 +81,69 @@ class AE(BaseDecisionEngine):
     def __init__(self, input_size, hidden_size):
         super().__init__()
         self._autoencoder = AENetwork(input_size,hidden_size)
+        print(self._autoencoder)
         self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
-        self._epochs = 10000
+        self._epochs = 100000
         self._batch_size = 128
+        #self._batch_size = 64
         self._training_set = set() # we use distinct training data
+        self._validation_set = set()
         self._result_dict = {}
         self._optimizer = torch.optim.Adam(            
             self._autoencoder.parameters(),
-            lr = 0.001,
+            lr = 0.001,# lr = 0.001,
             weight_decay=0.01
         )
-        self._early_stopping_num_epochs = 100
+        self._early_stopping_num_epochs = 200
 
     def train_on(self, input_array: list):        
         self._training_set.add(tuple(input_array))
         
     def val_on(self, input_array: list):
-        pass
+        self._validation_set.add(tuple(input_array))
         
     def fit(self):
         print(f"size of distinct training data: {len(self._training_set)}")
         loss_dq = collections.deque(maxlen=self._early_stopping_num_epochs)
         best_avg_loss = math.inf
-        best_ae_model = None
         ae_ds = AEDataset(self._training_set)
-        torch.manual_seed(1)
+        ae_ds_val = AEDataset(self._validation_set)
         data_loader = torch.utils.data.DataLoader(ae_ds, batch_size=self._batch_size, shuffle=True)
-        bar = tqdm(range(0, self._epochs), 'training'.rjust(27), unit=" epochs")
+        val_data_loader = torch.utils.data.DataLoader(ae_ds_val, batch_size=self._batch_size, shuffle=True)
+        bar = tqdm(range(0, self._epochs), 'training'.rjust(27), unit=" epochs")        
         for epoch in bar:            
-            epoch_loss = 0.0
-            max_loss = 0.0
-            count = 0
+            epoch_loss = 0.0            
+            count = 0            
             for (batch_index, batch) in enumerate(data_loader):
                 count += 1
                 X = batch  # inputs
                 Y = batch  # targets (same as inputs)
-                self._optimizer.zero_grad()                # prepare gradients
-                oupt = self._autoencoder(X)                # compute output/target
-                loss_value = self._loss_function(oupt, Y)  # a tensor
-                if loss_value.item() > max_loss:
-                    max_loss = loss_value.item()
+                # forward
+                oupt = self._autoencoder(X)                # compute output
+                loss_value = self._loss_function(oupt, Y)  # compute loss (a tensor)
                 epoch_loss += loss_value.item()            # accumulate for display
+                # backward                
+                self._optimizer.zero_grad()                # prepare gradients
                 loss_value.backward()                      # compute gradients
                 self._optimizer.step()                     # update weights
             avg_loss = epoch_loss /count
-            bar.set_description(f"fit AE: avg|best loss={avg_loss:.3f}|{best_avg_loss:.3f}".rjust(27), refresh=True)            
+
+            # validation
+            val_loss = 0.0
+            count = 0
+            for (batch_index, batch) in enumerate(val_data_loader):
+                X = batch
+                outputs = self._autoencoder(X)
+                loss_value = self._loss_function(outputs, X)
+                val_loss += loss_value.item()
+                count += 1
+            avg_val_loss = val_loss / count
+
+            # print epoch results
+            bar.set_description(f"fit AE: train|val loss={avg_loss:.3f}|{avg_val_loss:.3f}".rjust(27), refresh=True)            
             if avg_loss < best_avg_loss:
                 best_avg_loss = avg_loss
-                best_ae_model = self._autoencoder.parameters()
 
             loss_dq.append(avg_loss)            
             stop_early = True
