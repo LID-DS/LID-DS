@@ -3,8 +3,8 @@
 #SBATCH --gres=gpu:1           # use 1 GPU per node 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1    # limit to one node
-#SBATCH --cpus-per-task=16     # use 16 threads per task
-#SBATCH --mem=32000M           # total memory
+#SBATCH --cpus-per-task=4      # use 16 threads per task
+#SBATCH --mem-per-cpu=1443   # total memory
 #SBATCH -J lids_lstm_training  # job name
 #SBATCH --time=20:00:00        # run for 1 hour
 
