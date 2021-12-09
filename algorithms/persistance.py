@@ -4,7 +4,7 @@ import json
 def save_to_json(result_dict: dict, path: str):
     """
         convert result dict to correct format
-        cut known results and put the rest into config dict
+        cut known performance and put the rest into config dict
     """
     performance = {
         "true_positives": int,
@@ -12,12 +12,13 @@ def save_to_json(result_dict: dict, path: str):
         "true_negatives": int,
         "false_negatives": int,
         "alarm_count": int,
-        "detection_rate": int,
+        "exploit_count": int,
+        "detection_rate": float,
         "consecutive_false_positives_normal": int,
         "consecutive_false_positives_exploits": int,
-        "recall": int,
-        "precision_with_cfa": int,
-        "precision_with_syscalls": int
+        "recall": float,
+        "precision_with_cfa": float,
+        "precision_with_syscalls": float
     }
     config = {}
     for key in result_dict.keys():
