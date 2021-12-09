@@ -1,9 +1,9 @@
 import random
 
-from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from algorithms.building_block import BuildingBlock
 
 
-class ExampleDecisionEngine(BaseDecisionEngine):
+class ExampleDecisionEngine(BuildingBlock):
     """
 
     Base class for decision engine

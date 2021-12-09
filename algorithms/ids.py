@@ -1,6 +1,6 @@
 from tqdm import tqdm
+from algorithms.building_block import BuildingBlock
 
-from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
 from algorithms.performance_measurement import PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
 from dataloader.base_data_loader import BaseDataLoader
@@ -10,12 +10,11 @@ from dataloader.data_preprocessor import DataPreprocessor
 class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
-                 feature_list: list,
-                 decision_engine: BaseDecisionEngine,
+                 resulting_building_block: BuildingBlock,
                  plot_switch: bool):
         self._data_loader = data_loader
-        self._data_preprocessor = DataPreprocessor(self._data_loader, feature_list)
-        self._decision_engine = decision_engine
+        self._final_bb = resulting_building_block
+        self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block)
         self.threshold = 0.0
         self._alarm = False
         self._anomaly_scores_exploits = []
@@ -31,14 +30,13 @@ class IDS:
     def train_decision_engine(self):
         """
         trains decision engine with training data
-
         """
         # train of DE
         train_data = self._data_loader.training_data()
         description = 'Training'.rjust(27)
         for recording in tqdm(train_data, description, unit=" recording"):
             for syscall in recording.syscalls():
-                feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
+                feature_vector = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
                 if feature_vector is not None:
                     self._decision_engine.train_on(feature_vector)
             self._data_preprocessor.new_recording()
@@ -47,7 +45,7 @@ class IDS:
         description = 'Validation'.rjust(27)
         for recording in tqdm(val_data, description, unit=" recording"):
             for syscall in recording.syscalls():
-                feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
+                feature_vector = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
                 if feature_vector is not None:
                     self._decision_engine.val_on(feature_vector)
             self._data_preprocessor.new_recording()
@@ -65,13 +63,13 @@ class IDS:
         description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
             for syscall in recording.syscalls():
-                feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
-                if feature_vector is not None:
-                    anomaly_score = self._decision_engine.predict(feature_vector)
+                results = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
+                if self._final_bb.get_id() in results:
+                    anomaly_score = results[self._final_bb.get_id()]
                     if anomaly_score > max_score:
                         max_score = anomaly_score
             self._data_preprocessor.new_recording()
-            self._decision_engine.new_recording()
+            # self._decision_engine.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
         if self.plot is not None:
@@ -82,9 +80,7 @@ class IDS:
         detecting performance values using the test data,
         calling performance object for measurement and
         plot object if plot_switch is True
-
         """
-
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
 
@@ -94,16 +90,15 @@ class IDS:
                 self.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
-                feature_vector = self._data_preprocessor.syscall_to_feature(syscall)
-                if feature_vector is not None:
-                    anomaly_score = self._decision_engine.predict(feature_vector)
-
+                results = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
+                if self._final_bb.get_id() in results:
+                    anomaly_score = results[self._final_bb.get_id()]
                     self.performance.analyze_syscall(syscall, anomaly_score)
                     if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
 
             self._data_preprocessor.new_recording()
-            self._decision_engine.new_recording()
+            #self._decision_engine.new_recording()
 
     def draw_plot(self):
         # plot data if wanted

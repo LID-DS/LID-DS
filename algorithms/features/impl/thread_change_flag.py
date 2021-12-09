@@ -1,11 +1,11 @@
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.threadID import ThreadID
-from algorithms.features.util.Singleton import Singleton
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
+class ThreadChangeFlag(BuildingBlock, metaclass=Singleton):
     """
     if a ngram is full: check whether it has another thread id as the last seen ngram
     0 -> no change in thread id

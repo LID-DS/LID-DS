@@ -1,11 +1,11 @@
 import typing
 
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ReturnValue(BaseFeature, metaclass=Singleton):
+class ReturnValue(BuildingBlock, metaclass=Singleton):
     """
     Extract system call return value for specific syscalls.
     Include:

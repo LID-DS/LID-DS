@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # define the used features
     ids = IDS(data_loader=dataloader,
-              feature_list=[ngram],
+              resulting_building_block=[ngram],
               decision_engine=DE,
               plot_switch=False)
 

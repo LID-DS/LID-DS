@@ -5,11 +5,11 @@ import typing
 from treelib import Tree
 from treelib.exceptions import DuplicatedNodeIdError
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class PathEvilness(BaseFeature):
+class PathEvilness(BuildingBlock):
     def __init__(self, scenario_path, path='Models', force_retrain=False, ):
         """
         Feature Extractor that builds a tree for all existing paths in the 
@@ -96,7 +96,7 @@ class PathEvilness(BaseFeature):
                 pass  # Todo if this is the correct behaviour it should be explained in a comment here
             i += 1
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, dependencies: dict):
         """
         calculates evilness by checking if path exists in cache
         if not it calculates evilness by looking for the height of the first
@@ -120,7 +120,7 @@ class PathEvilness(BaseFeature):
                         parent_node = self._file_tree.get_node(parent_id)
                         evilness = 1 / (self._file_tree.depth(parent_node) + 1)
                         break
-        features[self.get_id()] = evilness
+        dependencies[self.get_id()] = evilness
 
     def fit(self):
         """

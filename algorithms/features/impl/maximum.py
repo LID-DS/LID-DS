@@ -1,17 +1,17 @@
 import math
 from collections import deque
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class Maximum(BaseFeature):
+class Maximum(BuildingBlock):
     """
     gives the maximum value from a stream of system call features
     """
 
-    def __init__(self, feature: BaseFeature, thread_aware: bool, window_length: int):
+    def __init__(self, feature: BuildingBlock, thread_aware: bool, window_length: int):
         """
         feature: the maximum should be calculated on feature
         thread_aware: True or False

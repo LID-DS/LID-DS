@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class TimeDelta(BaseFeature):
+class TimeDelta(BuildingBlock):
 
     def __init__(self, thread_aware: bool):
         super().__init__()

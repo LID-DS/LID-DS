@@ -1,11 +1,11 @@
 import math
 import typing
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class PathLength(BaseFeature):
+class PathLength(BuildingBlock):
     def __init__(self):
         """
         """

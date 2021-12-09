@@ -2,12 +2,12 @@ import typing
 from collections import deque
 from collections.abc import Iterable
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class Ngram(BaseFeature):
+class Ngram(BuildingBlock):
     """
     extract ngram form a stream of system call features
     """
@@ -31,22 +31,20 @@ class Ngram(BaseFeature):
     def depends_on(self):
         return self._dependency_list
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, dependencies: dict):
         """
-        return None if the ngram is not complete
-        otherwise the ngram is returned
+        writes the ngram into dependencies if its complete
+        otherwise does not write into dependencies
         """
         thread_id = 0
         if self._thread_aware:
             thread_id = syscall.thread_id()
         if thread_id not in self._ngram_buffer:
             self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)
-        self._ngram_buffer[thread_id].append(features)
-        ngram_value = None
+        self._ngram_buffer[thread_id].append(dependencies)
         if len(self._ngram_buffer[thread_id]) == self._ngram_length:
             ngram_value = self._collect_features(self._ngram_buffer[thread_id])
-
-        features[self.get_id()] = ngram_value
+            dependencies[self.get_id()] = tuple(ngram_value)
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
         """

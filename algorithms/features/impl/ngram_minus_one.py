@@ -1,9 +1,9 @@
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.ngram import Ngram
 from dataloader.syscall import Syscall
 
 
-class NgramMinusOne(BaseFeature):
+class NgramMinusOne(BuildingBlock):
     """
 
     extract ngram form a stream of system call features

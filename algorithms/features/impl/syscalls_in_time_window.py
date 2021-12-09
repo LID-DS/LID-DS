@@ -1,8 +1,8 @@
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class SyscallsInTimeWindow(BaseFeature):
+class SyscallsInTimeWindow(BuildingBlock):
 
     def __init__(self, window_length_in_s: int):
         """

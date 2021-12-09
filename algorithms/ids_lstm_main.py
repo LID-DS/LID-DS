@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     # define the used features
     ids = IDS(data_loader=dataloader,
-              feature_list=[int_embedding, ngram_minus_one],
+              resulting_building_block=[int_embedding, ngram_minus_one],
               decision_engine=de,
               plot_switch=False)
 

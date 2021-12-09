@@ -1,9 +1,9 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ProcessID(BaseFeature, metaclass=Singleton):
+class ProcessID(BuildingBlock, metaclass=Singleton):
 
     def __init__(self):
         super().__init__()

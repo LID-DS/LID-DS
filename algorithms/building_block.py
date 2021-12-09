@@ -1,31 +1,35 @@
-from algorithms.features.feature_id_manager import FeatureIDManager
+from algorithms.building_block_id_manager import BuildingBlockIDManager
 from dataloader.syscall import Syscall
 
 
-class BaseFeature:
+class BuildingBlock:
     """
-    base class for a feature
+    base class for a features and other algorithms
     """
 
     def __init__(self):
         self._instance_id = None
+        self.custom_fields = {}
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall, dependencies: dict):
         """
         takes one system call instance and the given features to train this extraction
+        """        
+
+    def val_on(self, syscall: Syscall, dependencies: dict):
         """
-        pass
+        takes one feature instance to validate on
+        """
 
     def fit(self):
         """
         finalizes training
         """
-        pass
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, dependencies: dict):
         """
-        calculates features on the given syscall and other already calculated features given in features
-        writes its result into the given feature dict with key = get_id()
+        calculates building block on the given syscall and other already calculated building blocks given in dependencies
+        writes its result into the given dependencies dict with key = get_id()
         """
         raise NotImplementedError
 
@@ -33,11 +37,10 @@ class BaseFeature:
         """
         empties buffer and prepares for next recording
         """
-        pass
 
     def depends_on(self) -> list:
         """
-        gives information about the dependencies of this feature
+        gives information about the dependencies of this building block
         """
         raise NotImplementedError
 
@@ -56,8 +59,8 @@ class BaseFeature:
 
     def get_id(self):
         """
-        returns the id of this feature instance - used to differ between different features
+        returns the id of this feature instance - used to differ between different building blocks
         """
         if self._instance_id is None:
-            self._instance_id = FeatureIDManager().get_id(self)
+            self._instance_id = BuildingBlockIDManager().get_id(self)
         return self._instance_id

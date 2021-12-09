@@ -2,13 +2,13 @@ import os.path
 
 from gensim.models import KeyedVectors, Word2Vec
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from dataloader.syscall import Syscall
 
 
-class W2VEmbedding(BaseFeature):
+class W2VEmbedding(BuildingBlock):
     """
         implementation of the w2v embedding approach based on BaseSyscallFeatureExtractor
 
