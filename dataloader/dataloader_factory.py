@@ -13,7 +13,7 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     file_list.sort()
 
     _, base_file_extension = path.splitext(file_list[0])
-    print(base_file_extension)
+    # print(base_file_extension)
 
     """
     LID-DS 2019 Dataset has txt files or one csv file in root folder which lead to return of
