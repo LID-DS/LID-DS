@@ -1,3 +1,4 @@
+import json
 from pprint import pprint
 
 from torch.utils import data
@@ -49,4 +50,5 @@ if __name__ == '__main__':
     pprint(ids.performance.get_performance())
     # draw plot
 
-    print(ids.performance.alarms.get_alarms_as_dict())
+    with open('alarms.json', 'w') as jsonfile:
+        json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str)

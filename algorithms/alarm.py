@@ -13,7 +13,7 @@ class Alarm:
             correct: flag if the current alarm is correct detected
         """
         self.first_line_id = syscall.line_id
-        self.first_timestamp = syscall.timestamp_datetime()
+        self.first_timestamp = syscall.timestamp_unix_in_ns()
         self.correct = correct
 
         self.last_line_id = None
