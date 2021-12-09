@@ -7,7 +7,17 @@ def save_to_json(result_dict: dict, path: str):
         cut known results and put the rest into config dict
     """
     results = {
-        'false_positives'
+        "true_positives": int,
+        "false_positives": int,
+        "true_negatives": int,
+        "false_negatives": int,
+        "alarm_count": int,
+        "detection_rate": int,
+        "consecutive_false_positives_normal": int,
+        "consecutive_false_positives_exploits": int,
+        "recall": int,
+        "precision_with_cfa": int,
+        "precision_with_syscalls": int
     }
     if os.path.exists(path):
         with open(path, 'r') as file:
