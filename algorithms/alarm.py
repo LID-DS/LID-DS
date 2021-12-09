@@ -4,29 +4,64 @@ from dataloader.syscall import Syscall
 
 class Alarm:
     def __init__(self, syscall: Syscall, correct: bool):
-        self.current_line_id = syscall.line_id
-        self.current_timestamp = syscall.timestamp_datetime()
+        """
+            represents one alarm as object
+            differentiates between LID-DS-2019 and LID-DS-2021
+
+            args:
+            syscall: Syscall Object
+            correct: flag if the current alarm is correct detected
+        """
+        self.first_line_id = syscall.line_id
+        self.first_timestamp = syscall.timestamp_datetime()
+        self.correct = correct
+
+        self.last_line_id = None
+        self.last_timestamp = None
         self.scenario = None
         self.dataset = None
-        self.correct = correct
-        self.filepath = syscall.recording_path
+        self.filepath = None
+
         self._determine_dataset(syscall.recording_path)
         self._determine_scenario(syscall.recording_path)
+        self._determine_filepath(syscall.recording_path)
 
     def _determine_dataset(self, path):
+        """
+            determines the current syscall's dataset
+
+            args:
+                path: path of recording
+        """
         if '.zip' in path:
             self.dataset = 'LID-DS-2021'
         else:
             self.dataset = 'LID-DS-2019'
 
     def _determine_scenario(self, path):
+        """
+            determines the current scenario based on syscall
+
+            args:
+                path: path of recording
+        """
         if self.dataset == 'LID-DS-2019':
-            self.scenario = os.path.basename(self.filepath)
+            self.scenario = os.path.basename(os.path.dirname(path))
         else:
-            basename = os.path.basename(self.filepath)
-            if basename == 'training' or basename == 'validation':
-                self.scenario = os.path.split(self.filepath)[-3]
-            elif basename == 'normal' or basename == 'normal_and_attack':
-                self.scenario = os.path.split(self.filepath)[-4]
+            dirname = os.path.basename(os.path.dirname(path))
+            if dirname == 'training' or dirname == 'validation':
+                self.scenario = path.split('/')[-3]
+            elif dirname == 'normal' or dirname == 'normal_and_attack':
+                self.scenario = path.split('/')[-4]
+
+    def _determine_filepath(self, path):
+        """
+            cuts the filepath based on scenario
+
+            args:
+             path: path of recording
+        """
+        index = path.find(self.scenario)
+        self.filepath = path[index:]
 
 

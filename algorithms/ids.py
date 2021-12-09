@@ -12,7 +12,8 @@ class IDS:
                  data_loader: BaseDataLoader,
                  feature_list: list,
                  decision_engine: BaseDecisionEngine,
-                 plot_switch: bool):
+                 plot_switch: bool,
+                 create_alarms: bool = False):
         self._data_loader = data_loader
         self._data_preprocessor = DataPreprocessor(self._data_loader, feature_list)
         self._decision_engine = decision_engine
@@ -22,7 +23,7 @@ class IDS:
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
-        self.performance = PerformanceMeasurement()
+        self.performance = PerformanceMeasurement(create_alarms)
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
         else:

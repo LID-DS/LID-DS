@@ -32,6 +32,7 @@ class Recording2019(BaseRecording):
 
     """
     def __init__(self, recording_data_list: list, base_path: str, direction: Direction):
+        super().__init__()
         self.name = recording_data_list[RecordingDataParts.RECORDING_NAME]
         self.path = os.path.join(base_path, f'{self.name}.txt')
         self.recording_data_list = recording_data_list
@@ -51,7 +52,7 @@ class Recording2019(BaseRecording):
         """
         with open(self.path, 'r') as recording_file:
             for line_id, syscall in enumerate(recording_file, start=1):
-                syscall_object = Syscall2019(syscall, line_id=line_id)
+                syscall_object = Syscall2019(recording_path=self.path, syscall_line=syscall, line_id=line_id)
                 if self._direction != Direction.BOTH:
                     if syscall_object.direction() == self._direction and syscall_object.name() != 'switch':
                         yield syscall_object

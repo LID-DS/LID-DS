@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # dataloader
     #scenario_path = "/home/grimmer/data/LID-DS-2021/CVE-2017-7529"
     #scenario_path = "/home/grimmer/data/LID-DS-2019/CVE-2017-7529/"
-    scenario_path = "/home/felix/repos/LID-DS/LID-DS-2021/Bruteforce_CWE-307"
+    scenario_path = "/home/felix/repos/LID-DS/LID-DS-2021/CVE-2017-7529"
     # scenario_path = "/home/grimmer/Work/LID-DS-2021/ZipSlip"
     dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
@@ -35,7 +35,8 @@ if __name__ == '__main__':
     ids = IDS(data_loader=dataloader,
               feature_list=[ngram],
               decision_engine=de,
-              plot_switch=True)
+              plot_switch=False,
+              create_alarms=True)
 
     print("feature preparation done")
     # training
@@ -47,4 +48,5 @@ if __name__ == '__main__':
     # print results
     pprint(ids.performance.get_performance())
     # draw plot
-    ids.draw_plot()
+
+    print(ids.performance.alarms.get_alarms_as_dict())
