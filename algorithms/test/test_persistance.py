@@ -1,4 +1,4 @@
-from lid_ds.tools.persistance import save_to_json, load_from_json
+from algorithms.persistance import save_to_json, load_from_json
 
 import os
 
@@ -46,16 +46,15 @@ def test_persistance():
 
         results = load_from_json(path)
 
-        print(results)
-        assert results[0]['results'] == {'false_positives': example_dict_1['false_positives'],
+        assert results[0]['performance'] == {'false_positives': example_dict_1['false_positives'],
                                          'true_positives': example_dict_1['true_positives'],
                                          'true_negatives': example_dict_1['true_negatives'],
                                          'false_negatives': example_dict_1['false_negatives'],
-                                         'alarm_count': example_dict_1['false_positives'],
-                                         'detection_rate': example_dict_1['false_positives'],
+                                         'alarm_count': example_dict_1['alarm_count'],
+                                         'detection_rate': example_dict_1['detection_rate'],
                                          'consecutive_false_positives_normal': example_dict_1['consecutive_false_positives_normal'],
                                          'consecutive_false_positives_exploits': example_dict_1['consecutive_false_positives_exploits'],
-                                         'recall': example_dict_1['false_positives'],
+                                         'recall': example_dict_1['recall'],
                                          'precision_with_cfa': example_dict_1['precision_with_cfa'],
                                          'precision_with_syscalls': example_dict_1['precision_with_syscalls'],
                                          }
@@ -69,29 +68,25 @@ def test_persistance():
 
         results = load_from_json(path)
 
-        print(results)
-        assert results[1]['results'] == {'false_positives': example_dict_2['false_positives'],
+        assert results[1]['performance'] == {'false_positives': example_dict_2['false_positives'],
                                          'true_positives': example_dict_2['true_positives'],
                                          'true_negatives': example_dict_2['true_negatives'],
                                          'false_negatives': example_dict_2['false_negatives'],
-                                         'alarm_count': example_dict_2['false_positives'],
-                                         'detection_rate': example_dict_2['false_positives'],
+                                         'alarm_count': example_dict_2['alarm_count'],
+                                         'detection_rate': example_dict_2['detection_rate'],
                                          'consecutive_false_positives_normal': example_dict_2['consecutive_false_positives_normal'],
                                          'consecutive_false_positives_exploits': example_dict_2['consecutive_false_positives_exploits'],
-                                         'recall': example_dict_2['false_positives'],
+                                         'recall': example_dict_2['recall'],
                                          'precision_with_cfa': example_dict_2['precision_with_cfa'],
                                          'precision_with_syscalls': example_dict_2['precision_with_syscalls'],
                                          }
         assert results[1]['config'] == {'scenario': example_dict_2['scenario'],
                                         'thread_aware': example_dict_2['thread_aware'],
                                         'n_gram': example_dict_2['n_gram'],
-                                        'window_length': example_dict_2['window_length']
+                                        'window_length': example_dict_2['window_length'],
                                         'architecture': example_dict_2['architecture']
                                         }
 
-        assert results == [example_dict_1, example_dict_2]
-
-        print(results)
         os.remove(path)
     except AssertionError as e:
         print(e)

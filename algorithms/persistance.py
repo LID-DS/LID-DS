@@ -6,7 +6,7 @@ def save_to_json(result_dict: dict, path: str):
         convert result dict to correct format
         cut known results and put the rest into config dict
     """
-    results = {
+    performance = {
         "true_positives": int,
         "false_positives": int,
         "true_negatives": int,
@@ -19,15 +19,25 @@ def save_to_json(result_dict: dict, path: str):
         "precision_with_cfa": int,
         "precision_with_syscalls": int
     }
+    config = {}
+    for key in result_dict.keys():
+        if key in performance.keys():
+            performance[key] = result_dict[key]
+        else:
+            config[key] = result_dict[key]
+    complete_dict = {
+        'performance': performance,
+        'config': config
+    }
     if os.path.exists(path):
         with open(path, 'r') as file:
             result_list = json.load(file)
-        result_list.append(result_dict)
+        result_list.append(complete_dict)
         with open(path, 'w') as file:
             json.dump(result_list, file)
     else:
         print('No persistent data yet')
-        result_list = [result_dict]
+        result_list = [complete_dict]
         with open(path, 'w') as file:
             json.dump(result_list, file)
 
