@@ -50,7 +50,6 @@ if __name__ == '__main__':
                             for ngram_length in NGRAM:
                                 for scenario in SCENARIOS:
                                     scenario_path = f'../../Dataset/{scenario}/'
-
                                     # data loader for scenario
                                     dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
 
@@ -90,17 +89,25 @@ if __name__ == '__main__':
                                     if use_thread_change_flag:
                                         tcf = ThreadChangeFlag(ngram_minus_one)
                                         feature_list.append(tcf)
-
+                                    model_path = f'Models/{scenario}/LSTM/'\
+                                        f'ta{thread_aware}' \
+                                        f'ng{ngram_length}' \
+                                        f'-emb{embedding_size}' \
+                                        f'-rv{use_return_value}' \
+                                        f'-td{use_time_delta}' \
+                                        f'-tcf{use_thread_change_flag}.model'
+                                    input_dim = (ngram_length * (embedding_size +
+                                                                 use_return_value +
+                                                                 use_time_delta) +
+                                                 use_thread_change_flag)
                                     # decision engine (DE)
                                     distinct_syscalls = dataloader.distinct_syscalls_training_data()
-                                    lstm = LSTM(element_size=element_size,
-                                                use_thread_change_flag=use_thread_change_flag,
-                                                ngram_length=ngram_length,
-                                                distinct_syscalls=distinct_syscalls,
+                                    lstm = LSTM(distinct_syscalls=distinct_syscalls,
+                                                input_dim=input_dim,
                                                 epochs=20,
                                                 batch_size=batch_size,
                                                 force_train=False,
-                                                model_path=f'Models/{scenario}/LSTM/')
+                                                model_path=model_path)
 
                                     # define the used features
                                     ids = IDS(data_loader=dataloader,
