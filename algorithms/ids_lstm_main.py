@@ -23,12 +23,12 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     SCENARIOS = [
-        # 'Bruteforce_CWE-307'
-        # 'CVE-2012-2122'
-        # 'CVE-2014-0160'
-        'CVE-2017-7529'
-        # 'CVE-2018-3760'
-        # 'CVE-2019-5418'
+        'Bruteforce_CWE-307',
+        'CVE-2012-2122',
+        'CVE-2014-0160',
+        'CVE-2017-7529',
+        'CVE-2018-3760',
+        'CVE-2019-5418'
         # 'EPS_CWE-434.tar.gz'
         # 'PHP_CWE-434.tar.gz'
         # 'ZipSlip.tar.gz'
@@ -39,6 +39,7 @@ if __name__ == '__main__':
     RETURN_VALUE = [False, True]
     THREAD_CHANGE_FLAG = [False, True]
     TIME_DELTA = [False, True]
+    BATCH_SIZE = [1024]
     BATCH_SIZE = [1024]
     for batch_size in BATCH_SIZE:
         for embedding_size in EMBEDDING_SIZE:
@@ -114,7 +115,7 @@ if __name__ == '__main__':
                                     start = time.time()
                                     ids.do_detection()
                                     end = time.time()
-                                    detection_time = end - start
+                                    detection_time = (end - start)/60  # in minuites
                                     stats = ids.performance.get_performance()
                                     pprint(stats)
                                     stats['scenario'] = scenario
