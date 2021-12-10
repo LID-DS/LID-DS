@@ -12,13 +12,13 @@ from dataloader.syscall import Syscall
 class PathEvilness(BuildingBlock):
     def __init__(self, scenario_path, path='Models', force_retrain=False, ):
         """
-        Feature Extractor that builds a tree for all existing paths in the 
+        Feature calculateor that builds a tree for all existing paths in the 
         training data while training.
         
-        In the Extraction step the extractor returns 0 for syscalls without 
+        In the calculateion step the calculateor returns 0 for syscalls without 
         filepath in args and for known paths.
         
-        If a path is not present in the tree the extractor checks the height 
+        If a path is not present in the tree the calculateor checks the height 
         of the anomaly in the tree and returns 1/height resulting in a return
         value that is always 0 < return_value < 1
         """
@@ -54,7 +54,7 @@ class PathEvilness(BuildingBlock):
 
     def _get_valid_fd_or_none(self, params) -> typing.Union[str, None]:
         """
-        checks syscall params for file descriptor tags and extracts its value if present, if not it returns None
+        checks syscall params for file descriptor tags and calculates its value if present, if not it returns None
         Returns:
             value of file descriptor param or None
         """

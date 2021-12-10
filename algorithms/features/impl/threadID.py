@@ -10,7 +10,7 @@ class ThreadID(BuildingBlock, metaclass=Singleton):
 
     def calculate(self, syscall: Syscall, dependencies: dict):
         """
-        extract thread ID of syscall
+        calculate thread ID of syscall
         """
         dependencies[self.get_id()] = syscall.thread_id()
 

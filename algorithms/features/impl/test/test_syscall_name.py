@@ -2,7 +2,7 @@ from algorithms.features.impl.syscall_name import SyscallName
 from dataloader.syscall_2021 import Syscall2021
 
 
-def test_syscall_name_extract():
+def test_syscall_name_calculate():
     syscall_1 = Syscall2021(
         "1631209047761484608 0 3686302 apache2 3686302 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
     syscall_2 = Syscall2021(
@@ -11,9 +11,9 @@ def test_syscall_name_extract():
 
     sn = SyscallName()
     feature_dict = {}
-    sn.extract(syscall_1, feature_dict)
+    sn.calculate(syscall_1, feature_dict)
     assert feature_dict[sn.get_id()] == 'open'
-    sn.extract(syscall_2, feature_dict)
+    sn.calculate(syscall_2, feature_dict)
     assert feature_dict[sn.get_id()] == 'open'
-    sn.extract(syscall_3, feature_dict)
+    sn.calculate(syscall_3, feature_dict)
     assert feature_dict[sn.get_id()] == 'getuid'

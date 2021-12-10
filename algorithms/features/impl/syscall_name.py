@@ -10,9 +10,9 @@ class SyscallName(BuildingBlock, metaclass=Singleton):
     def __init__(self):
         super().__init__()
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-        extract name of syscall
+        calculate name of syscall
         """
         features[self.get_id()] = syscall.name()
 

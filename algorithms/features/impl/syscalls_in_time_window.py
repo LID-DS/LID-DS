@@ -6,7 +6,7 @@ class SyscallsInTimeWindow(BuildingBlock):
 
     def __init__(self, window_length_in_s: int):
         """
-            FeatureExtractor that extracts number of syscalls in time window
+            Featurecalculateor that calculates number of syscalls in time window
             before current syscall, acts thread aware
 
             args:
@@ -25,7 +25,7 @@ class SyscallsInTimeWindow(BuildingBlock):
 
     def train_on(self, syscall: Syscall, features: dict):
         """
-            trains the extractor by finding the biggest count of syscalls
+            trains the calculateor by finding the biggest count of syscalls
             in time window needed for normalization of feature
         """
         current_timestamp = syscall.timestamp_datetime()
@@ -60,9 +60,9 @@ class SyscallsInTimeWindow(BuildingBlock):
         """
         self._syscall_buffer = {}
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-            extracts count of syscalls in time window before current syscall
+            calculates count of syscalls in time window before current syscall
             returns normalized value based on training data
         """
         current_timestamp = syscall.timestamp_datetime()

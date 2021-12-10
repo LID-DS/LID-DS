@@ -4,7 +4,7 @@ from dataloader.syscall_2021 import Syscall2021
 
 def helper(syscall, path_evil):
     tmp_dict = {}
-    path_evil.extract(syscall, tmp_dict)
+    path_evil.calculate(syscall, tmp_dict)
     return tmp_dict[path_evil.get_id()]
 
 

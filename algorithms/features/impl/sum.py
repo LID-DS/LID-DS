@@ -33,7 +33,7 @@ class Sum(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
         returns the sum over feature in the window if the feature is in the current set of features
         """

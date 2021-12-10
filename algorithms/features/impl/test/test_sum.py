@@ -10,9 +10,9 @@ from dataloader.syscall_2021 import Syscall2021
 
 def eva(syscall, tid, sum):
     syscall_dict = {}
-    ThreadID().extract(syscall,syscall_dict)
-    tid.extract(syscall, syscall_dict)
-    sum.extract(syscall, syscall_dict)
+    ThreadID().calculate(syscall,syscall_dict)
+    tid.calculate(syscall, syscall_dict)
+    sum.calculate(syscall, syscall_dict)
     return syscall_dict[sum.get_id()]
 
 

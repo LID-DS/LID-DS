@@ -9,7 +9,7 @@ from dataloader.syscall import Syscall
 
 class Ngram(BuildingBlock):
     """
-    extract ngram form a stream of system call features
+    calculate ngram form a stream of system call features
     """
 
     def __init__(self, feature_list: list, thread_aware: bool, ngram_length: int):
