@@ -106,9 +106,9 @@ class IDS:
             self._data_preprocessor.new_recording()
             self._decision_engine.new_recording()
 
-        # run end alarm once to ensure that last alarm gets saved
-        if self.performance.alarms is not None:
-            self.performance.alarms.end_alarm()
+            # run end alarm once to ensure that last alarm gets saved
+            if self.performance.alarms is not None:
+                self.performance.alarms.end_alarm()
 
     def draw_plot(self):
         # plot data if wanted
