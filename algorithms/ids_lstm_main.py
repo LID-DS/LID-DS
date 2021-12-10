@@ -21,23 +21,24 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     SCENARIOS = [
-        'Bruteforce_CWE-307',
         'CVE-2012-2122',
-        'CVE-2014-0160',
         'CVE-2017-7529',
+        'Bruteforce_CWE-307',
+        'CVE-2014-0160',
         'CVE-2018-3760',
         'CVE-2019-5418'
         # 'EPS_CWE-434.tar.gz'
         # 'PHP_CWE-434.tar.gz'
         # 'ZipSlip.tar.gz'
     ]
+    hidden_dim = 128
+    hidden_layers = 1
     NGRAM = [4, 6]
     EMBEDDING_SIZE = [6, 8]
     THREAD_AWARE = [True]
     RETURN_VALUE = [False, True]
     THREAD_CHANGE_FLAG = [False, True]
     TIME_DELTA = [False, True]
-    BATCH_SIZE = [1024]
     BATCH_SIZE = [1024]
     for batch_size in BATCH_SIZE:
         for embedding_size in EMBEDDING_SIZE:
@@ -89,6 +90,7 @@ if __name__ == '__main__':
                                         tcf = ThreadChangeFlag(ngram_minus_one)
                                         feature_list.append(tcf)
                                     model_path = f'Models/{scenario}/LSTM/'\
+                                        f'hid{hidden_dim}' \
                                         f'ta{thread_aware}' \
                                         f'ng{ngram_length}' \
                                         f'-emb{embedding_size}' \
@@ -104,6 +106,8 @@ if __name__ == '__main__':
                                     lstm = LSTM(distinct_syscalls=distinct_syscalls,
                                                 input_dim=input_dim,
                                                 epochs=20,
+                                                hidden_layers=hidden_layers,
+                                                hidden_dim=hidden_dim,
                                                 batch_size=batch_size,
                                                 force_train=False,
                                                 model_path=model_path)

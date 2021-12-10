@@ -29,7 +29,8 @@ class LSTM(BaseDecisionEngine):
                  distinct_syscalls: int,
                  input_dim: int,
                  epochs=300,
-                 architecture=None,
+                 hidden_layers=1,
+                 hidden_dim=64,
                  batch_size=1,
                  model_path='Models/',
                  force_train=False):
@@ -39,7 +40,8 @@ class LSTM(BaseDecisionEngine):
             distinct_syscalls:  amount of distinct syscalls in training data
             input_dim:          input dimension
             epochs:             set training epochs of LSTM
-            architecture:       type of LSTM architecture
+            hidden_layers:      amount of LSTM-layers
+            hidden_dim:         dimension of LSTM-layer
             batch_size:         set maximum batch_size
             model_path:         path to save trained Net to
             force_train:        force training of Net
@@ -47,13 +49,11 @@ class LSTM(BaseDecisionEngine):
         """
         # input dim:
         self._input_dim = input_dim
-        # self._input_dim = (self._ngram_length
-                           # * self._element_size
-                           # # * (self._embedding_size+return_value+time_delta)
-                           # + thread_change_flag)
         self._batch_size = batch_size
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
+        self._hidden_layers = hidden_layers
+        self._hidden_dim = hidden_dim
         model_dir = os.path.split(model_path)[0]
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
@@ -67,7 +67,6 @@ class LSTM(BaseDecisionEngine):
             'y': []
         }
         self._state = 'build_training_data'
-        self._architecture = architecture
         self._lstm = None
         self._batch_indices = []
         self._batch_indices_val = []
@@ -92,14 +91,12 @@ class LSTM(BaseDecisionEngine):
         create LSTM Net with outputlayer of distinct_syscalls + 1 (one extra for unknown syscalls)
 
         """
-        hidden_dim = 64
-        n_layers = 1
         # output layer is #distinct_syscall + 1 for unknown syscalls
         output_neurons = distinct_syscalls + 1
         self._lstm = Net(output_neurons,
                          self._input_dim,
-                         hidden_dim,
-                         n_layers,
+                         self._hidden_dim,
+                         self._hidden_layers,
                          device=device,
                          batch_size=self._batch_size)
 
@@ -226,7 +223,7 @@ class LSTM(BaseDecisionEngine):
                         preds.append(torch.argmax(outputs[j]))
                 val_accuracy = self._accuracy(preds, y_tensors_val)
                 preds = []
-                print("Epoch: %d, loss: %1.5f, accuracy: %1.5f, val_loss: %1.5f,  val_accuracy: %1.5f" % \
+                print("Epoch: %d, loss: %1.5f, accuracy: %1.5f, val_loss: %1.5f,  val_accuracy: %1.5f" %
                       (epoch, train_loss.item(), accuracy, val_loss, val_accuracy))
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
@@ -270,7 +267,7 @@ class LSTM(BaseDecisionEngine):
                 miss += 1
         return hit/(hit+miss)
 
-    def new_recording(self, val: bool=False):
+    def new_recording(self, val: bool = False):
         """
 
         while creation of dataset:
