@@ -26,12 +26,8 @@ class LSTM(BaseDecisionEngine):
     """
 
     def __init__(self,
-                 ngram_length: int,
-                 embedding_size: int,
                  distinct_syscalls: int,
-                 time_delta=0,
-                 thread_change_flag=0,
-                 return_value=0,
+                 input_dim: int,
                  epochs=300,
                  architecture=None,
                  batch_size=1,
@@ -40,10 +36,8 @@ class LSTM(BaseDecisionEngine):
         """
 
         Args:
-            ngram_length:       count of embedded syscalls
-            embedding_size:     size of one embedded syscall
             distinct_syscalls:  amount of distinct syscalls in training data
-            extra_param:        amount of used extra parameters
+            input_dim:          input dimension
             epochs:             set training epochs of LSTM
             architecture:       type of LSTM architecture
             batch_size:         set maximum batch_size
@@ -51,23 +45,19 @@ class LSTM(BaseDecisionEngine):
             force_train:        force training of Net
 
         """
-        self._ngram_length = ngram_length
-        self._embedding_size = embedding_size
         # input dim:
-        #   time_delta and return value per syscall,
-        #   thread change flag per ngram
-        self._input_dim = (self._ngram_length
-                           * (self._embedding_size+return_value+time_delta)
-                           + thread_change_flag)
+        self._input_dim = input_dim
+        # self._input_dim = (self._ngram_length
+                           # * self._element_size
+                           # # * (self._embedding_size+return_value+time_delta)
+                           # + thread_change_flag)
         self._batch_size = batch_size
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
-        if not os.path.exists(model_path):
-            os.makedirs(model_path)
-        self._model_path = model_path \
-            + f'n{self._ngram_length}-e{self._embedding_size}-r{bool(return_value)}' \
-            + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}' \
-            + f'b{self._batch_size}'
+        model_dir = os.path.split(model_path)[0]
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        self._model_path = model_path
         self._training_data = {
             'x': [],
             'y': []
@@ -90,7 +80,7 @@ class LSTM(BaseDecisionEngine):
         self._device = torch.device("cpu")
         if not force_train:
             print(self._model_path)
-            if os.path.exists(self._model_path):
+            if os.path.isfile(self._model_path):
                 self._set_model(self._distinct_syscalls, self._device)
                 self._lstm.load_state_dict(torch.load(self._model_path))
             else:
