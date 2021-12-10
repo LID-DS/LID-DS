@@ -1,5 +1,7 @@
 import os.path
 import json
+import pandas as pd
+
 
 def save_to_json(result_dict: dict, path: str):
     """
@@ -42,6 +44,7 @@ def save_to_json(result_dict: dict, path: str):
         with open(path, 'w') as file:
             json.dump(result_list, file)
 
+
 def load_from_json(path: str):
     try:
         with open(path, 'r') as file:
@@ -50,3 +53,27 @@ def load_from_json(path: str):
         print(f'No results at {path}')
         result_list = None
     return result_list
+
+
+def print_as_table(results: list = None, path: str = None):
+    """
+    Pretty print a list of dictionaries (myDict) as a dynamically sized table.
+    If column names (colList) aren't specified, they will show in random order.
+    """
+    if results is None and path is None:
+        print('Please provide either result list or path to file')
+    if results is None:
+        results = load_from_json(path)
+    config_list = []
+    performance_list = []
+    for result in results:
+        config_list.append(result['config'])
+        performance_list.append(result['performance'])
+    config = pd.DataFrame(config_list)
+    performance = pd.DataFrame(performance_list)
+    result_list = pd.concat([performance, config], axis=1)
+    print(result_list)
+
+
+if __name__ == '__main__':
+    print_as_table(path='persistent_data/lstm.json')

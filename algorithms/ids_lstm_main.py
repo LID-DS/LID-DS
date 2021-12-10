@@ -6,7 +6,7 @@ from algorithms.features.impl.return_value import ReturnValue
 from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.ngram import Ngram
 
-from algorithms.persistance import save_to_json
+from algorithms.persistance import save_to_json, print_as_table
 
 from algorithms.decision_engines.lstm import LSTM
 
@@ -23,12 +23,12 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     SCENARIOS = [
-        # 'Bruteforce_CWE-307/'
-        # 'CVE-2012-2122/'
-        # 'CVE-2014-0160/'
-        'CVE-2017-7529/'
-        # 'CVE-2018-3760/'
-        # 'CVE-2019-5418/'
+        # 'Bruteforce_CWE-307'
+        # 'CVE-2012-2122'
+        # 'CVE-2014-0160'
+        'CVE-2017-7529'
+        # 'CVE-2018-3760'
+        # 'CVE-2019-5418'
         # 'EPS_CWE-434.tar.gz'
         # 'PHP_CWE-434.tar.gz'
         # 'ZipSlip.tar.gz'
@@ -127,3 +127,4 @@ if __name__ == '__main__':
                                     stats['detection_time'] = detection_time
                                     result_path = 'persistent_data/lstm.json'
                                     save_to_json(stats, result_path)
+                                    print_as_table(path=result_path)
