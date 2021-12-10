@@ -1,9 +1,8 @@
 import argparse
 import json
 
-import numpy as np
-
 import matplotlib.pyplot as plt
+import numpy as np
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Statistics for LID-DS 2021 Syscalls')
@@ -11,7 +10,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', dest='path', action='store', type=str, required=True,
                         help='syscall stats file to plot')
     parser.add_argument('-ni', dest='no_idle', action='store_true', help='exclude idle runs', default=False)
-    parser.add_argument('-nao', dest='no_attack_only', action='store_true', help='exclude attack only runs', default=False)
+    parser.add_argument('-nao', dest='no_attack_only', action='store_true', help='exclude attack only runs',
+                        default=False)
 
     args = parser.parse_args()
 
@@ -42,7 +42,8 @@ if __name__ == '__main__':
                 plot_data_dict[f'{sub_set} {run_type}'] = []
                 for syscall in syscall_names:
                     if syscall in data_dict[scenario][sub_set][run_type]['protocol_distribution'].keys():
-                        proportion = data_dict[scenario][sub_set][run_type]['protocol_distribution'][syscall] / total_syscall_count
+                        proportion = data_dict[scenario][sub_set][run_type]['protocol_distribution'][
+                                         syscall] / total_syscall_count
                         plot_data_dict[f'{sub_set} {run_type}'].append(proportion)
                     else:
                         plot_data_dict[f'{sub_set} {run_type}'].append(0)
@@ -66,4 +67,3 @@ if __name__ == '__main__':
     plt.ylabel('Proportion')
 
     plt.show()
-

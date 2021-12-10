@@ -23,11 +23,9 @@ if __name__ == '__main__':
     elif 'protocol_distribution' in json.dumps(data_dict):
         key = 'protocol_distribution'
 
-
     fig, axes = plt.subplots(nrows=3, ncols=4)
 
     scenario_name = None
-
 
     if data_dict is not None and key is not None:
         for scenario in data_dict.keys():
@@ -40,7 +38,7 @@ if __name__ == '__main__':
                 for run_type in data_dict[scenario][sub_set].keys():
                     print("      " + run_type)
                     df = pd.DataFrame.from_dict(
-                        data_dict[scenario][sub_set][run_type][key], orient='index') .sort_index()
+                        data_dict[scenario][sub_set][run_type][key], orient='index').sort_index()
                     print(df)
                     df.plot(ax=axes[row, col], kind="bar", subplots=True)
                     axes[row, col].set_title(f"{sub_set} - {run_type}")
@@ -53,8 +51,6 @@ if __name__ == '__main__':
         fig.delaxes(axes[0, 3])
         fig.delaxes(axes[1, 2])
         fig.delaxes(axes[1, 3])
-
-
 
     plt.subplots_adjust(hspace=0.6, wspace=0.2, left=0.03, top=0.95, bottom=0.1, right=0.99)
     plt.show()
