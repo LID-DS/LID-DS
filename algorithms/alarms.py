@@ -21,12 +21,12 @@ class Alarms:
         if self.current_alarm is None:
             self.current_alarm = Alarm(syscall, correct)
             self.current_alarm.last_line_id = syscall.line_id
-            self.current_alarm.last_timestamp = syscall.timestamp_datetime()
+            self.current_alarm.last_timestamp = syscall.timestamp_unix_in_ns()
         else:
             # check if correctness is same as current alarm
             if self.current_alarm.correct == correct:
                 self.current_alarm.last_line_id = syscall.line_id
-                self.current_alarm.last_timestamp = syscall.timestamp_datetime()
+                self.current_alarm.last_timestamp = syscall.timestamp_unix_in_ns()
             else:
                 # recursive call with same params after saving of current alarm when correctness changes
                 self.end_alarm()
