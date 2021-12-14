@@ -23,12 +23,12 @@ if __name__ == '__main__':
     this is an example script to show the usage uf our classes
     """
     SCENARIOS = [
-        'CVE-2012-2122',
-        'CVE-2017-7529',
+        # 'CVE-2018-3760',
+        # 'CVE-2012-2122',
+        # 'CVE-2017-7529',
         'Bruteforce_CWE-307',
-        'CVE-2014-0160',
-        'CVE-2018-3760',
-        'CVE-2019-5418'
+        # 'CVE-2014-0160',
+        # 'CVE-2019-5418'
         # 'EPS_CWE-434.tar.gz'
         # 'PHP_CWE-434.tar.gz'
         # 'ZipSlip.tar.gz'
@@ -118,25 +118,31 @@ if __name__ == '__main__':
                                               feature_list=feature_list,
                                               decision_engine=lstm,
                                               plot_switch=True)
-
-                                    # training
-                                    ids.train_decision_engine()
-                                    # threshold
-                                    ids.determine_threshold()
-                                    start = time.time()
-                                    ids.do_detection()
-                                    end = time.time()
-                                    detection_time = (end - start)/60  # in minuites
-                                    stats = ids.performance.get_performance()
-                                    pprint(stats)
-                                    stats['scenario'] = scenario
-                                    stats['ngram'] = ngram_length
-                                    stats['batch_size'] = batch_size
-                                    stats['embedding_size'] = embedding_size
-                                    stats['return_value'] = use_return_value
-                                    stats['thread_change_flag'] = use_thread_change_flag
-                                    stats['time_delta'] = use_time_delta
-                                    stats['detection_time'] = detection_time
-                                    result_path = 'persistent_data/lstm.json'
-                                    save_to_json(stats, result_path)
-                                    print_as_table(path=result_path)
+                                    try:
+                                        # training
+                                        ids.train_decision_engine()
+                                        # threshold
+                                        # ids.determine_threshold()
+                                        start = time.time()
+                                        # ids.do_detection()
+                                        end = time.time()
+                                        detection_time = (end - start)/60  # in minuites
+                                        stats = ids.performance.get_performance()
+                                        pprint(stats)
+                                    except Exception:
+                                        print(f'Failed for model: {model_path}')
+                                        continue
+                                    finally:
+                                        if stats is None:
+                                            stats = {}
+                                        stats['scenario'] = scenario
+                                        stats['ngram'] = ngram_length
+                                        stats['batch_size'] = batch_size
+                                        stats['embedding_size'] = embedding_size
+                                        stats['return_value'] = use_return_value
+                                        stats['thread_change_flag'] = use_thread_change_flag
+                                        stats['time_delta'] = use_time_delta
+                                        stats['detection_time'] = detection_time
+                                        result_path = 'persistent_data/lstm.json'
+                                        save_to_json(stats, result_path)
+                                        print_as_table(path=result_path)
