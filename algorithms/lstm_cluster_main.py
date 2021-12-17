@@ -54,6 +54,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    hidden_dim = 32
+    hidden_layers = 1
     ngram_length = args.ngram_length
     embedding_size = args.embedding_size
     scenario = args.scenario
@@ -113,15 +115,27 @@ if __name__ == '__main__':
         feature_list.append(tcf)
 
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
+    input_dim = (ngram_length * (embedding_size +
+				 use_return_value +
+				 use_time_delta) +
+		use_thread_change_flag)
+    model_path = f'Models/{scenario}/LSTM/'\
+	f'hid{hidden_dim}' \
+	f'ta{thread_aware}' \
+	f'ng{ngram_length}' \
+	f'-emb{embedding_size}' \
+	f'-rv{use_return_value}' \
+	f'-td{use_time_delta}' \
+	f'-tcf{use_thread_change_flag}.model'
     de = LSTM(
-        element_size=element_size,
-        use_thread_change_flag=use_thread_change_flag,
-        ngram_length=ngram_length,
         distinct_syscalls=distinct_syscalls,
+        input_dim=input_dim,
         epochs=epochs,
+        hidden_layers=hidden_layers,
+        hidden_dim=hidden_dim,
         batch_size=batch_size,
         force_train=True,
-        model_path=f'Models/{scenario}/LSTM'
+        model_path=model_path
     )
     # define the used features
     ids = IDS(data_loader=dataloader,

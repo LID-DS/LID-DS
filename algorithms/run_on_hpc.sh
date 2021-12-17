@@ -1,16 +1,26 @@
 #!/bin/bash
-#SBATCH --partition=ml     
-#SBATCH --gres=gpu:1           # use 1 GPU per node 
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1    # limit to one node
-#SBATCH --cpus-per-task=4      # use 16 threads per task
-#SBATCH --mem-per-cpu=1443   # total memory
-#SBATCH -J lids_lstm_training  # job name
-#SBATCH --time=20:00:00        # run for 1 hour
+#SBATCH --time=40:00:00
+#SBATCH --partition=clara-job
+#SBATCH --gres=gpu:rtx2080ti:1
+#SBATCH --mem=80G
 
-source /scratch/ws/1/tikl664d-master/master/bin/activate
-module purge
-module load modenv/ml torchvision/0.7.0-fosscuda-2019b-Python-3.7.4-PyTorch-1.6.0
+# source /scratch/ws/1/tikl664d-master/master/bin/activate
+# module load Python
+module load Python/3.7.4-GCCcore-8.3.0
+# module load PyTorch/1.8.1-fosscuda-2019b-Python-3.7.4
+module load PyTorch/1.9.0-fosscuda-2020b
+module load matplotlib
+# module load networkx/2.5-fosscuda-2020b
+# module load networkx/2.4-fosscuda-2019b-Python-3.7.4
+# module load networkx/2.5-foss-2020b
+
+pip install --upgrade pip
+pip install --user -e ../
+pip install --user nest-asyncio
+pip install --user pypcapkit
+pip install --user networkx
+pip install --user pydot
+
 
 # parameters:
 # 1: base_path
@@ -38,3 +48,4 @@ if [ $9 == "True" ]; then
 fi
 echo $flags
 srun python lstm_cluster_main.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 $flags
+# srun python test.py
