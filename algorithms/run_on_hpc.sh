@@ -20,6 +20,7 @@ pip install --user nest-asyncio
 pip install --user pypcapkit
 pip install --user networkx
 pip install --user pydot
+pip install --user gensim==4.1.2
 
 
 # parameters:
@@ -47,5 +48,5 @@ if [ $9 == "True" ]; then
     flags="$flags$return_value_flag"
 fi
 echo $flags
-srun python lstm_cluster_main.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 $flags
-# srun python test.py
+# srun python lstm_cluster_main.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 $flags
+srun python test.py

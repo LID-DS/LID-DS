@@ -7,6 +7,8 @@ from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.ngram import Ngram
 
+from algorithms.persistance import save_to_json, print_as_table
+
 from algorithms.decision_engines.lstm import LSTM
 
 from algorithms.ids import IDS
@@ -85,7 +87,7 @@ if __name__ == '__main__':
         epochs=5000,
         scenario_path=scenario_path,
         path=f'Models/{scenario}/W2V',
-        force_train=True,
+        force_train=False,
         distinct=True,
         thread_aware=True
     )
@@ -134,7 +136,7 @@ if __name__ == '__main__':
         hidden_layers=hidden_layers,
         hidden_dim=hidden_dim,
         batch_size=batch_size,
-        force_train=True,
+        force_train=False,
         model_path=model_path
     )
     # define the used features
@@ -159,31 +161,6 @@ if __name__ == '__main__':
     stats['return_value'] = use_return_value
     stats['thread_change_flag'] = use_thread_change_flag
     stats['time_delta'] = use_time_delta
-    stats['alarm_count'] = performance['alarm_count']
-    stats['cfp_exp'] = performance['consecutive_false_positives_exploits']
-    stats['cfp_norm'] = performance['consecutive_false_positives_normal']
-    stats['detection_rate'] = performance['detection_rate']
-    stats['fp'] = performance['false_positives']
     stats['detection_time'] = detection_time
-
-    csv_file = "stats.csv"
-    csv_columns = ['scenario',
-                   'ngram',
-                   'batch_size',
-                   'embedding_size',
-                   'return_value',
-                   'thread_change_flag',
-                   'time_delta',
-                   'alarm_count',
-                   'cfp_exp',
-                   'cfp_norm',
-                   'detection_rate',
-                   'fp',
-                   'detection_time']
-    try:
-        with open(csv_file, 'a') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=csv_columns)
-            # writer.writeheader()
-            writer.writerow(stats)
-    except IOError:
-        print("I/O error")
+    save_to_json(stats, result_path)
+    print_as_table(path=result_path)

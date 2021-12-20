@@ -2,14 +2,14 @@ import os
 import time
 
 scenarios = [
-    #"Bruteforce_CWE-307/",
-    #"CVE-2012-2122/",
-    #"CVE-2014-0160/",
+    # "Bruteforce_CWE-307/",
+    # "CVE-2012-2122/",
+    # "CVE-2014-0160/",
     "CVE-2017-7529/",
-    #"CVE-2018-3760/",
-    #"CVE-2019-5418/",
+    # "CVE-2018-3760/",
+    # "CVE-2019-5418/",
     # "EPS_CWE-434/",
-    #"PHP_CWE-434/",
+    # "PHP_CWE-434/",
     # "SQL_Injection_CWE-89/",
     # "ZipSlip/"
 ]
