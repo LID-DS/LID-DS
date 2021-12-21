@@ -1,6 +1,7 @@
 from pprint import pprint
 
 from torch.utils import data
+from algorithms.decision_engines.ae import AE
 from algorithms.decision_engines.lstm import LSTM
 
 from algorithms.decision_engines.stide import Stide
@@ -56,12 +57,13 @@ if __name__ == '__main__':
     # decision engine (DE)
     de1 = Som(input_vector=ngram, epochs=500)
     de2 = PathEvilness(scenario_path=scenario_path)
+    de3 = AE(ngram,ngram_length*embedding_size,ngram_length)
 
-    sum = Sum([de1,de2])
+    #sum = Sum([de1,de2])
 
     # the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=sum,
+              resulting_building_block=de3,
               plot_switch=False)
    
 
