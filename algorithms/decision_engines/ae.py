@@ -1,4 +1,5 @@
 import collections
+from enum import Enum
 import torch
 import torch.utils.data.dataset as td
 import torch.nn as nn
@@ -9,6 +10,12 @@ from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
 device = torch.device("cpu") 
+
+
+class AEMode(Enum):
+    LOSS = 1
+    HIDDEN = 2    
+
 
 class AEDataset(td.Dataset):
     """
@@ -80,11 +87,12 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, input_size, hidden_size):
+    def __init__(self, input_vector: BuildingBlock, input_size, hidden_size, mode: AEMode = AEMode.LOSS):
         super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
         self._autoencoder = AENetwork(input_size,hidden_size)
+        self._mode = mode
         print(self._autoencoder)
         self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
@@ -177,12 +185,18 @@ class AE(BuildingBlock):
                 dependencies[self.get_id()] =  self._result_dict[input_tuple]
             else:
                 # Output of Autoencoder        
+                result = 0
                 in_t = torch.tensor(input_tuple, dtype=torch.float32).to(device) 
-                ae_output_t = self._autoencoder(in_t)
-                # Calculating the loss function
-                loss = self._loss_function(ae_output_t, in_t).item()
-                self._result_dict[input_tuple] = loss
-                dependencies[self.get_id()] =  loss
+                if self._mode == AEMode.LOSS:
+                    ae_output_t = self._autoencoder(in_t)
+                    # Calculating the loss function
+                    result = self._loss_function(ae_output_t, in_t).item()
+                if self._mode == AEMode.HIDDEN:
+                    ae_output_t = self._autoencoder.encoder(in_t)
+                    result = tuple(ae_output_t.tolist())
+
+                self._result_dict[input_tuple] = result
+                dependencies[self.get_id()] =  result
 
     def new_recording(self):
         pass
