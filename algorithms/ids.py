@@ -4,7 +4,7 @@ from algorithms.building_block import BuildingBlock
 from algorithms.performance_measurement import PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
 from dataloader.base_data_loader import BaseDataLoader
-from dataloader.data_preprocessor import DataPreprocessor
+from algorithms.data_preprocessor import DataPreprocessor
 
 
 class IDS:

@@ -7,7 +7,7 @@ from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
-from dataloader.data_preprocessor import DataPreprocessor
+from algorithms.data_preprocessor import DataPreprocessor
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 

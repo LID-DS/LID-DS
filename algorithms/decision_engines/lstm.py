@@ -7,10 +7,11 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from tqdm import tqdm
 
-from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from dataloader.syscall import Syscall
+from algorithms.building_block import BuildingBlock
 
 
-class LSTM(BaseDecisionEngine):
+class LSTM(BuildingBlock):
     """
 
     LSTM decision engine
@@ -26,6 +27,7 @@ class LSTM(BaseDecisionEngine):
     """
 
     def __init__(self,
+                input_vector: BuildingBlock,
                  ngram_length: int,
                  embedding_size: int,
                  distinct_syscalls: int,
@@ -50,7 +52,10 @@ class LSTM(BaseDecisionEngine):
             model_path:         path to save trained Net to
             force_train:        force training of Net
 
-        """
+        """        
+        super().__init__()
+        self._input_vector = input_vector
+        self._dependency_list = [input_vector]
         self._ngram_length = ngram_length
         self._embedding_size = embedding_size
         # input dim:
@@ -96,6 +101,9 @@ class LSTM(BaseDecisionEngine):
             else:
                 print(f"Did not load Model {self._model_path}.")
 
+    def depends_on(self):
+        return self._dependency_list
+
     def _set_model(self, distinct_syscalls: int, device: str):
         """
 
@@ -113,7 +121,7 @@ class LSTM(BaseDecisionEngine):
                          device=device,
                          batch_size=self._batch_size)
 
-    def train_on(self, feature_list: list):
+    def train_on(self,  syscall: Syscall, dependencies: dict):
         """
 
         create training data and keep track of batch indices
@@ -123,7 +131,10 @@ class LSTM(BaseDecisionEngine):
             feature_list (int): list of prepared features for DE
 
         """
-        if self._lstm is None:
+        feature_list = None
+        if self._input_vector.get_id() in dependencies:
+            feature_list = dependencies[self._input_vector.get_id()]         
+        if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
             self._training_data['x'].append(x)
@@ -136,7 +147,7 @@ class LSTM(BaseDecisionEngine):
         else:
             pass
 
-    def val_on(self, feature_list: list):
+    def val_on(self, syscall: Syscall, dependencies: dict):
         """
 
         create validation data and keep track of batch indices
@@ -146,7 +157,10 @@ class LSTM(BaseDecisionEngine):
             feature_list (int): list of prepared features for DE
 
         """
-        if self._lstm is None:
+        feature_list = None
+        if self._input_vector.get_id() in dependencies:
+            feature_list = dependencies[self._input_vector.get_id()]         
+        if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
             self._validation_data['x'].append(x)
@@ -243,7 +257,7 @@ class LSTM(BaseDecisionEngine):
             print(f"Net already trained. Using model {self._model_path}")
             pass
 
-    def predict(self, feature_list: list) -> float:
+    def calculate(self, syscall: Syscall, dependencies: dict):
         """
 
         remove label from feature_list and feed feature_list and hidden state into model.
@@ -255,15 +269,21 @@ class LSTM(BaseDecisionEngine):
             float: anomaly score
 
         """
-        x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
-        x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
-        actual_syscall = feature_list[0]
-        prediction_logits, self._hidden = self._lstm(x_tensor_final,
-                                                     self._hidden)
-        softmax = nn.Softmax(dim=0)
-        predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
-        anomaly_score = 1 - predicted_prob
-        return anomaly_score
+
+        feature_list = None
+        if self._input_vector.get_id() in dependencies:
+            feature_list = dependencies[self._input_vector.get_id()]         
+        if feature_list is not None:
+            x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
+            x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
+            actual_syscall = feature_list[0]
+            prediction_logits, self._hidden = self._lstm(x_tensor_final,
+                                                        self._hidden)
+            softmax = nn.Softmax(dim=0)
+            predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
+            anomaly_score = 1 - predicted_prob
+            dependencies[self.get_id()] = anomaly_score
+            
 
     def _accuracy(self, outputs, labels):
         """

@@ -11,7 +11,7 @@ from algorithms.decision_engines.lstm import LSTM
 from algorithms.ids import IDS
 
 from dataloader.dataloader_factory import dataloader_factory
-from dataloader.data_preprocessor import DataPreprocessor
+from algorithms.data_preprocessor import DataPreprocessor
 from dataloader.direction import Direction
 
 from pprint import pprint

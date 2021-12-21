@@ -5,7 +5,7 @@ from algorithms.features.syscall_to_int import SyscallToInt
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
-from dataloader.data_preprocessor import DataPreprocessor
+from algorithms.data_preprocessor import DataPreprocessor
 from pprint import pprint
 import os
 import argparse

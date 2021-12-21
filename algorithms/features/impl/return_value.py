@@ -119,9 +119,9 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
                         print(f' Return string: {return_value_string}')
                         print(f' Syscall: {syscall.name()}')
                 try:
-                    if return_type is not None and return_type is not 'error':
+                    if return_type is not None and return_type != 'error':
                         normalized_bytes = current_bytes/self._max[return_type]
-                    elif return_type is not 'error':
+                    elif return_type != 'error':
                         normalized_bytes = 0
                 except ZeroDivisionError:
                     normalized_bytes = 0
