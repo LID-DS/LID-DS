@@ -1,10 +1,10 @@
 import pytest
 
-from algorithms.features.impl.average import Average
-from algorithms.features.impl.maximum import Maximum
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_average import StreamAverage
+from algorithms.features.impl.stream_maximum import StreamMaximum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
-from algorithms.features.impl.sum import Sum
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
@@ -73,7 +73,7 @@ def test_avg():
 
 
     pid = ProcessID()
-    avg = Average(feature=pid, thread_aware=True, window_length=3)
+    avg = StreamAverage(feature=pid, thread_aware=True, window_length=3)
 
     assert eva(syscall_1, pid, avg) == 10 / 3  # 10
     assert eva(syscall_2, pid, avg) == 11 / 3  # 11
@@ -92,7 +92,7 @@ def test_avg():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, avg) == "XXX"
 
-    avg = Average(feature=pid, thread_aware=False, window_length=3)
+    avg = StreamAverage(feature=pid, thread_aware=False, window_length=3)
     assert eva(syscall_1, pid, avg) == 10 / 3  # 10
     assert eva(syscall_2, pid, avg) == 21 / 3  # 11
     assert eva(syscall_3, pid, avg) == 33 / 3  # 12

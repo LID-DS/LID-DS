@@ -5,7 +5,9 @@ from algorithms.decision_engines.lstm import LSTM
 
 from algorithms.decision_engines.stide import Stide
 from algorithms.decision_engines.som import Som
-from algorithms.features.impl.average import Average
+from algorithms.features.impl.Maximum import Maximum
+from algorithms.features.impl.Sum import Sum
+from algorithms.features.impl.stream_average import StreamAverage
 from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
@@ -37,42 +39,29 @@ if __name__ == '__main__':
         epochs=10000,
         scenario_path=scenario_path,
         path=f'Models/W2V/',
-        force_train=True,
+        force_train=False,
         distinct=True,
         thread_aware=True
     )
 
-    int_embedding = IntEmbedding()
-    return_value = ReturnValue()
+    #int_embedding = IntEmbedding()
+    #return_value = ReturnValue()
 
     ngram = Ngram(
-        feature_list=[w2v, return_value],
+        feature_list=[w2v],
         thread_aware=True,
-        ngram_length=ngram_length + 1
+        ngram_length=ngram_length
     )
 
-    ngram_minus_one = NgramMinusOne(ngram=ngram, element_size=embedding_size+1)
-    distinct_syscalls = dataloader.distinct_syscalls_training_data()
-
-    concat = Concat([int_embedding, ngram_minus_one])
-
     # decision engine (DE)
-    #de = Som(input_vector=ngram, epochs=500)
-    de = LSTM(input_vector=concat,
-              ngram_length=ngram_length,
-              embedding_size=embedding_size,
-              distinct_syscalls=distinct_syscalls,
-              epochs=20,
-              batch_size=256,
-              return_value=1,
-              time_delta=0,
-              thread_change_flag=0,
-              force_train=False,
-              model_path=f'Models/{scenario}/')
-    
+    de1 = Som(input_vector=ngram, epochs=500)
+    de2 = PathEvilness(scenario_path=scenario_path)
+
+    sum = Sum([de1,de2])
+
     # the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=de,
+              resulting_building_block=sum,
               plot_switch=False)
    
 

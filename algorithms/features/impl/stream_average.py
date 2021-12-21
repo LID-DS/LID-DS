@@ -1,10 +1,10 @@
 from algorithms.building_block import BuildingBlock
-from algorithms.features.impl.sum import Sum
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class Average(BuildingBlock):
+class StreamAverage(BuildingBlock):
     """
     gives the average value from a stream of system call features
     """
@@ -23,7 +23,7 @@ class Average(BuildingBlock):
         self._dependency_list = []
         if thread_aware:
             self._dependency_list.append(ThreadID())
-        self._sum = Sum(feature, thread_aware, window_length)
+        self._sum = StreamSum(feature, thread_aware, window_length)
         self._dependency_list.append(self._sum)
         self._feature_id = self._sum.get_id()
 

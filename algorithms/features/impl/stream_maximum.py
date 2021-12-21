@@ -6,7 +6,7 @@ from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class Maximum(BuildingBlock):
+class StreamMaximum(BuildingBlock):
     """
     gives the maximum value from a stream of system call features
     """
@@ -25,8 +25,6 @@ class Maximum(BuildingBlock):
         self._window_length = window_length
 
         self._dependency_list = []
-        if thread_aware:
-            self._dependency_list.append(ThreadID())
         self._dependency_list.append(feature)
         self._feature_id = feature.get_id()
 
@@ -39,9 +37,8 @@ class Maximum(BuildingBlock):
         """
         thread_id = 0
         if self._thread_aware:
-            try:
-                thread_feature_id = ThreadID().get_id()
-                thread_id = features[thread_feature_id]
+            try:                
+                thread_id = syscall.thread_id
             except Exception:
                 raise KeyError('No thread id in features')
         if thread_id not in self._window_buffer:

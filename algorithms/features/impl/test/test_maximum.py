@@ -1,7 +1,7 @@
 import pytest
 
-from algorithms.features.impl.maximum import Maximum
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_maximum import StreamMaximum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
@@ -70,7 +70,7 @@ def test_maximum():
 
 
     pid = ProcessID()
-    max = Maximum(feature=pid, thread_aware=False, window_length=3)
+    max = StreamMaximum(feature=pid, thread_aware=False, window_length=3)
 
     assert eva(syscall_1, pid, max) == 10  # 10
     assert eva(syscall_2, pid, max) == 11  # 11
@@ -89,7 +89,7 @@ def test_maximum():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, max) == "XXX"
 
-    max = Maximum(feature=pid, thread_aware=True, window_length=3)
+    max = StreamMaximum(feature=pid, thread_aware=True, window_length=3)
     assert eva(syscall_1, pid, max) == 10  # 10
     assert eva(syscall_2, pid, max) == 11  # 11
     assert eva(syscall_3, pid, max) == 12  # 12

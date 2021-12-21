@@ -1,9 +1,9 @@
 import pytest
 
-from algorithms.features.impl.maximum import Maximum
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_maximum import StreamMaximum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
-from algorithms.features.impl.sum import Sum
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
@@ -71,7 +71,7 @@ def test_sum():
 
 
     pid = ProcessID()
-    sum = Sum(feature=pid, thread_aware=True, window_length=3)
+    sum = StreamSum(feature=pid, thread_aware=True, window_length=3)
 
     assert eva(syscall_1, pid, sum) == 10  # 10
     assert eva(syscall_2, pid, sum) == 11  # 11
@@ -90,7 +90,7 @@ def test_sum():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, sum) == "XXX"
 
-    sum = Sum(feature=pid, thread_aware=False, window_length=3)
+    sum = StreamSum(feature=pid, thread_aware=False, window_length=3)
     assert eva(syscall_1, pid, sum) == 10  # 10
     assert eva(syscall_2, pid, sum) == 21  # 11
     assert eva(syscall_3, pid, sum) == 33  # 12

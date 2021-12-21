@@ -1,6 +1,6 @@
 import pytest
 
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
@@ -69,7 +69,7 @@ def test_minimum():
 
 
     pid = ProcessID()
-    min = Minimum(feature=pid, thread_aware=False, window_length=3)
+    min = StreamMinimum(feature=pid, thread_aware=False, window_length=3)
 
     assert eva(syscall_1, pid, min) == 10  # 10
     assert eva(syscall_2, pid, min) == 10  # 11
@@ -88,7 +88,7 @@ def test_minimum():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, min) == "XXX"
 
-    min = Minimum(feature=pid, thread_aware=True, window_length=3)
+    min = StreamMinimum(feature=pid, thread_aware=True, window_length=3)
     assert eva(syscall_1, pid, min) == 10  # 10
     assert eva(syscall_2, pid, min) == 11  # 11
     assert eva(syscall_3, pid, min) == 12  # 12
