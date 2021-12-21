@@ -13,7 +13,7 @@ from dataloader.direction import Direction
 
 if __name__ == '__main__':
     # data loader for scenario
-    dataloader = dataloader_factory('/home/felix/repos/uni/work/LID-DS/LID-DS-2019/CVE-2017-7529', direction=Direction.OPEN)
+    dataloader = dataloader_factory('/home/felix/repos/LID-DS/LID-DS-2021/CVE-2017-7529', direction=Direction.OPEN)
 
     w2v = W2VEmbedding(vector_size=5,
                        epochs=100,
@@ -44,11 +44,12 @@ if __name__ == '__main__':
     ids = IDS(data_loader=dataloader,
               feature_list=[ngram],
               decision_engine=DE,
-              plot_switch=False)
+              plot_switch=False,
+              create_alarms=True)
 
     ids.train_decision_engine()
     ids.determine_threshold()
     ids.do_detection()
 
     pprint(ids.performance.get_performance())
-    DE.show_distance_plot()
+    # print(ids.performance.alarms.get_alarms_as_dict())

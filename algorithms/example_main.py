@@ -1,3 +1,4 @@
+import json
 from pprint import pprint
 
 from torch.utils import data
@@ -18,7 +19,7 @@ if __name__ == '__main__':
     #scenario_path = "/home/grimmer/data/LID-DS-2021/CVE-2017-7529"
     scenario_path = "/home/grimmer/data/LID-DS-2019/CVE-2017-7529/"
     # scenario_path = "/home/grimmer/Work/LID-DS-2021/ZipSlip"
-    dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH)
+    dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
     # features
     syscall_to_int = IntEmbedding()
@@ -37,7 +38,8 @@ if __name__ == '__main__':
     ids = IDS(data_loader=dataloader,
               feature_list=[ngram],
               decision_engine=de,
-              plot_switch=True)
+              plot_switch=False,
+              create_alarms=True)
 
     print("feature preparation done")
     # training
@@ -55,4 +57,5 @@ if __name__ == '__main__':
     result = load_from_json(result_path)
     pprint(result)
     # draw plot
-    # ids.draw_plot()
+    with open('alarms.json', 'w') as jsonfile:
+        json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str)

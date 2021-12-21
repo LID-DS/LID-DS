@@ -4,6 +4,7 @@ from time import mktime
 
 from dataloader.direction import Direction
 from dataloader.syscall import Syscall
+from dataloader.base_recording import BaseRecording
 
 
 class SyscallSplitPart(IntEnum):
@@ -30,10 +31,11 @@ class Syscall2019(Syscall):
     all attributes need to be retrieved by corresponding methods
     """
 
-    def __init__(self, syscall_line: str, line_id: int = -1):
+    def __init__(self, recording_path: str, syscall_line: str, line_id: int = -1):
+        super().__init__()
         self.syscall_line = syscall_line.rstrip()
         self._line_list = self.syscall_line.split(' ')
-        self._line_id = line_id
+        self.line_id = line_id
         self._timestamp_unix = None
         self._timestamp_datetime = None
         self._user_id = None
@@ -43,6 +45,7 @@ class Syscall2019(Syscall):
         self._name = None
         self._direction = None
         self._params = None
+        self.recording_path = recording_path
 
     def timestamp_unix_in_ns(self) -> float:
         """
