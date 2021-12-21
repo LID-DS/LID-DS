@@ -31,7 +31,7 @@ class BuildingBlock:
         calculates building block on the given syscall and other already calculated building blocks given in dependencies
         writes its result into the given dependencies dict with key = get_id()
         """
-        raise NotImplementedError
+        raise NotImplementedError("each building block has to implement calculate")
 
     def new_recording(self):
         """
@@ -42,7 +42,7 @@ class BuildingBlock:
         """
         gives information about the dependencies of this building block
         """
-        raise NotImplementedError
+        raise NotImplementedError("each building block has to implement depends_on to indicate its dependencies")
 
     def __str__(self) -> str:
         """

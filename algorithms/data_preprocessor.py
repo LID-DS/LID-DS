@@ -21,9 +21,29 @@ class DataPreprocessor:
                  ):
         self._data_loader = data_loader
         self._building_block_manager = BuildingBlockManager(resulting_building_block)
+        self._baseBB = BuildingBlock()
         print("feature dependency graph: ")
         print(self._building_block_manager.to_dot())
         self._prepare_and_fit_building_blocks()
+
+    def _train_on_needed(self, bb_gen: list) -> bool:        
+        for bb in bb_gen:
+            if bb.train_on.__func__ != self._baseBB.train_on.__func__:
+                return True
+        return False
+
+    def _val_on_needed(self, bb_gen: list) -> bool:        
+        for bb in bb_gen:
+            if bb.val_on.__func__ != self._baseBB.val_on.__func__:
+                return True
+        return False
+
+    def _fit_needed(self, bb_gen: list) -> bool:        
+        for bb in bb_gen:
+            if bb.fit.__func__ != self._baseBB.fit.__func__:
+                return True
+        return False
+
 
     def _prepare_and_fit_building_blocks(self):
         """
@@ -38,40 +58,49 @@ class DataPreprocessor:
                 print(f" | depending on: {self._building_block_manager.building_block_generations[previous_generation]}")
 
             # training
-            for recording in tqdm(self._data_loader.training_data(),
-                                  f"train bb {current_generation + 1}/{num_generations}".rjust(27),
-                                  unit=" recording"):
-                for syscall in recording.syscalls():
-                    dependencies = {}
-                    # calculate already fitted bbs
-                    for previous_generation in range(0, current_generation):
-                        for previous_bb in self._building_block_manager.building_block_generations[previous_generation]:                            
-                            previous_bb.calculate(syscall, dependencies)
-                    # call train_on for current iteration bbs
-                    for current_bb in self._building_block_manager.building_block_generations[current_generation]:
-                        current_bb.train_on(syscall, dependencies)
-                self.new_recording()
+            if not self._train_on_needed(self._building_block_manager.building_block_generations[current_generation]):
+                print(f"no train needed in {current_generation + 1}/{num_generations}".rjust(27))
+            else:
+                for recording in tqdm(self._data_loader.training_data(),
+                                    f"train bb {current_generation + 1}/{num_generations}".rjust(27),
+                                    unit=" recording"):
+                    for syscall in recording.syscalls():
+                        dependencies = {}
+                        # calculate already fitted bbs
+                        for previous_generation in range(0, current_generation):
+                            for previous_bb in self._building_block_manager.building_block_generations[previous_generation]:                            
+                                previous_bb.calculate(syscall, dependencies)
+                        # call train_on for current iteration bbs
+                        for current_bb in self._building_block_manager.building_block_generations[current_generation]:
+                            current_bb.train_on(syscall, dependencies)
+                    self.new_recording()
 
             # validation
-            for recording in tqdm(self._data_loader.validation_data(),
-                                  f"val bb {current_generation + 1}/{num_generations}".rjust(27),
-                                  unit=" recording"):
-                for syscall in recording.syscalls():
-                    dependencies = {}
-                    # calculate already fitted bbs
-                    for previous_generation in range(0, current_generation):
-                        for previous_bb in self._building_block_manager.building_block_generations[previous_generation]:                            
-                            previous_bb.calculate(syscall, dependencies)
-                    # call val_on for current iteration bbs
-                    for current_bb in self._building_block_manager.building_block_generations[current_generation]:
-                        current_bb.val_on(syscall, dependencies)
-                self.new_recording()            
+            if not self._val_on_needed(self._building_block_manager.building_block_generations[current_generation]):
+                print(f"no val needed in {current_generation + 1}/{num_generations}".rjust(27))
+            else:            
+                for recording in tqdm(self._data_loader.validation_data(),
+                                    f"val bb {current_generation + 1}/{num_generations}".rjust(27),
+                                    unit=" recording"):
+                    for syscall in recording.syscalls():
+                        dependencies = {}
+                        # calculate already fitted bbs
+                        for previous_generation in range(0, current_generation):
+                            for previous_bb in self._building_block_manager.building_block_generations[previous_generation]:                            
+                                previous_bb.calculate(syscall, dependencies)
+                        # call val_on for current iteration bbs
+                        for current_bb in self._building_block_manager.building_block_generations[current_generation]:
+                            current_bb.val_on(syscall, dependencies)
+                    self.new_recording()            
 
             # fit current generation bbs
-            for current_bb in tqdm(self._building_block_manager.building_block_generations[current_generation],
-                                        f"fitting bbs {current_generation + 1}/{num_generations}".rjust(27),
-                                        unit=" bbs"):
-                current_bb.fit()
+            if not self._fit_needed(self._building_block_manager.building_block_generations[current_generation]):
+                print(f"no val needed in {current_generation + 1}/{num_generations}".rjust(27))
+            else:            
+                for current_bb in tqdm(self._building_block_manager.building_block_generations[current_generation],
+                                            f"fitting bbs {current_generation + 1}/{num_generations}".rjust(27),
+                                            unit=" bbs"):
+                    current_bb.fit()
 
     def calculate_building_blocks_for_syscall(self, syscall: Syscall):
         """
