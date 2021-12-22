@@ -55,113 +55,118 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print(f'Start with scenario {args.scenario}')
-    hidden_dim = 64
-    hidden_layers = 1
-    ngram_length = args.ngram_length
-    embedding_size = args.embedding_size
-    scenario = args.scenario
-    scenario_path = args.base_path + args.scenario
-    batch_size = args.batch_size
-    epochs = args.epochs
-    thread_aware = False
-    result_path = 'persistent_data/lstm.json'
-    if args.thread_aware:
-        thread_aware = True
-    use_return_value = False
-    if args.return_value:
-        use_return_value = True
-    use_thread_change_flag = False
-    if args.thread_change_flag:
-        use_thread_change_flag = True
-    use_time_delta = False
-    if args.time_delta:
-	use_time_delta = True
 
-    stats['scenario'] = scenario
-    stats['ngram'] = ngram_length
-    stats['batch_size'] = batch_size
-    stats['embedding_size'] = embedding_size
-    stats['return_value'] = use_return_value
-    stats['thread_change_flag'] = use_thread_change_flag
-    stats['time_delta'] = use_time_delta
+    try:
+        hidden_dim = 64
+        hidden_layers = 1
+        ngram_length = args.ngram_length
+        embedding_size = args.embedding_size
+        scenario = args.scenario
+        scenario_path = args.base_path + args.scenario
+        batch_size = args.batch_size
+        epochs = args.epochs
+        thread_aware = False
+        result_path = 'persistent_data/lstm.json'
+        if args.thread_aware:
+            thread_aware = True
+        use_return_value = False
+        if args.return_value:
+            use_return_value = True
+        use_thread_change_flag = False
+        if args.thread_change_flag:
+            use_thread_change_flag = True
+        use_time_delta = False
+        if args.time_delta:
+            use_time_delta = True
 
-    dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
+        stats['scenario'] = scenario
+        stats['ngram'] = ngram_length
+        stats['batch_size'] = batch_size
+        stats['embedding_size'] = embedding_size
+        stats['return_value'] = use_return_value
+        stats['thread_change_flag'] = use_thread_change_flag
+        stats['time_delta'] = use_time_delta
 
-    element_size = embedding_size
+        dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
 
-    w2v = W2VEmbedding(
-	vector_size=embedding_size,
-	window_size=10,
-	epochs=5000,
-	scenario_path=scenario_path,
-	path=f'Models/{scenario}/W2V',
-	force_train=False,
-	distinct=True,
-	thread_aware=True
-    )
-    feature_list = [w2v]
-    if use_return_value:
-	element_size += 1
-	rv = ReturnValue()
-	feature_list.append(rv)
-    if use_time_delta:
-	td = TimeDelta()
-	element_size += 1
-	feature_list.append(td)
-    ngram = Ngram(
-	feature_list=feature_list,
-	thread_aware=thread_aware,
-	ngram_length=ngram_length + 1
-    )
-    ngram_minus_one = NgramMinusOne(
-	ngram=ngram,
-	element_size=element_size
-    )
-    int_embedding = IntEmbedding()
-    feature_list = [int_embedding,
-		    ngram_minus_one]
-    if use_thread_change_flag:
-	tcf = ThreadChangeFlag(ngram_minus_one)
-	feature_list.append(tcf)
+        element_size = embedding_size
 
-    distinct_syscalls = dataloader.distinct_syscalls_training_data()
-    input_dim = (ngram_length * (embedding_size +
-				 use_return_value +
-				 use_time_delta) +
-		use_thread_change_flag)
-    model_path = f'Models/{scenario}/LSTM/'\
-	f'hid{hidden_dim}' \
-	f'ta{thread_aware}' \
-	f'ng{ngram_length}' \
-	f'-emb{embedding_size}' \
-	f'-rv{use_return_value}' \
-	f'-td{use_time_delta}' \
-	f'-tcf{use_thread_change_flag}.model'
-    print('DEFINE LSTM')
-    de = LSTM(
-	distinct_syscalls=distinct_syscalls,
-	input_dim=input_dim,
-	epochs=epochs,
-	hidden_layers=hidden_layers,
-	hidden_dim=hidden_dim,
-	batch_size=batch_size,
-	force_train=False,
-	model_path=model_path
-    )
-    # define the used features
-    ids = IDS(data_loader=dataloader,
-	      feature_list=feature_list,
-	      decision_engine=de,
-	      plot_switch=False)
+        w2v = W2VEmbedding(
+            vector_size=embedding_size,
+            window_size=10,
+            epochs=5000,
+            scenario_path=scenario_path,
+            path=f'Models/{scenario}/W2V',
+            force_train=False,
+            distinct=True,
+            thread_aware=True
+        )
+        feature_list = [w2v]
+        if use_return_value:
+            element_size += 1
+            rv = ReturnValue()
+            feature_list.append(rv)
+        if use_time_delta:
+            td = TimeDelta()
+            element_size += 1
+            feature_list.append(td)
+        ngram = Ngram(
+            feature_list=feature_list,
+            thread_aware=thread_aware,
+            ngram_length=ngram_length + 1
+        )
+        ngram_minus_one = NgramMinusOne(
+            ngram=ngram,
+            element_size=element_size
+        )
+        int_embedding = IntEmbedding()
+        feature_list = [int_embedding,
+                        ngram_minus_one]
+        if use_thread_change_flag:
+            tcf = ThreadChangeFlag(ngram_minus_one)
+            feature_list.append(tcf)
 
-    ids.train_decision_engine()
-    ids.determine_threshold()
-    start = time.time()
-    ids.do_detection()
-    end = time.time()
-    detection_time = end - start
-    stats = ids.performance.get_performance()
-    pprint(sta
-    stats['detection_time'] = detection_time/60
-    save_to_json(stats, result_path)
-    print_as_table(path=result_path)
+        distinct_syscalls = dataloader.distinct_syscalls_training_data()
+        input_dim = (ngram_length * (embedding_size +
+                                     use_return_value +
+                                     use_time_delta) +
+                    use_thread_change_flag)
+        model_path = f'Models/{scenario}/LSTM/'\
+            f'hid{hidden_dim}' \
+            f'ta{thread_aware}' \
+            f'ng{ngram_length}' \
+            f'-emb{embedding_size}' \
+            f'-rv{use_return_value}' \
+            f'-td{use_time_delta}' \
+            f'-tcf{use_thread_change_flag}.model'
+        print('DEFINE LSTM')
+        de = LSTM(
+            distinct_syscalls=distinct_syscalls,
+            input_dim=input_dim,
+            epochs=epochs,
+            hidden_layers=hidden_layers,
+            hidden_dim=hidden_dim,
+            batch_size=batch_size,
+            force_train=False,
+            model_path=model_path
+        )
+        # define the used features
+        ids = IDS(data_loader=dataloader,
+                  feature_list=feature_list,
+                  decision_engine=de,
+                  plot_switch=False)
+
+        ids.train_decision_engine()
+        ids.determine_threshold()
+        start = time.time()
+        ids.do_detection()
+        end = time.time()
+        detection_time = end - start
+        stats = ids.performance.get_performance()
+        pprint(sta
+        stats['detection_time'] = detection_time/60
+        save_to_json(stats, result_path)
+        print_as_table(path=result_path)
+    except Exception:
+        save_to_json(stats, result_path)
+
