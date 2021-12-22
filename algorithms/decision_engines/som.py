@@ -67,7 +67,8 @@ class Som(BuildingBlock):
         """
             finalizes the training step for the som
         """
-        print(f"som training: {len(self._buffer)} data points")
+        print(f"som.train_set: {len(self._buffer)} ".rjust(27))
+        # print(self._buffer)
         som_size = self._estimate_som_size()
         # vector_size = len(self._buffer[0])
         vector_size = len(next(iter(self._buffer)))

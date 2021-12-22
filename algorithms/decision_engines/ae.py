@@ -93,7 +93,7 @@ class AE(BuildingBlock):
         self._dependency_list = [input_vector]
         self._autoencoder = AENetwork(input_size,hidden_size)
         self._mode = mode
-        print(self._autoencoder)
+        # print(self._autoencoder)
         self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
         self._epochs = 100000
@@ -124,7 +124,7 @@ class AE(BuildingBlock):
             self._validation_set.add(tuple(input_vector))
         
     def fit(self):
-        print(f"size of distinct training data: {len(self._training_set)}")
+        print(f"ae.train_set: {len(self._training_set)}".rjust(27))
         loss_dq = collections.deque(maxlen=self._early_stopping_num_epochs)
         best_avg_loss = math.inf
         ae_ds = AEDataset(self._training_set)
@@ -161,7 +161,7 @@ class AE(BuildingBlock):
             avg_val_loss = val_loss / count
 
             # print epoch results
-            bar.set_description(f"fit AE: train|val loss={avg_loss:.3f}|{avg_val_loss:.3f}".rjust(27), refresh=True)            
+            bar.set_description(f"fit AE: {avg_loss:.3f}|{avg_val_loss:.3f}".rjust(27), refresh=True)            
             if avg_loss < best_avg_loss:
                 best_avg_loss = avg_loss
 
@@ -173,7 +173,7 @@ class AE(BuildingBlock):
             if stop_early:                
                 break
 
-        print(f"stopped after {bar.n} epochs")
+        print(f"stop at {bar.n} epochs".rjust(27))
         self._result_dict = {}
         self._autoencoder.eval()
         

@@ -28,31 +28,6 @@ class IDS:
         else:
             self.plot = None
 
-    def train_decision_engine(self):
-        """
-        trains decision engine with training data
-        """
-        # train of DE
-        train_data = self._data_loader.training_data()
-        description = 'Training'.rjust(27)
-        for recording in tqdm(train_data, description, unit=" recording"):
-            for syscall in recording.syscalls():
-                feature_vector = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
-                if feature_vector is not None:
-                    self._decision_engine.train_on(feature_vector)
-            self._data_preprocessor.new_recording()
-            self._decision_engine.new_recording()
-        val_data = self._data_loader.validation_data()
-        description = 'Validation'.rjust(27)
-        for recording in tqdm(val_data, description, unit=" recording"):
-            for syscall in recording.syscalls():
-                feature_vector = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
-                if feature_vector is not None:
-                    self._decision_engine.val_on(feature_vector)
-            self._data_preprocessor.new_recording()
-            self._decision_engine.new_recording()
-        self._decision_engine.fit()
-
     def determine_threshold(self):
         """
         decision engine calculates anomaly scores using validation data,

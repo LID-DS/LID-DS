@@ -32,11 +32,9 @@ class Stide(BuildingBlock):
             ngram = dependencies[self._ngram.get_id()]
             if ngram not in self._normal_database:
                 self._normal_database.add(ngram)
-            
+    
     def fit(self):
-        # print(self._normal_database)
-        # print(f"STIDE normal db: {len(self._normal_database)}")
-        pass
+        print(f"stide.train_set: {len(self._normal_database)}".rjust(27))
 
     def calculate(self, syscall: Syscall, dependencies: dict):
         """

@@ -16,6 +16,7 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.path_evilness import PathEvilness
 from algorithms.features.impl.return_value import ReturnValue
+from algorithms.features.impl.syscalls_in_time_window import SyscallsInTimeWindow
 from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
@@ -28,14 +29,32 @@ from algorithms.persistance import save_to_json, load_from_json
 if __name__ == '__main__':
     # dataloader
 
-    scenario = "CVE-2017-7529"
-    scenario_path = "/home/grimmer/data/LID-DS-2021/CVE-2017-7529"
-    # scenario_path = "/home/grimmer/data/LID-DS-2019/CVE-2017-7529/"
-
+    # scenarios orderd by training data size asc
+    # 0 - 14
+    select_scenario_number = 3
+    scenario_names = [
+        "CVE-2017-7529",
+        "CVE-2014-0160",
+        "CVE-2012-2122",
+        "Bruteforce_CWE-307",
+        "CVE-2020-23839",
+        "CWE-89-SQL-injection",
+        "PHP_CWE-434",
+        "ZipSlip",
+        "CVE-2018-3760",
+        "CVE-2020-9484",
+        "EPS_CWE-434",
+        "CVE-2019-5418",
+        "Juice-Shop",
+        "CVE-2020-13942",
+        "CVE-2017-12635_6"
+    ]    
+    scenario_path = f"/home/grimmer/data/LID-DS-2021/{scenario_names[select_scenario_number]}/"        
     dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE)
 
     # features
-    ngram_length = 3
+    config_name = "som, int+rv, n7, w100, with threads"    
+    ngram_length = 7
     embedding_size = 4
 
     w2v = W2VEmbedding(
@@ -48,35 +67,40 @@ if __name__ == '__main__':
         distinct=True,
         thread_aware=True
     )
-
-    #int_embedding = IntEmbedding()
-    #return_value = ReturnValue()
-
-
-    ngram = Ngram(
+    ngram_w2v = Ngram(
         feature_list=[w2v],
         thread_aware=True,
         ngram_length=ngram_length
     )
+    
+    int_embedding = IntEmbedding()
+    ngram_int = Ngram(
+        feature_list=[int_embedding],
+        thread_aware=True,
+        ngram_length=ngram_length
+    )
+    rv = ReturnValue()
+    pe = PathEvilness(scenario_path)
 
-    # decision engine (DE)
-    
-    
-    
-    ae = AE(ngram,ngram_length*embedding_size,ngram_length, AEMode.LOSS)
-    
-    concat = Concat([ngram, ae])
+    ngram_with_rv = Concat([ngram_int,rv])
+    #ngram_with_time = Concat([ngram_w2v,count_last_sec])
 
-    som = Som(input_vector=concat, epochs=500)
+    #ae = AE(ngram_w2v,ngram_length_ae*embedding_size,ngram_length_ae, AEMode.LOSS)
+    stide = Stide(ngram_with_rv, window_length=100)
+    #stide = Stide(ngram_int, window_length=100)
+    #pe = PathEvilness(scenario_path)
+
+    #concat = Concat([pe, stide])
+    #som = Som(input_vector=ngram_w2v, epochs=500)
     
     # the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=som,
+              resulting_building_block=stide,
               create_alarms=True,
               plot_switch=False)
    
 
-    print("feature preparation done")
+    print("at evaluation:")
     # threshold
     ids.determine_threshold()
     # detection
@@ -84,11 +108,18 @@ if __name__ == '__main__':
     # print results
     results = ids.performance.get_performance()
     pprint(results)
-    results['ngram'] = ngram_length
+    
+    #print(f"som.cache: {len(som._cache)}")
+
+    # enrich results with configuration and save to disk
+    results['name'] = config_name
+    results['scenario'] = scenario_names[select_scenario_number]    
     result_path = 'results/stide.json'
     save_to_json(results, result_path)
-    result = load_from_json(result_path)
-    pprint(result)
-    # draw plot
+
+    # alarms
     with open('alarms.json', 'w') as jsonfile:
         json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str)
+
+    # plot
+    ids.draw_plot()
