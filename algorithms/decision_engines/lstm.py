@@ -76,7 +76,10 @@ class LSTM(BaseDecisionEngine):
         self._batch_counter_val = 0
         self._hidden = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self._device = torch.device("cpu")
+        print("")
+        print(f"Currently using GPU: {torch.cuda.is_available()}")
+        print("")
+        # self._device = torch.device("cpu")
         if not force_train:
             print(self._model_path)
             if os.path.isfile(self._model_path):
@@ -243,7 +246,7 @@ class LSTM(BaseDecisionEngine):
 
         """
         x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
-        x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
+        x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1])).to(self._device)
         actual_syscall = feature_list[0]
         prediction_logits, self._hidden = self._lstm(x_tensor_final,
                                                      self._hidden)
