@@ -42,9 +42,9 @@ def test_return_value():
     syscall_19 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                          '20004 10:24:48.109091028 3 33 apache2 1461 < read res=227 data=FUVSXW:$apr1$op6xtN3b$vaDs6F5DnMZ8sQRThkBNM/.HXUPXI:$apr1$OO6XOIe.$k0RuEZLlnnZBX')
     syscall_20 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                         '20006 10:24:48.109105388 3 33 apache2 1461 < close res=0')
+                         '20006 10:24:48.109105388 3 33 apache2 1461 < read res=-104(ECONNRESET)')
     syscall_21 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                         '20008 10:24:48.110844264 3 33 apache2 1461 < setitimer')
+                         '20008 10:24:48.110844264 3 33 apache2 1461 < writev res=-32(EPIPE)')
     syscall_22 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                          '20010 10:24:48.110850315 3 33 apache2 1461 < recvmsg res=-11(EAGAIN)')
     syscall_23 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -165,10 +165,10 @@ def test_return_value():
     assert features[rv.get_id()] == 227 / rv._max['read']
 
     rv.extract(syscall_20, features)
-    assert features[rv.get_id()] == 0
+    assert features[rv.get_id()] == -1
 
     rv.extract(syscall_21, features)
-    assert features[rv.get_id()] == 0
+    assert features[rv.get_id()] == -1
 
     rv.extract(syscall_22, features)
     assert features[rv.get_id()] == -1

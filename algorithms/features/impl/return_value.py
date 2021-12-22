@@ -19,7 +19,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
     Extraction phase:
         normalize with highest value of training phase
         return value is error code return -1
-        Error codes included only : EAGAIN, EINVAL
+        Error codes included only : EAGAIN, EINVAL, ECONNRESET, EPIPE
     """
 
     def __init__(self):
@@ -37,7 +37,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         self.recv_socket =  ['recvfrom', 'recv', 'recvmsg']
         self.get_dents =  ['getdents']
         self.not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
-        self.error_codes = ['EAGAIN', 'EINVAL']
+        self.error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET', 'EPIPE']
         self.interesting = self.read \
                            + self.write \
                            + self.send_socket \
@@ -94,6 +94,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         normalized_bytes = 0
         if syscall.name() in self.interesting:
             return_value_string = syscall.param('res')
+            print(return_value_string)
             if return_value_string is not None:
                 try:
                     current_bytes = int(return_value_string)
@@ -119,9 +120,9 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         print(f' Return string: {return_value_string}')
                         print(f' Syscall: {syscall.name()}')
                 try:
-                    if return_type is not None and return_type is not 'error':
+                    if return_type is not None and return_type != 'error':
                         normalized_bytes = current_bytes/self._max[return_type]
-                    elif return_type is not 'error':
+                    elif return_type != 'error':
                         normalized_bytes = 0
                 except ZeroDivisionError:
                     normalized_bytes = 0
