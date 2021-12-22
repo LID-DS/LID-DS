@@ -34,7 +34,7 @@ class W2VEmbedding(BuildingBlock):
         self._vector_size = vector_size
         self._epochs = epochs
         self._path = os.path.join(path,
-                                  f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-w2v.model')
+                                  f'{vector_size}-{window_size}-{scenario_name}-{thread_aware}-{distinct}-{epochs}-w2v.model')
         self._force_train = force_train
         self._distinct = distinct
         self.w2vmodel = None

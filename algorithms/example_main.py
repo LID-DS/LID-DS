@@ -1,3 +1,4 @@
+import json
 from pprint import pprint
 
 from torch.utils import data
@@ -22,8 +23,11 @@ from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
+from algorithms.persistance import save_to_json, load_from_json
+
 if __name__ == '__main__':
     # dataloader
+
     scenario = "CVE-2017-7529"
     scenario_path = "/home/grimmer/data/LID-DS-2021/CVE-2017-7529"
     # scenario_path = "/home/grimmer/data/LID-DS-2019/CVE-2017-7529/"
@@ -48,6 +52,7 @@ if __name__ == '__main__':
     #int_embedding = IntEmbedding()
     #return_value = ReturnValue()
 
+
     ngram = Ngram(
         feature_list=[w2v],
         thread_aware=True,
@@ -67,6 +72,7 @@ if __name__ == '__main__':
     # the IDS
     ids = IDS(data_loader=dataloader,
               resulting_building_block=som,
+              create_alarms=True,
               plot_switch=False)
    
 
@@ -76,6 +82,13 @@ if __name__ == '__main__':
     # detection
     ids.do_detection()
     # print results
-    pprint(ids.performance.get_performance())
+    results = ids.performance.get_performance()
+    pprint(results)
+    results['ngram'] = ngram_length
+    result_path = 'results/stide.json'
+    save_to_json(results, result_path)
+    result = load_from_json(result_path)
+    pprint(result)
     # draw plot
-    ids.draw_plot()
+    with open('alarms.json', 'w') as jsonfile:
+        json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str)

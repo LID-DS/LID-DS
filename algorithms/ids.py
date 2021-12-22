@@ -10,8 +10,9 @@ from algorithms.data_preprocessor import DataPreprocessor
 class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
-                 resulting_building_block: BuildingBlock,
-                 plot_switch: bool):
+                 resulting_building_block: BuildingBlock,                 
+                 plot_switch: bool,
+                 create_alarms: bool = False):
         self._data_loader = data_loader
         self._final_bb = resulting_building_block
         self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block)
@@ -21,7 +22,7 @@ class IDS:
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
-        self.performance = PerformanceMeasurement()
+        self.performance = PerformanceMeasurement(create_alarms)
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
         else:
@@ -99,6 +100,10 @@ class IDS:
 
             self._data_preprocessor.new_recording()
             #self._decision_engine.new_recording()
+
+            # run end alarm once to ensure that last alarm gets saved
+            if self.performance.alarms is not None:
+                self.performance.alarms.end_alarm()
 
     def draw_plot(self):
         # plot data if wanted
