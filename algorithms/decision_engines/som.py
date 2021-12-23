@@ -36,6 +36,7 @@ class Som(BuildingBlock):
         self._epochs = epochs
         self._som = None
         self._cache = {}
+        self.custom_fields = {}
 
     def depends_on(self):
         return self._dependency_list

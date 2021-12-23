@@ -22,15 +22,19 @@ class DataPreprocessor:
         self._data_loader = data_loader
         self._building_block_manager = BuildingBlockManager(resulting_building_block)
         self._baseBB = BuildingBlock()        
-        graph_dot = self._building_block_manager.to_dot().to_string()
-        graph_url_encode = urllib.parse.quote(graph_dot)        
+        self._graph_dot = self._building_block_manager.to_dot().to_string()
+        graph_url_encode = urllib.parse.quote(self._graph_dot)        
         url = f"https://dreampuf.github.io/GraphvizOnline/#{graph_url_encode}"
         print("-------------------------------")
         print("Dependency Graph Visualisation:")
         print(url)
+        print(self._graph_dot)
         print("-------------------------------")
 
         self._prepare_and_fit_building_blocks()
+
+    def get_graph_dot(self):
+        return self._graph_dot
 
     def _train_on_needed(self, bb_gen: list) -> bool:        
         for bb in bb_gen:

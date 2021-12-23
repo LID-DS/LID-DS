@@ -9,12 +9,14 @@ import math
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
+
 device = torch.device("cpu") 
 
 
 class AEMode(Enum):
     LOSS = 1
-    HIDDEN = 2    
+    HIDDEN = 2
+    LOSS_AND_HIDDEN = 3
 
 
 class AEDataset(td.Dataset):
@@ -88,12 +90,17 @@ class AE(BuildingBlock):
     the decision engine
     """
     def __init__(self, input_vector: BuildingBlock, input_size, hidden_size, mode: AEMode = AEMode.LOSS):
-        super().__init__()
+        super().__init__()                
+        # print(BuildingBlock.arguments())
+        # save parameter 
+        self._config["input_size"] = input_size
+        self._config["hidden_size"] = hidden_size
+        self._config["mode"] = mode
+        # 
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
         self._autoencoder = AENetwork(input_size,hidden_size)
-        self._mode = mode
-        # print(self._autoencoder)
+        self._mode = mode        
         self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
         self._epochs = 100000
@@ -188,12 +195,27 @@ class AE(BuildingBlock):
                 result = 0
                 in_t = torch.tensor(input_tuple, dtype=torch.float32).to(device) 
                 if self._mode == AEMode.LOSS:
+                    # calculating the autoencoder:
                     ae_output_t = self._autoencoder(in_t)
                     # Calculating the loss function
                     result = self._loss_function(ae_output_t, in_t).item()
                 if self._mode == AEMode.HIDDEN:
-                    ae_output_t = self._autoencoder.encoder(in_t)
-                    result = tuple(ae_output_t.tolist())
+                    # calculating only the encoder part of the autoencoder:
+                    ae_encoder_t = self._autoencoder.encoder(in_t)
+                    result = tuple(ae_encoder_t.tolist())
+                if self._mode == AEMode.LOSS_AND_HIDDEN:
+                    # encoder
+                    ae_encoder_t = self._autoencoder.encoder(in_t)
+                    # decoder
+                    ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
+                    # loss:
+                    loss = self._loss_function(ae_decoder_t, in_t).item()
+                    # hidden:
+                    hidden = ae_encoder_t.tolist()
+                    # result
+                    rl = [loss]
+                    rl.extend(hidden)
+                    result = tuple(rl)
 
                 self._result_dict[input_tuple] = result
                 dependencies[self.get_id()] =  result

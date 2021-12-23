@@ -28,6 +28,9 @@ class IDS:
         else:
             self.plot = None
 
+    def get_config(self) -> str:
+        return self._data_preprocessor.get_graph_dot()
+
     def determine_threshold(self):
         """
         decision engine calculates anomaly scores using validation data,

@@ -1,5 +1,6 @@
 import json
 from pprint import pprint
+from torch.nn.modules.activation import Sigmoid
 
 from torch.utils import data
 from algorithms.decision_engines.ae import AE, AEMode
@@ -20,6 +21,7 @@ from algorithms.features.impl.syscalls_in_time_window import SyscallsInTimeWindo
 from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
+from algorithms.features.impl.MinMaxScaling import MinMaxScaling
 from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
@@ -31,7 +33,7 @@ if __name__ == '__main__':
 
     # scenarios orderd by training data size asc
     # 0 - 14
-    select_scenario_number = 3
+    select_scenario_number = 1
     scenario_names = [
         "CVE-2017-7529",
         "CVE-2014-0160",
@@ -52,8 +54,7 @@ if __name__ == '__main__':
     scenario_path = f"/home/grimmer/data/LID-DS-2021/{scenario_names[select_scenario_number]}/"        
     dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE)
 
-    # features
-    config_name = "som, int+rv, n7, w100, with threads"    
+    # features    
     ngram_length = 7
     embedding_size = 4
 
@@ -72,30 +73,15 @@ if __name__ == '__main__':
         thread_aware=True,
         ngram_length=ngram_length
     )
-    
-    int_embedding = IntEmbedding()
-    ngram_int = Ngram(
-        feature_list=[int_embedding],
-        thread_aware=True,
-        ngram_length=ngram_length
-    )
-    rv = ReturnValue()
-    pe = PathEvilness(scenario_path)
+    stide = Stide(ngram_w2v)
+    ae = AE(ngram_w2v,ngram_length*embedding_size,embedding_size, AEMode.LOSS)
+    som = Som(ngram_w2v,epochs=500)    
+    max = Sum([MinMaxScaling(ae), MinMaxScaling(som), MinMaxScaling(stide)])
 
-    ngram_with_rv = Concat([ngram_int,rv])
-    #ngram_with_time = Concat([ngram_w2v,count_last_sec])
-
-    #ae = AE(ngram_w2v,ngram_length_ae*embedding_size,ngram_length_ae, AEMode.LOSS)
-    stide = Stide(ngram_with_rv, window_length=100)
-    #stide = Stide(ngram_int, window_length=100)
-    #pe = PathEvilness(scenario_path)
-
-    #concat = Concat([pe, stide])
-    #som = Som(input_vector=ngram_w2v, epochs=500)
-    
+    ###################
     # the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=stide,
+              resulting_building_block=max,
               create_alarms=True,
               plot_switch=False)
    
@@ -112,7 +98,7 @@ if __name__ == '__main__':
     #print(f"som.cache: {len(som._cache)}")
 
     # enrich results with configuration and save to disk
-    results['name'] = config_name
+    results['config'] = ids.get_config()
     results['scenario'] = scenario_names[select_scenario_number]    
     result_path = 'results/stide.json'
     save_to_json(results, result_path)
