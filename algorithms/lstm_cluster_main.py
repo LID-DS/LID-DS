@@ -18,6 +18,7 @@ from dataloader.direction import Direction
 
 from pprint import pprint
 
+import traceback
 import argparse
 import time
 
@@ -66,7 +67,6 @@ if __name__ == '__main__':
         batch_size = args.batch_size
         epochs = args.epochs
         thread_aware = False
-        result_path = 'persistent_data/lstm.json'
         if args.thread_aware:
             thread_aware = True
         use_return_value = False
@@ -79,13 +79,6 @@ if __name__ == '__main__':
         if args.time_delta:
             use_time_delta = True
 
-        stats['scenario'] = scenario
-        stats['ngram'] = ngram_length
-        stats['batch_size'] = batch_size
-        stats['embedding_size'] = embedding_size
-        stats['return_value'] = use_return_value
-        stats['thread_change_flag'] = use_thread_change_flag
-        stats['time_delta'] = use_time_delta
 
         dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
 
@@ -97,7 +90,7 @@ if __name__ == '__main__':
             epochs=5000,
             scenario_path=scenario_path,
             path=f'Models/{scenario}/W2V',
-            force_train=False,
+            force_train=True,
             distinct=True,
             thread_aware=True
         )
@@ -107,7 +100,7 @@ if __name__ == '__main__':
             rv = ReturnValue()
             feature_list.append(rv)
         if use_time_delta:
-            td = TimeDelta()
+            td = TimeDelta(thread_aware=thread_aware)
             element_size += 1
             feature_list.append(td)
         ngram = Ngram(
@@ -147,7 +140,7 @@ if __name__ == '__main__':
             hidden_layers=hidden_layers,
             hidden_dim=hidden_dim,
             batch_size=batch_size,
-            force_train=False,
+            force_train=True,
             model_path=model_path
         )
         # define the used features
@@ -163,10 +156,30 @@ if __name__ == '__main__':
         end = time.time()
         detection_time = end - start
         stats = ids.performance.get_performance()
-        pprint(sta
+        pprint(stats)
+        stats['scenario'] = scenario
+        stats['ngram'] = ngram_length
+        stats['batch_size'] = batch_size
+        stats['embedding_size'] = embedding_size
+        stats['return_value'] = use_return_value
+        stats['thread_change_flag'] = use_thread_change_flag
+        stats['time_delta'] = use_time_delta
         stats['detection_time'] = detection_time/60
+        result_path = 'persistent_data/lstm.json'
         save_to_json(stats, result_path)
         print_as_table(path=result_path)
-    except Exception:
+    except Exception as e:
+        print(f'failed for scenario {scenario}')
+        print(e)
+        traceback.print_exc()
+        stats = {}
+        result_path = 'persistent_data/error_log.json'
+        stats['scenario'] = scenario
+        stats['ngram'] = ngram_length
+        stats['batch_size'] = batch_size
+        stats['embedding_size'] = embedding_size
+        stats['return_value'] = use_return_value
+        stats['thread_change_flag'] = use_thread_change_flag
+        stats['time_delta'] = use_time_delta
         save_to_json(stats, result_path)
 

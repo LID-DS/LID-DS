@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --time=200:00:00
 #SBATCH --partition=clara-job
 #SBATCH --gres=gpu:rtx2080ti:1
 #SBATCH --mem=80G

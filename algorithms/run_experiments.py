@@ -7,21 +7,21 @@ scenarios = [
     "CVE-2014-0160/",
     "CVE-2017-7529/",
     "CVE-2018-3760/",
-    "CVE-2019-5418/"
+    "CVE-2019-5418/",
     # "EPS_CWE-434/",
-    # "PHP_CWE-434/",
-    # "SQL_Injection_CWE-89/",
+    "PHP_CWE-434/",
+    "SQL_Injection_CWE-89/",
     # "ZipSlip/"
 ]
 
 epochs = 20
 batch_sizes = [1024]
-embedding_sizes = ["6"]#  , "8"]
-ngram_lengths = ["4"]#  , "6", "8"]
+embedding_sizes = ["4", "6", "8", "10"]
+ngram_lengths = ["2", "6", "10"]
 thread_aware_list = ["True"]
-time_deltas = ["False"]#  , "True"]
-thread_change_flags = ["False"]#  , "True"]
-return_values = ["True"]#  , "True"]
+time_deltas = ["False"  , "True"]
+thread_change_flags = ["False", "True"]
+return_values = ["False", "True"]
 # base_path = '/home/tikl664d/projects/p_madgan/ws_link/scratch/tikl664d-test-workspace/Dataset2019/'
 base_path = '/nfs/user/te697mily/master/Praxis/Data/'
 
@@ -29,13 +29,13 @@ base_path = '/nfs/user/te697mily/master/Praxis/Data/'
 script = '/nfs/user/te697mily/master/Praxis/LID-DS/algorithms/run_on_hpc.sh'
 
 
-max_jobs_in_queue = 16
+max_jobs_in_queue = 100
 num_experiments = 0
 
 
 # counts the number of my jobs in the queue
 def count_queue():
-    user = "te697mliy"
+    user = "te697mily"
     return int(os.popen(f"squeue -u {user} | wc -l").read().strip("\n")) - 1
 
 
