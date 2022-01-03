@@ -7,6 +7,14 @@ from algorithms.building_block_manager import BuildingBlockManager
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.syscall import Syscall
 
+def dot_to_str(dot):
+    dot_str = dot.to_string()
+    lines = dot_str.splitlines()
+    result = ""
+    for line in lines:
+        if '" -> "' in line or "strict digraph  {" in line or line == "}":
+            result += line + "\n"
+    return result
 
 class DataPreprocessor:
     """
@@ -22,7 +30,7 @@ class DataPreprocessor:
         self._data_loader = data_loader
         self._building_block_manager = BuildingBlockManager(resulting_building_block)
         self._baseBB = BuildingBlock()        
-        self._graph_dot = self._building_block_manager.to_dot().to_string()
+        self._graph_dot = dot_to_str(self._building_block_manager.to_dot())
         graph_url_encode = urllib.parse.quote(self._graph_dot)        
         url = f"https://dreampuf.github.io/GraphvizOnline/#{graph_url_encode}"
         print("-------------------------------")
