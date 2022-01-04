@@ -58,7 +58,7 @@ class BuildingBlock:
             result = f"{self.__class__.__name__}({hex(id(self))}, {config})"
         else:
             result = f"{self.__class__.__name__}({hex(id(self))})"
-        print(result)
+        #print(result)
         return result
 
     def __repr__(self):
@@ -91,9 +91,9 @@ class BuildingBlock:
                 del args['__class__']
                 final_args = {}
                 for k,v in args.items():
-                    print(f"at {k}")
+                    #print(f"at {k}")
                     if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):
-                        print(f"  add {k} -> {v}")
+                        #print(f"  add {k} -> {v}")
                         final_args[k] = v                    
                     if isinstance(v, Iterable) and not isinstance(v, str):
                         final_iter = []
@@ -102,7 +102,7 @@ class BuildingBlock:
                                 final_iter.append(item)
                         if len(final_iter) > 0:
                             final_args[k] = final_iter
-                            print(f"  add {k} -> {final_iter}")
+                            #print(f"  add {k} -> {final_iter}")
                 return final_args
             except KeyError:
                 return {}

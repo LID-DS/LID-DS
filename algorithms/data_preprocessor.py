@@ -36,7 +36,7 @@ class DataPreprocessor:
         print("-------------------------------")
         print("Dependency Graph Visualisation:")
         print(url)
-        print(self._graph_dot)
+        #print(self._graph_dot)
         print("-------------------------------")
 
         self._prepare_and_fit_building_blocks()

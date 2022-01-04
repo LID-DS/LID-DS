@@ -33,7 +33,12 @@ if __name__ == '__main__':
 
     # scenarios orderd by training data size asc
     # 0 - 14
-    select_scenario_number = 1
+    select_scenario_number = 0
+    select_lid_ds_version_number = 1
+    lid_ds_version = [
+        "LID-DS-2019", 
+        "LID-DS-2021"
+    ]
     scenario_names = [
         "CVE-2017-7529",
         "CVE-2014-0160",
@@ -51,7 +56,7 @@ if __name__ == '__main__':
         "CVE-2020-13942",
         "CVE-2017-12635_6"
     ]    
-    scenario_path = f"/home/grimmer/data/LID-DS-2021/{scenario_names[select_scenario_number]}/"        
+    scenario_path = f"/home/grimmer/data/{lid_ds_version[select_lid_ds_version_number]}/{scenario_names[select_scenario_number]}/"        
     dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE)
 
     # features    
@@ -99,7 +104,7 @@ if __name__ == '__main__':
 
     # enrich results with configuration and save to disk
     results['config'] = ids.get_config()
-    results['scenario'] = scenario_names[select_scenario_number]    
+    results['scenario'] =  lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
     result_path = 'results/stide.json'
     save_to_json(results, result_path)
 
