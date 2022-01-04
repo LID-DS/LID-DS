@@ -1,16 +1,16 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class Mode(BaseFeature, metaclass=Singleton):
+class Mode(BuildingBlock, metaclass=Singleton):
 
     def __init__(self):
         super().__init__()
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-        extract mode parameter from syscall
+        calculate mode parameter from syscall
         eg: mode=0
         """
         params = syscall.params()

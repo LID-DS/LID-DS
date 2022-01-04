@@ -10,9 +10,9 @@ from dataloader.syscall_2021 import Syscall2021
 def helper(syscall, feature_list, ngram, ngram_mo, cid):
     syscall_dict = {}
     for feature in feature_list:
-        feature.extract(syscall, syscall_dict)
-    ngram.extract(syscall, syscall_dict)
-    ngram_mo.extract(syscall, syscall_dict)
+        feature.calculate(syscall, syscall_dict)
+    ngram.calculate(syscall, syscall_dict)
+    ngram_mo.calculate(syscall, syscall_dict)
     return syscall_dict[cid]
 
 
@@ -69,35 +69,40 @@ def test_ngram_minus_one():
     id = ngm.get_id()
 
     # SYSCALL 1
-    assert helper(syscall_1, features, ng, ngm, id) is None
+    with pytest.raises(KeyError):
+        helper(syscall_1, features, ng, ngm, id)
 
     # SYSCALL 2
-    assert helper(syscall_2, features, ng, ngm, id) is None
+    with pytest.raises(KeyError):
+        helper(syscall_2, features, ng, ngm, id)
 
     # SYSCALL 3
-    assert helper(syscall_3, features, ng, ngm, id) == ['open', 'close']
+    assert helper(syscall_3, features, ng, ngm, id) == ('open', 'close')
 
     # SYSCALL 4
-    assert helper(syscall_4, features, ng, ngm, id) is None
+    with pytest.raises(KeyError):
+        helper(syscall_4, features, ng, ngm, id)
 
     # SYSCALL 5
-    assert helper(syscall_5, features, ng, ngm, id) is None
+    with pytest.raises(KeyError):
+        helper(syscall_5, features, ng, ngm, id)
 
     # SYSCALL 6
-    assert helper(syscall_6, features, ng, ngm, id) is None
+    with pytest.raises(KeyError):
+        helper(syscall_6, features, ng, ngm, id)
 
     # SYSCALL 7
-    assert helper(syscall_7, features, ng, ngm, id) == ['close', 'poll']
+    assert helper(syscall_7, features, ng, ngm, id) == ('close', 'poll')
 
     # SYSCALL 8
-    assert helper(syscall_8, features, ng, ngm, id) == ['mmap', 'open']
+    assert helper(syscall_8, features, ng, ngm, id) == ('mmap', 'open')
 
     # SYSCALL 9
-    assert helper(syscall_9, features, ng, ngm, id) == ['poll', 'mmap']
+    assert helper(syscall_9, features, ng, ngm, id) == ('poll', 'mmap')
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
         helper(syscall_10, features, ng, ngm, id)
 
     # SYSCALL 11
-    assert helper(syscall_11, features, ng, ngm, id) == ['mmap', 'close']
+    assert helper(syscall_11, features, ng, ngm, id) == ('mmap', 'close')

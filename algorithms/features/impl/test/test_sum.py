@@ -1,18 +1,18 @@
 import pytest
 
-from algorithms.features.impl.maximum import Maximum
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_maximum import StreamMaximum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
-from algorithms.features.impl.sum import Sum
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
 
 def eva(syscall, tid, sum):
     syscall_dict = {}
-    ThreadID().extract(syscall, syscall_dict)
-    tid.extract(syscall, syscall_dict)
-    sum.extract(syscall, syscall_dict)
+    ThreadID().calculate(syscall,syscall_dict)
+    tid.calculate(syscall, syscall_dict)
+    sum.calculate(syscall, syscall_dict)
     return syscall_dict[sum.get_id()]
 
 
@@ -70,7 +70,7 @@ def test_sum():
                              "1631209047762064269 0 13 apache2 10 close < fd=9(<f>wackawacka) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     pid = ProcessID()
-    sum = Sum(feature=pid, thread_aware=True, window_length=3)
+    sum = StreamSum(feature=pid, thread_aware=True, window_length=3)
 
     assert eva(syscall_1, pid, sum) == 10  # 10
     assert eva(syscall_2, pid, sum) == 11  # 11
@@ -89,7 +89,7 @@ def test_sum():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, sum) == "XXX"
 
-    sum = Sum(feature=pid, thread_aware=False, window_length=3)
+    sum = StreamSum(feature=pid, thread_aware=False, window_length=3)
     assert eva(syscall_1, pid, sum) == 10  # 10
     assert eva(syscall_2, pid, sum) == 21  # 11
     assert eva(syscall_3, pid, sum) == 33  # 12

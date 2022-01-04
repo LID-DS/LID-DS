@@ -25,7 +25,8 @@ class BaseDataLoader:
 
         """
         self.scenario_path = scenario_path
-
+        print(f"loading {scenario_path}")
+        
     def training_data(self) -> list:
         """
 

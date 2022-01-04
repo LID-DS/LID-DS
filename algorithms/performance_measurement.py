@@ -99,7 +99,8 @@ class PerformanceMeasurement:
 
         if recording.metadata()["exploit"] is True:
 
-            self._current_exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
+            # TODO: fix the timestamps
+            self._current_exploit_time = int(recording.metadata()["time"]["exploit"][0]["absolute"])
             self._exploit_count += 1
         else:
             self._current_exploit_time = None
@@ -129,7 +130,8 @@ class PerformanceMeasurement:
                         self.alarms.add_or_update_alarm(syscall, False)
                 elif self._current_exploit_time <= syscall_time:
                     self._cfp_end_exploits()
-                    self.alarms.add_or_update_alarm(syscall, True)
+                    if self.create_alarms:
+                        self.alarms.add_or_update_alarm(syscall, True)
                     if self._alarm is False:
                         self._tp += 1
                         self._alarm_count += 1

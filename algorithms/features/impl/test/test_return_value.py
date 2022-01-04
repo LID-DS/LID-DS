@@ -107,95 +107,95 @@ def test_return_value():
 
     # {'read': 512, 'write': 1525, 'recv_socket': 118, 'get_dents': 576, 'send_socket': 612}
 
-    rv.extract(syscall_1, features)
+    rv.calculate(syscall_1, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_2, features)
-    assert features[rv.get_id()] == 512 / rv._max['read']
+    rv.calculate(syscall_2, features)
+    assert features[rv.get_id()] == 512/rv._max['read']
 
-    rv.extract(syscall_3, features)
+    rv.calculate(syscall_3, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_4, features)
+    rv.calculate(syscall_4, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_5, features)
+    rv.calculate(syscall_5, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_6, features)
-    assert features[rv.get_id()] == 206 / rv._max['read']
+    rv.calculate(syscall_6, features)
+    assert features[rv.get_id()] == 206/rv._max['read']
 
-    rv.extract(syscall_7, features)
+    rv.calculate(syscall_7, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_8, features)
-    assert features[rv.get_id()] == 1525 / rv._max['write']
+    rv.calculate(syscall_8, features)
+    assert features[rv.get_id()] == 1525/rv._max['write']
 
-    rv.extract(syscall_9, features)
+    rv.calculate(syscall_9, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_10, features)
-    assert features[rv.get_id()] == 190 / rv._max['read']
+    rv.calculate(syscall_10, features)
+    assert features[rv.get_id()] == 190/rv._max['read']
 
-    rv.extract(syscall_11, features)
-    assert features[rv.get_id()] == 258 / rv._max['write']
+    rv.calculate(syscall_11, features)
+    assert features[rv.get_id()] == 258/rv._max['write']
 
-    rv.extract(syscall_12, features)
+    rv.calculate(syscall_12, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_13, features)
-    assert features[rv.get_id()] == 335 / rv._max['read']
+    rv.calculate(syscall_13, features)
+    assert features[rv.get_id()] == 335/rv._max['read']
 
-    rv.extract(syscall_14, features)
+    rv.calculate(syscall_14, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_15, features)
+    rv.calculate(syscall_15, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_16, features)
+    rv.calculate(syscall_16, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_17, features)
+    rv.calculate(syscall_17, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_18, features)
+    rv.calculate(syscall_18, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_19, features)
-    assert features[rv.get_id()] == 227 / rv._max['read']
+    rv.calculate(syscall_19, features)
+    assert features[rv.get_id()] == 227/rv._max['read']
 
-    rv.extract(syscall_20, features)
+    rv.calculate(syscall_20, features)
+    assert features[rv.get_id()] == 0
+
+    rv.calculate(syscall_21, features)
+    assert features[rv.get_id()] == 0
+
+    rv.calculate(syscall_22, features)
     assert features[rv.get_id()] == -1
 
-    rv.extract(syscall_21, features)
+    rv.calculate(syscall_23, features)
     assert features[rv.get_id()] == -1
 
-    rv.extract(syscall_22, features)
-    assert features[rv.get_id()] == -1
-
-    rv.extract(syscall_23, features)
-    assert features[rv.get_id()] == -1
-
-    rv.extract(syscall_24, features)
+    rv.calculate(syscall_24, features)
     assert features[rv.get_id()] == 0
 
-    rv.extract(syscall_25, features)
-    assert features[rv.get_id()] == 268 / rv._max['read']
+    rv.calculate(syscall_25, features)
+    assert features[rv.get_id()] == 268/rv._max['read']
 
-    rv.extract(syscall_26, features)
-    assert features[rv.get_id()] == 576 / rv._max['get_dents']
+    rv.calculate(syscall_26, features)
+    assert features[rv.get_id()] == 576/rv._max['get_dents']
 
-    rv.extract(syscall_27, features)
-    assert features[rv.get_id()] == 570 / rv._max['get_dents']
+    rv.calculate(syscall_27, features)
+    assert features[rv.get_id()] == 570/rv._max['get_dents']
 
-    rv.extract(syscall_28, features)
-    assert features[rv.get_id()] == 118 / rv._max['recv_socket']
+    rv.calculate(syscall_28, features)
+    assert features[rv.get_id()] == 118/rv._max['recv_socket']
 
-    rv.extract(syscall_29, features)
-    assert features[rv.get_id()] == 118 / rv._max['recv_socket']
+    rv.calculate(syscall_29, features)
+    assert features[rv.get_id()] == 118/rv._max['recv_socket']
 
-    rv.extract(syscall_30, features)
-    assert features[rv.get_id()] == 612 / rv._max['send_socket']
+    rv.calculate(syscall_30, features)
+    assert features[rv.get_id()] == 612/rv._max['send_socket']
 
-    rv.extract(syscall_31, features)
-    assert features[rv.get_id()] == 400 / rv._max['send_socket']
+    rv.calculate(syscall_31, features)
+    assert features[rv.get_id()] == 400/rv._max['send_socket']

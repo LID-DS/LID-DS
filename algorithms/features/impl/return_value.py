@@ -1,13 +1,13 @@
 import typing
 
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ReturnValue(BaseFeature, metaclass=Singleton):
+class ReturnValue(BuildingBlock, metaclass=Singleton):
     """
-    Extract system call return value for specific syscalls.
+    calculate system call return value for specific syscalls.
     Include:
         write and writev are summarized as           write
         read, readv and are summarized as            read
@@ -16,7 +16,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         getdents as                                  get_dents
     Training phase:
         save highest value.
-    Extraction phase:
+    calculateion phase:
         normalize with highest value of training phase
         return value is error code return -1
         Error codes included only : EAGAIN, EINVAL, ECONNRESET, EPIPE
@@ -78,7 +78,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                 except ValueError as e:
                     if any(error in return_value_string for error in self.error_codes):
                         # error code was returned so ValueError is expected
-                        # in extraction -1 is returned
+                        # in calculateion -1 is returned
                         pass
                     else:
                         print(e)
@@ -86,9 +86,9 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         print(f' Return string: {return_value_string}')
                         print(f' Syscall: {syscall.name()}')
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-        extract return value type and normalize with max value of training phase
+        calculate return value type and normalize with max value of training phase
         """
         return_type = None
         normalized_bytes = 0

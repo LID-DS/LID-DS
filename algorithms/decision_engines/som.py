@@ -2,15 +2,16 @@ import math
 
 from matplotlib import pyplot as plt
 
-from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from algorithms.building_block import BuildingBlock
+from dataloader.syscall import Syscall
 from minisom import MiniSom
 from tqdm import tqdm
 import numpy as np
 from numpy.linalg import norm
 
 
-class Som(BaseDecisionEngine):
-    def __init__(self, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5):
+class Som(BuildingBlock):
+    def __init__(self, input_vector: BuildingBlock, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5):
         """
             Anomaly Detection Engine based on Teuvo Kohonen's Self-Organizing-Map (SOM)
 
@@ -27,12 +28,18 @@ class Som(BaseDecisionEngine):
                     (at iteration t: learning_rate(t) = learning_rate / (1 + t/T) where T is #num_iteration/2)
         """
         super().__init__()
+        self._input_vector = input_vector
+        self._dependency_list = [input_vector]
         self._sigma = sigma
         self._learning_rate = learning_rate
-        self._buffer = []
+        self._buffer = set()
         self._epochs = epochs
         self._som = None
         self._cache = {}
+        self.custom_fields = {}
+
+    def depends_on(self):
+        return self._dependency_list
 
     def _estimate_som_size(self):
         """
@@ -48,20 +55,24 @@ class Som(BaseDecisionEngine):
         som_size += 1
         return int(som_size)
 
-    def train_on(self, input_array: list):
+    def train_on(self, syscall: Syscall, dependencies: dict):
         """
             creates distinct input data buffer used for training
         """
-        if not input_array in self._buffer:
-            self._buffer.append(input_array)
+        if self._input_vector.get_id() in dependencies:
+            input_vector = dependencies[self._input_vector.get_id()]
+            if not input_vector in self._buffer:
+                self._buffer.add(input_vector)
 
     def fit(self):
         """
             finalizes the training step for the som
         """
-        print(f"som training: {len(self._buffer)} data points")
+        print(f"som.train_set: {len(self._buffer)} ".rjust(27))
+        # print(self._buffer)
         som_size = self._estimate_som_size()
-        vector_size = len(self._buffer[0])
+        # vector_size = len(self._buffer[0])
+        vector_size = len(next(iter(self._buffer)))
 
         self._som = MiniSom(som_size, som_size, vector_size,
                             random_seed=1,
@@ -72,24 +83,24 @@ class Som(BaseDecisionEngine):
             for vector in self._buffer:
                 self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
 
-    def predict(self, input_array: list) -> float:
+    def calculate(self, syscall: Syscall, dependencies: dict):
         """
             calculates euclidean distance between input and codebook vector which is used as anomaly score
 
             Returns:
                 distance (float): euclidian distance/anomaly score
         """
-        tupled = tuple(input_array)
-        # print(len(input_array))
-        if tupled not in self._cache:
-            codebook_vector = np.array(self._som.quantization([input_array])[0])
-            vector = np.array(input_array)
-            distance = norm(vector - codebook_vector)
-            self._cache[tupled] = distance
-        else:
-            distance = self._cache[tupled]
-
-        return distance
+        if self._input_vector.get_id() in dependencies:
+            input_vector = dependencies[self._input_vector.get_id()]
+            if input_vector not in self._cache:
+                codebook_vector = np.array(self._som.quantization([input_vector])[0])
+                vector = np.array(input_vector)
+                distance = norm(vector - codebook_vector)
+                self._cache[input_vector] = distance
+            else:
+                distance = self._cache[input_vector]
+            dependencies[self.get_id()] = distance
+            
 
     def show_distance_plot(self):
         """

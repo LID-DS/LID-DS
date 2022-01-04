@@ -1,20 +1,20 @@
 import pytest
 
-from algorithms.features.impl.average import Average
-from algorithms.features.impl.maximum import Maximum
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_average import StreamAverage
+from algorithms.features.impl.stream_maximum import StreamMaximum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
-from algorithms.features.impl.sum import Sum
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
 
 def eva(syscall, tid, avg):
     feature_dict = {}
-    ThreadID().extract(syscall, feature_dict)
-    tid.extract(syscall, feature_dict)
-    avg._sum.extract(syscall, feature_dict)
-    avg.extract(syscall, feature_dict)
+    ThreadID().calculate(syscall, feature_dict)
+    tid.calculate(syscall, feature_dict)
+    avg._sum.calculate(syscall, feature_dict)
+    avg.calculate(syscall, feature_dict)
     return feature_dict[avg.get_id()]
 
 
@@ -72,7 +72,7 @@ def test_avg():
                              "1631209047762064269 0 13 apache2 10 close < fd=9(<f>wackawacka) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     pid = ProcessID()
-    avg = Average(feature=pid, thread_aware=True, window_length=3)
+    avg = StreamAverage(feature=pid, thread_aware=True, window_length=3)
 
     assert eva(syscall_1, pid, avg) == 10 / 3  # 10
     assert eva(syscall_2, pid, avg) == 11 / 3  # 11
@@ -91,7 +91,7 @@ def test_avg():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, avg) == "XXX"
 
-    avg = Average(feature=pid, thread_aware=False, window_length=3)
+    avg = StreamAverage(feature=pid, thread_aware=False, window_length=3)
     assert eva(syscall_1, pid, avg) == 10 / 3  # 10
     assert eva(syscall_2, pid, avg) == 21 / 3  # 11
     assert eva(syscall_3, pid, avg) == 33 / 3  # 12

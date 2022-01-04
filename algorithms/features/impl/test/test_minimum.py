@@ -1,6 +1,6 @@
 import pytest
 
-from algorithms.features.impl.minimum import Minimum
+from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.processID import ProcessID
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
@@ -8,9 +8,9 @@ from dataloader.syscall_2021 import Syscall2021
 
 def eva(syscall, tid, min):
     syscall_dict = {}
-    ThreadID().extract(syscall, syscall_dict)
-    tid.extract(syscall, syscall_dict)
-    min.extract(syscall, syscall_dict)
+    ThreadID().calculate(syscall,syscall_dict)
+    tid.calculate(syscall, syscall_dict)
+    min.calculate(syscall, syscall_dict)
     return syscall_dict[min.get_id()]
 
 
@@ -68,7 +68,7 @@ def test_minimum():
                              "1631209047762064269 0 13 apache2 10 close < fd=9(<f>wackawacka) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     pid = ProcessID()
-    min = Minimum(feature=pid, thread_aware=False, window_length=3)
+    min = StreamMinimum(feature=pid, thread_aware=False, window_length=3)
 
     assert eva(syscall_1, pid, min) == 10  # 10
     assert eva(syscall_2, pid, min) == 10  # 11
@@ -87,7 +87,7 @@ def test_minimum():
     with pytest.raises(ValueError):
         assert eva(syscall_10, pid, min) == "XXX"
 
-    min = Minimum(feature=pid, thread_aware=True, window_length=3)
+    min = StreamMinimum(feature=pid, thread_aware=True, window_length=3)
     assert eva(syscall_1, pid, min) == 10  # 10
     assert eva(syscall_2, pid, min) == 11  # 11
     assert eva(syscall_3, pid, min) == 12  # 12

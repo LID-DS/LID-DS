@@ -40,34 +40,34 @@ def test_syscalls_in_time_window():
                          "1000000009000000000 0 3686303 apache2 3686303 open < name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_5, syscall_6]
-    extractor = SyscallsInTimeWindow(window_length_in_s=3)
+    calculateor = SyscallsInTimeWindow(window_length_in_s=3)
 
     features = {}
 
     for syscall in training_syscalls:
-        extractor.train_on(syscall, features)
+        calculateor.train_on(syscall, features)
 
-    extractor.fit()
+    calculateor.fit()
 
-    assert extractor._training_max == 2
+    assert calculateor._training_max == 2
 
-    id = extractor.get_id()
+    id = calculateor.get_id()
     # first three return 0 because time difference < time window
-    extractor.extract(syscall_7, features)
+    calculateor.calculate(syscall_7, features)
     assert features[id] == 0
 
-    extractor.extract(syscall_8, features)
+    calculateor.calculate(syscall_8, features)
     assert features[id] == 0
 
-    extractor.extract(syscall_9, features)
+    calculateor.calculate(syscall_9, features)
     assert features[id] == 0
 
     # 4 syscalls in window, 2 max in training: 4/2 = 2
-    extractor.extract(syscall_10, features)
+    calculateor.calculate(syscall_10, features)
     assert features[id] == 2
-    extractor.extract(syscall_11, features)
+    calculateor.calculate(syscall_11, features)
     assert features[id] == 2
 
     # syscall time difference to last one is 4s, only syscall in window is this one, leads to 1/2 = 0.5
-    extractor.extract(syscall_12, features)
+    calculateor.calculate(syscall_12, features)
     assert features[id] == 0.5

@@ -1,16 +1,16 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class Flags(BaseFeature, metaclass=Singleton):
+class Flags(BuildingBlock, metaclass=Singleton):
 
     def __init__(self):
         super().__init__()
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-        extract flag parameter from syscall
+        calculate flag parameter from syscall
         eg: flags=65(O_NONBLOCK|O_RDONLY)
             flags=0
         """

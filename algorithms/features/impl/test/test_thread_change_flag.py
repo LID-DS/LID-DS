@@ -8,9 +8,9 @@ from dataloader.syscall_2021 import Syscall2021 as Syscall
 def helper(syscall, feature_list, ngram, tcf, cid):
     syscall_dict = {}
     for feature in feature_list:
-        feature.extract(syscall, syscall_dict)
-    ngram.extract(syscall, syscall_dict)
-    tcf.extract(syscall, syscall_dict)
+        feature.calculate(syscall, syscall_dict)
+    ngram.calculate(syscall, syscall_dict)
+    tcf.calculate(syscall, syscall_dict)
     print(syscall_dict)
     print(ngram.get_id())
     return syscall_dict[cid]
