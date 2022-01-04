@@ -165,10 +165,10 @@ def test_return_value():
     assert features[rv.get_id()] == 227/rv._max['read']
 
     rv.calculate(syscall_20, features)
-    assert features[rv.get_id()] == 0
+    assert features[rv.get_id()] == -1
 
     rv.calculate(syscall_21, features)
-    assert features[rv.get_id()] == 0
+    assert features[rv.get_id()] == -1
 
     rv.calculate(syscall_22, features)
     assert features[rv.get_id()] == -1
