@@ -94,7 +94,7 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
         normalized_bytes = 0
         if syscall.name() in self.interesting:
             return_value_string = syscall.param('res')
-            print(return_value_string)
+            #print(return_value_string)
             if return_value_string is not None:
                 try:
                     current_bytes = int(return_value_string)

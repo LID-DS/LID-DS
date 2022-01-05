@@ -89,31 +89,22 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, input_size, hidden_size, mode: AEMode = AEMode.LOSS):
+    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS):
         super().__init__()                
-        # print(BuildingBlock.arguments())
-        # save parameter 
-        self._config["input_size"] = input_size
-        self._config["hidden_size"] = hidden_size
-        self._config["mode"] = mode
-        # 
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
-        self._autoencoder = AENetwork(input_size,hidden_size)
-        self._mode = mode        
-        self._autoencoder.train()
+        self._mode = mode 
+        self._hidden_size = hidden_size
+        self._input_size = 0
+        self._autoencoder = None # AENetwork(input_size,hidden_size)               
+        #self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
         self._epochs = 100000
-        self._batch_size = 128
-        #self._batch_size = 64
+        self._batch_size = 128        
         self._training_set = set() # we use distinct training data
         self._validation_set = set()
         self._result_dict = {}
-        self._optimizer = torch.optim.Adam(            
-            self._autoencoder.parameters(),
-            lr = 0.001,# lr = 0.001,
-            weight_decay=0.01
-        )
+
         self._early_stopping_num_epochs = 200
 
     def depends_on(self):
@@ -123,6 +114,8 @@ class AE(BuildingBlock):
     def train_on(self, syscall: Syscall, dependencies: dict):
         if self._input_vector.get_id() in dependencies:
             input_vector = dependencies[self._input_vector.get_id()]
+            if self._input_size == 0:
+                self._input_size = len(input_vector)
             self._training_set.add(tuple(input_vector))
         
     def val_on(self, syscall: Syscall, dependencies: dict):
@@ -132,6 +125,13 @@ class AE(BuildingBlock):
         
     def fit(self):
         print(f"ae.train_set: {len(self._training_set)}".rjust(27))
+        self._autoencoder = AENetwork(self._input_size ,self._hidden_size)               
+        self._autoencoder.train()
+        self._optimizer = torch.optim.Adam(            
+            self._autoencoder.parameters(),
+            lr = 0.001,# lr = 0.001,
+            weight_decay=0.01
+        )
         loss_dq = collections.deque(maxlen=self._early_stopping_num_epochs)
         best_avg_loss = math.inf
         ae_ds = AEDataset(self._training_set)
@@ -218,6 +218,7 @@ class AE(BuildingBlock):
 
                 self._result_dict[input_tuple] = result
                 dependencies[self.get_id()] =  result
+                # print(f"{input_tuple} -> {result}")
 
     def new_recording(self):
         pass

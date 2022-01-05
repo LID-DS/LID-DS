@@ -36,29 +36,31 @@ class Dgram(BuildingBlock):
         writes the dgram into dependencies if its complete
         otherwise does not write into dependencies
         """
-        thread_id = 0
-        if self._thread_aware:
-            thread_id = syscall.thread_id()
-        if thread_id not in self._dgram_buffer:
-            self._dgram_buffer[thread_id] = deque()
-            self._dgram_value_set[thread_id] = set()
-        self._dgram_buffer[thread_id].append(dependencies)
-        
-        # check whether the current value already is in the current dgram
-        current_value = ""
-        for id in self._list_of_feature_ids:
-            current_value += str(dependencies[id]) + "-"
-        #print(f"current: {current_value}")
-        #print(f"    set: {self._dgram_value_set[thread_id]}")
-        
-        if current_value in self._dgram_value_set[thread_id]:
-            dgram_value = self._collect_features(self._dgram_buffer[thread_id])
-            dependencies[self.get_id()] = tuple(dgram_value)
-            #print(f"result: {dgram_value}")
-            self._dgram_value_set[thread_id] = set()
-            self._dgram_buffer[thread_id] = deque()
-        else:
-            self._dgram_value_set[thread_id].add(current_value)
+        check = all(i in dependencies for i in self._list_of_feature_ids)
+        if check is True:
+            thread_id = 0
+            if self._thread_aware:
+                thread_id = syscall.thread_id()
+            if thread_id not in self._dgram_buffer:
+                self._dgram_buffer[thread_id] = deque()
+                self._dgram_value_set[thread_id] = set()
+            self._dgram_buffer[thread_id].append(dependencies)
+            
+            # check whether the current value already is in the current dgram
+            current_value = ""
+            for id in self._list_of_feature_ids:
+                current_value += str(dependencies[id]) + "-"
+            #print(f"current: {current_value}")
+            #print(f"    set: {self._dgram_value_set[thread_id]}")
+            
+            if current_value in self._dgram_value_set[thread_id]:
+                dgram_value = self._collect_features(self._dgram_buffer[thread_id])
+                dependencies[self.get_id()] = tuple(dgram_value)
+                #print(f"result: {dgram_value}")
+                self._dgram_value_set[thread_id] = set()
+                self._dgram_buffer[thread_id] = deque()
+            else:
+                self._dgram_value_set[thread_id].add(current_value)
         
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
