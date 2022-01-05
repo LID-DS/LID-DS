@@ -10,7 +10,7 @@ from numpy.linalg import norm
 
 
 class Som(BaseDecisionEngine):
-    def __init__(self, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5):
+    def __init__(self, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5, max_size: int = None):
         """
             Anomaly Detection Engine based on Teuvo Kohonen's Self-Organizing-Map (SOM)
 
@@ -33,6 +33,7 @@ class Som(BaseDecisionEngine):
         self._epochs = epochs
         self._som = None
         self._cache = {}
+        self._max_size = max_size
 
     def _estimate_som_size(self):
         """
@@ -46,7 +47,10 @@ class Som(BaseDecisionEngine):
         ), 0)
 
         som_size += 1
-        return int(som_size)
+        if self._max_size is not None and som_size > self._max_size:
+            return self._max_size
+        else:
+            return int(som_size)
 
     def train_on(self, input_array: list):
         """
