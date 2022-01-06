@@ -2,15 +2,14 @@ from collections import deque
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
-from algorithms.features.impl.ngram import Ngram
 
 class Stide(BuildingBlock):
 
-    def __init__(self, ngram: Ngram, window_length=100):
+    def __init__(self, input: BuildingBlock, window_length=100):
         super().__init__()
         # parameter
         self._window_length = window_length
-        self._ngram = ngram
+        self._input = input
 
         # internal data
         self._normal_database = set()
@@ -19,7 +18,7 @@ class Stide(BuildingBlock):
 
         # dependency list
         self._dependency_list = []
-        self._dependency_list.append(self._ngram)
+        self._dependency_list.append(self._input)
 
     def depends_on(self):
         return self._dependency_list
@@ -28,8 +27,8 @@ class Stide(BuildingBlock):
         """
         creates a set for distinct ngrams from training data
         """
-        if self._ngram.get_id() in dependencies:
-            ngram = dependencies[self._ngram.get_id()]
+        if self._input.get_id() in dependencies:
+            ngram = dependencies[self._input.get_id()]
             if ngram not in self._normal_database:
                 self._normal_database.add(ngram)
     
@@ -40,8 +39,8 @@ class Stide(BuildingBlock):
         """
         calculates ratio of unknown ngrams in sliding window of current recording
         """
-        if self._ngram.get_id() in dependencies:
-            ngram = dependencies[self._ngram.get_id()]   
+        if self._input.get_id() in dependencies:
+            ngram = dependencies[self._input.get_id()]   
             if ngram in self._normal_database:
                 mismatch = 0
             else:

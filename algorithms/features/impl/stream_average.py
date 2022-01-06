@@ -17,12 +17,9 @@ class StreamAverage(BuildingBlock):
         """
         super().__init__()
         self._feature = feature
-        self._thread_aware = thread_aware
         self._window_length = window_length
 
         self._dependency_list = []
-        if thread_aware:
-            self._dependency_list.append(ThreadID())
         self._sum = StreamSum(feature, thread_aware, window_length)
         self._dependency_list.append(self._sum)
         self._feature_id = self._sum.get_id()

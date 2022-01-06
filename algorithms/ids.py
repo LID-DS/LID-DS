@@ -45,6 +45,7 @@ class IDS:
                 results = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
                 if self._final_bb.get_id() in results:
                     anomaly_score = results[self._final_bb.get_id()]
+                    #print(anomaly_score)
                     if anomaly_score > max_score:
                         max_score = anomaly_score
             self._data_preprocessor.new_recording()
@@ -53,6 +54,7 @@ class IDS:
         self.performance.set_threshold(max_score)
         if self.plot is not None:
             self.plot.threshold = max_score
+        print(f"threshold={max_score:.3f}".rjust(27))
 
     def do_detection(self):
         """
