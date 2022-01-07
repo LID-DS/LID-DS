@@ -100,7 +100,7 @@ class PerformanceMeasurement:
         if recording.metadata()["exploit"] is True:
 
             # TODO: fix the timestamps
-            self._current_exploit_time = int(recording.metadata()["time"]["exploit"][0]["absolute"])
+            self._current_exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
             self._exploit_count += 1
         else:
             self._current_exploit_time = None
