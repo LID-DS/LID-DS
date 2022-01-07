@@ -13,7 +13,7 @@ class Dgram(BuildingBlock):
     calculate dgram form a stream of system call features
     """
 
-    def __init__(self, feature_list: list, thread_aware: bool):
+    def __init__(self, feature_list: list, thread_aware: bool, min_length=2):
         """
         feature_list: list of features the dgram should use
         thread_aware: True or False
@@ -25,6 +25,7 @@ class Dgram(BuildingBlock):
         for feature in feature_list:
             self._list_of_feature_ids.append(feature.get_id())
         self._thread_aware = thread_aware        
+        self._min_length = min_length
         self._dependency_list = []
         self._dependency_list.extend(feature_list)
 
@@ -53,7 +54,7 @@ class Dgram(BuildingBlock):
             #print(f"current: {current_value}")
             #print(f"    set: {self._dgram_value_set[thread_id]}")
             
-            if current_value in self._dgram_value_set[thread_id]:
+            if current_value in self._dgram_value_set[thread_id] and len(self._dgram_buffer[thread_id]) >= self._min_length:
                 dgram_value = self._collect_features(self._dgram_buffer[thread_id])
                 dependencies[self.get_id()] = tuple(dgram_value)
                 #print(f"result: {dgram_value}")
