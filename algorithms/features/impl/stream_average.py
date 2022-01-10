@@ -1,15 +1,15 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.impl.sum import Sum
+from algorithms.building_block import BuildingBlock
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class Average(BaseFeature):
+class StreamAverage(BuildingBlock):
     """
     gives the average value from a stream of system call features
     """
 
-    def __init__(self, feature: BaseFeature, thread_aware: bool, window_length: int):
+    def __init__(self, feature: BuildingBlock, thread_aware: bool, window_length: int):
         """
         feature: the average should be calculated on feature
         thread_aware: True or False
@@ -17,20 +17,17 @@ class Average(BaseFeature):
         """
         super().__init__()
         self._feature = feature
-        self._thread_aware = thread_aware
         self._window_length = window_length
 
         self._dependency_list = []
-        if thread_aware:
-            self._dependency_list.append(ThreadID())
-        self._sum = Sum(feature, thread_aware, window_length)
+        self._sum = StreamSum(feature, thread_aware, window_length)
         self._dependency_list.append(self._sum)
         self._feature_id = self._sum.get_id()
 
     def depends_on(self):
         return self._dependency_list
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
         returns the maximum value over feature in the window if the feature is in the current set of features
         """

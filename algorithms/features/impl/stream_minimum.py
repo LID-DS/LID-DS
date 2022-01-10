@@ -1,17 +1,17 @@
 import math
 from collections import deque
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall import Syscall
 
 
-class Minimum(BaseFeature):
+class StreamMinimum(BuildingBlock):
     """
     gives the minimum value from a stream of system call features
     """
 
-    def __init__(self, feature: BaseFeature, thread_aware: bool, window_length: int):
+    def __init__(self, feature: BuildingBlock, thread_aware: bool, window_length: int):
         """
         feature: the minimum should be calculated on feature
         thread_aware: True or False
@@ -33,7 +33,7 @@ class Minimum(BaseFeature):
     def depends_on(self):
         return self._dependency_list
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
         returns the minimum value over feature in the window if the feature is in the current set of features
         """

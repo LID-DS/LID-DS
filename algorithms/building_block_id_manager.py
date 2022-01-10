@@ -1,7 +1,7 @@
-from algorithms.features.util.Singleton import Singleton
+from algorithms.util.Singleton import Singleton
 
 
-class FeatureIDManager(metaclass=Singleton):
+class BuildingBlockIDManager(metaclass=Singleton):
     def __init__(self):
         self._feature_to_int_dict = {}
 

@@ -2,13 +2,13 @@ import os.path
 
 from gensim.models import KeyedVectors, Word2Vec
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from dataloader.syscall import Syscall
 
 
-class W2VEmbedding(BaseFeature):
+class W2VEmbedding(BuildingBlock):
     """
         implementation of the w2v embedding approach based on BaseSyscallFeatureExtractor
 
@@ -58,10 +58,10 @@ class W2VEmbedding(BaseFeature):
         """
         if self.w2vmodel is None:
             local_features = {}
-            self._syscall_name_feature.extract(syscall, local_features)
-            self._n_gram_streamer.extract(syscall, local_features)
-            sentence = local_features[self._n_gram_streamer.get_id()]
-            if sentence is not None:
+            self._syscall_name_feature.calculate(syscall, local_features)
+            self._n_gram_streamer.calculate(syscall, local_features)
+            if self._n_gram_streamer.get_id() in local_features:
+                sentence = local_features[self._n_gram_streamer.get_id()]
                 if self._distinct:
                     if sentence not in self._sentences:
                         self._sentences.append(sentence)
@@ -78,8 +78,8 @@ class W2VEmbedding(BaseFeature):
 
             model.save(fname_or_handle=self._path)
             self.w2vmodel = model
-        
-    def extract(self, syscall: Syscall, features: dict):
+
+    def calculate(self, syscall: Syscall, features: dict):
         """
             embeds one system call in w2v model
 
