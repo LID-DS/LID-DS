@@ -5,20 +5,20 @@ import typing
 from treelib import Tree
 from treelib.exceptions import DuplicatedNodeIdError
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class PathEvilness(BaseFeature):
+class PathEvilness(BuildingBlock):
     def __init__(self, scenario_path, path='Models', force_retrain=False, ):
         """
-        Feature Extractor that builds a tree for all existing paths in the 
+        Feature calculateor that builds a tree for all existing paths in the 
         training data while training.
         
-        In the Extraction step the extractor returns 0 for syscalls without 
+        In the calculateion step the calculateor returns 0 for syscalls without 
         filepath in args and for known paths.
         
-        If a path is not present in the tree the extractor checks the height 
+        If a path is not present in the tree the calculateor checks the height 
         of the anomaly in the tree and returns 1/height resulting in a return
         value that is always 0 < return_value < 1
         """
@@ -54,7 +54,7 @@ class PathEvilness(BaseFeature):
 
     def _get_valid_fd_or_none(self, params) -> typing.Union[str, None]:
         """
-        checks syscall params for file descriptor tags and extracts its value if present, if not it returns None
+        checks syscall params for file descriptor tags and calculates its value if present, if not it returns None
         Returns:
             value of file descriptor param or None
         """
@@ -96,7 +96,7 @@ class PathEvilness(BaseFeature):
                 pass  # Todo if this is the correct behaviour it should be explained in a comment here
             i += 1
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, dependencies: dict):
         """
         calculates evilness by checking if path exists in cache
         if not it calculates evilness by looking for the height of the first
@@ -120,7 +120,7 @@ class PathEvilness(BaseFeature):
                         parent_node = self._file_tree.get_node(parent_id)
                         evilness = 1 / (self._file_tree.depth(parent_node) + 1)
                         break
-        features[self.get_id()] = evilness
+        dependencies[self.get_id()] = evilness
 
     def fit(self):
         """

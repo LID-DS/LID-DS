@@ -1,16 +1,16 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ProcessID(BaseFeature, metaclass=Singleton):
+class ProcessID(BuildingBlock, metaclass=Singleton):
 
     def __init__(self):
         super().__init__()
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-        extract process ID of syscall
+        calculate process ID of syscall
         """
         features[self.get_id()] = syscall.process_id()
 

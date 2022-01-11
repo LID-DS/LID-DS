@@ -1,10 +1,11 @@
+from algorithms.alarms import Alarms
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
 
 class PerformanceMeasurement:
 
-    def __init__(self):
+    def __init__(self, create_alarms: bool = False):
         self._threshold = 0.0
         self._performance_values = {}
         self._current_exploit_time = None
@@ -17,6 +18,7 @@ class PerformanceMeasurement:
         self._alarm_count = 0
         self._current_cfp_stream = 0
         self.result = None
+        self.create_alarms = create_alarms
 
         # for cfp screening
         self._cfp_count_exploits = 0
@@ -32,6 +34,10 @@ class PerformanceMeasurement:
         self._first_syscall_of_cfp_list_normal = []
         self._last_syscall_of_cfp_list_normal = []
         self._cfp_counter_wait_normal = False
+        if self.create_alarms:
+            self.alarms = Alarms()
+        else:
+            self.alarms = None
 
     def set_threshold(self, threshold: float):
         self._threshold = threshold
@@ -93,6 +99,7 @@ class PerformanceMeasurement:
 
         if recording.metadata()["exploit"] is True:
 
+            # TODO: fix the timestamps
             self._current_exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
             self._exploit_count += 1
         else:
@@ -119,8 +126,12 @@ class PerformanceMeasurement:
                     self._fp += 1
                     self._current_cfp_stream_exploits += 1
                     self._cfp_start_exploits()
+                    if self.create_alarms:
+                        self.alarms.add_or_update_alarm(syscall, False)
                 elif self._current_exploit_time <= syscall_time:
                     self._cfp_end_exploits()
+                    if self.create_alarms:
+                        self.alarms.add_or_update_alarm(syscall, True)
                     if self._alarm is False:
                         self._tp += 1
                         self._alarm_count += 1
@@ -129,6 +140,8 @@ class PerformanceMeasurement:
                         self._tp += 1
 
             elif anomaly_score <= self._threshold:
+                if self.create_alarms:
+                    self.alarms.end_alarm()
                 self._cfp_end_exploits()
                 if self._current_exploit_time > syscall_time:
                     self._tn += 1
@@ -142,6 +155,8 @@ class PerformanceMeasurement:
                 self._fp += 1
                 self._current_cfp_stream_normal += 1
                 self._cfp_start_normal()
+                if self.create_alarms:
+                    self.alarms.add_or_update_alarm(syscall, False)
             if anomaly_score <= self._threshold:
                 self._cfp_end_normal()
                 self._tn += 1

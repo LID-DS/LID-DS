@@ -1,11 +1,11 @@
 import math
 import typing
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class PathLength(BaseFeature):
+class PathLength(BuildingBlock):
     def __init__(self):
         """
         """
@@ -21,7 +21,7 @@ class PathLength(BaseFeature):
 
     def _get_valid_fd_or_none(self, params) -> typing.Union[str, None]:
         """
-        checks syscall params for file descriptor tags and extracts its value if present, if not it returns None
+        checks syscall params for file descriptor tags and calculates its value if present, if not it returns None
         Returns:
             value of file descriptor param or None
         """
@@ -42,7 +42,7 @@ class PathLength(BaseFeature):
             if current_len > self._max:
                 self._max = current_len
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
         """
         fd = self._get_valid_fd_or_none(syscall.params())

@@ -1,3 +1,4 @@
 """
-The algorithm module provides standard interfaces for feature transformation and decision engines.
+The algorithm module provides standard interfaces for building blocks. 
+The implementations can be found in the sub folders.
 """

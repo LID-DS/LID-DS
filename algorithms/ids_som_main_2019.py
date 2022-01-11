@@ -7,7 +7,7 @@ from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
 from algorithms.score_plot import ScorePlot
 from dataloader.data_loader_2019 import DataLoader2019
-from dataloader.data_preprocessor import DataPreprocessor
+from algorithms.data_preprocessor import DataPreprocessor
 
 if __name__ == '__main__':
     """

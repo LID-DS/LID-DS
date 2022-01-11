@@ -1,11 +1,11 @@
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.threadID import ThreadID
-from algorithms.features.util.Singleton import Singleton
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
+class ThreadChangeFlag(BuildingBlock, metaclass=Singleton):
     """
     if a ngram is full: check whether it has another thread id as the last seen ngram
     0 -> no change in thread id
@@ -21,12 +21,12 @@ class ThreadChangeFlag(BaseFeature, metaclass=Singleton):
     def depends_on(self):
         return self._dependency_list
 
-    def extract(self, syscall: Syscall, features: dict):
+    def calculate(self, syscall: Syscall, features: dict):
         """
-        only returns not None if ngram exists
+        value is 1 only for complete ngrams and a different tid as the last seen complete ngram
         """
         tcf = 0
-        if features[self._ngram.get_id()] is not None:
+        if self._ngram.get_id() in features:        
             if syscall.thread_id() != self._last_thread_id:
                 self._last_thread_id = syscall.thread_id()
                 tcf = 1
