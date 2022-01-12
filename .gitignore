@@ -25,6 +25,9 @@ lid_ds.egg-info
 coverage.xml
 *,cover
 
+# IPython Notebook
+*.ipynb
+
 # Translations
 *.mo
 *.pot
