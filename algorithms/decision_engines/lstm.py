@@ -102,6 +102,7 @@ class LSTM(BaseDecisionEngine):
                          self._hidden_layers,
                          device=device,
                          batch_size=self._batch_size)
+        self._lstm.to(device)
 
     def train_on(self, feature_list: list):
         """
