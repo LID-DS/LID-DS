@@ -60,7 +60,7 @@ class SyscallsInTimeWindow(BuildingBlock):
         """
         self._syscall_buffer = {}
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall, features: dict):
         """
             calculates count of syscalls in time window before current syscall
             returns normalized value based on training data

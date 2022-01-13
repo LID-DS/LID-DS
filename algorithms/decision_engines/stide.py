@@ -23,24 +23,24 @@ class Stide(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def train_on(self, syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
         creates a set for distinct ngrams from training data
         """
-        if self._input.get_id() in dependencies:
-            ngram = dependencies[self._input.get_id()]
+        ngram = self._input.get_result(syscall)
+        if ngram != None:            
             if ngram not in self._normal_database:
                 self._normal_database.add(ngram)
     
     def fit(self):
         print(f"stide.train_set: {len(self._normal_database)}".rjust(27))
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculates ratio of unknown ngrams in sliding window of current recording
         """
-        if self._input.get_id() in dependencies:
-            ngram = dependencies[self._input.get_id()]   
+        ngram = self._input.get_result(syscall)
+        if ngram is not None:
             if ngram in self._normal_database:
                 mismatch = 0
             else:
@@ -49,7 +49,9 @@ class Stide(BuildingBlock):
                 self._mismatch_count -= self._sliding_window[0]
             self._mismatch_count += mismatch
             self._sliding_window.append(mismatch)
-            dependencies[self.get_id()] = self._mismatch_count / self._window_length
+            return self._mismatch_count / self._window_length
+        else:
+            return None
 
     def new_recording(self):
         self._sliding_window.clear()

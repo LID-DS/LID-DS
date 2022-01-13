@@ -27,13 +27,13 @@ class SystemCallGraph(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def train_on(self, syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
         adds the current input to the grpah
         """
-        if self._input_id in dependencies:
-            new_node = dependencies[self._input_id]
-            #print(f"node: {new_node}")
+        
+        new_node = self._input.get_result(syscall)
+        if new_node is not None:
             # check for threads
             tid = 0
             if self._thread_aware:
@@ -81,19 +81,14 @@ class SystemCallGraph(BuildingBlock):
                 for s,t,data in g.out_edges(nbunch=source_node,data=True):
                     f=data["f"]
                     g.add_edge(s,t,f=f,p=f/sum_out)
-        
-        #for g in self._graphs.values():
-            #for s, t, p in g.edges.data("p"):
-                #print(f"{s} -> {t} ({p})")
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculates transition probability 
         """
-        # onyl if data is available
-        if self._input.get_id() in dependencies:
-            # the new node
-            new_node = dependencies[self._input_id]
+        # the new node
+        new_node = self._input.get_result(syscall)
+        if new_node is not None:
             # the thread id
             tid = 0
             if self._thread_aware:
@@ -105,11 +100,8 @@ class SystemCallGraph(BuildingBlock):
                 t = new_node
                 edge = tuple([s,t])                
                 if edge in self._result_dict:
-                    dependencies[self.get_id()] = self._result_dict[edge]
-                    #if dependencies[self.get_id()] == 1:
-                        #print(edge)
-                        #print(f"-> {dependencies[self.get_id()]}")                        
                     self._last_added_nodes[tid] = new_node
+                    return self._result_dict[edge]
                 else:
                     # was not the first node for this tid
                     transition_probability = 0
@@ -118,12 +110,14 @@ class SystemCallGraph(BuildingBlock):
                             transition_probability += g[s][t]["p"]
                     transition_probability /= len(self._graphs)                                        
                     anomaly_score = 1.0 - transition_probability
-                    dependencies[self.get_id()] = anomaly_score
-                    #if dependencies[self.get_id()] == 1:
-                        #print(edge)
-                        #print(f"-> {dependencies[self.get_id()]}")
                     self._result_dict[edge] = anomaly_score
-            self._last_added_nodes[tid] = new_node
+                    self._last_added_nodes[tid] = new_node
+                    return anomaly_score
+            else:
+                self._last_added_nodes[tid] = new_node
+                return None
+        else:
+            return None
             
 
     def new_recording(self):

@@ -22,22 +22,22 @@ class Concat(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         concats the given bbs in the given order to a new value
         """
         result_vector = []
         for bb in self._dependency_list:
-            if bb.get_id() in dependencies and dependencies[bb.get_id()] is not None:
-                bb_value = dependencies[bb.get_id()]
-                if isinstance(bb_value, str):
-                    result_vector.append(bb_value)
+            tmp_input = bb.get_result(syscall)
+            if tmp_input is not None:                
+                if isinstance(tmp_input, str):
+                    result_vector.append(tmp_input)
                 else:
                     try:
-                        result_vector.extend(bb_value)
+                        result_vector.extend(tmp_input)
                     except TypeError:
-                        result_vector.append(bb_value)
+                        result_vector.append(tmp_input)
             else:
-                return
-        dependencies[self.get_id()] = tuple(result_vector)
+                return None
+        return tuple(result_vector)
 

@@ -21,7 +21,7 @@ class Sum(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall, dependencies: dict):
         """
         calculates the sum from the dependecy list
         """

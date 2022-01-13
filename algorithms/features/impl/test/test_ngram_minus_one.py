@@ -10,9 +10,9 @@ from dataloader.syscall_2021 import Syscall2021
 def helper(syscall, feature_list, ngram, ngram_mo, cid):
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall, syscall_dict)
-    ngram.calculate(syscall, syscall_dict)
-    ngram_mo.calculate(syscall, syscall_dict)
+        feature._calculate(syscall, syscall_dict)
+    ngram._calculate(syscall, syscall_dict)
+    ngram_mo._calculate(syscall, syscall_dict)
     return syscall_dict[cid]
 
 

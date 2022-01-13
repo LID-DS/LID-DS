@@ -59,13 +59,13 @@ def test_time_delta():
     features = {}
     id = td.get_id()
     # first syscall, no time delta
-    td.calculate(syscall_1, features)
+    td._calculate(syscall_1, features)
     assert features[id] == 0
     # second syscall has biggest time_delta -> normalized = 1
-    td.calculate(syscall_2, features)
+    td._calculate(syscall_2, features)
     assert features[id] == 1.0
     # timedelta of 100 nanoseconds: 100/579
-    td.calculate(syscall_3, features)
+    td._calculate(syscall_3, features)
     assert features[id] == 100 / max_time_delta
 
     td = TimeDelta(thread_aware=True)
@@ -76,29 +76,29 @@ def test_time_delta():
     # biggest time delta 579 nanoseconds
     max_time_delta = td._max_time_delta
     # first syscall, no time delta
-    td.calculate(syscall_1, features)
+    td._calculate(syscall_1, features)
     assert features[id] == 0
     # second syscall has biggest time_delta -> normalized = 1
-    td.calculate(syscall_2, features)
+    td._calculate(syscall_2, features)
     assert features[id] == 1.0
     # timedelta of 100 nanoseconds: 100/579
-    td.calculate(syscall_3, features)
+    td._calculate(syscall_3, features)
     assert features[id] == 100 / max_time_delta
     # new thread_id so delta = 0
-    td.calculate(syscall_4, features)
+    td._calculate(syscall_4, features)
     assert features[id] == 0
     # timedelta of 110 nanoseconds: 110/579
-    td.calculate(syscall_5, features)
+    td._calculate(syscall_5, features)
     assert features[id] == 110 / max_time_delta
     # new thread_id so delta = 0
-    td.calculate(syscall_6, features)
+    td._calculate(syscall_6, features)
     assert features[id] == 0
     # timedelta of 110 nanoseconds: 110/579
-    td.calculate(syscall_7, features)
+    td._calculate(syscall_7, features)
     assert features[id] == 400 / max_time_delta
     # timedelta of 290 nanoseconds: 290/579
-    td.calculate(syscall_8, features)
+    td._calculate(syscall_8, features)
     assert features[id] == 290 / max_time_delta
     # timedelta of 300 nanoseconds: 300/579
-    td.calculate(syscall_9, features)
+    td._calculate(syscall_9, features)
     assert features[id] == 300 / max_time_delta

@@ -110,17 +110,16 @@ class AE(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    #def train_on(self, input_array: list):        
-    def train_on(self, syscall: Syscall, dependencies: dict):
-        if self._input_vector.get_id() in dependencies:
-            input_vector = dependencies[self._input_vector.get_id()]
+    def train_on(self, syscall: Syscall):
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:
             if self._input_size == 0:
                 self._input_size = len(input_vector)
             self._training_set.add(tuple(input_vector))
         
-    def val_on(self, syscall: Syscall, dependencies: dict):
-        if self._input_vector.get_id() in dependencies:
-            input_vector = dependencies[self._input_vector.get_id()]        
+    def val_on(self, syscall: Syscall):
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:
             self._validation_set.add(tuple(input_vector))
         
     def fit(self):
@@ -184,15 +183,15 @@ class AE(BuildingBlock):
         self._result_dict = {}
         self._autoencoder.eval()
         
-    def calculate(self, syscall: Syscall, dependencies: dict):
-        if self._input_vector.get_id() in dependencies:            
-            input_tuple = dependencies[self._input_vector.get_id()]        
-            if input_tuple in self._result_dict:
-                dependencies[self.get_id()] =  self._result_dict[input_tuple]
+    def _calculate(self, syscall: Syscall):
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:            
+            if input_vector in self._result_dict:
+                return self._result_dict[input_vector]
             else:
                 # Output of Autoencoder        
                 result = 0
-                in_t = torch.tensor(input_tuple, dtype=torch.float32).to(device) 
+                in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
                 if self._mode == AEMode.LOSS:
                     # calculating the autoencoder:
                     ae_output_t = self._autoencoder(in_t)
@@ -216,9 +215,10 @@ class AE(BuildingBlock):
                     rl.extend(hidden)
                     result = tuple(rl)
 
-                self._result_dict[input_tuple] = result
-                dependencies[self.get_id()] =  result
-                # print(f"{input_tuple} -> {result}")
+                self._result_dict[input_vector] = result
+                return result    
+        else:
+            return None            
 
     def new_recording(self):
         pass

@@ -121,7 +121,7 @@ class LSTM(BuildingBlock):
                          device=device,
                          batch_size=self._batch_size)
 
-    def train_on(self,  syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
 
         create training data and keep track of batch indices
@@ -131,9 +131,7 @@ class LSTM(BuildingBlock):
             feature_list (int): list of prepared features for DE
 
         """
-        feature_list = None
-        if self._input_vector.get_id() in dependencies:
-            feature_list = dependencies[self._input_vector.get_id()]         
+        feature_list = self._input_vector.get_result(syscall)
         if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
@@ -147,7 +145,7 @@ class LSTM(BuildingBlock):
         else:
             pass
 
-    def val_on(self, syscall: Syscall, dependencies: dict):
+    def val_on(self, syscall: Syscall):
         """
 
         create validation data and keep track of batch indices
@@ -157,9 +155,7 @@ class LSTM(BuildingBlock):
             feature_list (int): list of prepared features for DE
 
         """
-        feature_list = None
-        if self._input_vector.get_id() in dependencies:
-            feature_list = dependencies[self._input_vector.get_id()]         
+        feature_list = self._input_vector.get_result(syscall) 
         if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
@@ -257,7 +253,7 @@ class LSTM(BuildingBlock):
             print(f"Net already trained. Using model {self._model_path}")
             pass
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
 
         remove label from feature_list and feed feature_list and hidden state into model.
@@ -269,10 +265,7 @@ class LSTM(BuildingBlock):
             float: anomaly score
 
         """
-
-        feature_list = None
-        if self._input_vector.get_id() in dependencies:
-            feature_list = dependencies[self._input_vector.get_id()]         
+        feature_list = self._input_vector.get_result(syscall)
         if feature_list is not None:
             x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
             x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
@@ -282,8 +275,9 @@ class LSTM(BuildingBlock):
             softmax = nn.Softmax(dim=0)
             predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
             anomaly_score = 1 - predicted_prob
-            dependencies[self.get_id()] = anomaly_score
-            
+            return anomaly_score
+        else:
+            return None            
 
     def _accuracy(self, outputs, labels):
         """

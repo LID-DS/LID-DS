@@ -11,10 +11,10 @@ from dataloader.syscall_2021 import Syscall2021
 
 def eva(syscall, tid, avg):
     feature_dict = {}
-    ThreadID().calculate(syscall, feature_dict)
-    tid.calculate(syscall, feature_dict)
-    avg._sum.calculate(syscall, feature_dict)
-    avg.calculate(syscall, feature_dict)
+    ThreadID()._calculate(syscall, feature_dict)
+    tid._calculate(syscall, feature_dict)
+    avg._sum._calculate(syscall, feature_dict)
+    avg._calculate(syscall, feature_dict)
     return feature_dict[avg.get_id()]
 
 

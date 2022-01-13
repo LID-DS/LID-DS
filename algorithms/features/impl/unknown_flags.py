@@ -21,7 +21,7 @@ class UnknownFlags(BuildingBlock, metaclass=Singleton):
                 self._flag_dict[syscall.name()] = []
                 self._flag_dict[syscall.name()].append(syscall.param('flags'))
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall, features: dict):
         """
             lookup of syscall flag in know flags
             if unknown -> returns 1 else 0

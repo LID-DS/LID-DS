@@ -23,12 +23,12 @@ def test_int_embedding():
     si.fit()
 
     # detection
-    si.calculate(syscall_1, features)
+    si._calculate(syscall_1, features)
     assert (features[si.get_id()] == 1)
-    si.calculate(syscall_2, features)
+    si._calculate(syscall_2, features)
     assert (features[si.get_id()] == 1)
-    si.calculate(syscall_3, features)
+    si._calculate(syscall_3, features)
     assert (features[si.get_id()] == 2)
 
-    si.calculate(syscall_4, features)
+    si._calculate(syscall_4, features)
     assert (features[si.get_id()] == 0)

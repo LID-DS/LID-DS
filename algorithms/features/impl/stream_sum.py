@@ -31,25 +31,27 @@ class StreamSum(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         returns the sum over feature in the window if the feature is in the current set of features
         """
-        thread_id = 0
-        if self._thread_aware:
-            thread_id = syscall.thread_id()
-        if thread_id not in self._window_buffer:
-            self._window_buffer[thread_id] = deque(maxlen=self._window_length)
-            self._sum_values[thread_id] = 0
-
-        if self._feature_id in features:
+        new_value = self._feature.get_result(syscall)
+        if new_value is not None:
+            thread_id = 0
+            if self._thread_aware:
+                thread_id = syscall.thread_id()
+            if thread_id not in self._window_buffer:
+                self._window_buffer[thread_id] = deque(maxlen=self._window_length)
+                self._sum_values[thread_id] = 0
+            
             dropout_value = 0
             if len(self._window_buffer[thread_id]) == self._window_length:
                 dropout_value = self._window_buffer[thread_id][0]
-            new_value = features[self._feature_id]
             self._window_buffer[thread_id].append(new_value)
             self._sum_values[thread_id] += new_value - dropout_value
-            features[self.get_id()] = self._sum_values[thread_id]
+            return self._sum_values[thread_id]
+        else:
+            return None
 
     def new_recording(self):
         """

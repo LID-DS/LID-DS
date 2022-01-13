@@ -38,8 +38,7 @@ class W2VEmbedding(BuildingBlock):
         self._force_train = force_train
         self._distinct = distinct
         self.w2vmodel = None
-        self._sentences = []
-        self._syscall_name_feature = SyscallName()
+        self._sentences = []        
         self._window_size = window_size
         self._n_gram_streamer = Ngram(feature_list=[SyscallName()],
                                       thread_aware=thread_aware,
@@ -52,21 +51,19 @@ class W2VEmbedding(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
             gives syscall features to n_gram feature stream, casts it as sentence and saves it to training corpus
         """
-        if self.w2vmodel is None:
-            local_features = {}
-            self._syscall_name_feature.calculate(syscall, local_features)
-            self._n_gram_streamer.calculate(syscall, local_features)
-            if self._n_gram_streamer.get_id() in local_features:
-                sentence = local_features[self._n_gram_streamer.get_id()]
+        if self.w2vmodel is None:            
+            #self._syscall_name_feature.get_result(syscall)
+            ngram = self._n_gram_streamer.get_result(syscall)
+            if ngram is not None:                
                 if self._distinct:
-                    if sentence not in self._sentences:
-                        self._sentences.append(sentence)
+                    if ngram not in self._sentences:
+                        self._sentences.append(ngram)
                 else:
-                    self._sentences.append(sentence)
+                    self._sentences.append(ngram)
 
     def fit(self):
         """
@@ -79,7 +76,7 @@ class W2VEmbedding(BuildingBlock):
             model.save(fname_or_handle=self._path)
             self.w2vmodel = model
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
             embeds one system call in w2v model
 
@@ -89,9 +86,9 @@ class W2VEmbedding(BuildingBlock):
                 syscall vector
         """
         try:
-            features[self.get_id()] = self.w2vmodel.wv[syscall.name()].tolist()
+            return tuple(self.w2vmodel.wv[syscall.name()].tolist())
         except KeyError:
-            features[self.get_id()] = [0] * self._vector_size
+            return [0] * self._vector_size
 
     def load(self):
         """

@@ -12,19 +12,20 @@ class OneHotEncoding(BuildingBlock):
         self._input_to_int_dict = {}
         self._int_to_ohe_dict = {}
         self._input_id = input.get_id()
+        self._input_bb = input
         self._dependency_list = [input]        
 
     def depends_on(self):
         return self._dependency_list
 
-    def train_on(self, syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
             takes one input and assigns integer
             integer is current length of forward_dict
             keep 0 free for unknown input
         """
-        if self._input_id in dependencies:
-            input = dependencies[self._input_id]
+        input = self._input_bb.get_result(syscall)
+        if input is not None:
             if input not in self._input_to_int_dict:
                 self._input_to_int_dict[input] = len(self._input_to_int_dict) + 1
 
@@ -42,19 +43,20 @@ class OneHotEncoding(BuildingBlock):
         print(f"OHE.size = {self.get_embedding_size()}".rjust(27))
         #print(self._int_to_ohe_dict)
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
             transforms given input to an OHE tuple
             if input is not present: dont write a result
         """
-        if self._input_id in dependencies:
+        input = self._input_bb.get_result(syscall)
+        if input is not None:
             try:
-                input = dependencies[self._input_id]
                 input_to_int = self._input_to_int_dict[input]
             except KeyError:
                 input_to_int = 0
-            #print(f"ohe:{input_to_int}")
-            dependencies[self.get_id()] = self._int_to_ohe_dict[input_to_int]
+            return self._int_to_ohe_dict[input_to_int]
+        else:
+            return None
     
     def get_embedding_size(self):
         return len(self._input_to_int_dict)

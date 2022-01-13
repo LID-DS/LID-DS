@@ -8,11 +8,11 @@ class ProcessID(BuildingBlock, metaclass=Singleton):
     def __init__(self):
         super().__init__()
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculate process ID of syscall
         """
-        features[self.get_id()] = syscall.process_id()
+        return syscall.process_id()
 
     def depends_on(self):
         return []

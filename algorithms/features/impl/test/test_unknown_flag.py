@@ -31,8 +31,8 @@ def test_unknown_flag():
     assert f._flag_dict == {'open': ['test', 'test2'],
                             'poll': ['test3']}
 
-    f.calculate(syscall_4, features)
+    f._calculate(syscall_4, features)
     assert features[f.get_id()] == 0
 
-    f.calculate(syscall_5, features)
+    f._calculate(syscall_5, features)
     assert features[f.get_id()] == 1

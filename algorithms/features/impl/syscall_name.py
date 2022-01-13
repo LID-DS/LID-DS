@@ -10,11 +10,11 @@ class SyscallName(BuildingBlock, metaclass=Singleton):
     def __init__(self):
         super().__init__()
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculate name of syscall
         """
-        features[self.get_id()] = syscall.name()
+        return syscall.name()
 
     def depends_on(self):
         return []

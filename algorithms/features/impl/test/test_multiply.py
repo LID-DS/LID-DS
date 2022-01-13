@@ -8,8 +8,8 @@ from dataloader.syscall_2021 import Syscall2021
 
 def eva(syscall, bb1, bb2):
     syscall_dict = {}    
-    bb1.calculate(syscall, syscall_dict)
-    bb2.calculate(syscall, syscall_dict)
+    bb1._calculate(syscall, syscall_dict)
+    bb2._calculate(syscall, syscall_dict)
     return syscall_dict[bb2.get_id()]
 
 

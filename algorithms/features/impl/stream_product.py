@@ -30,7 +30,7 @@ class StreamProduct(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall, features: dict):
         """
         returns the product over feature in the window if the feature is in the current set of features
         """

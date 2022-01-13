@@ -22,17 +22,17 @@ class MinMaxScaling(BuildingBlock):
         """
         return [self._bb_to_scale]
 
-    def train_on(self, syscall: Syscall, features: dict):        
-        if self._bb_id in features:
-            current_value = features[self._bb_id]
+    def train_on(self, syscall: Syscall):
+        current_value = self._bb_to_scale.get_result(syscall)
+        if current_value is not None:
             if current_value < self._min:
                 self._min = current_value
             if current_value > self._max:
-                self._max = current_value
+                self._max = current_value                
 
-    def val_on(self, syscall: Syscall, features: dict):        
-        if self._bb_id in features:
-            current_value = features[self._bb_id]
+    def val_on(self, syscall: Syscall):
+        current_value = self._bb_to_scale.get_result(syscall)
+        if current_value is not None:
             if current_value < self._min:
                 self._min = current_value
             if current_value > self._max:
@@ -43,12 +43,14 @@ class MinMaxScaling(BuildingBlock):
         if self._diff == 0:
             print(f"cant calculate MinMaxScaling for {self._bb_to_scale} - instead calculating identity function")
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         """
-        if self._bb_id in features:
+        current_value = self._bb_to_scale.get_result(syscall)
+        if current_value is not None:
             if self._diff != 0:
-                current_value = features[self._bb_id]
-                features[self.get_id()] = (current_value - self._min) / self._diff
+                return (current_value - self._min) / self._diff
             else:
-                features[self.get_id()] = features[self._bb_id]
+                return current_value
+        else:
+            return None

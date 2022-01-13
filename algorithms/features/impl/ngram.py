@@ -1,6 +1,7 @@
 import typing
 from collections import deque
 from collections.abc import Iterable
+from algorithms import features
 
 from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.threadID import ThreadID
@@ -31,20 +32,30 @@ class Ngram(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         writes the ngram into dependencies if its complete
         otherwise does not write into dependencies
         """
-        thread_id = 0
-        if self._thread_aware:
-            thread_id = syscall.thread_id()
-        if thread_id not in self._ngram_buffer:
-            self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)
-        self._ngram_buffer[thread_id].append(dependencies)
-        if len(self._ngram_buffer[thread_id]) == self._ngram_length:
-            ngram_value = self._collect_features(self._ngram_buffer[thread_id])
-            dependencies[self.get_id()] = tuple(ngram_value)
+
+        dependencies = {}
+        check = True
+        for feature in self._dependency_list:
+            dependencies[feature.get_id()] = feature.get_result(syscall)
+            if dependencies[feature.get_id()] is None:
+                check = False
+        if check:
+            thread_id = 0
+            if self._thread_aware:
+                thread_id = syscall.thread_id()
+            if thread_id not in self._ngram_buffer:
+                self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)
+            
+            self._ngram_buffer[thread_id].append(dependencies)
+            if len(self._ngram_buffer[thread_id]) == self._ngram_length:
+                ngram_value = self._collect_features(self._ngram_buffer[thread_id])
+                return tuple(ngram_value)
+        return None
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
         """

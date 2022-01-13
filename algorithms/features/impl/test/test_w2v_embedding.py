@@ -67,11 +67,11 @@ def test_w2v_embedding():
 
     features = {}
     id = embedding.get_id()
-    embedding.calculate(syscall_9, features)
+    embedding._calculate(syscall_9, features)
     assert type(features[id]) == list
 
-    embedding.calculate(syscall_10, features)
+    embedding._calculate(syscall_10, features)
     assert features[id] == [0] * vector_size
 
-    embedding.calculate(syscall_11, features)
+    embedding._calculate(syscall_11, features)
     assert features[id] == [0] * vector_size

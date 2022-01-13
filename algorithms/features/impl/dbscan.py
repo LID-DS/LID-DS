@@ -1,4 +1,5 @@
 import math
+import sys
 import typing
 
 import numpy as np
@@ -30,9 +31,9 @@ class DBScan(BuildingBlock):
         """
         return [self._bb_to_cluster]
 
-    def train_on(self, syscall: Syscall, features: dict):        
-        if self._bb_id in features:
-            current_value = features[self._bb_id]
+    def train_on(self, syscall: Syscall):
+        current_value = self._bb_to_cluster.get_result(syscall)
+        if current_value is not None:
             self._training_data.add(current_value)
 
     def fit(self):
@@ -46,19 +47,21 @@ class DBScan(BuildingBlock):
         num_clusters = len(set(self._dbscan.labels_)) - (1 if -1 in self._dbscan.labels_ else 0)
         print(f"dbscan.clusters: {num_clusters}".rjust(27))
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculates the cluster ID of the given input
         """
-        if self._bb_id in features:
-            input = features[self._bb_id]
-            if input in self._result_buffer:
-                features[self.get_id()] = self._result_buffer[input]
+        current_value = self._bb_to_cluster.get_result(syscall)
+        if current_value is not None:
+            if current_value in self._result_buffer:
+                return self._result_buffer[current_value]
             else:
-                result = None
-                result = self._predict(self._dbscan, features[self._bb_id])
-                features[self.get_id()] = result
-                self._result_buffer[input] = result
+                result = self._predict(self._dbscan, current_value)
+                self._result_buffer[current_value] = result
+                return result
+        else:
+            return None
+                
 
     def _predict(self, db, x):
         dists = np.sqrt(np.sum((db.components_ - x)**2, axis=1))

@@ -21,16 +21,21 @@ class Maximum(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculates the maximum from the dependecy list
         """
         result = None
+        check = True
         for bb in self._dependency_list:
-            if bb.get_id() in dependencies and dependencies[bb.get_id()] is not None:
-                bb_value = dependencies[bb.get_id()]                
+            bb_value = bb.get_result(syscall)
+            if bb_value is not None:
                 if result is None or bb_value > result:
                     result = bb_value
-        if result is not None:
-            dependencies[self.get_id()] = result
+            else:
+                check = False
+        if result is not None and check:
+            return result
+        else:
+            return None
 

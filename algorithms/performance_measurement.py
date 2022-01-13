@@ -188,18 +188,24 @@ class PerformanceMeasurement:
         except ZeroDivisionError:
             precision_sys = 0
 
+        try:
+            f1_cfa = 2 * (precision_cfa * detection_rate) / (precision_cfa + detection_rate)
+        except ZeroDivisionError:
+            f1_cfa = 0
+
         performance_values = {"false_positives": self._fp,
                               "true_positives": self._tp,
                               "true_negatives": self._tn,
                               "false_negatives": self._fn,
-                              "alarm_count": self._alarm_count,
+                              "correct_alarm_count": self._alarm_count,
                               "exploit_count": self._exploit_count,
                               "detection_rate": detection_rate,
                               "consecutive_false_positives_normal": self._cfp_count_normal,
                               "consecutive_false_positives_exploits": self._cfp_count_exploits,
                               "recall": detection_rate,
                               "precision_with_cfa": precision_cfa,
-                              "precision_with_syscalls": precision_sys
+                              "precision_with_syscalls": precision_sys,
+                              "f1_cfa": f1_cfa
                               }
         self.result = performance_values
 

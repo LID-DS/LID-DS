@@ -44,7 +44,7 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
                            + self.recv_socket \
                            + self.get_dents
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
         save max value of each specified syscall
         """
@@ -86,7 +86,7 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
                         print(f' Return string: {return_value_string}')
                         print(f' Syscall: {syscall.name()}')
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculate return value type and normalize with max value of training phase
         """
@@ -94,7 +94,6 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
         normalized_bytes = 0
         if syscall.name() in self.interesting:
             return_value_string = syscall.param('res')
-            #print(return_value_string)
             if return_value_string is not None:
                 try:
                     current_bytes = int(return_value_string)
@@ -126,7 +125,7 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
                         normalized_bytes = 0
                 except ZeroDivisionError:
                     normalized_bytes = 0
-        features[self.get_id()] = normalized_bytes
+        return normalized_bytes
 
     def depends_on(self):
         return []

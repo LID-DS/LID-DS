@@ -17,7 +17,7 @@ class IntEmbedding(BuildingBlock, metaclass=Singleton):
     def depends_on(self):
         return []
 
-    def train_on(self, syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
             takes one syscall and assigns integer
             integer is current length of syscall_dict
@@ -26,7 +26,7 @@ class IntEmbedding(BuildingBlock, metaclass=Singleton):
         if syscall.name() not in self._syscall_dict:
             self._syscall_dict[syscall.name()] = len(self._syscall_dict) + 1
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
             transforms given syscall name to integer
         """
@@ -34,4 +34,4 @@ class IntEmbedding(BuildingBlock, metaclass=Singleton):
             sys_to_int = self._syscall_dict[syscall.name()]
         except KeyError:
             sys_to_int = 0
-        dependencies[self.get_id()] = sys_to_int
+        return sys_to_int

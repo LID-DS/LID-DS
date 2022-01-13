@@ -53,21 +53,21 @@ def test_syscalls_in_time_window():
 
     id = calculateor.get_id()
     # first three return 0 because time difference < time window
-    calculateor.calculate(syscall_7, features)
+    calculateor._calculate(syscall_7, features)
     assert features[id] == 0
 
-    calculateor.calculate(syscall_8, features)
+    calculateor._calculate(syscall_8, features)
     assert features[id] == 0
 
-    calculateor.calculate(syscall_9, features)
+    calculateor._calculate(syscall_9, features)
     assert features[id] == 0
 
     # 4 syscalls in window, 2 max in training: 4/2 = 2
-    calculateor.calculate(syscall_10, features)
+    calculateor._calculate(syscall_10, features)
     assert features[id] == 2
-    calculateor.calculate(syscall_11, features)
+    calculateor._calculate(syscall_11, features)
     assert features[id] == 2
 
     # syscall time difference to last one is 4s, only syscall in window is this one, leads to 1/2 = 0.5
-    calculateor.calculate(syscall_12, features)
+    calculateor._calculate(syscall_12, features)
     assert features[id] == 0.5

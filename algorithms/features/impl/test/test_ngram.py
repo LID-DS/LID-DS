@@ -62,81 +62,81 @@ def test_ngram():
     # SYSCALL 1
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_1, syscall_dict)
-    n_gram_streamer.calculate(syscall_1, syscall_dict)
+        feature._calculate(syscall_1, syscall_dict)
+    n_gram_streamer._calculate(syscall_1, syscall_dict)
     with pytest.raises(KeyError):
         syscall_dict[n_gram_streamer.get_id()]
 
     # SYSCALL 2
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_2, syscall_dict)
-    n_gram_streamer.calculate(syscall_2, syscall_dict)
+        feature._calculate(syscall_2, syscall_dict)
+    n_gram_streamer._calculate(syscall_2, syscall_dict)
     with pytest.raises(KeyError):
         syscall_dict[n_gram_streamer.get_id()]
 
     # SYSCALL 3
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_3, syscall_dict)
-    n_gram_streamer.calculate(syscall_3, syscall_dict)
+        feature._calculate(syscall_3, syscall_dict)
+    n_gram_streamer._calculate(syscall_3, syscall_dict)
     assert syscall_dict[n_gram_streamer.get_id()] == ('open', 'close', 'poll')
 
     # SYSCALL 4
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_4, syscall_dict)
-    n_gram_streamer.calculate(syscall_4, syscall_dict)
+        feature._calculate(syscall_4, syscall_dict)
+    n_gram_streamer._calculate(syscall_4, syscall_dict)
     with pytest.raises(KeyError):
         syscall_dict[n_gram_streamer.get_id()]
 
     # SYSCALL 5
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_5, syscall_dict)
-    n_gram_streamer.calculate(syscall_5, syscall_dict)
+        feature._calculate(syscall_5, syscall_dict)
+    n_gram_streamer._calculate(syscall_5, syscall_dict)
     with pytest.raises(KeyError):
         syscall_dict[n_gram_streamer.get_id()]
 
     # SYSCALL 6
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_6, syscall_dict)
-    n_gram_streamer.calculate(syscall_6, syscall_dict)
+        feature._calculate(syscall_6, syscall_dict)
+    n_gram_streamer._calculate(syscall_6, syscall_dict)
     with pytest.raises(KeyError):
         syscall_dict[n_gram_streamer.get_id()]
 
     # SYSCALL 7
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_7, syscall_dict)
-    n_gram_streamer.calculate(syscall_7, syscall_dict)
+        feature._calculate(syscall_7, syscall_dict)
+    n_gram_streamer._calculate(syscall_7, syscall_dict)
     assert syscall_dict[n_gram_streamer.get_id()] == ('close', 'poll', 'mmap')
 
     # SYSCALL 8
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_8, syscall_dict)
-    n_gram_streamer.calculate(syscall_8, syscall_dict)
+        feature._calculate(syscall_8, syscall_dict)
+    n_gram_streamer._calculate(syscall_8, syscall_dict)
     assert syscall_dict[n_gram_streamer.get_id()] == ('mmap', 'open', 'open')
 
     # SYSCALL 9
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_9, syscall_dict)
-    n_gram_streamer.calculate(syscall_9, syscall_dict)
+        feature._calculate(syscall_9, syscall_dict)
+    n_gram_streamer._calculate(syscall_9, syscall_dict)
     assert syscall_dict[n_gram_streamer.get_id()] == ('poll', 'mmap', 'close')
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
         syscall_dict = {}
         for feature in feature_list:
-            feature.calculate(syscall_10, syscall_dict)
-        n_gram_streamer.calculate(syscall_10, syscall_dict)
+            feature._calculate(syscall_10, syscall_dict)
+        n_gram_streamer._calculate(syscall_10, syscall_dict)
 
     # SYSCALL 11
     syscall_dict = {}
     for feature in feature_list:
-        feature.calculate(syscall_11, syscall_dict)
-    n_gram_streamer.calculate(syscall_11, syscall_dict)
+        feature._calculate(syscall_11, syscall_dict)
+    n_gram_streamer._calculate(syscall_11, syscall_dict)
     assert syscall_dict[n_gram_streamer.get_id()] == ('mmap', 'close', 'hello')

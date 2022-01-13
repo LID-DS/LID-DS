@@ -8,7 +8,7 @@ class ThreadID(BuildingBlock, metaclass=Singleton):
     def __init__(self):
         super().__init__()
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall, dependencies: dict):
         """
         calculate thread ID of syscall
         """

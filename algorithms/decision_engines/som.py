@@ -1,4 +1,5 @@
 import math
+import sys
 
 from matplotlib import pyplot as plt
 
@@ -59,13 +60,13 @@ class Som(BuildingBlock):
         else:
             return int(som_size)
 
-    def train_on(self, syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
             creates distinct input data buffer used for training
         """
-        if self._input_vector.get_id() in dependencies:
-            input_vector = dependencies[self._input_vector.get_id()]
-            if not input_vector in self._buffer:
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:            
+            if input_vector not in self._buffer:
                 self._buffer.add(input_vector)
 
     def fit(self):
@@ -87,15 +88,15 @@ class Som(BuildingBlock):
             for vector in self._buffer:
                 self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
             calculates euclidean distance between input and codebook vector which is used as anomaly score
 
             Returns:
                 distance (float): euclidian distance/anomaly score
         """
-        if self._input_vector.get_id() in dependencies:
-            input_vector = dependencies[self._input_vector.get_id()]
+        input_vector = self._input_vector.get_result(syscall)        
+        if input_vector is not None:
             if input_vector not in self._cache:
                 codebook_vector = np.array(self._som.quantization([input_vector])[0])
                 vector = np.array(input_vector)
@@ -103,8 +104,9 @@ class Som(BuildingBlock):
                 self._cache[input_vector] = distance
             else:
                 distance = self._cache[input_vector]
-            dependencies[self.get_id()] = distance
-            
+            return distance
+        else:
+            return None
 
     def show_distance_plot(self):
         """

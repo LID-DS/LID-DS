@@ -12,14 +12,15 @@ def save_to_json(result_dict: dict, path: str):
         "false_positives": int,
         "true_negatives": int,
         "false_negatives": int,
-        "alarm_count": int,
+        "correct_alarm_count": int,
         "exploit_count": int,
         "detection_rate": float,
         "consecutive_false_positives_normal": int,
         "consecutive_false_positives_exploits": int,
         "recall": float,
         "precision_with_cfa": float,
-        "precision_with_syscalls": float
+        "precision_with_syscalls": float,
+        "f1_cfa": float
     }
     config = {}
     for key in result_dict.keys():

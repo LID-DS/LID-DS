@@ -33,7 +33,7 @@ class PathLength(BuildingBlock):
                     return fd
         return None
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         fd = self._get_valid_fd_or_none(syscall.params())
         if fd is not None:
             current_len = len(fd)
@@ -42,9 +42,11 @@ class PathLength(BuildingBlock):
             if current_len > self._max:
                 self._max = current_len
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         """
         fd = self._get_valid_fd_or_none(syscall.params())
         if fd is not None:
-            features[self.get_id()] = (len(fd) - self._min) / (self._max - self._min)
+            return (len(fd) - self._min) / (self._max - self._min)
+        else:
+            return 0

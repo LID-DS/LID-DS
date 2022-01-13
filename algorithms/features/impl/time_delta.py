@@ -27,7 +27,7 @@ class TimeDelta(BuildingBlock):
     def fit(self):
         self._last_time = {}
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall, features: dict):
         """
         calculate time delta of syscall
         """

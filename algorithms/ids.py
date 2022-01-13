@@ -41,15 +41,12 @@ class IDS:
         data = self._data_loader.validation_data()
         description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
-            for syscall in recording.syscalls():
-                results = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
-                if self._final_bb.get_id() in results:
-                    anomaly_score = results[self._final_bb.get_id()]
-                    #print(anomaly_score)
+            for syscall in recording.syscalls():                
+                anomaly_score = self._final_bb.get_result(syscall)
+                if anomaly_score != None:                
                     if anomaly_score > max_score:
                         max_score = anomaly_score
-            self._data_preprocessor.new_recording()
-            # self._decision_engine.new_recording()
+            self._data_preprocessor.new_recording()            
         self.threshold = max_score
         self.performance.set_threshold(max_score)
         if self.plot is not None:
@@ -71,15 +68,13 @@ class IDS:
                 self.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
-                results = self._data_preprocessor.calculate_building_blocks_for_syscall(syscall)
-                if self._final_bb.get_id() in results:
-                    anomaly_score = results[self._final_bb.get_id()]
+                anomaly_score = self._final_bb.get_result(syscall)
+                if anomaly_score != None:
                     self.performance.analyze_syscall(syscall, anomaly_score)
                     if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
 
             self._data_preprocessor.new_recording()
-            #self._decision_engine.new_recording()
 
             # run end alarm once to ensure that last alarm gets saved
             if self.performance.alarms is not None:

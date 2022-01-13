@@ -32,12 +32,18 @@ class Dgram(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         writes the dgram into dependencies if its complete
         otherwise does not write into dependencies
         """
-        check = all(i in dependencies for i in self._list_of_feature_ids)
+        check = True
+        dependencies = {}
+        for dep in self._dependency_list:
+            dependencies[dep.get_id()] = dep.get_result(syscall)
+            if dependencies[dep.get_id()] is None:
+                check = False
+        
         if check is True:
             thread_id = 0
             if self._thread_aware:
@@ -51,18 +57,17 @@ class Dgram(BuildingBlock):
             current_value = ""
             for id in self._list_of_feature_ids:
                 current_value += str(dependencies[id]) + "-"
-            #print(f"current: {current_value}")
-            #print(f"    set: {self._dgram_value_set[thread_id]}")
             
             if current_value in self._dgram_value_set[thread_id] and len(self._dgram_buffer[thread_id]) >= self._min_length:
-                dgram_value = self._collect_features(self._dgram_buffer[thread_id])
-                dependencies[self.get_id()] = tuple(dgram_value)
-                #print(f"result: {dgram_value}")
+                dgram_value = self._collect_features(self._dgram_buffer[thread_id])                
                 self._dgram_value_set[thread_id] = set()
                 self._dgram_buffer[thread_id] = deque()
+                return tuple(dgram_value)
             else:
                 self._dgram_value_set[thread_id].add(current_value)
-        
+                return None
+        else:
+            return None        
 
     def _collect_features(self, deque_of_dicts: deque) -> list:
         """

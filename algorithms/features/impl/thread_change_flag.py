@@ -21,7 +21,7 @@ class ThreadChangeFlag(BuildingBlock, metaclass=Singleton):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall, features: dict):
         """
         value is 1 only for complete ngrams and a different tid as the last seen complete ngram
         """

@@ -22,15 +22,15 @@ class NgramMinusOne(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         Returns:
             nothing if no ngram exists
             k (int),v (list): key is ID of this class, ngram_value as tuple
         """
-        ngram_value = None
-        if self._ngram.get_id() in features:
-            if features[self._ngram.get_id()] is not None:
-                ngram_value = features[self._ngram.get_id()][:-self._element_size]
+        ngram_value = self._ngram.get_result(syscall)
         if ngram_value is not None:
-            features[self.get_id()] = tuple(ngram_value)
+                ngram_value = ngram_value[:-self._element_size]
+                return tuple(ngram_value)
+        else:
+            return None

@@ -5,22 +5,23 @@ from collections.abc import Iterable
 
 class BuildingBlock:
     """
-    base class for a features and other algorithms
+    base class for features and other algorithms
     """
 
     def __init__(self):
-        self._config = BuildingBlock.arguments()
-        #print(self._config)
-        self._instance_id = None        
+        self.__config = BuildingBlock.__arguments()
+        self.__instance_id = None        
+        self.__last_result = None
+        self.__last_syscall_id = None
 
-    def train_on(self, syscall: Syscall, dependencies: dict):
+    def train_on(self, syscall: Syscall):
         """
-        takes one system call instance and the given features to train this extraction
+        takes one system call to train this bb
         """        
 
-    def val_on(self, syscall: Syscall, dependencies: dict):
+    def val_on(self, syscall: Syscall):
         """
-        takes one feature instance to validate on
+        takes one system call to validate this bb on
         """
 
     def fit(self):
@@ -28,12 +29,22 @@ class BuildingBlock:
         finalizes training
         """
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def get_result(self, syscall: Syscall):
+        """        
+        This function calculates this building block on the given syscall.
+        It buffers its result until another system call is given.
+        Returns its value (whatever it is) or None if it cant be calculated at the moment.
         """
-        calculates building block on the given syscall and other already calculated building blocks given in dependencies
-        writes its result into the given dependencies dict with key = get_id()
+        if self.__last_syscall_id != id(syscall):
+            self.__last_result = self._calculate(syscall)
+            self.__last_syscall_id = id(syscall)
+        return self.__last_result
+
+    def _calculate(self, syscall: Syscall):
         """
-        raise NotImplementedError("each building block has to implement calculate")
+        calculates building block on the given syscall        
+        """
+        raise NotImplementedError("each building block has to implement _calculate")
 
     def new_recording(self):
         """
@@ -52,9 +63,8 @@ class BuildingBlock:
         returns: "Name_of_class(memory_address)"
         """        
         result = ""
-        if len(self._config) > 0:
-            config = str(self._config)
-            #config = config.replace("{","").replace("}","")
+        if len(self.__config) > 0:
+            config = str(self.__config)            
             result = f"{self.__class__.__name__}({hex(id(self))}, {config})"
         else:
             result = f"{self.__class__.__name__}({hex(id(self))})"
@@ -71,11 +81,11 @@ class BuildingBlock:
         """
         returns the id of this feature instance - used to differ between different building blocks
         """
-        if self._instance_id is None:
-            self._instance_id = BuildingBlockIDManager().get_id(self)
-        return self._instance_id
+        if self.__instance_id is None:
+            self.__instance_id = BuildingBlockIDManager().get_id(self)
+        return self.__instance_id
 
-    def arguments():
+    def __arguments():
             """Returns tuple containing dictionary of calling function's
             named arguments and a list of calling function's unnamed
             positional arguments.
@@ -83,17 +93,14 @@ class BuildingBlock:
             """
             from inspect import getargvalues, stack
             try:
-                test = stack()
-                #_, kwname, args = getargvalues(stack()[1][0])[-3:]
-                _ , kwname, args = getargvalues(stack()[2][0])[-3:]
+                _ , kwname, args = getargvalues(stack()[2][0])[-3:] # modified the first index to get the correct arguments
                 args.update(args.pop(kwname, []))
                 del args['self']
                 del args['__class__']
                 final_args = {}
                 for k,v in args.items():
                     #print(f"at {k}")
-                    if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):
-                        #print(f"  add {k} -> {v}")
+                    if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):                        
                         final_args[k] = v                    
                     if isinstance(v, Iterable) and not isinstance(v, str):
                         final_iter = []
@@ -101,8 +108,7 @@ class BuildingBlock:
                             if not isinstance(item, BuildingBlock):
                                 final_iter.append(item)
                         if len(final_iter) > 0:
-                            final_args[k] = final_iter
-                            #print(f"  add {k} -> {final_iter}")
+                            final_args[k] = final_iter                            
                 return final_args
             except KeyError:
                 return {}

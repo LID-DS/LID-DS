@@ -38,7 +38,7 @@ class PathEvilness(BuildingBlock):
         """
         return []
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
         takes one systemcall and builds the training buffer
         """
@@ -96,7 +96,7 @@ class PathEvilness(BuildingBlock):
                 pass  # Todo if this is the correct behaviour it should be explained in a comment here
             i += 1
 
-    def calculate(self, syscall: Syscall, dependencies: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculates evilness by checking if path exists in cache
         if not it calculates evilness by looking for the height of the first
@@ -120,7 +120,7 @@ class PathEvilness(BuildingBlock):
                         parent_node = self._file_tree.get_node(parent_id)
                         evilness = 1 / (self._file_tree.depth(parent_node) + 1)
                         break
-        dependencies[self.get_id()] = evilness
+        return evilness
 
     def fit(self):
         """
