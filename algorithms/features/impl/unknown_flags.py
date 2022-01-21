@@ -10,7 +10,7 @@ class UnknownFlags(BuildingBlock, metaclass=Singleton):
     def depends_on(self) -> list:
         return []
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
             builds dictionary with all known flags seen in training for each syscall
         """
@@ -21,15 +21,15 @@ class UnknownFlags(BuildingBlock, metaclass=Singleton):
                 self._flag_dict[syscall.name()] = []
                 self._flag_dict[syscall.name()].append(syscall.param('flags'))
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
             lookup of syscall flag in know flags
             if unknown -> returns 1 else 0
         """
         if 'flags' in syscall.params().keys():
             if syscall.param('flags') in self._flag_dict[syscall.name()]:
-                features[self.get_id()] = 0
+                return 0
             else:
-                features[self.get_id()] = 1
+                return 1
         else:
-            features[self.get_id()] = 0
+            return 0

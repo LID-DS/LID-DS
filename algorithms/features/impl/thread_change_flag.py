@@ -14,26 +14,29 @@ class ThreadChangeFlag(BuildingBlock, metaclass=Singleton):
 
     def __init__(self, ngram: Ngram):
         super().__init__()
-        self._last_thread_id = 0
-        self._dependency_list = [ThreadID(), ngram]
+        self._last_thread_id = -1
+        self._dependency_list = [ngram]
         self._ngram = ngram
 
     def depends_on(self):
         return self._dependency_list
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         value is 1 only for complete ngrams and a different tid as the last seen complete ngram
         """
-        tcf = 0
-        if self._ngram.get_id() in features:        
+        invalue = self._ngram.get_result(syscall)
+        if invalue is not None:
+            tcf = 0
             if syscall.thread_id() != self._last_thread_id:
                 self._last_thread_id = syscall.thread_id()
                 tcf = 1
-        features[self.get_id()] = tcf
+            return tcf
+        else:
+            return None
 
     def new_recording(self):
         """
         empty buffer so ngrams consist of same recording only
         """
-        self._last_thread_id = 0
+        self._last_thread_id = -1

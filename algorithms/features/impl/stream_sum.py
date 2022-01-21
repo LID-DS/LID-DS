@@ -33,7 +33,9 @@ class StreamSum(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-        returns the sum over feature in the window if the feature is in the current set of features
+        if window is full: returns the sum over feature in the window 
+        if window is not full: None
+        if current feature is None: None
         """
         new_value = self._feature.get_result(syscall)
         if new_value is not None:
@@ -49,7 +51,11 @@ class StreamSum(BuildingBlock):
                 dropout_value = self._window_buffer[thread_id][0]
             self._window_buffer[thread_id].append(new_value)
             self._sum_values[thread_id] += new_value - dropout_value
-            return self._sum_values[thread_id]
+            if len(self._window_buffer[thread_id]) == self._window_length:
+                #print(f"  {thread_id} -> {self._sum_values[thread_id]} -> {self._window_buffer[thread_id]}")
+                return self._sum_values[thread_id]
+            else:
+                return None
         else:
             return None
 

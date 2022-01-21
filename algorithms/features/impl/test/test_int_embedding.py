@@ -14,21 +14,14 @@ def test_int_embedding():
                             "1631209047762210355 33 3686302 apache2 3686302 unknown < uid=33(www-data) ")
 
     si = IntEmbedding()
-    features = {}
-
     # trianing
-    si.train_on(syscall_1, features)
-    si.train_on(syscall_2, features)
-    si.train_on(syscall_3, features)
+    si.train_on(syscall_1)
+    si.train_on(syscall_2)
+    si.train_on(syscall_3)
     si.fit()
 
     # detection
-    si._calculate(syscall_1, features)
-    assert (features[si.get_id()] == 1)
-    si._calculate(syscall_2, features)
-    assert (features[si.get_id()] == 1)
-    si._calculate(syscall_3, features)
-    assert (features[si.get_id()] == 2)
-
-    si._calculate(syscall_4, features)
-    assert (features[si.get_id()] == 0)
+    assert si._calculate(syscall_1) == 1
+    assert si._calculate(syscall_2) == 1
+    assert si._calculate(syscall_3) == 2 
+    assert si._calculate(syscall_4) == 0    

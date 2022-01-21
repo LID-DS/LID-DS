@@ -7,15 +7,6 @@ from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
 
-def helper(syscall, feature_list, ngram, ngram_mo, cid):
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall, syscall_dict)
-    ngram._calculate(syscall, syscall_dict)
-    ngram_mo._calculate(syscall, syscall_dict)
-    return syscall_dict[cid]
-
-
 def test_ngram_minus_one():
     # legit
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -61,48 +52,39 @@ def test_ngram_minus_one():
     syscall_11 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              "1631209047762064269 0 3686303 apache2 3686303 hello < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
-    features = [ThreadID(), SyscallName()]
-
     ng = Ngram(feature_list=[SyscallName()], thread_aware=True, ngram_length=3)
     ngm = NgramMinusOne(ngram=ng, element_size=1)
 
-    id = ngm.get_id()
-
     # SYSCALL 1
-    with pytest.raises(KeyError):
-        helper(syscall_1, features, ng, ngm, id)
+    assert ngm.get_result(syscall_1) == None
 
     # SYSCALL 2
-    with pytest.raises(KeyError):
-        helper(syscall_2, features, ng, ngm, id)
+    assert ngm.get_result(syscall_2) == None
 
     # SYSCALL 3
-    assert helper(syscall_3, features, ng, ngm, id) == ('open', 'close')
+    assert ngm.get_result(syscall_3) == ('open', 'close')
 
     # SYSCALL 4
-    with pytest.raises(KeyError):
-        helper(syscall_4, features, ng, ngm, id)
+    assert ngm.get_result(syscall_4) == None
 
     # SYSCALL 5
-    with pytest.raises(KeyError):
-        helper(syscall_5, features, ng, ngm, id)
+    assert ngm.get_result(syscall_5) == None
 
     # SYSCALL 6
-    with pytest.raises(KeyError):
-        helper(syscall_6, features, ng, ngm, id)
+    assert ngm.get_result(syscall_6) == None
 
     # SYSCALL 7
-    assert helper(syscall_7, features, ng, ngm, id) == ('close', 'poll')
+    assert ngm.get_result(syscall_7) == ('close', 'poll')
 
     # SYSCALL 8
-    assert helper(syscall_8, features, ng, ngm, id) == ('mmap', 'open')
+    assert ngm.get_result(syscall_8) == ('mmap', 'open')
 
     # SYSCALL 9
-    assert helper(syscall_9, features, ng, ngm, id) == ('poll', 'mmap')
+    assert ngm.get_result(syscall_9) == ('poll', 'mmap')
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
-        helper(syscall_10, features, ng, ngm, id)
+        ngm.get_result(syscall_10)
 
     # SYSCALL 11
-    assert helper(syscall_11, features, ng, ngm, id) == ('mmap', 'close')
+    assert ngm.get_result(syscall_11) == ('mmap', 'close')

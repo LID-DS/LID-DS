@@ -40,34 +40,23 @@ def test_syscalls_in_time_window():
                          "1000000009000000000 0 3686303 apache2 3686303 open < name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_5, syscall_6]
-    calculateor = SyscallsInTimeWindow(window_length_in_s=3)
-
-    features = {}
+    scitw = SyscallsInTimeWindow(window_length_in_s=3)
 
     for syscall in training_syscalls:
-        calculateor.train_on(syscall, features)
+        scitw.train_on(syscall)
+    scitw.fit()
 
-    calculateor.fit()
+    assert scitw._training_max == 2
 
-    assert calculateor._training_max == 2
-
-    id = calculateor.get_id()
-    # first three return 0 because time difference < time window
-    calculateor._calculate(syscall_7, features)
-    assert features[id] == 0
-
-    calculateor._calculate(syscall_8, features)
-    assert features[id] == 0
-
-    calculateor._calculate(syscall_9, features)
-    assert features[id] == 0
+    # first three return None because time difference < time window
+    
+    assert scitw.get_result(syscall_7) == None
+    assert scitw.get_result(syscall_8) == None
+    assert scitw.get_result(syscall_9) == None
 
     # 4 syscalls in window, 2 max in training: 4/2 = 2
-    calculateor._calculate(syscall_10, features)
-    assert features[id] == 2
-    calculateor._calculate(syscall_11, features)
-    assert features[id] == 2
+    assert scitw.get_result(syscall_10) == 2
+    assert scitw.get_result(syscall_11) == 2
 
-    # syscall time difference to last one is 4s, only syscall in window is this one, leads to 1/2 = 0.5
-    calculateor._calculate(syscall_12, features)
-    assert features[id] == 0.5
+    # syscall time difference to last one is 4s, only syscall in window is this one, leads to 1/2 = 0.5    
+    assert scitw.get_result(syscall_12) == 0.5

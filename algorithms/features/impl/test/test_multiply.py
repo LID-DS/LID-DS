@@ -6,13 +6,6 @@ from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
 
-def eva(syscall, bb1, bb2):
-    syscall_dict = {}    
-    bb1._calculate(syscall, syscall_dict)
-    bb2._calculate(syscall, syscall_dict)
-    return syscall_dict[bb2.get_id()]
-
-
 def test_multiply():
     # legit
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -38,12 +31,14 @@ def test_multiply():
     tid = ThreadID()
     product = StreamProduct(feature=tid, thread_aware=False, window_length=3)
 
-    assert eva(syscall_1, tid, product) == 10  # 10
-    assert eva(syscall_2, tid, product) == 110  # 11
-    assert eva(syscall_3, tid, product) == 110 # 1
-    assert eva(syscall_4, tid, product) == 22  # 2
-    assert eva(syscall_5, tid, product) == 0  # 0
-    assert eva(syscall_1, tid, product) == 0  # 10
-    assert eva(syscall_1, tid, product) == 0  # 10
-    assert eva(syscall_1, tid, product) == 1000  # 10
-    assert eva(syscall_2, tid, product) == 1100  # 11
+    # use _calculate instead of get_result to re use syscalls here
+
+    assert product._calculate(syscall_1) == None  # 10
+    assert product._calculate(syscall_2) == None  # 11
+    assert product._calculate(syscall_3) == 110 # 1
+    assert product._calculate(syscall_4) == 22  # 2
+    assert product._calculate(syscall_5) == 0  # 0
+    assert product._calculate(syscall_1) == 0  # 10
+    assert product._calculate(syscall_1) == 0  # 10
+    assert product._calculate(syscall_1) == 1000  # 10
+    assert product._calculate(syscall_2) == 1100  # 11

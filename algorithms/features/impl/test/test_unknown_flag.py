@@ -19,20 +19,16 @@ def test_unknown_flag():
         "1631209047762064269 0 12 apache2 12 open < flags=test4 out_fd=9(<f>/etc/password) name=/etc/group mode=0 dev=200021 ")
 
     f = UnknownFlags()
-    features = {}
 
-    f.train_on(syscall_1, features)
+    f.train_on(syscall_1)
     assert f._flag_dict == {'open': ['test']}
 
-    f.train_on(syscall_2, features)
+    f.train_on(syscall_2)
     assert f._flag_dict == {'open': ['test', 'test2']}
 
-    f.train_on(syscall_3, features)
+    f.train_on(syscall_3)
     assert f._flag_dict == {'open': ['test', 'test2'],
                             'poll': ['test3']}
-
-    f._calculate(syscall_4, features)
-    assert features[f.get_id()] == 0
-
-    f._calculate(syscall_5, features)
-    assert features[f.get_id()] == 1
+    
+    assert f._calculate(syscall_4) == 0
+    assert f._calculate(syscall_5) == 1

@@ -1,5 +1,6 @@
 import math
 from collections import deque
+import sys
 
 from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.threadID import ThreadID
@@ -30,23 +31,27 @@ class StreamProduct(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
-        returns the product over feature in the window if the feature is in the current set of features
+        returns the product over feature in the window, if the feature is not None and the window is full
+        otherwise: None
         """
-        thread_id = 0
-        if self._thread_aware:
-            thread_id = syscall.thread_id()
-        if thread_id not in self._window_buffer:
-            self._window_buffer[thread_id] = deque(maxlen=self._window_length)
-
-        if self._feature_id in features:            
-            new_value = features[self._feature_id]
-            self._window_buffer[thread_id].append(new_value)            
+        input = self._feature.get_result(syscall)
+        if input is not None:
+            thread_id = 0
+            if self._thread_aware:
+                thread_id = syscall.thread_id()
+            if thread_id not in self._window_buffer:
+                self._window_buffer[thread_id] = deque(maxlen=self._window_length)            
+            self._window_buffer[thread_id].append(input)            
+            if len(self._window_buffer[thread_id]) < self._window_length:
+                return None
             tmp=1.0
             for v in self._window_buffer[thread_id]:
                 tmp *= v            
-            features[self.get_id()] = tmp
+            return tmp
+        else:
+            return None
 
     def new_recording(self):
         """

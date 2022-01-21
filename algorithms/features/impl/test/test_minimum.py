@@ -5,15 +5,6 @@ from algorithms.features.impl.processID import ProcessID
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
-
-def eva(syscall, tid, min):
-    syscall_dict = {}
-    ThreadID()._calculate(syscall,syscall_dict)
-    tid._calculate(syscall, syscall_dict)
-    min._calculate(syscall, syscall_dict)
-    return syscall_dict[min.get_id()]
-
-
 def test_minimum():
     # legit
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -70,34 +61,34 @@ def test_minimum():
     pid = ProcessID()
     min = StreamMinimum(feature=pid, thread_aware=False, window_length=3)
 
-    assert eva(syscall_1, pid, min) == 10  # 10
-    assert eva(syscall_2, pid, min) == 10  # 11
-    assert eva(syscall_3, pid, min) == 10  # 12
-    assert eva(syscall_4, pid, min) == 11  # 13
-    assert eva(syscall_5, pid, min) == 12  # 12
-    assert eva(syscall_6, pid, min) == 9  # 9
-    assert eva(syscall_7, pid, min) == 8  # 8
-    assert eva(syscall_8, pid, min) == 8  # 9
-    assert eva(syscall_9, pid, min) == 6  # 6
-    assert eva(syscall_1, pid, min) == 6  # 10
-    assert eva(syscall_1, pid, min) == 6  # 10
-    assert eva(syscall_1, pid, min) == 10  # 10
+    assert min._calculate(syscall_1) == 10  # 10
+    assert min._calculate(syscall_2) == 10  # 11
+    assert min._calculate(syscall_3) == 10  # 12
+    assert min._calculate(syscall_4) == 11  # 13
+    assert min._calculate(syscall_5) == 12  # 12
+    assert min._calculate(syscall_6) == 9  # 9
+    assert min._calculate(syscall_7) == 8  # 8
+    assert min._calculate(syscall_8) == 8  # 9
+    assert min._calculate(syscall_9) == 6  # 6
+    assert min._calculate(syscall_1) == 6  # 10
+    assert min._calculate(syscall_1) == 6  # 10
+    assert min._calculate(syscall_1) == 10  # 10
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
-        assert eva(syscall_10, pid, min) == "XXX"
+        assert min._calculate(syscall_10) == "XXX"
 
     min = StreamMinimum(feature=pid, thread_aware=True, window_length=3)
-    assert eva(syscall_1, pid, min) == 10  # 10
-    assert eva(syscall_2, pid, min) == 11  # 11
-    assert eva(syscall_3, pid, min) == 12  # 12
-    assert eva(syscall_4, pid, min) == 13  # 13
-    assert eva(syscall_5, pid, min) == 12  # 12
-    assert eva(syscall_6, pid, min) == 9  # 9
-    assert eva(syscall_7, pid, min) == 8  # 8
-    assert eva(syscall_8, pid, min) == 9  # 9
-    assert eva(syscall_9, pid, min) == 6  # 6
+    assert min._calculate(syscall_1) == 10  # 10
+    assert min._calculate(syscall_2) == 11  # 11
+    assert min._calculate(syscall_3) == 12  # 12
+    assert min._calculate(syscall_4) == 13  # 13
+    assert min._calculate(syscall_5) == 12  # 12
+    assert min._calculate(syscall_6) == 9  # 9
+    assert min._calculate(syscall_7) == 8  # 8
+    assert min._calculate(syscall_8) == 9  # 9
+    assert min._calculate(syscall_9) == 6  # 6
 
-    assert eva(syscall_11, pid, min) == 10  # 10
-    assert eva(syscall_12, pid, min) == 10  # 10
-    assert eva(syscall_13, pid, min) == 11  # 11
+    assert min._calculate(syscall_11) == 10  # 10
+    assert min._calculate(syscall_12) == 10  # 10
+    assert min._calculate(syscall_13) == 11  # 11

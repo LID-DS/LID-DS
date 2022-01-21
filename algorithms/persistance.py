@@ -37,12 +37,12 @@ def save_to_json(result_dict: dict, path: str):
             result_list = json.load(file)
         result_list.append(complete_dict)
         with open(path, 'w') as file:
-            json.dump(result_list, file)
+            json.dump(result_list, file, indent=2)
     else:
         print('No persistent data yet')
         result_list = [complete_dict]
         with open(path, 'w') as file:
-            json.dump(result_list, file)
+            json.dump(result_list, file, indent=2)
 
 def load_from_json(path: str):
     try:

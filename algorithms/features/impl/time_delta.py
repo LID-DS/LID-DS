@@ -5,6 +5,10 @@ from dataloader.syscall import Syscall
 
 
 class TimeDelta(BuildingBlock):
+    """
+    calculates the delta to the last systall within the same thread (if thread aware)
+    or to the last seen syscall over all
+    """
 
     def __init__(self, thread_aware: bool):
         super().__init__()
@@ -15,7 +19,7 @@ class TimeDelta(BuildingBlock):
     def depends_on(self) -> list:
         return []
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
         calc max time delta
         """
@@ -27,14 +31,14 @@ class TimeDelta(BuildingBlock):
     def fit(self):
         self._last_time = {}
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         calculate time delta of syscall
         """
         current_time = syscall.timestamp_datetime()
         delta = self._calc_delta(current_time, syscall)
         normalized_delta = delta / self._max_time_delta
-        features[self.get_id()] = normalized_delta
+        return normalized_delta
 
     def _calc_delta(self, current_time: datetime, syscall: Syscall) -> float:
         """

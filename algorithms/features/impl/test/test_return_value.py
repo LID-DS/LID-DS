@@ -101,101 +101,40 @@ def test_return_value():
     ]
 
     rv = ReturnValue()
-    features = {}
     for syscall in syscalls:
-        rv.train_on(syscall, features)
+        rv.train_on(syscall)
 
     # {'read': 512, 'write': 1525, 'recv_socket': 118, 'get_dents': 576, 'send_socket': 612}
 
-    rv._calculate(syscall_1, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_2, features)
-    assert features[rv.get_id()] == 512/rv._max['read']
-
-    rv._calculate(syscall_3, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_4, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_5, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_6, features)
-    assert features[rv.get_id()] == 206/rv._max['read']
-
-    rv._calculate(syscall_7, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_8, features)
-    assert features[rv.get_id()] == 1525/rv._max['write']
-
-    rv._calculate(syscall_9, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_10, features)
-    assert features[rv.get_id()] == 190/rv._max['read']
-
-    rv._calculate(syscall_11, features)
-    assert features[rv.get_id()] == 258/rv._max['write']
-
-    rv._calculate(syscall_12, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_13, features)
-    assert features[rv.get_id()] == 335/rv._max['read']
-
-    rv._calculate(syscall_14, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_15, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_16, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_17, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_18, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_19, features)
-    assert features[rv.get_id()] == 227/rv._max['read']
-
-    rv._calculate(syscall_20, features)
-    assert features[rv.get_id()] == -1
-
-    rv._calculate(syscall_21, features)
-    assert features[rv.get_id()] == -1
-
-    rv._calculate(syscall_22, features)
-    assert features[rv.get_id()] == -1
-
-    rv._calculate(syscall_23, features)
-    assert features[rv.get_id()] == -1
-
-    rv._calculate(syscall_24, features)
-    assert features[rv.get_id()] == 0
-
-    rv._calculate(syscall_25, features)
-    assert features[rv.get_id()] == 268/rv._max['read']
-
-    rv._calculate(syscall_26, features)
-    assert features[rv.get_id()] == 576/rv._max['get_dents']
-
-    rv._calculate(syscall_27, features)
-    assert features[rv.get_id()] == 570/rv._max['get_dents']
-
-    rv._calculate(syscall_28, features)
-    assert features[rv.get_id()] == 118/rv._max['recv_socket']
-
-    rv._calculate(syscall_29, features)
-    assert features[rv.get_id()] == 118/rv._max['recv_socket']
-
-    rv._calculate(syscall_30, features)
-    assert features[rv.get_id()] == 612/rv._max['send_socket']
-
-    rv._calculate(syscall_31, features)
-    assert features[rv.get_id()] == 400/rv._max['send_socket']
+    
+    assert rv._calculate(syscall_1) == 0
+    assert rv._calculate(syscall_2) == 512/rv._max['read']
+    assert rv._calculate(syscall_3) == 0
+    assert rv._calculate(syscall_4) == 0
+    assert rv._calculate(syscall_5) == 0
+    assert rv._calculate(syscall_6) == 206/rv._max['read']
+    assert rv._calculate(syscall_7) == 0
+    assert rv._calculate(syscall_8) == 1525/rv._max['write']
+    assert rv._calculate(syscall_9) == 0
+    assert rv._calculate(syscall_10) == 190/rv._max['read']
+    assert rv._calculate(syscall_11) == 258/rv._max['write']
+    assert rv._calculate(syscall_12) == 0
+    assert rv._calculate(syscall_13) == 335/rv._max['read']
+    assert rv._calculate(syscall_14) == 0
+    assert rv._calculate(syscall_15) == 0
+    assert rv._calculate(syscall_16) == 0
+    assert rv._calculate(syscall_17) == 0
+    assert rv._calculate(syscall_18) == 0
+    assert rv._calculate(syscall_19) == 227/rv._max['read']
+    assert rv._calculate(syscall_20) == -1
+    assert rv._calculate(syscall_21) == -1
+    assert rv._calculate(syscall_22) == -1
+    assert rv._calculate(syscall_23) == -1
+    assert rv._calculate(syscall_24) == 0
+    assert rv._calculate(syscall_25) == 268/rv._max['read']
+    assert rv._calculate(syscall_26) == 576/rv._max['get_dents']
+    assert rv._calculate(syscall_27) == 570/rv._max['get_dents']    
+    assert rv._calculate(syscall_28) == 118/rv._max['recv_socket']
+    assert rv._calculate(syscall_29) == 118/rv._max['recv_socket']
+    assert rv._calculate(syscall_30) == 612/rv._max['send_socket']
+    assert rv._calculate(syscall_31) == 400/rv._max['send_socket']

@@ -6,7 +6,7 @@ from dataloader.syscall import Syscall
 
 class StreamAverage(BuildingBlock):
     """
-    gives the average value from a stream of system call features
+    gives the average value from a stream of bbs
     """
 
     def __init__(self, feature: BuildingBlock, thread_aware: bool, window_length: int):
@@ -22,18 +22,19 @@ class StreamAverage(BuildingBlock):
         self._dependency_list = []
         self._sum = StreamSum(feature, thread_aware, window_length)
         self._dependency_list.append(self._sum)
-        self._feature_id = self._sum.get_id()
 
     def depends_on(self):
         return self._dependency_list
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
-        returns the maximum value over feature in the window if the feature is in the current set of features
+        returns the average value over the bb in the window or None if the feature is None
         """
-        if self._feature_id in features:
-            avg = features[self._feature_id] / self._window_length
-            features[self.get_id()] = avg
+        input = self._sum.get_result(syscall)
+        if input is not None:        
+            return input / self._window_length            
+        else:
+            return None
 
     def new_recording(self):
         """

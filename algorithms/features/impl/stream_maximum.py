@@ -31,21 +31,21 @@ class StreamMaximum(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
         returns the maximum value over feature in the window if the feature is in the current set of features
         """
-        thread_id = 0
-        if self._thread_aware:
-            try:                
-                thread_id = syscall.thread_id
-            except Exception:
-                raise KeyError('No thread id in features')
-        if thread_id not in self._window_buffer:
-            self._window_buffer[thread_id] = deque(maxlen=self._window_length)
-            self._maximum_values[thread_id] = -math.inf  # min positive value
 
-        if self._feature_id in features:
+        input = self._feature.get_result(syscall)
+        if input is not None:
+
+            thread_id = 0
+            if self._thread_aware:
+                    thread_id = syscall.thread_id()
+            if thread_id not in self._window_buffer:
+                self._window_buffer[thread_id] = deque(maxlen=self._window_length)
+                self._maximum_values[thread_id] = -math.inf  # min positive value
+
             check = False
             dropout_value = -math.inf
             if len(self._window_buffer[thread_id]) > 0:
@@ -53,10 +53,9 @@ class StreamMaximum(BuildingBlock):
 
             if len(self._window_buffer[thread_id]) == self._window_length:
                 check = True
-            new_value = features[self._feature_id]
-            self._window_buffer[thread_id].append(new_value)
-            if new_value > self._maximum_values[thread_id]:
-                self._maximum_values[thread_id] = new_value
+            self._window_buffer[thread_id].append(input)
+            if input > self._maximum_values[thread_id]:
+                self._maximum_values[thread_id] = input
 
             if check and dropout_value >= self._maximum_values[thread_id]:
                 self._maximum_values[thread_id] = -math.inf
@@ -64,8 +63,9 @@ class StreamMaximum(BuildingBlock):
                     if item > self._maximum_values[thread_id]:
                         self._maximum_values[thread_id] = item
 
-            maximum_value = self._maximum_values[thread_id]
-            features[self.get_id()] = maximum_value
+            return self._maximum_values[thread_id]            
+        else:
+            return None
 
     def new_recording(self):
         """

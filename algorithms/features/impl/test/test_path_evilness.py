@@ -64,45 +64,44 @@ def test_path_evilness():
     
     """
 
-    feature_dict = {}
     for syscall in training_syscalls_round_1:
-        pe1.train_on(syscall, feature_dict)
+        pe1.train_on(syscall)
     pe1.fit()
 
     # deviation at depth 2
-    assert helper(syscall_5, pe1) == 0.5
+    assert pe1.get_result(syscall_5) == 0.5
 
     # deviation at depth 4
-    assert helper(syscall_6, pe1) == 0.25
+    assert pe1.get_result(syscall_6)== 0.25
 
     # invalid fd
-    assert helper(syscall_9, pe1) == 0
+    assert pe1.get_result(syscall_9) == 0
 
     # fd is ip
-    assert helper(syscall_11, pe1) == 0
+    assert pe1.get_result(syscall_11) == 0
 
     # filepath is known
-    assert helper(syscall_1, pe1) == 0
+    assert pe1.get_result(syscall_1) == 0
 
     # also invalid training data
     training_syscalls_round_2 = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_7, syscall_8, syscall_10]
     pe2 = PathEvilness(scenario_path='/Test/test', path='algorithms/Models')
 
-    feature_dict = {}
     for syscall in training_syscalls_round_2:
-        pe2.train_on(syscall, feature_dict)
+        pe2.train_on(syscall)
+    pe2.fit()
 
     # deviation at depth 2
-    assert helper(syscall_5, pe2) == 0.5
+    assert pe2.get_result(syscall_5) == 0.5
 
     # deviation at depth 4
-    assert helper(syscall_6, pe2) == 0.25
+    assert pe2.get_result(syscall_6) == 0.25
 
     # invalid fd
-    assert helper(syscall_9, pe2) == 0
+    assert pe2.get_result(syscall_9) == 0
 
     # fd is ip
-    assert helper(syscall_11, pe2) == 0
+    assert pe2.get_result(syscall_11) == 0
 
     # filepath is known
-    assert helper(syscall_1, pe2) == 0
+    assert pe2.get_result(syscall_1) == 0

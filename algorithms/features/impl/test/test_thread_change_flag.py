@@ -5,17 +5,6 @@ from algorithms.features.impl.syscall_name import SyscallName
 from dataloader.syscall_2021 import Syscall2021 as Syscall
 
 
-def helper(syscall, feature_list, ngram, tcf, cid):
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall, syscall_dict)
-    ngram._calculate(syscall, syscall_dict)
-    tcf._calculate(syscall, syscall_dict)
-    print(syscall_dict)
-    print(ngram.get_id())
-    return syscall_dict[cid]
-
-
 def test_thread_change_flag():
     # legit
     syscall_1 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -57,7 +46,6 @@ def test_thread_change_flag():
     syscall_10 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                          "1631209047762064269 0 3686303 apache2 3686303 hello < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
-    features = [ThreadID(), SyscallName()]
 
     ng = Ngram(
         feature_list=[SyscallName()],
@@ -67,34 +55,32 @@ def test_thread_change_flag():
 
     tcf = ThreadChangeFlag(ng)
 
-    id = tcf.get_id()
-
     # SYSCALL 1
-    assert helper(syscall_1, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_1) == None
 
     # SYSCALL 2
-    assert helper(syscall_2, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_2) == None
 
     # SYSCALL 3
-    assert helper(syscall_3, features, ng, tcf, id) == 1
+    assert tcf.get_result(syscall_3) == 1
 
     # SYSCALL 4
-    assert helper(syscall_4, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_4) == None
 
     # SYSCALL 5
-    assert helper(syscall_5, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_5) == None
 
     # SYSCALL 6
-    assert helper(syscall_6, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_6) == None
 
     # SYSCALL 7
-    assert helper(syscall_7, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_7) == 0
 
     # SYSCALL 8
-    assert helper(syscall_8, features, ng, tcf, id) == 1
+    assert tcf.get_result(syscall_8) == 1
 
     # SYSCALL 9
-    assert helper(syscall_9, features, ng, tcf, id) == 1
+    assert tcf.get_result(syscall_9) == 1
 
     # SYSCALL 10
-    assert helper(syscall_10, features, ng, tcf, id) == 0
+    assert tcf.get_result(syscall_10) == 0

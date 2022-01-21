@@ -23,7 +23,7 @@ class SyscallsInTimeWindow(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
             trains the calculateor by finding the biggest count of syscalls
             in time window needed for normalization of feature
@@ -60,10 +60,11 @@ class SyscallsInTimeWindow(BuildingBlock):
         """
         self._syscall_buffer = {}
 
-    def _calculate(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
             calculates count of syscalls in time window before current syscall
             returns normalized value based on training data
+            or None if the window is not "full"
         """
         current_timestamp = syscall.timestamp_datetime()
         thread_id = syscall.thread_id()
@@ -95,10 +96,11 @@ class SyscallsInTimeWindow(BuildingBlock):
 
             # normalizing the return value with maximum count from training data
             normalized_count = syscalls_in_window / self._training_max
-            features[self.get_id()] = normalized_count
+            return normalized_count
 
         else:
-            features[self.get_id()] = 0
+            # return 0
+            return None
 
     def new_recording(self):
         """

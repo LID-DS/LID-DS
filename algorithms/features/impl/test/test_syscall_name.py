@@ -10,11 +10,7 @@ def test_syscall_name_extract():
     syscall_3 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047762210355 33 3686302 apache2 3686302 getuid < uid=33(www-data) ")
 
-    sn = SyscallName()
-    feature_dict = {}
-    sn._calculate(syscall_1, feature_dict)
-    assert feature_dict[sn.get_id()] == 'open'
-    sn._calculate(syscall_2, feature_dict)
-    assert feature_dict[sn.get_id()] == 'open'
-    sn._calculate(syscall_3, feature_dict)
-    assert feature_dict[sn.get_id()] == 'getuid'
+    sn = SyscallName()    
+    assert sn.get_result(syscall_1) == 'open'
+    assert sn.get_result(syscall_2) == 'open'
+    assert sn.get_result(syscall_3) == 'getuid'

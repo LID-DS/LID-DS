@@ -6,15 +6,6 @@ from algorithms.features.impl.processID import ProcessID
 from algorithms.features.impl.threadID import ThreadID
 from dataloader.syscall_2021 import Syscall2021
 
-
-def eva(syscall, tid, max):
-    syscall_dict = {}
-    ThreadID()._calculate(syscall,syscall_dict)
-    tid._calculate(syscall, syscall_dict)
-    max._calculate(syscall, syscall_dict)
-    return syscall_dict[max.get_id()]
-
-
 def test_maximum():
     # legit
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -71,34 +62,34 @@ def test_maximum():
     pid = ProcessID()
     max = StreamMaximum(feature=pid, thread_aware=False, window_length=3)
 
-    assert eva(syscall_1, pid, max) == 10  # 10
-    assert eva(syscall_2, pid, max) == 11  # 11
-    assert eva(syscall_3, pid, max) == 12  # 12
-    assert eva(syscall_4, pid, max) == 13  # 13
-    assert eva(syscall_5, pid, max) == 13  # 12
-    assert eva(syscall_6, pid, max) == 13  # 9
-    assert eva(syscall_7, pid, max) == 12  # 8
-    assert eva(syscall_8, pid, max) == 9  # 9
-    assert eva(syscall_9, pid, max) == 9  # 6
-    assert eva(syscall_1, pid, max) == 10  # 10
-    assert eva(syscall_1, pid, max) == 10  # 10
-    assert eva(syscall_1, pid, max) == 10  # 10
+    assert max._calculate(syscall_1) == 10  # 10
+    assert max._calculate(syscall_2) == 11  # 11
+    assert max._calculate(syscall_3) == 12  # 12
+    assert max._calculate(syscall_4) == 13  # 13
+    assert max._calculate(syscall_5) == 13  # 12
+    assert max._calculate(syscall_6) == 13  # 9
+    assert max._calculate(syscall_7) == 12  # 8
+    assert max._calculate(syscall_8) == 9  # 9
+    assert max._calculate(syscall_9) == 9  # 6
+    assert max._calculate(syscall_1) == 10  # 10
+    assert max._calculate(syscall_1) == 10  # 10
+    assert max._calculate(syscall_1) == 10  # 10
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
-        assert eva(syscall_10, pid, max) == "XXX"
+        assert max._calculate(syscall_10) == "XXX"
 
     max = StreamMaximum(feature=pid, thread_aware=True, window_length=3)
-    assert eva(syscall_1, pid, max) == 10  # 10
-    assert eva(syscall_2, pid, max) == 11  # 11
-    assert eva(syscall_3, pid, max) == 12  # 12
-    assert eva(syscall_4, pid, max) == 13  # 13
-    assert eva(syscall_5, pid, max) == 12  # 12
-    assert eva(syscall_6, pid, max) == 9  # 9
-    assert eva(syscall_7, pid, max) == 8  # 8
-    assert eva(syscall_8, pid, max) == 9  # 9
-    assert eva(syscall_9, pid, max) == 6  # 6
+    assert max._calculate(syscall_1) == 10  # 10
+    assert max._calculate(syscall_2) == 11  # 11
+    assert max._calculate(syscall_3) == 12  # 12
+    assert max._calculate(syscall_4) == 13  # 13
+    assert max._calculate(syscall_5) == 12  # 12
+    assert max._calculate(syscall_6) == 9  # 9
+    assert max._calculate(syscall_7) == 8  # 8
+    assert max._calculate(syscall_8) == 9  # 9
+    assert max._calculate(syscall_9) == 6  # 6
 
-    assert eva(syscall_11, pid, max) == 11  # 11
-    assert eva(syscall_12, pid, max) == 12  # 12
-    assert eva(syscall_13, pid, max) == 13  # 13
+    assert max._calculate(syscall_11) == 11  # 11
+    assert max._calculate(syscall_12) == 12  # 12
+    assert max._calculate(syscall_13) == 13  # 13

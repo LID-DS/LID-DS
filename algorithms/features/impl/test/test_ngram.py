@@ -51,8 +51,6 @@ def test_ngram():
     syscall_11 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              "1631209047762064269 0 3686303 apache2 3686303 hello < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
-    feature_list = [ThreadID(), SyscallName()]
-
     n_gram_streamer = Ngram(
         feature_list=[SyscallName()],
         thread_aware=True,
@@ -60,83 +58,35 @@ def test_ngram():
     )
 
     # SYSCALL 1
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_1, syscall_dict)
-    n_gram_streamer._calculate(syscall_1, syscall_dict)
-    with pytest.raises(KeyError):
-        syscall_dict[n_gram_streamer.get_id()]
+    assert n_gram_streamer.get_result(syscall_1) == None
 
     # SYSCALL 2
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_2, syscall_dict)
-    n_gram_streamer._calculate(syscall_2, syscall_dict)
-    with pytest.raises(KeyError):
-        syscall_dict[n_gram_streamer.get_id()]
+    assert n_gram_streamer.get_result(syscall_2) == None
 
     # SYSCALL 3
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_3, syscall_dict)
-    n_gram_streamer._calculate(syscall_3, syscall_dict)
-    assert syscall_dict[n_gram_streamer.get_id()] == ('open', 'close', 'poll')
+    assert n_gram_streamer.get_result(syscall_3) == ('open', 'close', 'poll')
 
     # SYSCALL 4
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_4, syscall_dict)
-    n_gram_streamer._calculate(syscall_4, syscall_dict)
-    with pytest.raises(KeyError):
-        syscall_dict[n_gram_streamer.get_id()]
+    assert n_gram_streamer.get_result(syscall_4) == None
 
     # SYSCALL 5
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_5, syscall_dict)
-    n_gram_streamer._calculate(syscall_5, syscall_dict)
-    with pytest.raises(KeyError):
-        syscall_dict[n_gram_streamer.get_id()]
+    assert n_gram_streamer.get_result(syscall_5) == None
 
     # SYSCALL 6
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_6, syscall_dict)
-    n_gram_streamer._calculate(syscall_6, syscall_dict)
-    with pytest.raises(KeyError):
-        syscall_dict[n_gram_streamer.get_id()]
+    assert n_gram_streamer.get_result(syscall_6) == None
 
-    # SYSCALL 7
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_7, syscall_dict)
-    n_gram_streamer._calculate(syscall_7, syscall_dict)
-    assert syscall_dict[n_gram_streamer.get_id()] == ('close', 'poll', 'mmap')
+    # SYSCALL 7    
+    assert n_gram_streamer.get_result(syscall_7) == ('close', 'poll', 'mmap')
 
     # SYSCALL 8
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_8, syscall_dict)
-    n_gram_streamer._calculate(syscall_8, syscall_dict)
-    assert syscall_dict[n_gram_streamer.get_id()] == ('mmap', 'open', 'open')
+    assert n_gram_streamer.get_result(syscall_8) == ('mmap', 'open', 'open')
 
     # SYSCALL 9
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_9, syscall_dict)
-    n_gram_streamer._calculate(syscall_9, syscall_dict)
-    assert syscall_dict[n_gram_streamer.get_id()] == ('poll', 'mmap', 'close')
+    assert n_gram_streamer.get_result(syscall_9) == ('poll', 'mmap', 'close')
 
     # SYSCALL 10 - str instead of int as thread id
     with pytest.raises(ValueError):
-        syscall_dict = {}
-        for feature in feature_list:
-            feature._calculate(syscall_10, syscall_dict)
-        n_gram_streamer._calculate(syscall_10, syscall_dict)
+        n_gram_streamer.get_result(syscall_10)
 
     # SYSCALL 11
-    syscall_dict = {}
-    for feature in feature_list:
-        feature._calculate(syscall_11, syscall_dict)
-    n_gram_streamer._calculate(syscall_11, syscall_dict)
-    assert syscall_dict[n_gram_streamer.get_id()] == ('mmap', 'close', 'hello')
+    assert n_gram_streamer.get_result(syscall_11) == ('mmap', 'close', 'hello')

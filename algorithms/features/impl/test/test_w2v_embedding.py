@@ -59,19 +59,13 @@ def test_w2v_embedding():
 
     training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_5, syscall_6, syscall_7, syscall_8]
 
-    features = {}
-
     for syscall in training_syscalls:
-        embedding.train_on(syscall, features)
+        embedding.train_on(syscall)
     embedding.fit()
 
-    features = {}
-    id = embedding.get_id()
-    embedding._calculate(syscall_9, features)
-    assert type(features[id]) == list
+    
+    assert type(embedding._calculate(syscall_9)) == tuple
+   
+    assert embedding._calculate(syscall_10) == [0] * vector_size
 
-    embedding._calculate(syscall_10, features)
-    assert features[id] == [0] * vector_size
-
-    embedding._calculate(syscall_11, features)
-    assert features[id] == [0] * vector_size
+    assert embedding._calculate(syscall_11) == [0] * vector_size

@@ -24,7 +24,10 @@ class Concat(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-        concats the given bbs in the given order to a new value
+        if all dependencies are not None:
+            returns the given bbs as tuple in the given order
+        otherwise:
+            returns None
         """
         result_vector = []
         for bb in self._dependency_list:
