@@ -84,8 +84,8 @@ class IDS:
             if self.performance.alarms is not None:
                 self.performance.alarms.end_alarm()
 
-    def draw_plot(self):
+    def draw_plot(self, filename=None):
         # plot data if wanted
         if self.plot is not None:
             self.plot.feed_figure()
-            self.plot.show_plot()
+            self.plot.show_plot(filename)
