@@ -1,9 +1,23 @@
 import json
 from pprint import pprint
+from algorithms.decision_engines.som import Som
 
 from algorithms.decision_engines.stide import Stide
+from algorithms.features.impl.Difference import Difference
+from algorithms.features.impl.Minimum import Minimum
+from algorithms.features.impl.PositionalEncoding import PositionalEncoding
+from algorithms.features.impl.concat import Concat
+from algorithms.features.impl.dbscan import DBScan
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.one_minus_x import OneMinusX
+from algorithms.features.impl.return_value import ReturnValue
+from algorithms.features.impl.stream_average import StreamAverage
+from algorithms.features.impl.stream_maximum import StreamMaximum
+from algorithms.features.impl.stream_minimum import StreamMinimum
+from algorithms.features.impl.stream_sum import StreamSum
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.stream_variance import StreamVariance
 from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
@@ -49,15 +63,31 @@ if __name__ == '__main__':
     thread_aware = True
     window_length = 100
     ngram_length = 3
-    ngram = Ngram([IntEmbedding()], thread_aware, ngram_length)   
-    stide = Stide(ngram)    
+    #--------------------
+    #ngram = Ngram([IntEmbedding()], thread_aware, ngram_length)   
+    #stide = Stide(ngram)    
+    
+    return_value = ReturnValue()
+    pe = PositionalEncoding(return_value, 16)
+    #ngram = Ngram([return_value],True,window_length)
+    #var = StreamVariance(ngram)
+    # omx = OneMinusX(var)
+    #min = StreamMinimum(return_value,True,window_length)
+    #max = StreamMaximum(return_value,True,window_length)
+    #avg = StreamAverage(return_value,True,window_length)
+
+    #cavg = DBScan(avg)
+
+    #concat = Concat([min,max,cavg])    
+    som = Som(pe, max_size=25)
+
     config_name = f"n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
     ###################
     # the IDS
     generate_and_write_alarms = True
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=stide,
+            resulting_building_block=som,
             create_alarms=generate_and_write_alarms,
             plot_switch=True)
 

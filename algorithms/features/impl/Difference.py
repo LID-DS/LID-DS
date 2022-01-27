@@ -5,11 +5,11 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class Sum(BuildingBlock):
+class Difference(BuildingBlock):
     """
-    calculates the sum from the given bbs
+    calculates the difference (subtraction) from the given bbs
     if the input BBs are scalar values the result is a scalar
-    if the input BBs are tuples with dimension D, the result is a tuple with dimension D, each dimension is summed seperately
+    if the input BBs are tuples with dimension D, the result is a tuple with dimension D, each dimension is subtracted seperately
     """
 
     def __init__(self, bbs_to_concider: list):
@@ -43,7 +43,7 @@ class Sum(BuildingBlock):
     
     def _calculate(self, syscall: Syscall):
         """
-        calculates the sum from the dependecy list
+        calculates the diff from the dependecy list
         """
         check = True
         result = None            
@@ -56,14 +56,14 @@ class Sum(BuildingBlock):
                     if result is None:
                         result = bb_value
                     elif result is not None:
-                        result += bb_value
+                        result -= bb_value
                 else:
                     # vector (tuple)
                     if result is None:
                         result = list(bb_value)
                     else:
                         for i in range(len(bb_value)):
-                            result[i] += bb_value[i]
+                            result[i] -= bb_value[i]
             else:
                 # bb_value is None
                 check = False

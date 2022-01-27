@@ -36,8 +36,3 @@ class StreamAverage(BuildingBlock):
         else:
             return None
 
-    def new_recording(self):
-        """
-        empty buffer so ngrams consist of same recording only
-        """
-        self._sum.new_recording()

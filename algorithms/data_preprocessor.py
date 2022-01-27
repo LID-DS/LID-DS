@@ -130,7 +130,7 @@ class DataPreprocessor:
     def new_recording(self):
         """
         - this method should be called each time after a recording is done and a new recording starts
-        - it iterates over all features and calls new_recording on them
+        - it iterates over all bbs and calls new_recording on them
         """
         for generation in self._building_block_manager.building_block_generations:
             for bb in generation:
