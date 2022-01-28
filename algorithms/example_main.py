@@ -1,10 +1,14 @@
 import json
 from pprint import pprint
+
+from algorithms.decision_engines.ae import AE, AEMode
 from algorithms.decision_engines.som import Som
 
 from algorithms.decision_engines.stide import Stide
+from algorithms.features.impl.Sum import Sum
 from algorithms.features.impl.Difference import Difference
 from algorithms.features.impl.Minimum import Minimum
+from algorithms.features.impl.PositionInFile import PositionInFile
 from algorithms.features.impl.PositionalEncoding import PositionalEncoding
 from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.dbscan import DBScan
@@ -18,6 +22,8 @@ from algorithms.features.impl.stream_minimum import StreamMinimum
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.stream_variance import StreamVariance
+from algorithms.features.impl.w2v_embedding import W2VEmbedding
+from algorithms.features.impl.timestamp import Timestamp 
 from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
@@ -62,24 +68,20 @@ if __name__ == '__main__':
     ###################
     thread_aware = True
     window_length = 100
-    ngram_length = 3
+    ngram_length = 7
+    embedding_size = 10
     #--------------------
-    #ngram = Ngram([IntEmbedding()], thread_aware, ngram_length)   
-    #stide = Stide(ngram)    
     
-    return_value = ReturnValue()
-    pe = PositionalEncoding(return_value, 16)
-    #ngram = Ngram([return_value],True,window_length)
-    #var = StreamVariance(ngram)
-    # omx = OneMinusX(var)
-    #min = StreamMinimum(return_value,True,window_length)
-    #max = StreamMaximum(return_value,True,window_length)
-    #avg = StreamAverage(return_value,True,window_length)
 
-    #cavg = DBScan(avg)
-
-    #concat = Concat([min,max,cavg])    
-    som = Som(pe, max_size=25)
+    w2v = W2VEmbedding(embedding_size,10,1000,scenario_path,"Models/W2V/")
+    position = PositionInFile()
+    timestamp = Timestamp()
+    posenc = PositionalEncoding(timestamp,embedding_size)
+    sum_w2v_posenc = Sum([w2v,posenc])
+    ngram = Ngram([sum_w2v_posenc], thread_aware, ngram_length)
+    
+    ae = AE(ngram,embedding_size,AEMode.LOSS)
+    # som = Som(ngram, max_size=25)
 
     config_name = f"n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
@@ -87,7 +89,7 @@ if __name__ == '__main__':
     # the IDS
     generate_and_write_alarms = True
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=som,
+            resulting_building_block=ae,
             create_alarms=generate_and_write_alarms,
             plot_switch=True)
 
