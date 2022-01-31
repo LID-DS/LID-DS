@@ -88,7 +88,7 @@ class W2VEmbedding(BuildingBlock):
         try:
             return tuple(self.w2vmodel.wv[syscall.name()].tolist())
         except KeyError:
-            return [0] * self._vector_size
+            return tuple([0] * self._vector_size)
 
     def load(self):
         """

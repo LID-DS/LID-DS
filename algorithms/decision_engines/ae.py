@@ -89,7 +89,7 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS):
+    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256):
         super().__init__()                
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
@@ -100,7 +100,7 @@ class AE(BuildingBlock):
         #self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
         self._epochs = 100000
-        self._batch_size = 128        
+        self._batch_size = batch_size
         self._training_set = set() # we use distinct training data
         self._validation_set = set()
         self._result_dict = {}
@@ -167,7 +167,7 @@ class AE(BuildingBlock):
             avg_val_loss = val_loss / count
 
             # print epoch results
-            bar.set_description(f"fit AE: {avg_loss:.3f}|{avg_val_loss:.3f}".rjust(27), refresh=True)            
+            bar.set_description(f"fit AE: {avg_loss:.5f}|{avg_val_loss:.5f}".rjust(27), refresh=True)            
             if avg_loss < best_avg_loss:
                 best_avg_loss = avg_loss
 

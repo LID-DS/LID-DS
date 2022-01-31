@@ -28,6 +28,7 @@ class Sum(BuildingBlock):
         """
         used to determine the size of the input bbs
         """
+        lengths = []        
         for bb in self._dependency_list:
             bb_value = bb.get_result(syscall)
             if bb_value is not None:                
@@ -35,11 +36,14 @@ class Sum(BuildingBlock):
                     new_length = len(bb_value)
                 else:
                     new_length = 1
+                lengths.append(new_length)
 
                 if self._result_length is None:
                     self._result_length = new_length
-                elif self._result_length != new_length:
-                    raise ValueError(f"inputs to {self.__str__()} are of different length")
+                elif self._result_length != new_length:                    
+                    raise ValueError(f"inputs to {self.__str__()} are of different lengths: {lengths}")
+            else:
+                lengths.append(None)
     
     def _calculate(self, syscall: Syscall):
         """
