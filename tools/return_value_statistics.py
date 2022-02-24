@@ -1,5 +1,5 @@
-from dataloader.recording_2019 import RecordingDataParts
 from dataloader.syscall import Direction
+from dataloader.recording_2019 import RecordingDataParts
 from dataloader.dataloader_factory import dataloader_factory
 
 
@@ -143,28 +143,32 @@ if __name__ == '__main__':
                 x=exploit[0],
                 name='auch Angriffsverhalten',
                 marker_color='#9d0006',
-                xbins_size=16
+                opacity=0.5,
+                xbins_size=16,
             )
             norm = go.Histogram(
                 x=normal[0],
                 name='nur Normalverhalten',
                 marker_color='#076678',
-                xbins_size=16
+                xbins_size=16,
             )
-            fig = make_subplots(
-                rows=2, cols=1,
-                vertical_spacing=0.05,
-                shared_xaxes=True
-            )
-            fig.append_trace(norm, row=1, col=1)
-            fig.append_trace(exp, row=1, col=1)
+            fig = go.Figure()
+            # fig = make_subplots(
+                # rows=2, cols=1,
+                # vertical_spacing=0.05,
+                # shared_xaxes=True
+            # )
+            # fig.append_trace(norm, row=1, col=1)
+            # fig.append_trace(exp, row=1, col=1)
+            fig.add_trace(norm)
+            fig.add_trace(exp)
             exp.showlegend = False
             norm.showlegend = False
-            fig.append_trace(norm, row=2, col=1)
-            fig.append_trace(exp, row=2, col=1)
-            fig.update_yaxes(range=[cut_interval[1], 90000], row=1, col=1)
-            fig.update_xaxes(visible=False, row=1, col=1)
-            fig.update_yaxes(range=[0, cut_interval[0]], row=2, col=1)
+            # fig.append_trace(norm, row=2, col=1)
+            # fig.append_trace(exp, row=2, col=1)
+            # fig.update_yaxes(range=[cut_interval[1], 90000], row=1, col=1)
+            # fig.update_xaxes(visible=False, row=1, col=1, log=True)
+            # fig.update_yaxes(range=[0, cut_interval[0]], row=2, col=1)
             if entry == 'written':
                 title = 'pwrite, write und writev'
             elif entry == 'read':
@@ -174,18 +178,26 @@ if __name__ == '__main__':
             elif entry == 'socket_recv':
                 title = 'recvfrom, recv, recvmsg'
             fig.update_layout(
-                title=f'Histogram für System Calls {title}<br> Testdaten - CVE-2017-7529',
+                # title=f'Histogram für System Calls {title}<br> Testdaten - CVE-2017-7529',
                 plot_bgcolor='#bfbfbf',
                 font_color='#000000',
-                xaxis2=go.XAxis(
+                xaxis=go.XAxis(
                     title='Bytes',
                 ),
-                yaxis2=go.YAxis(
+                yaxis=go.YAxis(
                     title='Vorkommen',
-                )
+                ),
+                legend=dict(
+                    yanchor="top",
+                    y=0.99,
+                    xanchor="right",
+                    x=0.99,
+                ),
+                yaxis_type="log"
             )
             # fig.show()
             if not os.path.isdir('images'):
                 os.mkdir('images')
+            # fig.show()
             fig.write_image(
-                f'/home/tk/Documents/Uni/Theorie/Citsci.project.report/images/CVE-2017-7529--Test-data{entry}.pdf')
+                f'/home/tk/Documents/Master/Citsci.project.report/images/CVE-2017-7529--Test-data-{entry}.pdf')
