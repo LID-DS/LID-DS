@@ -3,10 +3,11 @@ from dataloader.syscall import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
 
-import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-from brokenaxes import brokenaxes
+
 from tqdm import tqdm
 
 
@@ -21,7 +22,6 @@ class Plot(IntEnum):
     READ = 2
     SOCKET_SEND = 3
     SOCKET_RECV = 4
-    DENTS = 5
 
 
 def save_to_json(results: dict, scenario_name: str):
@@ -44,22 +44,19 @@ def calc_return_value_stats(recording_list, description):
             'read': [],
             'socket_send': [],
             'socket_recv': [],
-            'dents': []
         },
         'exploit': {
             'written': [],
             'read': [],
             'socket_send': [],
             'socket_recv': [],
-            'dents': []
         }
     }
     write = ['pwrite', 'write', 'writev']
     read = ['pread', 'read', 'readv']
     send_socket = ['sendfile', 'sendmsg']
-    recv_socket =  ['recvfrom', 'recv', 'recvmsg']
-    get_dents =  ['getdents']
-    not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
+    recv_socket = ['recvfrom', 'recv', 'recvmsg']
+    not_interesting = ['getdents', 'clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
     error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET']
     for recording in tqdm(recording_list, description, unit=" recordings", smoothing=0):
         if recording.recording_data_list[RecordingDataParts.IS_EXECUTING_EXPLOIT] == 'True':
@@ -82,8 +79,6 @@ def calc_return_value_stats(recording_list, description):
                             result_dict[rec]['socket_send'].append(return_value_int)
                         elif syscall.name() in recv_socket:
                             result_dict[rec]['socket_recv'].append(return_value_int)
-                        elif syscall.name() in get_dents:
-                            result_dict[rec]['dents'].append(return_value_int)
                         elif syscall.name() in not_interesting:
                             pass
                         else:
@@ -132,29 +127,65 @@ if __name__ == '__main__':
             'read': [],
             'socket_send': [],
             'socket_recv': [],
-            'dents': []
         }
         for scenario in result_dict.keys():
             for rec_type in result_dict[scenario]['Test'].keys():
                 for byte_type in result_dict[scenario]['Test'][rec_type].keys():
-                    data_dict[byte_type].append(pd.DataFrame(result_dict[scenario]['Test'][rec_type][byte_type]))
+                    data_dict[byte_type].append(result_dict[scenario]['Test'][rec_type][byte_type])
         for entry in data_dict:
-            df_normal = data_dict[entry][0]
-            df_exploit = data_dict[entry][1]
-            ax1 = plt.subplot(211)
-            plt.title(f'{entry} - System Calls')
-            ax1.hist(df_normal, color='#076678')
-            ax1.legend(['Normalverhalten'], loc='upper right')
-            ax1.set_ylabel('Occurences')
-            ax2 = plt.subplot(212, sharex=ax1)
-            ax2.hist(df_exploit, color='#9d0006')
-            ax2.legend(['Normal- und Angriffsverhalten'], loc='upper right')
-            ax2.set_ylabel('Occurences')
-            ax2.set_xlabel('Bytes')
-            plt.savefig(f'images/fix{scenario}{entry}.jpg', dpi=200)
-            plt.figure()
-        # plot.show()
-        #fig = px.histogram(df)
-        # fig.wirte_image('images/test_img.svg')
-        #fig.show()
-        #save_to_json(result_dict, scenario)
+            # udf_normal = data_dict[entry][0]
+            # df_exploit = data_dict[entry][1]
+            normal = pd.DataFrame(data_dict[entry][0])
+            exploit = pd.DataFrame(data_dict[entry][1])
+            print(normal[0])
+            cut_interval = [500, 10000]
+            exp = go.Histogram(
+                x=exploit[0],
+                name='auch Angriffsverhalten',
+                marker_color='#9d0006',
+                xbins_size=16
+            )
+            norm = go.Histogram(
+                x=normal[0],
+                name='nur Normalverhalten',
+                marker_color='#076678',
+                xbins_size=16
+            )
+            fig = make_subplots(
+                rows=2, cols=1,
+                vertical_spacing=0.05,
+                shared_xaxes=True
+            )
+            fig.append_trace(norm, row=1, col=1)
+            fig.append_trace(exp, row=1, col=1)
+            exp.showlegend = False
+            norm.showlegend = False
+            fig.append_trace(norm, row=2, col=1)
+            fig.append_trace(exp, row=2, col=1)
+            fig.update_yaxes(range=[cut_interval[1], 90000], row=1, col=1)
+            fig.update_xaxes(visible=False, row=1, col=1)
+            fig.update_yaxes(range=[0, cut_interval[0]], row=2, col=1)
+            if entry == 'written':
+                title = 'pwrite, write und writev'
+            elif entry == 'read':
+                title = 'pread, read, readv'
+            elif entry == 'socket_send':
+                title = 'sendfile, und sendmsg'
+            elif entry == 'socket_recv':
+                title = 'recvfrom, recv, recvmsg'
+            fig.update_layout(
+                title=f'Histogram für System Calls {title}<br> Testdaten - CVE-2017-7529',
+                plot_bgcolor='#bfbfbf',
+                font_color='#000000',
+                xaxis2=go.XAxis(
+                    title='Bytes',
+                ),
+                yaxis2=go.YAxis(
+                    title='Vorkommen',
+                )
+            )
+            # fig.show()
+            if not os.path.isdir('images'):
+                os.mkdir('images')
+            fig.write_image(
+                f'/home/tk/Documents/Uni/Theorie/Citsci.project.report/images/CVE-2017-7529--Test-data{entry}.pdf')
