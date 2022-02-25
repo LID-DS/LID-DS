@@ -143,13 +143,15 @@ if __name__ == '__main__':
                 x=exploit[0],
                 name='auch Angriffsverhalten',
                 marker_color='#9d0006',
-                opacity=0.5,
+                histnorm='percent',
+                #opacity=0.5,
                 xbins_size=16,
             )
             norm = go.Histogram(
                 x=normal[0],
                 name='nur Normalverhalten',
                 marker_color='#076678',
+                histnorm='percent',
                 xbins_size=16,
             )
             fig = go.Figure()
@@ -200,4 +202,4 @@ if __name__ == '__main__':
                 os.mkdir('images')
             # fig.show()
             fig.write_image(
-                f'/home/tk/Documents/Master/Citsci.project.report/images/CVE-2017-7529--Test-data-{entry}.pdf')
+                f'/home/tk/Documents/Uni/Theorie/Citsci.project.report/images/CVE-2017-7529--Test-data-{entry}.pdf')
