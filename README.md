@@ -4,7 +4,7 @@
 
 ## Download the host based intrusion detection data set.
 * LID-DS 2021 download: coming soon
-* LID-DS 2019 download: https://www.exploids.de/lid-ds/
+* LID-DS 2019 download: [download and readme](https://cloud.enterprise.informatik.uni-leipzig.de/index.php/s/iePzEq9xTqHFZr3)
 
 ## The Framework Version 2021
 * more details coming soon
