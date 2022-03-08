@@ -19,7 +19,7 @@
 ## License
 
 Leipzig Intrusion Detection Dataset (LID-DS)
-Copyright (C) 2021 Martin Grimmer, Felix Nirsberger, Tim Kaelble, Toni Rucks, Martin Max Röhling, Dennis Kreußel and Simon Ganz.
+Copyright (C) 2022 Martin Grimmer, Felix Nirsberger, Tim Kaelble, Emmely Schulze,Toni Rucks, Martin Max Röhling, Dennis Kreußel and Simon Ganz.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
