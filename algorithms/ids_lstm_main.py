@@ -9,9 +9,7 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.persistance import save_to_json, print_as_table
 
 from algorithms.decision_engines.lstm import LSTM
-
 from algorithms.ids import IDS
-
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
@@ -25,22 +23,22 @@ if __name__ == '__main__':
     SCENARIOS = [
         # 'CVE-2018-3760',
         # 'CVE-2012-2122',
-        # 'CVE-2017-7529',
-        'Bruteforce_CWE-307',
+        'CVE-2017-7529',
+        # 'Bruteforce_CWE-307',
         # 'CVE-2014-0160',
         # 'CVE-2019-5418'
         # 'EPS_CWE-434.tar.gz'
         # 'PHP_CWE-434.tar.gz'
         # 'ZipSlip.tar.gz'
     ]
-    hidden_dim = 128
+    hidden_dim = 64
     hidden_layers = 1
-    NGRAM = [4, 6]
-    EMBEDDING_SIZE = [6, 8]
+    NGRAM = [6]
+    EMBEDDING_SIZE = [8]
     THREAD_AWARE = [True]
-    RETURN_VALUE = [False, True]
-    THREAD_CHANGE_FLAG = [False, True]
-    TIME_DELTA = [False, True]
+    RETURN_VALUE = [False]
+    THREAD_CHANGE_FLAG = [True]
+    TIME_DELTA = [False]
     BATCH_SIZE = [1024]
     for batch_size in BATCH_SIZE:
         for embedding_size in EMBEDDING_SIZE:
@@ -58,7 +56,7 @@ if __name__ == '__main__':
                                     # embedding
                                     w2v = W2VEmbedding(
                                         vector_size=embedding_size,
-                                        window_size=10,
+                                        window_size=ngram_length,
                                         epochs=5000,
                                         scenario_path=scenario_path,
                                         path=f'Models/{scenario}/W2V/',
@@ -122,9 +120,9 @@ if __name__ == '__main__':
                                         # training
                                         ids.train_decision_engine()
                                         # threshold
-                                        # ids.determine_threshold()
+                                        ids.determine_threshold()
                                         start = time.time()
-                                        # ids.do_detection()
+                                        ids.do_detection()
                                         end = time.time()
                                         detection_time = (end - start)/60  # in minuites
                                         stats = ids.performance.get_performance()

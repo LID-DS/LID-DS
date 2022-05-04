@@ -26,6 +26,7 @@ class LSTM(BaseDecisionEngine):
     """
 
     def __init__(self,
+                 # input_vector: BuildingBlock,
                  distinct_syscalls: int,
                  input_dim: int,
                  epochs=300,
