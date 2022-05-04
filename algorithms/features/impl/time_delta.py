@@ -1,10 +1,14 @@
 from datetime import datetime
 
-from algorithms.features.base_feature import BaseFeature
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class TimeDelta(BaseFeature):
+class TimeDelta(BuildingBlock):
+    """
+    calculates the delta to the last systall within the same thread (if thread aware)
+    or to the last seen syscall over all
+    """
 
     def __init__(self, thread_aware: bool):
         super().__init__()
@@ -15,7 +19,7 @@ class TimeDelta(BaseFeature):
     def depends_on(self) -> list:
         return []
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
         calc max time delta
         """
@@ -27,14 +31,14 @@ class TimeDelta(BaseFeature):
     def fit(self):
         self._last_time = {}
 
-    def extract(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
-        extract time delta of syscall
+        calculate time delta of syscall
         """
         current_time = syscall.timestamp_datetime()
         delta = self._calc_delta(current_time, syscall)
         normalized_delta = delta / self._max_time_delta
-        features[self.get_id()] = normalized_delta
+        return normalized_delta
 
     def _calc_delta(self, current_time: datetime, syscall: Syscall) -> float:
         """

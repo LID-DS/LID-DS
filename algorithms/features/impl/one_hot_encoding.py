@@ -1,49 +1,62 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class OneHotEncoding(BaseFeature, metaclass=Singleton):
+class OneHotEncoding(BuildingBlock):
     """
-        convert system call name to One Hot Encoding array
+        convert input to One Hot Encoding tuple
     """
 
-    def __init__(self):
+    def __init__(self, input: BuildingBlock):
         super().__init__()
-        self._syscall_dict = {}
-        self._ohe_dict = {}
+        self._input_to_int_dict = {}
+        self._int_to_ohe_dict = {}
+        self._input_id = input.get_id()
+        self._input_bb = input
+        self._dependency_list = [input]        
 
     def depends_on(self):
-        return []
+        return self._dependency_list
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
-            takes one syscall and assigns integer
-            integer is current length of syscall_dict
-            keep 0 free for unknown syscalls
+            takes one input and assigns integer
+            integer is current length of forward_dict
+            keep 0 free for unknown input
         """
-        if syscall.name() not in self._syscall_dict:
-            self._syscall_dict[syscall.name()] = len(self._syscall_dict) + 1
+        input = self._input_bb.get_result(syscall)
+        if input is not None:
+            if input not in self._input_to_int_dict:
+                self._input_to_int_dict[input] = len(self._input_to_int_dict) + 1
 
     def fit(self):
-        length = len(self._syscall_dict)
+        """
+        calculates the ohe for each seen input in training
+        """
+        length = len(self._input_to_int_dict)
         ohe_array = [0] * length
-        self._ohe_dict[0] = ohe_array
-        for i in range(1,length+1):
+        self._int_to_ohe_dict[0] = tuple(ohe_array) # for unknown inputs
+        for i in range(1, length + 1):
             ohe_array = [0] * length
             ohe_array[i-1] = 1
-            self._ohe_dict[i] = ohe_array
-        # print(self._ohe_dict)
+            self._int_to_ohe_dict[i] = tuple(ohe_array)
+        print(f"OHE.size = {self.get_embedding_size()}".rjust(27))
+        #print(self._int_to_ohe_dict)
 
-    def extract(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
-            transforms given syscall name an OHE array
+            transforms given input to an OHE tuple
+            if input is not present: dont write a result
         """
-        try:
-            sys_to_int = self._syscall_dict[syscall.name()]
-        except KeyError:
-            sys_to_int = 0
-        features[self.get_id()] = self._ohe_dict[sys_to_int]
+        input = self._input_bb.get_result(syscall)
+        if input is not None:
+            try:
+                input_to_int = self._input_to_int_dict[input]
+            except KeyError:
+                input_to_int = 0
+            return self._int_to_ohe_dict[input_to_int]
+        else:
+            return None
     
     def get_embedding_size(self):
-        return len(self._syscall_dict)
+        return len(self._input_to_int_dict)

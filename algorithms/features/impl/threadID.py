@@ -1,18 +1,18 @@
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ThreadID(BaseFeature, metaclass=Singleton):
+class ThreadID(BuildingBlock, metaclass=Singleton):
 
     def __init__(self):
         super().__init__()
 
-    def extract(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
-        extract thread ID of syscall
+        calculate thread ID of syscall
         """
-        features[self.get_id()] = syscall.thread_id()
+        return syscall.thread_id()
 
     def depends_on(self):
         return []

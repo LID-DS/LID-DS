@@ -8,7 +8,7 @@ from algorithms.features.w2v_embedding import W2VEmbedding
 from algorithms.decision_engines.som import Som
 from algorithms.ids import IDS
 from dataloader.data_loader import DataLoader
-from dataloader.data_preprocessor import DataPreprocessor
+from algorithms.data_preprocessor import DataPreprocessor
 from dataloader.direction import Direction
 
 if __name__ == '__main__':

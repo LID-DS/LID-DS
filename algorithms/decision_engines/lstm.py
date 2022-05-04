@@ -7,10 +7,11 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from tqdm import tqdm
 
-from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from dataloader.syscall import Syscall
+from algorithms.building_block import BuildingBlock
 
 
-class LSTM(BaseDecisionEngine):
+class LSTM(BuildingBlock):
     """
 
     LSTM decision engine
@@ -26,7 +27,7 @@ class LSTM(BaseDecisionEngine):
     """
 
     def __init__(self,
-                 # input_vector: BuildingBlock,
+                 input_vector: BuildingBlock,
                  distinct_syscalls: int,
                  input_dim: int,
                  epochs=300,
@@ -48,6 +49,9 @@ class LSTM(BaseDecisionEngine):
             force_train:        force training of Net
 
         """
+        super().__init__()
+        self._input_vector = input_vector
+        self._dependency_list = [input_vector]
         # input dim:
         self._input_dim = input_dim
         self._batch_size = batch_size
@@ -77,10 +81,6 @@ class LSTM(BaseDecisionEngine):
         self._batch_counter_val = 0
         self._hidden = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        print("")
-        print(f"Currently using GPU: {torch.cuda.is_available()}")
-        print("")
-        # self._device = torch.device("cpu")
         if not force_train:
             print(self._model_path)
             if os.path.isfile(self._model_path):
@@ -89,10 +89,14 @@ class LSTM(BaseDecisionEngine):
             else:
                 print(f"Did not load Model {self._model_path}.")
 
+    def depends_on(self):
+        return self._dependency_list
+
     def _set_model(self, distinct_syscalls: int, device: str):
         """
 
-        create LSTM Net with outputlayer of distinct_syscalls + 1 (one extra for unknown syscalls)
+        create LSTM Net with outputlayer of distinct_syscalls + 1
+        (one extra for unknown syscalls)
 
         """
         # output layer is #distinct_syscall + 1 for unknown syscalls
@@ -105,7 +109,7 @@ class LSTM(BaseDecisionEngine):
                          batch_size=self._batch_size)
         self._lstm.to(device)
 
-    def train_on(self, feature_list: list):
+    def train_on(self, syscall: Syscall):
         """
 
         create training data and keep track of batch indices
@@ -115,7 +119,8 @@ class LSTM(BaseDecisionEngine):
             feature_list (int): list of prepared features for DE
 
         """
-        if self._lstm is None:
+        feature_list = self._input_vector.get_result(syscall)
+        if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
             self._training_data['x'].append(x)
@@ -128,7 +133,7 @@ class LSTM(BaseDecisionEngine):
         else:
             pass
 
-    def val_on(self, feature_list: list):
+    def val_on(self, syscall: Syscall):
         """
 
         create validation data and keep track of batch indices
@@ -138,7 +143,8 @@ class LSTM(BaseDecisionEngine):
             feature_list (int): list of prepared features for DE
 
         """
-        if self._lstm is None:
+        feature_list = self._input_vector.get_result(syscall)
+        if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
             self._validation_data['x'].append(x)
@@ -184,24 +190,30 @@ class LSTM(BaseDecisionEngine):
             train_dataset, y_tensors = self._create_train_data(val=False)
             val_dataset, y_tensors_val = self._create_train_data(val=True)
             # for custom batches
-            train_dataloader = DataLoader(train_dataset, batch_sampler=self._batch_indices)
-            val_dataloader = DataLoader(val_dataset, batch_sampler=self._batch_indices_val)
+            train_dataloader = DataLoader(train_dataset,
+                                          batch_sampler=self._batch_indices)
+            val_dataloader = DataLoader(val_dataset,
+                                        batch_sampler=self._batch_indices_val)
             self._set_model(self._distinct_syscalls, self._device)
             self._lstm.to(self._device)
             preds = []
             # Net hyperparameters
             learning_rate = 0.001
             criterion = torch.nn.CrossEntropyLoss()
-            optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
+            optimizer = torch.optim.Adam(self._lstm.parameters(),
+                                         lr=learning_rate)
             self._hidden = None
             torch.manual_seed(1)
-            for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
+            for epoch in tqdm(range(self._epochs),
+                              'training network:'.rjust(25),
+                              unit=" epochs"):
                 for i, data in enumerate(train_dataloader, 0):
                     inputs, labels = data
                     outputs, hidden = self._lstm.forward(inputs, self._hidden)
                     # detach hidden otherwise overflow????
                     self._hidden = tuple(state.detach() for state in hidden)
-                    # if last batch is smaller than batch size hidden states cannot be used
+                    # if last batch is smaller than batch size
+                    # hidden states cannot be used
                     # caluclate the gradient, manually setting to 0
                     optimizer.zero_grad()
                     # obtain the loss function
@@ -229,17 +241,23 @@ class LSTM(BaseDecisionEngine):
                 val_accuracy = self._accuracy(preds, y_tensors_val)
                 preds = []
                 print("Epoch: %d, loss: %1.5f, accuracy: %1.5f, val_loss: %1.5f,  val_accuracy: %1.5f" %
-                      (epoch, train_loss.item(), accuracy, val_loss, val_accuracy))
+                      (epoch,
+                       train_loss.item(),
+                       accuracy,
+                       val_loss,
+                       val_accuracy))
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
             print(f"Net already trained. Using model {self._model_path}")
             pass
 
-    def predict(self, feature_list: list) -> float:
+    def _calculate(self, syscall: Syscall):
         """
 
-        remove label from feature_list and feed feature_list and hidden state into model.
-        model returns probabilities of every syscall seen in training + index 0 for unknown syscall
+        remove label from feature_list
+        feed feature_list and hidden state into model.
+        model returns probabilities of every syscall seen in training
+        + index 0 for unknown syscall
         index of actual syscall gives predicted_prob
         1 - predicted_prob is anomaly score
 
@@ -247,15 +265,22 @@ class LSTM(BaseDecisionEngine):
             float: anomaly score
 
         """
-        x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
-        x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1])).to(self._device)
-        actual_syscall = feature_list[0]
-        prediction_logits, self._hidden = self._lstm(x_tensor_final,
-                                                     self._hidden)
-        softmax = nn.Softmax(dim=0)
-        predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
-        anomaly_score = 1 - predicted_prob
-        return anomaly_score
+        feature_list = self._input_vector.get_result(syscall)
+        if feature_list:
+            x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
+            x_tensor_final = torch.reshape(x_tensor,
+                                           (x_tensor.shape[0],
+                                            1,
+                                            x_tensor.shape[1])).to(self._device)
+            actual_syscall = feature_list[0]
+            prediction_logits, self._hidden = self._lstm(x_tensor_final,
+                                                         self._hidden)
+            softmax = nn.Softmax(dim=0)
+            predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
+            anomaly_score = 1 - predicted_prob
+            return anomaly_score
+        else:
+            return None
 
     def _accuracy(self, outputs, labels):
         """

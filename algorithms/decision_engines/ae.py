@@ -1,12 +1,23 @@
 import collections
-from algorithms.decision_engines.base_decision_engine import BaseDecisionEngine
+from enum import Enum
 import torch
 import torch.utils.data.dataset as td
 import torch.nn as nn
 from tqdm import tqdm
 import math
 
+from dataloader.syscall import Syscall
+from algorithms.building_block import BuildingBlock
+
+
 device = torch.device("cpu") 
+
+
+class AEMode(Enum):
+    LOSS = 1
+    HIDDEN = 2
+    LOSS_AND_HIDDEN = 3
+
 
 class AEDataset(td.Dataset):
     """
@@ -74,37 +85,52 @@ class AENetwork(nn.Module):
         return decoded
 
 
-class AE(BaseDecisionEngine):
+class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_size, hidden_size):
-        super().__init__()
-        self._autoencoder = AENetwork(input_size,hidden_size)
-        print(self._autoencoder)
-        self._autoencoder.train()
+    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256):
+        super().__init__()                
+        self._input_vector = input_vector
+        self._dependency_list = [input_vector]
+        self._mode = mode 
+        self._hidden_size = hidden_size
+        self._input_size = 0
+        self._autoencoder = None # AENetwork(input_size,hidden_size)               
+        #self._autoencoder.train()
         self._loss_function = torch.nn.MSELoss()
         self._epochs = 100000
-        self._batch_size = 128
-        #self._batch_size = 64
+        self._batch_size = batch_size
         self._training_set = set() # we use distinct training data
         self._validation_set = set()
         self._result_dict = {}
+
+        self._early_stopping_num_epochs = 200
+
+    def depends_on(self):
+        return self._dependency_list
+
+    def train_on(self, syscall: Syscall):
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:
+            if self._input_size == 0:
+                self._input_size = len(input_vector)
+            self._training_set.add(tuple(input_vector))
+        
+    def val_on(self, syscall: Syscall):
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:
+            self._validation_set.add(tuple(input_vector))
+        
+    def fit(self):
+        print(f"ae.train_set: {len(self._training_set)}".rjust(27))
+        self._autoencoder = AENetwork(self._input_size ,self._hidden_size)               
+        self._autoencoder.train()
         self._optimizer = torch.optim.Adam(            
             self._autoencoder.parameters(),
             lr = 0.001,# lr = 0.001,
             weight_decay=0.01
         )
-        self._early_stopping_num_epochs = 200
-
-    def train_on(self, input_array: list):        
-        self._training_set.add(tuple(input_array))
-        
-    def val_on(self, input_array: list):
-        self._validation_set.add(tuple(input_array))
-        
-    def fit(self):
-        print(f"size of distinct training data: {len(self._training_set)}")
         loss_dq = collections.deque(maxlen=self._early_stopping_num_epochs)
         best_avg_loss = math.inf
         ae_ds = AEDataset(self._training_set)
@@ -141,7 +167,7 @@ class AE(BaseDecisionEngine):
             avg_val_loss = val_loss / count
 
             # print epoch results
-            bar.set_description(f"fit AE: train|val loss={avg_loss:.3f}|{avg_val_loss:.3f}".rjust(27), refresh=True)            
+            bar.set_description(f"fit AE: {avg_loss:.5f}|{avg_val_loss:.5f}".rjust(27), refresh=True)            
             if avg_loss < best_avg_loss:
                 best_avg_loss = avg_loss
 
@@ -153,22 +179,46 @@ class AE(BaseDecisionEngine):
             if stop_early:                
                 break
 
-        print(f"stopped after {bar.n} epochs")
+        print(f"stop at {bar.n} epochs".rjust(27))
         self._result_dict = {}
         self._autoencoder.eval()
         
-    def predict(self, input_array: list) -> float:
-        input_tuple = tuple(input_array)
-        if input_tuple in self._result_dict:
-            return self._result_dict[input_tuple]
+    def _calculate(self, syscall: Syscall):
+        input_vector = self._input_vector.get_result(syscall)
+        if input_vector is not None:            
+            if input_vector in self._result_dict:
+                return self._result_dict[input_vector]
+            else:
+                # Output of Autoencoder        
+                result = 0
+                in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
+                if self._mode == AEMode.LOSS:
+                    # calculating the autoencoder:
+                    ae_output_t = self._autoencoder(in_t)
+                    # Calculating the loss function
+                    result = self._loss_function(ae_output_t, in_t).item()
+                if self._mode == AEMode.HIDDEN:
+                    # calculating only the encoder part of the autoencoder:
+                    ae_encoder_t = self._autoencoder.encoder(in_t)
+                    result = tuple(ae_encoder_t.tolist())
+                if self._mode == AEMode.LOSS_AND_HIDDEN:
+                    # encoder
+                    ae_encoder_t = self._autoencoder.encoder(in_t)
+                    # decoder
+                    ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
+                    # loss:
+                    loss = self._loss_function(ae_decoder_t, in_t).item()
+                    # hidden:
+                    hidden = ae_encoder_t.tolist()
+                    # result
+                    rl = [loss]
+                    rl.extend(hidden)
+                    result = tuple(rl)
+
+                self._result_dict[input_vector] = result
+                return result    
         else:
-            # Output of Autoencoder        
-            in_t = torch.tensor(input_array, dtype=torch.float32).to(device) 
-            ae_output_t = self._autoencoder(in_t)
-            # Calculating the loss function
-            loss = self._loss_function(ae_output_t, in_t).item()
-            self._result_dict[input_tuple] = loss
-            return loss
+            return None            
 
     def new_recording(self):
         pass

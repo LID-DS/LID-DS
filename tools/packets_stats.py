@@ -3,7 +3,7 @@ import argparse
 import os
 
 from tqdm import tqdm
-from dataloader.data_loader import DataLoader, RecordingType
+from dataloader.data_loader_2021 import DataLoader2021 as DataLoader, RecordingType
 
 """
 data format

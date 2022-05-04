@@ -1,13 +1,13 @@
 import typing
 
-from algorithms.features.base_feature import BaseFeature
-from algorithms.features.util.Singleton import Singleton
+from algorithms.building_block import BuildingBlock
+from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ReturnValue(BaseFeature, metaclass=Singleton):
+class ReturnValue(BuildingBlock, metaclass=Singleton):
     """
-    Extract system call return value for specific syscalls.
+    calculate system call return value for specific syscalls.
     Include:
         write and writev are summarized as           write
         read, readv and are summarized as            read
@@ -16,10 +16,10 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         getdents as                                  get_dents
     Training phase:
         save highest value.
-    Extraction phase:
+    calculateion phase:
         normalize with highest value of training phase
         return value is error code return -1
-        Error codes included only : EAGAIN, EINVAL
+        Error codes included only : EAGAIN, EINVAL, ECONNRESET, EPIPE
     """
 
     def __init__(self):
@@ -37,14 +37,14 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
         self.recv_socket =  ['recvfrom', 'recv', 'recvmsg']
         self.get_dents =  ['getdents']
         self.not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
-        self.error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET']
+        self.error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET', 'EPIPE']
         self.interesting = self.read \
                            + self.write \
                            + self.send_socket \
                            + self.recv_socket \
                            + self.get_dents
 
-    def train_on(self, syscall: Syscall, features: dict):
+    def train_on(self, syscall: Syscall):
         """
         save max value of each specified syscall
         """
@@ -78,7 +78,7 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                 except ValueError as e:
                     if any(error in return_value_string for error in self.error_codes):
                         # error code was returned so ValueError is expected
-                        # in extraction -1 is returned
+                        # in calculateion -1 is returned
                         pass
                     else:
                         print(e)
@@ -86,9 +86,9 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         print(f' Return string: {return_value_string}')
                         print(f' Syscall: {syscall.name()}')
 
-    def extract(self, syscall: Syscall, features: dict):
+    def _calculate(self, syscall: Syscall):
         """
-        extract return value type and normalize with max value of training phase
+        calculate return value type and normalize with max value of training phase
         """
         return_type = None
         normalized_bytes = 0
@@ -119,13 +119,13 @@ class ReturnValue(BaseFeature, metaclass=Singleton):
                         print(f' Return string: {return_value_string}')
                         print(f' Syscall: {syscall.name()}')
                 try:
-                    if return_type is not None and return_type is not 'error':
+                    if return_type is not None and return_type != 'error':
                         normalized_bytes = current_bytes/self._max[return_type]
-                    elif return_type is not 'error':
+                    elif return_type != 'error':
                         normalized_bytes = 0
                 except ZeroDivisionError:
                     normalized_bytes = 0
-        features[self.get_id()] = normalized_bytes
+        return normalized_bytes
 
     def depends_on(self):
         return []

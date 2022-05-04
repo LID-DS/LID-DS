@@ -134,13 +134,16 @@ class ScorePlot:
         ax2.set_title("exploits")
         self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
 
-    def show_plot(self):
+    def show_plot(self, filename=None):
 
         """
         shows plot if there is one
         """
         if self._figure is not None:
-            plt.show()
+            if filename is None:
+                plt.show()
+            else:
+                plt.savefig(filename,dpi=300)
         else:
             "There is no plot to show."
 

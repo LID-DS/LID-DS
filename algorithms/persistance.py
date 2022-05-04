@@ -1,6 +1,6 @@
+import pandas as pd
 import os.path
 import json
-import pandas as pd
 
 
 def save_to_json(result_dict: dict, path: str):
@@ -13,14 +13,15 @@ def save_to_json(result_dict: dict, path: str):
         "false_positives": int,
         "true_negatives": int,
         "false_negatives": int,
-        "alarm_count": int,
+        "correct_alarm_count": int,
         "exploit_count": int,
         "detection_rate": float,
         "consecutive_false_positives_normal": int,
         "consecutive_false_positives_exploits": int,
         "recall": float,
         "precision_with_cfa": float,
-        "precision_with_syscalls": float
+        "precision_with_syscalls": float,
+        "f1_cfa": float
     }
     config = {}
     for key in result_dict.keys():
@@ -37,12 +38,12 @@ def save_to_json(result_dict: dict, path: str):
             result_list = json.load(file)
         result_list.append(complete_dict)
         with open(path, 'w') as file:
-            json.dump(result_list, file)
+            json.dump(result_list, file, indent=2)
     else:
         print('No persistent data yet')
         result_list = [complete_dict]
         with open(path, 'w') as file:
-            json.dump(result_list, file)
+            json.dump(result_list, file, indent=2)
 
 
 def load_from_json(path: str):
@@ -73,7 +74,3 @@ def print_as_table(results: list = None, path: str = None):
     performance = pd.DataFrame(performance_list)
     result_list = pd.concat([performance, config], axis=1)
     print(result_list)
-
-
-if __name__ == '__main__':
-    print_as_table(path='persistent_data/lstm.json')
