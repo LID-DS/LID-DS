@@ -33,16 +33,18 @@ from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 from algorithms.persistance import save_to_json
 
+from algorithms.persistance import save_to_json, load_from_json
+
 if __name__ == '__main__':
 
     select_lid_ds_version_number = 0
     lid_ds_version = [
-        "LID-DS-2019", 
+        "LID-DS-2019",
         "LID-DS-2021"
     ]
 
     # scenarios orderd by training data size asc
-    # 0 - 14    
+    # 0 - 14
     select_scenario_number = 0
     scenario_names = [
         "CVE-2017-7529",
@@ -60,7 +62,7 @@ if __name__ == '__main__':
         "Juice-Shop",
         "CVE-2020-13942",
         "CVE-2017-12635_6"
-    ]    
+    ]
 
     # todo: change this to your base path
     lid_ds_base_path = "/home/grimmer/data"
@@ -75,7 +77,6 @@ if __name__ == '__main__':
     ngram_length = 7
     embedding_size = 10
     #--------------------
-    
 
     ngram_1 = Ngram([IntEmbedding()],True,ngram_length)
     stide = Stide(ngram_1)
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     results['window_length'] = window_length
     results['thread_aware'] = thread_aware
     results['config'] = ids.get_config()
-    results['scenario'] =  lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
+    results['scenario'] = lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
     result_path = 'results/results_stide_LID-DS-2021.json'
     save_to_json(results, result_path)
 

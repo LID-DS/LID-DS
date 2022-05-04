@@ -27,52 +27,42 @@ class LSTM(BuildingBlock):
     """
 
     def __init__(self,
-                input_vector: BuildingBlock,
-                 ngram_length: int,
-                 embedding_size: int,
+                 input_vector: BuildingBlock,
                  distinct_syscalls: int,
-                 time_delta=0,
-                 thread_change_flag=0,
-                 return_value=0,
+                 input_dim: int,
                  epochs=300,
-                 architecture=None,
+                 hidden_layers=1,
+                 hidden_dim=64,
                  batch_size=1,
                  model_path='Models/',
                  force_train=False):
         """
 
         Args:
-            ngram_length:       count of embedded syscalls
-            embedding_size:     size of one embedded syscall
             distinct_syscalls:  amount of distinct syscalls in training data
-            extra_param:        amount of used extra parameters
+            input_dim:          input dimension
             epochs:             set training epochs of LSTM
-            architecture:       type of LSTM architecture
+            hidden_layers:      amount of LSTM-layers
+            hidden_dim:         dimension of LSTM-layer
             batch_size:         set maximum batch_size
             model_path:         path to save trained Net to
             force_train:        force training of Net
 
-        """        
+        """
         super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
-        self._ngram_length = ngram_length
-        self._embedding_size = embedding_size
         # input dim:
-        #   time_delta and return value per syscall,
-        #   thread change flag per ngram
-        self._input_dim = (self._ngram_length
-                           * (self._embedding_size+return_value+time_delta)
-                           + thread_change_flag)
+        self._input_dim = input_dim
         self._batch_size = batch_size
         self._epochs = epochs
         self._distinct_syscalls = distinct_syscalls
-        if not os.path.exists(model_path):
-            os.makedirs(model_path)
-        self._model_path = model_path \
-            + f'n{self._ngram_length}-e{self._embedding_size}-r{bool(return_value)}' \
-            + f'tcf{bool(thread_change_flag)}-td{bool(time_delta)}-ep{self._epochs}' \
-            + f'b{self._batch_size}'
+        self._hidden_layers = hidden_layers
+        self._hidden_dim = hidden_dim
+        model_dir = os.path.split(model_path)[0]
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        self._model_path = model_path
         self._training_data = {
             'x': [],
             'y': []
@@ -82,7 +72,6 @@ class LSTM(BuildingBlock):
             'y': []
         }
         self._state = 'build_training_data'
-        self._architecture = architecture
         self._lstm = None
         self._batch_indices = []
         self._batch_indices_val = []
@@ -92,10 +81,9 @@ class LSTM(BuildingBlock):
         self._batch_counter_val = 0
         self._hidden = None
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self._device = torch.device("cpu")
         if not force_train:
             print(self._model_path)
-            if os.path.exists(self._model_path):
+            if os.path.isfile(self._model_path):
                 self._set_model(self._distinct_syscalls, self._device)
                 self._lstm.load_state_dict(torch.load(self._model_path))
             else:
@@ -107,19 +95,19 @@ class LSTM(BuildingBlock):
     def _set_model(self, distinct_syscalls: int, device: str):
         """
 
-        create LSTM Net with outputlayer of distinct_syscalls + 1 (one extra for unknown syscalls)
+        create LSTM Net with outputlayer of distinct_syscalls + 1
+        (one extra for unknown syscalls)
 
         """
-        hidden_dim = 64
-        n_layers = 1
         # output layer is #distinct_syscall + 1 for unknown syscalls
         output_neurons = distinct_syscalls + 1
         self._lstm = Net(output_neurons,
                          self._input_dim,
-                         hidden_dim,
-                         n_layers,
+                         self._hidden_dim,
+                         self._hidden_layers,
                          device=device,
                          batch_size=self._batch_size)
+        self._lstm.to(device)
 
     def train_on(self, syscall: Syscall):
         """
@@ -155,7 +143,7 @@ class LSTM(BuildingBlock):
             feature_list (int): list of prepared features for DE
 
         """
-        feature_list = self._input_vector.get_result(syscall) 
+        feature_list = self._input_vector.get_result(syscall)
         if self._lstm is None and feature_list is not None:
             x = np.array(feature_list[1:])
             y = feature_list[0]
@@ -202,24 +190,30 @@ class LSTM(BuildingBlock):
             train_dataset, y_tensors = self._create_train_data(val=False)
             val_dataset, y_tensors_val = self._create_train_data(val=True)
             # for custom batches
-            train_dataloader = DataLoader(train_dataset, batch_sampler=self._batch_indices)
-            val_dataloader = DataLoader(val_dataset, batch_sampler=self._batch_indices_val)
+            train_dataloader = DataLoader(train_dataset,
+                                          batch_sampler=self._batch_indices)
+            val_dataloader = DataLoader(val_dataset,
+                                        batch_sampler=self._batch_indices_val)
             self._set_model(self._distinct_syscalls, self._device)
             self._lstm.to(self._device)
             preds = []
             # Net hyperparameters
             learning_rate = 0.001
             criterion = torch.nn.CrossEntropyLoss()
-            optimizer = torch.optim.Adam(self._lstm.parameters(), lr=learning_rate)
+            optimizer = torch.optim.Adam(self._lstm.parameters(),
+                                         lr=learning_rate)
             self._hidden = None
             torch.manual_seed(1)
-            for epoch in tqdm(range(self._epochs), 'training network:'.rjust(25), unit=" epochs"):
+            for epoch in tqdm(range(self._epochs),
+                              'training network:'.rjust(25),
+                              unit=" epochs"):
                 for i, data in enumerate(train_dataloader, 0):
                     inputs, labels = data
                     outputs, hidden = self._lstm.forward(inputs, self._hidden)
                     # detach hidden otherwise overflow????
                     self._hidden = tuple(state.detach() for state in hidden)
-                    # if last batch is smaller than batch size hidden states cannot be used
+                    # if last batch is smaller than batch size
+                    # hidden states cannot be used
                     # caluclate the gradient, manually setting to 0
                     optimizer.zero_grad()
                     # obtain the loss function
@@ -246,8 +240,12 @@ class LSTM(BuildingBlock):
                         preds.append(torch.argmax(outputs[j]))
                 val_accuracy = self._accuracy(preds, y_tensors_val)
                 preds = []
-                print("Epoch: %d, loss: %1.5f, accuracy: %1.5f, val_loss: %1.5f,  val_accuracy: %1.5f" % \
-                      (epoch, train_loss.item(), accuracy, val_loss, val_accuracy))
+                print("Epoch: %d, loss: %1.5f, accuracy: %1.5f, val_loss: %1.5f,  val_accuracy: %1.5f" %
+                      (epoch,
+                       train_loss.item(),
+                       accuracy,
+                       val_loss,
+                       val_accuracy))
             torch.save(self._lstm.state_dict(), self._model_path)
         else:
             print(f"Net already trained. Using model {self._model_path}")
@@ -256,8 +254,10 @@ class LSTM(BuildingBlock):
     def _calculate(self, syscall: Syscall):
         """
 
-        remove label from feature_list and feed feature_list and hidden state into model.
-        model returns probabilities of every syscall seen in training + index 0 for unknown syscall
+        remove label from feature_list
+        feed feature_list and hidden state into model.
+        model returns probabilities of every syscall seen in training
+        + index 0 for unknown syscall
         index of actual syscall gives predicted_prob
         1 - predicted_prob is anomaly score
 
@@ -266,18 +266,21 @@ class LSTM(BuildingBlock):
 
         """
         feature_list = self._input_vector.get_result(syscall)
-        if feature_list is not None:
+        if feature_list:
             x_tensor = Variable(torch.Tensor(np.array([feature_list[1:]])))
-            x_tensor_final = torch.reshape(x_tensor, (x_tensor.shape[0], 1, x_tensor.shape[1]))
+            x_tensor_final = torch.reshape(x_tensor,
+                                           (x_tensor.shape[0],
+                                            1,
+                                            x_tensor.shape[1])).to(self._device)
             actual_syscall = feature_list[0]
             prediction_logits, self._hidden = self._lstm(x_tensor_final,
-                                                        self._hidden)
+                                                         self._hidden)
             softmax = nn.Softmax(dim=0)
             predicted_prob = float(softmax(prediction_logits[0])[actual_syscall])
             anomaly_score = 1 - predicted_prob
             return anomaly_score
         else:
-            return None            
+            return None
 
     def _accuracy(self, outputs, labels):
         """
@@ -294,7 +297,7 @@ class LSTM(BuildingBlock):
                 miss += 1
         return hit/(hit+miss)
 
-    def new_recording(self, val: bool=False):
+    def new_recording(self, val: bool = False):
         """
 
         while creation of dataset:
