@@ -12,7 +12,8 @@ from numpy.linalg import norm
 
 
 class Som(BuildingBlock):
-    def __init__(self, input_vector: BuildingBlock, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5 ,  max_size: int = None):
+    def __init__(self, input_vector: BuildingBlock, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5,
+                 max_size: int = None, size=None):
         """
             Anomaly Detection Engine based on Teuvo Kohonen's Self-Organizing-Map (SOM)
 
@@ -27,6 +28,8 @@ class Som(BuildingBlock):
                     (at iteration t: have sigma(t) = sigma / (1 + t/T) where T is #num_iteration/2)
                 learning_rate: Initial learning rate
                     (at iteration t: learning_rate(t) = learning_rate / (1 + t/T) where T is #num_iteration/2)
+                max_size: the maximum size for size estimation
+                size: set if size shall not be estimated dynamically (SOM is always initialized quadratic)
         """
         super().__init__()
         self._input_vector = input_vector
@@ -38,34 +41,40 @@ class Som(BuildingBlock):
         self._som = None
         self._cache = {}
         self._max_size = max_size
+        self._size = size
         self.custom_fields = {}
 
     def depends_on(self):
         return self._dependency_list
 
-    def _estimate_som_size(self):
+    def _get_or_estimate_som_size(self):
         """
             Estimates the SOM size by adding 1 to the root of number of vectors in training data.
             As training data is distinct this leads to a slightly higher number of Neurons than distinct input vectors
 
             Idea: Have at least one Neuron for every single distinct input vector
-        """
-        som_size = round(math.sqrt(
-            len(self._buffer)
-        ), 0)
 
-        som_size += 1
-        if self._max_size is not None and som_size > self._max_size:
-            return self._max_size
+            if a fixed size is given on initialization of the som the estimation will be skipped
+        """
+        if self._size is None:
+            som_size = round(math.sqrt(
+                len(self._buffer)
+            ), 0)
+
+            som_size += 1
+            if self._max_size is not None and som_size > self._max_size:
+                return self._max_size
+            else:
+                return int(som_size)
         else:
-            return int(som_size)
+            return self._size
 
     def train_on(self, syscall: Syscall):
         """
             creates distinct input data buffer used for training
         """
         input_vector = self._input_vector.get_result(syscall)
-        if input_vector is not None:            
+        if input_vector is not None:
             if input_vector not in self._buffer:
                 self._buffer.add(input_vector)
 
@@ -75,7 +84,7 @@ class Som(BuildingBlock):
         """
         print(f"som.train_set: {len(self._buffer)} ".rjust(27))
         # print(self._buffer)
-        som_size = self._estimate_som_size()
+        som_size = self._get_or_estimate_som_size()
         # vector_size = len(self._buffer[0])
         vector_size = len(next(iter(self._buffer)))
 
@@ -95,7 +104,7 @@ class Som(BuildingBlock):
             Returns:
                 distance (float): euclidian distance/anomaly score
         """
-        input_vector = self._input_vector.get_result(syscall)        
+        input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
             if input_vector not in self._cache:
                 codebook_vector = np.array(self._som.quantization([input_vector])[0])
