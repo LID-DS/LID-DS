@@ -374,12 +374,6 @@ class Net(nn.Module):
         reshaped_hidden = hidden[0].view(-1, self.hidden_size)
         out = self.tanh(reshaped_hidden)
         out = self.output(out)
-        # out = self.relu(out)
-        # out = self.fc(out)
-        # out = self.tanh(new_hidden_state)
-        # out = self.output(out)
-        # if list(hidden[0].size())[0] != self._batch_size:
-        # self._hidden = None
         return out, hidden
 
 
@@ -398,14 +392,3 @@ class SyscallFeatureDataSet(Dataset):
         _x = self.X[index]
         _y = self.Y[index]
         return _x, _y
-
-
-class EndBatchWithRecording:
-    """
-
-    Custom Batch Sampler to end batch with 'new_recording' marker
-
-    """
-
-    def __init__(self, batch_sampler):
-        pass
