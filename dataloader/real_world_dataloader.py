@@ -17,7 +17,7 @@ TEST = 'test'
 
 class RecordingType(Enum):
     NORMAL = 1
-    ATTACK = 2
+    NORMAL_AND_ATTACK = 2
 
 
 def get_type_of_recording(path: str) -> RecordingType:
@@ -113,8 +113,9 @@ class RealWorldDataLoader(BaseDataLoader):
             Returns:
             list: list of training data recordings
 
-        """
-        pass
+        """11
+        recordings = self.extract_recordings(category=TRAINING)
+        return recordings
 
     def validation_data(self) -> list:
         """
@@ -126,7 +127,8 @@ class RealWorldDataLoader(BaseDataLoader):
             list: list of validation data recordings
 
         """
-        pass
+        recordings = self.extract_recordings(category=VALIDATION)
+        return recordings
 
     def test_data(self) -> list:
         """
@@ -138,7 +140,8 @@ class RealWorldDataLoader(BaseDataLoader):
             list: list of test data recordings
 
         """
-        pass
+        recordings = self.extract_recordings(category=TEST)
+        return recordings
 
     def extract_recordings(self, category: str) -> list:
         """
@@ -174,9 +177,9 @@ class RealWorldDataLoader(BaseDataLoader):
             'validation': {},
             'test': {}
         }
-        training_files = glob.glob(self.scenario_path + f'/{TRAINING}/*.scap')
-        val_files = glob.glob(self.scenario_path + f'/{VALIDATION}/*.scap')
-        test_files = glob.glob(self.scenario_path + f'/{TEST}/*.scap')
+        training_files = glob.glob(self.scenario_path + f'/{TRAINING}/*.sc')
+        val_files = glob.glob(self.scenario_path + f'/{VALIDATION}/*.sc')
+        test_files = glob.glob(self.scenario_path + f'/{TEST}/*.sc')
         all_files = training_files + val_files + test_files
         for file in all_files:
             file_name = os.path.dirname(file)
