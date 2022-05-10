@@ -1,6 +1,7 @@
 import os
 import glob
 import errno
+from zipfile import ZipFile
 import nest_asyncio
 
 from enum import Enum
@@ -46,6 +47,17 @@ def get_file_name(path: str) -> str:
     """
     return os.path.splitext(os.path.basename(path))[0]
 
+
+def convert_all_scap(path: str) -> bool:
+    # training_files = glob.glob(path + f'/{TRAINING}/*.scap')
+    val_files = glob.glob(path + '/val_test/*.scap')
+    # test_files = glob.glob(path + f'/{TEST}/*.scap')
+    # all_files = training_files + val_files + test_files
+    for file in val_files:
+        os.system(f'sysdig -v -b -p "%evt.rawtime %user.uid %proc.pid %proc.name %thread.tid %syscall.type %evt.dir %evt.args" -r {file} "proc.pid != -1" > {file[:-2]}')
+        # ZipFile(f'{file[:-4]}zip', mode='w', compresslevel=8).write(f'{file[:-2]}')
+        # os.remove(file)
+        # os.remove(file[:-2])
 
 
 class RealWorldDataLoader(BaseDataLoader):
@@ -181,3 +193,7 @@ class RealWorldDataLoader(BaseDataLoader):
             elif TEST in file_name:
                 metadata_dict[TEST][get_file_name(file)] = temp_dict
         return metadata_dict
+
+
+if __name__ == '__main__':
+    convert_all_scap('/media/tk/PortableSSD/ganzmann_data/')
