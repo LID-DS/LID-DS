@@ -1,13 +1,13 @@
 import pytest
+import os
 
-from dataloader.dataloader_factory import dataloader_factory
+from dataloader.direction import Direction
+from dataloader.dataloader_real_world import DataLoaderRealWorld
 
-
-def create_real_world_dummy():
-    base_path = '/tmp/dummy21/dummyscenario'
-    path = os.path.join(base_path, 'test', 'normal')
-    os.makedirs(path, exist_ok=True)
-
-    os.system(f'touch {path}/dummy.zip')
-
-    return base_path
+def test_real_world_dataloader():
+    dataloader = DataLoaderRealWorld(scenario_path='dataloader/test/real_world_dummy/',
+                                     direction=Direction.BOTH)
+    for recording in dataloader.test_data():
+        assert recording.metadata()['exploit']==True
+    for recording in dataloader.training_data():
+        assert recording.metadata()['exploit']==False
