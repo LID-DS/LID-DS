@@ -57,21 +57,15 @@ def test_w2v_embedding():
         force_train=True
     )
 
-    training_syscalls = [syscall_1,
-                         syscall_2,
-                         syscall_3,
-                         syscall_4,
-                         syscall_5,
-                         syscall_6,
-                         syscall_7,
-                         syscall_8]
+    training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_5, syscall_6, syscall_7, syscall_8]
 
     for syscall in training_syscalls:
         embedding.train_on(syscall)
     embedding.fit()
 
+    
     assert type(embedding._calculate(syscall_9)) == tuple
+   
+    assert embedding._calculate(syscall_10) == [0] * vector_size
 
-    assert embedding._calculate(syscall_10) == tuple([0] * vector_size)
-
-    assert embedding._calculate(syscall_11) == tuple([0] * vector_size)
+    assert embedding._calculate(syscall_11) == [0] * vector_size
