@@ -60,7 +60,14 @@ class RecordingRealWorld(BaseRecording):
             dict: metadata dictionary
         """
         if 'malicious' in self.name:
-            return {"exploit": True} 
+            return {"exploit": True,
+                    "time":{
+                        "exploit":[
+                            {
+                                "absolute": 0.0
+                            }
+                        ]
+                    }} 
         else:
             return {"exploit": False}
 

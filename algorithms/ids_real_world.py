@@ -20,7 +20,7 @@ if __name__ == '__main__':
     embedding_size = 4
     thread_aware = True
 
-    path='../../Data/real_world/'
+    path='../../WHK/Data/real_world/'
     # data loader for scenario
     dataloader = DataLoaderRealWorld(path, direction=Direction.CLOSE)
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     ngram = Ngram(feature_list=[int_embedding],
                   thread_aware=True,
                   ngram_length=ngram_length + 1
-                  )
+                 )
 
     # decision engine (DE)
     de = Stide(ngram)

@@ -230,7 +230,7 @@ class DataLoaderRealWorld(BaseDataLoader):
 
 
 if __name__ == '__main__':
-    base_path = '../../Data/real_world'
+    base_path = '../../WHK/Data/real_world'
     dataloader = DataLoaderRealWorld(base_path)
     function_list = [dataloader.training_data,
                      dataloader.validation_data,
