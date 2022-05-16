@@ -109,6 +109,11 @@ class PerformanceMeasurement:
         self._cfp_end_exploits()
         self._cfp_end_normal()
 
+        # ending alarm
+        if self.create_alarms:
+            self.alarms.end_alarm()
+
+
     def analyze_syscall(self, syscall: Syscall, anomaly_score: float):
         """
         counts performance values with syscall and anomaly score as input,
@@ -158,6 +163,8 @@ class PerformanceMeasurement:
                 if self.create_alarms:
                     self.alarms.add_or_update_alarm(syscall, False)
             if anomaly_score <= self._threshold:
+                if self.create_alarms:
+                    self.alarms.end_alarm()
                 self._cfp_end_normal()
                 self._tn += 1
 
