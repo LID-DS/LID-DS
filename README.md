@@ -7,13 +7,10 @@
 * LID-DS 2019: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/HLXiWssriRMt9pp)
 
 ## The LID-DS-2021 Lib and Dataloader
-* tbd
+* [wiki](https://github.com/LID-DS/LID-DS/wiki)
 
 ## The Recording Framework Version 2021
 * [LID-DS-2021 Recording Framework: Documentation](https://github.com/LID-DS/LID-DS/wiki/LID-DS-Recording-Framework:-Documentation-and-Installation)
-
-## other
-* [wiki](https://github.com/LID-DS/LID-DS/wiki)
 
 ## License
 
