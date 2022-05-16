@@ -7,7 +7,7 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 
-from dataloader.dataloader_real_world import DataLoaderRealWorld
+from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
 from pprint import pprint
@@ -16,13 +16,14 @@ if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes
     """
-    ngram_length = 3
+    ngram_length = 5
     embedding_size = 4
     thread_aware = True
 
+    # path='/media/tk/SSD/ganzmann_data/'
     path='../../WHK/Data/real_world/'
     # data loader for scenario
-    dataloader = DataLoaderRealWorld(path, direction=Direction.CLOSE)
+    dataloader = dataloader_factory(path, direction=Direction.CLOSE)
 
     # embedding
     int_embedding = IntEmbedding()
@@ -32,11 +33,12 @@ if __name__ == '__main__':
     # ngrams
     ngram = Ngram(feature_list=[int_embedding],
                   thread_aware=True,
-                  ngram_length=ngram_length + 1
+                  ngram_length=ngram_length
                  )
 
     # decision engine (DE)
-    de = Stide(ngram)
+    de = Stide(ngram,
+               window_length=100)
 
     # define the used features
     ids = IDS(data_loader=dataloader,
