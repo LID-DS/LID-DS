@@ -12,6 +12,9 @@
 ## The Recording Framework Version 2021
 * [LID-DS-2021 Recording Framework: Documentation](https://github.com/LID-DS/LID-DS/wiki/LID-DS-Recording-Framework:-Documentation-and-Installation)
 
+## other
+* https://github.com/LID-DS/LID-DS/wiki
+
 ## License
 
 Leipzig Intrusion Detection Dataset (LID-DS)
