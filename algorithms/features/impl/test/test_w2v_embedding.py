@@ -66,6 +66,6 @@ def test_w2v_embedding():
     
     assert type(embedding._calculate(syscall_9)) == tuple
    
-    assert embedding._calculate(syscall_10) == [0] * vector_size
+    assert embedding._calculate(syscall_10) == tuple([0] * vector_size)
 
-    assert embedding._calculate(syscall_11) == [0] * vector_size
+    assert embedding._calculate(syscall_11) == tuple([0] * vector_size)
