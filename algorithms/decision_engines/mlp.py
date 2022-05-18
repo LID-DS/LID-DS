@@ -1,3 +1,6 @@
+import collections
+import math
+
 import torch
 import torch.nn as nn
 from torch import optim
@@ -24,6 +27,7 @@ class MLPDataset(Dataset):
 
         return _x, _y
 
+
 class MLP(BuildingBlock):
     def __init__(self,
                  input_vector: BuildingBlock,
@@ -36,6 +40,8 @@ class MLP(BuildingBlock):
         self.input_vector = input_vector
         self.output_label = output_label
 
+        self._dependency_list = [input_vector]
+
         self._input_size = 0
         self._output_size = None
         self.hidden_size = hidden_size
@@ -46,6 +52,10 @@ class MLP(BuildingBlock):
         self._validation_set = set()
 
         self._model = None  # to be initialized in fit()
+
+        self._early_stop_epochs = 200
+
+        self._result_dict = {}
 
     def train_on(self, syscall: Syscall):
         input_vector = self.input_vector.get_result(syscall)
@@ -78,28 +88,75 @@ class MLP(BuildingBlock):
             hidden_layers=self.hidden_layers
         ).model
 
+
+
         criterion = nn.MSELoss()
         optimizer = optim.SGD(self._model.parameters(), lr=0.003)
+        train_data_set = MLPDataset(self._training_set)
+        val_data_set = MLPDataset(self._validation_set)
+
+        loss_dq = collections.deque(maxlen=self._early_stop_epochs)
+        best_avg_loss = math.inf
+
+        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
+        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
 
         max_epochs = 100000
         for e in range(max_epochs):
             running_loss = 0
 
-            for input_vector, output_label in self._training_set:
-                optimizer.zero_grad()
+            # training
+            for input, label in train_data_loader:
+                optimizer.zero_grad()  # prepare gradients
 
-                output = self._model(input_vector)
-                loss = criterion(output, output_label)
+                output = self._model(input)  # compute output
+                loss = criterion(output, label)  # compute loss
 
-                loss.backward()
-                optimizer.step()
+                loss.backward()  # compute gradients
+                optimizer.step()  # update weights
 
                 running_loss += loss.item()
-            else:
-                print(f"Training loss: {running_loss / len(self._training_set)}")
+
+            # validation
+            val_loss = 0.0
+            count = 0
+            for input, label in val_data_loader:
+                output = self._model(input)
+                loss = criterion(output, label)
+                val_loss += loss.item()
+                count += 1
+            avg_val_loss = val_loss / count
+
+            if avg_val_loss < best_avg_loss:
+                best_avg_loss = avg_val_loss
+
+            loss_dq.append(avg_val_loss)
+            stop_early = True
+            for l in loss_dq:
+                if l == best_avg_loss:
+                    stop_early = False
+            if stop_early:
+                break
+
+            print(f'average validation loss: {avg_val_loss}')
 
     def _calculate(self, syscall: Syscall):
-        pass
+        input_vector = self.input_vector.get_result(syscall)
+        if input_vector is not None:
+            if input_vector in self._result_dict:
+                return self._result_dict[input_vector]
+            else:
+                in_tensor = torch.tensor(input_vector)
+                mlp_out = self._model(in_tensor)
+
+                anomaly_score = 1 - mlp_out
+                self._result_dict[input_vector] = anomaly_score
+                return anomaly_score
+        else:
+            return None
+
+    def depends_on(self):
+        return self._dependency_list
 
 
 class Feedforward(nn.Module):
