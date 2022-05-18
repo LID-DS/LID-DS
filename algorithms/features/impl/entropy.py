@@ -1,10 +1,10 @@
 import math
 import numpy as np
-from collections import deque
+from collections import Counter
 
 
-from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
+from algorithms.building_block import BuildingBlock
 
 
 class Entropy(BuildingBlock):
@@ -27,23 +27,52 @@ class Entropy(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-        calculates the entropy of result of BuildingBlock 
+            calculates the entropy of result of BuildingBlock 
+            defined in self._feature
+            Params:
+            syscall(Syscall): syscall to calc entropy of
         """
         value = self._feature.get_result(syscall)
         if type(value) == int:
             # every digit as list entry
             res = [int(x) for x in str(value)]
-            entropy = self._calc_entropy(res)
+        elif type(value) == str:
+            res = list(value)
         else: 
             raise ValueError  
+        entropy = self._calc_entropy(res)
 
         return entropy 
 
-    def _calc_entropy(self, labels: list):
+    def _calc_entropy(self,
+                      label: list,
+                      unit: str='shannon'):
+        """ 
+            Computes entropy of label distribution. 
+            Label can be list of variable entries thanks to Counter.
+            Base is set to 2 through unit -> Shannon entropy
+            Params:
+            label: list of labels 
+            Returns:
+            float: entropy value
         """
-            calculates entropy of given labels
-        """
-        value,counts = np.unique(labels, return_counts=True)
-        norm_counts = counts / counts.sum()
-        base = e if base is None else base
-        return -(norm_counts * np.log(norm_counts)/np.log(base)).sum()
+        base = {
+             'shannon' : 2.,
+             'natural' : math.exp(1),
+             'hartley' : 10.
+        }   
+        if len(label) <= 1:
+             return 0
+
+        counts = Counter()
+
+        for d in label:
+            counts[d] += 1
+
+        ent = 0
+
+        probs = [float(c) / len(label) for c in counts.values()]
+        for p in probs:
+            if p > 0.:
+                ent -= p * math.log(p, base[unit])
+        return ent
