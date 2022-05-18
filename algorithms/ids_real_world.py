@@ -1,14 +1,14 @@
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.ngram import Ngram
-# from algorithms.features.time_delta_syscalls import TimeDeltaSyscalls
-# from algorithms.features.thread_change_flag import ThreadChangeFlag
 
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
 
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
+
+from algorithms.persistance import save_to_json
 
 from pprint import pprint
 
@@ -20,8 +20,8 @@ if __name__ == '__main__':
     embedding_size = 4
     thread_aware = True
 
-    # path='/media/tk/SSD/ganzmann_data/'
-    path='../../WHK/Data/real_world/'
+    path='/media/tk/SSD/ganzmann_data/'
+    # path='../../WHK/Data/real_world/'
     # data loader for scenario
     dataloader = dataloader_factory(path, direction=Direction.CLOSE)
 
@@ -51,3 +51,16 @@ if __name__ == '__main__':
     ids.do_detection()
     # print(results)
     pprint(ids.performance.get_performance())
+    results = ids.performance.get_performance()
+    pprint(results)
+
+    # enrich results with configuration and save to disk
+    results['algorithm'] = "STIDE"
+    results['ngram_length'] = ngram_length
+    results['w2v_size'] = w2v_size
+    results['thread_aware'] = thread_aware
+    results['scenario'] = 'real_world' 
+    result_path = 'results/results_real_world.json'
+
+    save_to_json(result_dict=results, path=result_path)
+
