@@ -38,7 +38,12 @@ class Entropy(BuildingBlock):
             res = [int(x) for x in str(value)]
         elif type(value) == str:
             res = list(value)
+        elif type(value) == list:
+            res = value
         else: 
+            print('''Sadly this feature 
+                  is only implemented for:
+                  str, int and list.''')
             raise ValueError  
         entropy = self._calc_entropy(res)
 
