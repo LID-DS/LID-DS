@@ -1,5 +1,4 @@
 from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.threadID import ThreadID
 from algorithms.features.impl.ngram import Ngram
 
 from algorithms.decision_engines.stide import Stide
@@ -19,8 +18,9 @@ if __name__ == '__main__':
     ngram_length = 5
     embedding_size = 4
     thread_aware = True
+    window_length = 100
 
-    path='/media/tk/SSD/ganzmann_data/'
+    path = '/media/tk/SSD/ganzmann_data/'
     # path='../../WHK/Data/real_world/'
     # data loader for scenario
     dataloader = dataloader_factory(path, direction=Direction.CLOSE)
@@ -32,13 +32,12 @@ if __name__ == '__main__':
 
     # ngrams
     ngram = Ngram(feature_list=[int_embedding],
-                  thread_aware=True,
-                  ngram_length=ngram_length
-                 )
+                  thread_aware=thread_aware,
+                  ngram_length=ngram_length)
 
     # decision engine (DE)
     de = Stide(ngram,
-               window_length=100)
+               window_length=window_length)
 
     # define the used features
     ids = IDS(data_loader=dataloader,
@@ -57,10 +56,9 @@ if __name__ == '__main__':
     # enrich results with configuration and save to disk
     results['algorithm'] = "STIDE"
     results['ngram_length'] = ngram_length
-    results['w2v_size'] = w2v_size
+    results['window_length'] = window_length
     results['thread_aware'] = thread_aware
-    results['scenario'] = 'real_world' 
+    results['scenario'] = 'real_world'
     result_path = 'results/results_real_world.json'
 
     save_to_json(result_dict=results, path=result_path)
-
