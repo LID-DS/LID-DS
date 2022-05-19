@@ -3,6 +3,7 @@ from pprint import pprint
 
 from algorithms.decision_engines.mlp import MLP
 from algorithms.decision_engines.som import Som
+from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
@@ -35,12 +36,12 @@ if __name__ == '__main__':
     # todo: set config
     ###################
     # feature config:
-    ngram_length = 7
-    w2v_size = 5
+    ngram_length = 4
+    w2v_size = 2
     thread_aware = True
     hidden_size = 100
     hidden_layers = 5
-    batch_size = 50
+    batch_size = 5
 
     # run config
     scenario_range = scenario_names[0:1]
@@ -59,14 +60,16 @@ if __name__ == '__main__':
                            window_size=ngram_length)
         ngram = Ngram(feature_list=[w2v],
                       thread_aware=thread_aware,
-                      ngram_length=ngram_length + 1
+                      ngram_length=ngram_length
                       )
         ngram_minus_one = NgramMinusOne(ngram=ngram,
                                         element_size=w2v_size)
+        inte = IntEmbedding()
+
 
         mlp = MLP(
             input_vector=ngram_minus_one,
-            output_label=w2v,
+            output_label=inte,
             hidden_size=hidden_size,
             hidden_layers=hidden_layers,
             batch_size=batch_size

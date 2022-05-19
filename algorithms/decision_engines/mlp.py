@@ -40,7 +40,7 @@ class MLP(BuildingBlock):
         self.input_vector = input_vector
         self.output_label = output_label
 
-        self._dependency_list = [input_vector]
+        self._dependency_list = [input_vector, output_label]
 
         self._input_size = 0
         self._output_size = None
@@ -98,19 +98,21 @@ class MLP(BuildingBlock):
         loss_dq = collections.deque(maxlen=self._early_stop_epochs)
         best_avg_loss = math.inf
 
-        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
-        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
+        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=False)
+        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=False)
 
         max_epochs = 100000
         for e in range(max_epochs):
             running_loss = 0
 
             # training
-            for input, label in train_data_loader:
+            for i, data in enumerate(train_data_loader):
+                inputs, labels = data
+
                 optimizer.zero_grad()  # prepare gradients
 
-                output = self._model(input)  # compute output
-                loss = criterion(output, label)  # compute loss
+                outputs = self._model(inputs)  # compute output
+                loss = criterion(outputs, labels)  # compute loss
 
                 loss.backward()  # compute gradients
                 optimizer.step()  # update weights
@@ -120,9 +122,10 @@ class MLP(BuildingBlock):
             # validation
             val_loss = 0.0
             count = 0
-            for input, label in val_data_loader:
-                output = self._model(input)
-                loss = criterion(output, label)
+            for i, data in enumerate(val_data_loader):
+                inputs, labels = data
+                outputs = self._model(inputs)
+                loss = criterion(outputs, labels)
                 val_loss += loss.item()
                 count += 1
             avg_val_loss = val_loss / count
