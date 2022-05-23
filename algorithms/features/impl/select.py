@@ -28,7 +28,7 @@ class Select(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-            cut result of BuildingBlock to [start:end]
+            cut result of BuildingBlock to [start:end:step]
 
             Params:
                 syscall(Syscall): syscall to extract result from
@@ -36,10 +36,8 @@ class Select(BuildingBlock):
 
         """
         result = self._feature.get_result(syscall)
-        print(result)
         if result is None:
             return None
         else:
             result_list = list(result)
-            print(result_list)
             return tuple(result_list[self._start:self._end:self._step])

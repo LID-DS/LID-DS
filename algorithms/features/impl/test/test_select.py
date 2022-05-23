@@ -29,15 +29,20 @@ def test_select():
         inte.train_on(syscall)
     ngram = Ngram(feature_list=[inte], thread_aware=False, ngram_length=3)
     sel = Select(input_vector=ngram, start=2, end=3, step=1)
-
     assert sel.get_result(syscall_1) is None   # No ngram yet
     assert sel.get_result(syscall_2) is None   # No ngram yet
     assert sel.get_result(syscall_3) == (3,)   # (1,2,3)
     assert sel.get_result(syscall_4) == (4,)     # (2,3,4)
 
     ngram = Ngram(feature_list=[inte], thread_aware=False, ngram_length=4)
-    sel = Select(input_vector=ngram, start=0, end=4, step=2)
+    sel = Select(input_vector=ngram, start=0, end=4, step=1)
+    assert sel.get_result(syscall_1) is None   # No ngram yet
+    assert sel.get_result(syscall_2) is None   # No ngram yet
+    assert sel.get_result(syscall_3) is None   # No ngram yet
+    assert sel.get_result(syscall_4) == (1, 2, 3, 4)     # (1,2,3,4)
 
+    ngram = Ngram(feature_list=[inte], thread_aware=False, ngram_length=4)
+    sel = Select(input_vector=ngram, start=0, end=4, step=2)
     assert sel.get_result(syscall_1) is None   # No ngram yet
     assert sel.get_result(syscall_2) is None   # No ngram yet
     assert sel.get_result(syscall_3) is None   # No ngram yet
