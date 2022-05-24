@@ -11,6 +11,9 @@ class ProcessID(BuildingBlock, metaclass=Singleton):
     def _calculate(self, syscall: Syscall):
         """
         calculate process ID of syscall
+
+        Params:
+            syscall(Syscall)
         """
         return syscall.process_id()
 
