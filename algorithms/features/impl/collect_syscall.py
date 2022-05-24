@@ -1,8 +1,5 @@
-import math
-from collections import deque
-
 from algorithms.building_block import BuildingBlock
-from algorithms.features.impl.threadID import ThreadID
+
 from dataloader.syscall import Syscall
 
 
@@ -11,16 +8,16 @@ class CollectSyscall(BuildingBlock):
         Summarize information of opening and closing step of syscall.
         Only works if both directions of syscalls are being used in dataloader.
 
+        Feature: Return syscall only if closing part of syscall is completed.
+                 Result of given BBs in input_list for every syscalls are returned.
     """
 
     def __init__(self, feature_list: list):
         """
-        Feature: Return syscall only if closing part of syscall is completed.
-                 Result of given BBs in input_list for every syscalls are returned.
         """
         super().__init__()
-        self._feature_list = feature_list
         self._buffer = {}
+        self._feature_result_dict = {}
 
         self._dependency_list = []
         self._dependency_list.extend(feature_list)
@@ -28,18 +25,43 @@ class CollectSyscall(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def _calculate(self, syscall: Syscall):
+    def _calculate(self, syscall: Syscall) -> tuple:
         """
-        """
+            Keep buffer for every thread.
+            If second syscall with same name in same thread appears it must be closing one.
+            Evaluate all results of features.
 
-        print(self._feature_list)
-        for feature in self._feature_list:
-            result = feature.get_result(syscall)
-            print(result)
+            Params:
+                syscall: Syscall
+            Returns:
+                tuple() 
+        """
+        thread_id = syscall.thread_id()
+        syscall_name = syscall.name()
+        if thread_id not in self._buffer:
+            self._buffer[thread_id] = {}
+        if syscall_name not in self._buffer[thread_id]:
+            self._buffer[thread_id][syscall_name] = {}
+            closing_syscall = False
+        else:
+            closing_syscall = True
+        for feature in self._dependency_list:
+            feature_name = type(feature).__name__
+            feature_result = feature.get_result(syscall)
+            self._buffer[thread_id][syscall_name][feature_name] = feature_result
+            print(feature_result)
+        if closing_syscall:
+            print(self._buffer)
+            result_list = []
+            for feature in self._dependency_list:
+                result_list.append(self._buffer[thread_id][syscall_name][type(feature).__name__])
+            self._buffer[thread_id][syscall_name] = None
+            return tuple(result_list)
+        else:
+            return None
 
     def new_recording(self):
         """
         empty buffer so ngrams consist of same recording only
         """
-        self._window_buffer = {}
-        self._minimum_values = {}
+        self._buffer = {}
