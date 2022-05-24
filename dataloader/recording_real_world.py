@@ -1,12 +1,10 @@
 import os
-import json
 
 from zipfile import ZipFile
 
 from dataloader.direction import Direction
 from dataloader.syscall_2021 import Syscall2021
 from dataloader.base_recording import BaseRecording
-
 
 
 class RecordingRealWorld(BaseRecording):
@@ -38,7 +36,7 @@ class RecordingRealWorld(BaseRecording):
             Returns:
             str: syscall text line
         """
-        try: 
+        try:
             with ZipFile(self.path, 'r') as zipped:
                 with zipped.open(self.name + '.sc') as unzipped:
                     for line_id, syscall in enumerate(unzipped, start=1):
@@ -52,22 +50,35 @@ class RecordingRealWorld(BaseRecording):
                         else:
                             yield syscall_object
         except Exception:
-            raise Exception(f'Error while working with file: {self.name} at {self.path}')
+            raise Exception(
+                f'Error while working with file: {self.name} at {self.path}')
 
     def metadata(self) -> dict:
         """
+            Calculate recording time with delta between first and last syscall
             Returns:
             dict: metadata dictionary
         """
+        with open(self.path, 'r') as f:
+            first_line = f.readline()
+            for line in f:
+                pass
+            last_line = line
+
+        print('done')
+        start_time = str(first_line).split(' ')[0]
+        end_time = str(last_line).split(' ')[0]
+        recording_time = int(end_time) - int(start_time)
+        print(recording_time)
         if 'malicious' in self.name:
             return {"exploit": True,
-                    "time":{
-                        "exploit":[
+                    "time": {
+                        "exploit": [
                             {
                                 "absolute": 0.0
                             }
                         ]
-                    }} 
+                    }}
         else:
             return {"exploit": False}
 
@@ -77,4 +88,5 @@ class RecordingRealWorld(BaseRecording):
             check if all necessary files are present
         """
         if not os.path.isfile(self.path):
-            raise FileNotFoundError(f'Missing .sc file for recording: {self.path}')
+            raise FileNotFoundError(
+                f'Missing .sc file for recording: {self.path}')

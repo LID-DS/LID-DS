@@ -2,14 +2,14 @@ import os
 import glob
 import errno
 import nest_asyncio
+from enum import Enum
 from tqdm import tqdm
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from enum import Enum
 
 from dataloader.direction import Direction
 from dataloader.base_data_loader import BaseDataLoader
-from dataloader.recording_real_world import RecordingRealWorld 
+from dataloader.recording_real_world import RecordingRealWorld
 
 
 TRAINING = 'training'
@@ -50,14 +50,13 @@ def get_file_name(path: str) -> str:
 
 def convert_all_scap(path: str) -> bool:
     """
-        Convert all (training, validation, test) scap filesto compressed .sc files
-        Remove .scap and .sc files 
+        Convert all (train, val, test) scap filesto compressed .sc files
+        Remove .scap and .sc files
 
-        Parameter: 
+        Parameter:
         path (str): path to scenario
         Returns:
         bool: False if Exception was thrown
-        
     """
     try:
         training_files = glob.glob(path + f'/{TRAINING}/*.scap')
@@ -71,7 +70,9 @@ def convert_all_scap(path: str) -> bool:
             ZipFile(f'{file[:-4]}zip',
                     mode='w',
                     compresslevel=8,
-                    compression=ZIP_DEFLATED).write(filename=f'{file[:-2]}', arcname=os.path.split(sc_file)[1])
+                    compression=ZIP_DEFLATED).write(
+                        filename=f'{file[:-2]}',
+                        arcname=os.path.split(sc_file)[1])
             # remove scap file
             os.remove(file)
             # remove sc file
