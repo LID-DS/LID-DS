@@ -1,5 +1,6 @@
 from algorithms.features.impl.return_value import ReturnValue
 from dataloader.syscall_2019 import Syscall2019 as Syscall
+from dataloader.syscall_2021 import Syscall2021
 
 
 def test_return_value():
@@ -65,6 +66,17 @@ def test_return_value():
                          '38630 14:46:58.001251755 6 101 nginx 24055 < sendfile res=612 offset=1225')
     syscall_31 = Syscall('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                          '38659 14:46:58.017850228 6 101 nginx 24055 < sendfile res=400 offset=1225')
+
+    syscall_32 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            '1 0 30244 Process-1 31394 write < res=10')
+    syscall_33 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            '1 0 30244 Process-1 31394 write > addr=7FE7FC0011B8 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
+    syscall_34 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            '1 0 30244 Process-1 31394 read < res=0')
+    syscall_35 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            '1 0 30244 Process-2 30532 read < res=5')
+    syscall_36 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            '1 0 30244 Process-2 30532 read > addr=7FE87C0D6F28 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
 
     syscalls = [
         syscall_1,
@@ -133,8 +145,14 @@ def test_return_value():
     assert rv._calculate(syscall_24) == 0
     assert rv._calculate(syscall_25) == 268/rv._max['read']
     assert rv._calculate(syscall_26) == 576/rv._max['get_dents']
-    assert rv._calculate(syscall_27) == 570/rv._max['get_dents']    
+    assert rv._calculate(syscall_27) == 570/rv._max['get_dents']
     assert rv._calculate(syscall_28) == 118/rv._max['recv_socket']
     assert rv._calculate(syscall_29) == 118/rv._max['recv_socket']
     assert rv._calculate(syscall_30) == 612/rv._max['send_socket']
     assert rv._calculate(syscall_31) == 400/rv._max['send_socket']
+    # Syscall2021
+    assert rv._calculate(syscall_32) == 10/rv._max['write']
+    assert rv._calculate(syscall_33) == 0/rv._max['write']
+    assert rv._calculate(syscall_34) == 0/rv._max['read']
+    assert rv._calculate(syscall_35) == 5/rv._max['read']
+    assert rv._calculate(syscall_36) == 0/rv._max['read']
