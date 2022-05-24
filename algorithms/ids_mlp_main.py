@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # todo: set config
     ###################
     # feature config:
-    ngram_length = 4
+    ngram_length = 5
     w2v_size = 2
     thread_aware = True
     hidden_size = 100

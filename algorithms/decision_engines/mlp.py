@@ -15,8 +15,8 @@ class MLPDataset(Dataset):
         self.x_data = []
         self.y_data = []
         for datapoint in data:
-            self.x_data.append(datapoint[0])
-            self.y_data.append(datapoint[1])
+            self.x_data.append(torch.tensor(datapoint[0]))
+            self.y_data.append(torch.tensor(datapoint[1]))
 
     def __len__(self):
         return len(self.x_data)
@@ -66,6 +66,7 @@ class MLP(BuildingBlock):
         if input_vector is not None and output_label is not None:
             if self._input_size == 0:
                 self._input_size = len(input_vector)
+                print(self._input_size)
 
             self._training_set.add((input_vector, output_label))
 
@@ -87,8 +88,6 @@ class MLP(BuildingBlock):
             output_size=self._output_size,
             hidden_layers=self.hidden_layers
         ).model
-
-
 
         criterion = nn.MSELoss()
         optimizer = optim.SGD(self._model.parameters(), lr=0.003)
