@@ -1,10 +1,13 @@
 import collections
 import math
 
+import numpy
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
@@ -15,8 +18,8 @@ class MLPDataset(Dataset):
         self.x_data = []
         self.y_data = []
         for datapoint in data:
-            self.x_data.append(torch.tensor(datapoint[0]))
-            self.y_data.append(torch.tensor(datapoint[1]))
+            self.x_data.append(torch.from_numpy(numpy.asarray(datapoint[0], dtype=np.float32)))
+            self.y_data.append(torch.from_numpy(numpy.asarray(datapoint[1], dtype=np.float32)))
 
     def __len__(self):
         return len(self.x_data)
@@ -43,7 +46,7 @@ class MLP(BuildingBlock):
         self._dependency_list = [input_vector, output_label]
 
         self._input_size = 0
-        self._output_size = None
+        self._output_size = 0
         self.hidden_size = hidden_size
         self.hidden_layers = hidden_layers
         self.batch_size = batch_size
@@ -66,7 +69,9 @@ class MLP(BuildingBlock):
         if input_vector is not None and output_label is not None:
             if self._input_size == 0:
                 self._input_size = len(input_vector)
-                print(self._input_size)
+
+            if self._output_size == 0:
+                self._output_size = len(output_label)
 
             self._training_set.add((input_vector, output_label))
 
@@ -81,7 +86,6 @@ class MLP(BuildingBlock):
             self._validation_set.add((input_vector, output_label))
 
     def fit(self):
-        self._output_size = len(self._training_set)
         self._model = Feedforward(
             input_size=self._input_size,
             hidden_size=self.hidden_size,
@@ -97,11 +101,13 @@ class MLP(BuildingBlock):
         loss_dq = collections.deque(maxlen=self._early_stop_epochs)
         best_avg_loss = math.inf
 
-        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=False)
-        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=False)
+        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
+        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
 
         max_epochs = 100000
-        for e in range(max_epochs):
+        bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")
+
+        for e in bar:
             running_loss = 0
 
             # training
@@ -140,10 +146,12 @@ class MLP(BuildingBlock):
             if stop_early:
                 break
 
-            print(f'average validation loss: {avg_val_loss}')
+            bar.set_description(f"fit MLP, loss: {avg_val_loss:.5f}, epoch: {e}".rjust(27), refresh=True)
+
 
     def _calculate(self, syscall: Syscall):
         input_vector = self.input_vector.get_result(syscall)
+        label = self.output_label.get_result(syscall)
         if input_vector is not None:
             if input_vector in self._result_dict:
                 return self._result_dict[input_vector]
@@ -151,7 +159,9 @@ class MLP(BuildingBlock):
                 in_tensor = torch.tensor(input_vector)
                 mlp_out = self._model(in_tensor)
 
-                anomaly_score = 1 - mlp_out
+                label_index = label.index(1)
+                anomaly_score = 1 - mlp_out[label_index]
+
                 self._result_dict[input_vector] = anomaly_score
                 return anomaly_score
         else:

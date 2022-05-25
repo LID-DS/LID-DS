@@ -6,6 +6,7 @@ from algorithms.decision_engines.som import Som
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
+from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
@@ -36,15 +37,15 @@ if __name__ == '__main__':
     # todo: set config
     ###################
     # feature config:
-    ngram_length = 5
-    w2v_size = 2
+    ngram_length = 7
+    w2v_size = 5
     thread_aware = True
-    hidden_size = 100
-    hidden_layers = 5
-    batch_size = 5
+    hidden_size = 150
+    hidden_layers = 4
+    batch_size = 50
 
     # run config
-    scenario_range = scenario_names[0:1]
+    scenario_range = scenario_names[3:4]
     lid_ds_base_path = "/home/felix/repos/LID-DS/LID-DS-2021"
     ###################
 
@@ -66,10 +67,12 @@ if __name__ == '__main__':
                                         element_size=w2v_size)
         inte = IntEmbedding()
 
+        ohe = OneHotEncoding(inte)
+
 
         mlp = MLP(
             input_vector=ngram_minus_one,
-            output_label=inte,
+            output_label=ohe,
             hidden_size=hidden_size,
             hidden_layers=hidden_layers,
             batch_size=batch_size
@@ -80,7 +83,7 @@ if __name__ == '__main__':
         ids = IDS(data_loader=dataloader,
                   resulting_building_block=mlp,
                   create_alarms=False,
-                  plot_switch=False)
+                  plot_switch=True)
 
         print("at evaluation:")
         # threshold
@@ -99,3 +102,6 @@ if __name__ == '__main__':
         results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
         result_path = 'results/results_som.json'
+
+        ids.draw_plot()
+
