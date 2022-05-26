@@ -2,7 +2,7 @@ from algorithms.features.impl.flags import Flags
 from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.features.impl.return_value import ReturnValue
 from algorithms.features.impl.path_evilness import PathEvilness
-from algorithms.features.impl.stream_average import StreamAverage
+from algorithms.features.impl.stream_maximum import StreamMaximum
 from algorithms.features.impl.collect_syscall import CollectSyscall
 
 from dataloader.syscall_2021 import Syscall2021
@@ -38,7 +38,7 @@ def test_collect_syscall():
     syscall_13 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631249047761414620 0 30244 Process-1 31393 write > ')
     syscall_14 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             '1631259047761424621 0 30244 Process-1 31393 write < fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) dirfd=-100(AT_FDCWD) name=/usr/local/tomcat/conf/tomcat-users.xml flags      =1(O_RDONLY) mode=0 dev=802 ')
+                             '1631259047761424621 0 30244 Process-1 31393 write < fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) dirfd=-100(AT_FDCWD) name=/usr/local/tomcat/conf/tomcat-users.xml flags=1(O_RDONLY) mode=0 dev=802 ')
     syscall_15 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631269047761434622 0 30244 Catalina-utilit 31393 read > fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) ')
     syscall_16 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -72,26 +72,23 @@ def test_collect_syscall():
 
     flag = Flags()
     time_delta = TimeDelta(thread_aware=True)
-    str_avg = StreamAverage(feature=time_delta,
-                            thread_aware=True,
-                            window_length=2)
+    str_max = StreamMaximum(feature=time_delta,
+                            thread_aware=True, window_length=2)
 
     print('start training')
     for syscall in training_syscalls:
-        print(syscall.name())
         pe.train_on(syscall)
         rv.train_on(syscall)
         time_delta.train_on(syscall)
     print('end training')
     pe.fit()
     time_delta.fit()
-    print(time_delta._max_time_delta)
 
-    col = CollectSyscall(feature_list=[pe, rv, flag, str_avg])
+    col = CollectSyscall(feature_list=[pe, rv, flag, str_max])
 
     assert col._calculate(syscall_11) is None
-    assert col._calculate(syscall_12) is None
+    assert col._calculate(syscall_12) == (0, 10.0, '0', 18.000000378000006) 
     assert col._calculate(syscall_13) is None
-    assert col._calculate(syscall_14) is None
+    assert col._calculate(syscall_14) == (1.0, 0, '1(O_RDONLY)', 10.000000220000004)
     assert col._calculate(syscall_15) is None
-    assert col._calculate(syscall_16) is None
+    assert col._calculate(syscall_16) == (0, 0.0, '0', 10.000000220000004)
