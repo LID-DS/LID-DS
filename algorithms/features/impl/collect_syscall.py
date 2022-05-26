@@ -49,9 +49,7 @@ class CollectSyscall(BuildingBlock):
             feature_name = type(feature).__name__
             feature_result = feature.get_result(syscall)
             self._buffer[thread_id][syscall_name][feature_name] = feature_result
-            print(feature_result)
         if closing_syscall:
-            print(self._buffer)
             result_list = []
             for feature in self._dependency_list:
                 result_list.append(self._buffer[thread_id][syscall_name][type(feature).__name__])
