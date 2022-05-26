@@ -27,3 +27,5 @@ treelib==1.6.1
 pyshark==0.4.3
 networkx==2.6.3
 pydot==1.4.2
+MiniSom==2.2.9
+scikit-learn==1.0.2
