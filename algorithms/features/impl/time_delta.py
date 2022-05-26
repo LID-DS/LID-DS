@@ -50,7 +50,7 @@ class TimeDelta(BuildingBlock):
             thread_id = syscall.thread_id()
         if thread_id in self._last_time:
             delta = current_time - self._last_time[thread_id]
-            delta = delta.microseconds
+            delta = delta.total_seconds() * 1000  # delta in microseconds
             self._last_time[thread_id] = current_time
         else:
             delta = 0
