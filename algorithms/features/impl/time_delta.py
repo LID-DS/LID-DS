@@ -15,7 +15,8 @@ class TimeDelta(BuildingBlock):
         self._max_time_delta = 0
         self._last_time = {}
         self._thread_aware = thread_aware
-
+        self._dependency_list = []
+        
     def depends_on(self) -> list:
         return []
 
