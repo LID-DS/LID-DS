@@ -37,7 +37,10 @@ class TimeDelta(BuildingBlock):
         """
         current_time = syscall.timestamp_datetime()
         delta = self._calc_delta(current_time, syscall)
+        print(delta)
+        print(self._max_time_delta)
         normalized_delta = delta / self._max_time_delta
+        print(normalized_delta)
         return normalized_delta
 
     def _calc_delta(self, current_time: datetime, syscall: Syscall) -> float:
@@ -50,7 +53,10 @@ class TimeDelta(BuildingBlock):
             thread_id = syscall.thread_id()
         if thread_id in self._last_time:
             delta = current_time - self._last_time[thread_id]
-            delta = delta.microseconds
+            delta = delta.total_seconds() * 1000  # delta in miliseconds
+            print(current_time)
+            print(self._last_time[thread_id])
+            print(delta)
             self._last_time[thread_id] = current_time
         else:
             delta = 0
