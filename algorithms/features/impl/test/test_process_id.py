@@ -17,13 +17,13 @@ def test_process_id():
     syscall_3 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047762064269 0 12 apache2 12 poll < fd=9(<f>/etc/group) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
-    # legit
-    syscall_4 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            "1631209047762064269 0 13 apache2 13 mmap < in_fd=9(<f>/etc/test) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
+    # legit 2019
+    syscall_4 = Syscall2019('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            "2569 00:10:50.488781617 2 999 mysqld 22545 < write res=78 data=J....5.5.23....hJyAy_PR...................*yE-M}Q\Z0|E.mysql_native_password.")
 
     # legit
     syscall_5 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            "1631209047762064269 0 12 apache2 12 open < out_fd=9(<f>/etc/password) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
+                            "1631209047761484608 0 3686302 apache2 3686302 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
 
     # legit
     syscall_6 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
@@ -59,23 +59,18 @@ def test_process_id():
 
     pid = ProcessID()
 
-    assert pid._calculate(syscall_1) == 10  # 10
-    assert pid._calculate(syscall_2) == 11  # 11
-    assert pid._calculate(syscall_3) == 12  # 12
-    assert pid._calculate(syscall_4) == 13  # 13
-    assert pid._calculate(syscall_5) == 12  # 12
-    assert pid._calculate(syscall_6) == 9  # 9
-    assert pid._calculate(syscall_7) == 8  # 8
-    assert pid._calculate(syscall_8) == 9  # 9
-    assert pid._calculate(syscall_9) == 6  # 6
-    assert pid._calculate(syscall_1) == 10  # 10
-    assert pid._calculate(syscall_1) == 10  # 10
-    assert pid._calculate(syscall_1) == 10  # 10
-
-    syscall_4 = Syscall2019('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            "2569 00:10:50.488781617 2 999 mysqld 22545 < write res=78 data=J....5.5.23....hJyAy_PR...................*yE-M}Q\Z0|E.mysql_native_password.")
-    syscall_5 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            "1631209047761484608 0 3686302 apache2 3686302 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
+    assert pid._calculate(syscall_1) == 10      # 10
+    assert pid._calculate(syscall_2) == 11      # 11
+    assert pid._calculate(syscall_3) == 12      # 12
+    assert pid._calculate(syscall_4) is None    # Syscall2019 has no pid
+    assert pid._calculate(syscall_5) == 3686302  # 12
+    assert pid._calculate(syscall_6) == 9       # 9
+    assert pid._calculate(syscall_7) == 8       # 8
+    assert pid._calculate(syscall_8) == 9       # 9
+    assert pid._calculate(syscall_9) == 6       # 6
+    assert pid._calculate(syscall_1) == 10      # 10
+    assert pid._calculate(syscall_1) == 10      # 10
+    assert pid._calculate(syscall_1) == 10      # 10
 
     pid = ProcessID()
 
@@ -84,5 +79,4 @@ def test_process_id():
     assert pid.get_result(syscall_3) == 12       # 12
     assert pid.get_result(syscall_4) is None     # 2019 Syscall does not include pid
     assert pid.get_result(syscall_5) == 3686302  # 3686302
-    assert pid.get_result(syscall_6) == 123123   # 123123
-    assert pid.get_result(syscall_6) == 123123   # 123123
+    assert pid.get_result(syscall_6) == 9        # 9
