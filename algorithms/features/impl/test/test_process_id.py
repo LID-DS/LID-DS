@@ -1,4 +1,5 @@
 from algorithms.features.impl.processID import ProcessID
+
 from dataloader.syscall_2021 import Syscall2021
 from dataloader.syscall_2019 import Syscall2019
 
@@ -83,4 +84,5 @@ def test_process_id():
     assert pid.get_result(syscall_3) == 12       # 12
     assert pid.get_result(syscall_4) is None     # 2019 Syscall does not include pid
     assert pid.get_result(syscall_5) == 3686302  # 3686302
+    assert pid.get_result(syscall_6) == 123123   # 123123
     assert pid.get_result(syscall_6) == 123123   # 123123
