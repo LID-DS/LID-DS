@@ -10,8 +10,8 @@ if __name__ == '__main__':
     thread_aware = True
     window_length = 100
 
-    path = '/media/tk/SSD/ganzmann_data/'
-    # path='../../WHK/Data/real_world/'
+    # path = '/media/tk/SSD/ganzmann_data/'
+    path='../Data/real_world'
     # data loader for scenario
     dataloader = dataloader_factory(path, direction=Direction.CLOSE)
 

@@ -1,6 +1,7 @@
 import os
 
 from zipfile import ZipFile
+from datetime import datetime
 
 from dataloader.direction import Direction
 from dataloader.syscall_2021 import Syscall2021
@@ -59,19 +60,23 @@ class RecordingRealWorld(BaseRecording):
             Returns:
             dict: metadata dictionary
         """
-        with open(self.path, 'r') as f:
-            first_line = f.readline()
-            for line in f:
-                pass
-            last_line = line
+        print(self.path)
+        with ZipFile(self.path, 'r') as zip_ref:
+            sc_path = os.path.basename(self.path)[:-3] + 'sc'
+            with zip_ref.open(sc_path) as f:
+                first_line = f.readline().decode()
+                for line in f:
+                    pass
+                last_line = line.decode()
 
-        print('done')
         start_time = str(first_line).split(' ')[0]
         end_time = str(last_line).split(' ')[0]
-        recording_time = int(end_time) - int(start_time)
-        print(recording_time)
+        start_time = datetime.fromtimestamp(int(start_time)*10**(-9))
+        end_time = datetime.fromtimestamp(int(end_time) * 10**(-9))
+        recording_time = end_time - start_time
         if 'malicious' in self.name:
             return {"exploit": True,
+                    "recording_time": recording_time,
                     "time": {
                         "exploit": [
                             {
@@ -80,7 +85,8 @@ class RecordingRealWorld(BaseRecording):
                         ]
                     }}
         else:
-            return {"exploit": False}
+            return {"exploit": False,
+                    "recording_time": recording_time}
 
     def check_recording(self) -> bool:
         """
