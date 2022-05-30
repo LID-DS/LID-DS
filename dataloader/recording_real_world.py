@@ -1,4 +1,5 @@
 import os
+import json
 
 from zipfile import ZipFile
 from datetime import datetime
@@ -56,37 +57,70 @@ class RecordingRealWorld(BaseRecording):
 
     def metadata(self) -> dict:
         """
-            Calculate recording time with delta between first and last syscall
+            Calculate recording time with delta between first and last syscall in sc file.
+            Persist file inside zip as json.
             Returns:
             dict: metadata dictionary
         """
-        print(self.path)
+        sc_path = os.path.basename(self.path)[:-3] + 'sc'
+        json_path = os.path.basename(self.path)[:-3] + 'json'
+        json_exists = False
         with ZipFile(self.path, 'r') as zip_ref:
-            sc_path = os.path.basename(self.path)[:-3] + 'sc'
-            with zip_ref.open(sc_path) as f:
-                first_line = f.readline().decode()
-                for line in f:
-                    pass
-                last_line = line.decode()
+            # check if json file already exists 
+            if json_path in zip_ref.namelist():
+                print(zip_ref.namelist())
+                json_exists = True
+            if not json_exists:
+                zip_ref.extractall()
+            else:
+                with zip_ref.open(json_path) as unzipped:
+                    unzipped_byte_json = unzipped.read()
+                    unzipped_json = json.loads(unzipped_byte_json.decode('utf-8').replace("'", '"'))
+                return unzipped_json
+        with open(sc_path, 'r') as f:
+            first_line = f.readline()
+            print(first_line)
+            for line in f:
+                pass
+            last_line = line
 
+        # calc time delta of first and last system call
         start_time = str(first_line).split(' ')[0]
         end_time = str(last_line).split(' ')[0]
         start_time = datetime.fromtimestamp(int(start_time)*10**(-9))
         end_time = datetime.fromtimestamp(int(end_time) * 10**(-9))
         recording_time = end_time - start_time
+        # convert timestamp to float
+        recording_time = recording_time.total_seconds()
         if 'malicious' in self.name:
-            return {"exploit": True,
-                    "recording_time": recording_time,
-                    "time": {
-                        "exploit": [
-                            {
-                                "absolute": 0.0
-                            }
-                        ]
-                    }}
+            result_dict = {
+                "exploit": True,
+                "recording_time": recording_time,
+                "time": {
+                    "exploit": [
+                        {
+                            "absolute": 0.0
+                        }
+                    ]
+                }}
         else:
-            return {"exploit": False,
-                    "recording_time": recording_time}
+            result_dict= {
+                "exploit": False,
+                "recording_time": recording_time
+            }
+        # write metadata as json to zip 
+        with open(json_path, 'w+') as file:
+            json.dump(result_dict, file)
+        with ZipFile(self.path, 'w') as zip_ref:
+            zip_ref.write(json_path,
+                          os.path.basename(json_path))
+            zip_ref.write(sc_path,
+                          os.path.basename(sc_path))
+
+        # delete sc file and json file
+        os.remove(json_path)
+        os.remove(sc_path)
+        return result_dict
 
     def check_recording(self) -> bool:
         """

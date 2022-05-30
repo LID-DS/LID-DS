@@ -19,5 +19,5 @@ if __name__ == '__main__':
     val_data = dataloader.training_data()
     test_data = dataloader.training_data()
 
-    for data in train_data:
+    for data in val_data:
         print(data.metadata())
