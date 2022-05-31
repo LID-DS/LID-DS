@@ -1,7 +1,7 @@
 import os
 import json
 
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime
 
 from dataloader.direction import Direction
@@ -68,7 +68,6 @@ class RecordingRealWorld(BaseRecording):
         with ZipFile(self.path, 'r') as zip_ref:
             # check if json file already exists 
             if json_path in zip_ref.namelist():
-                print(zip_ref.namelist())
                 json_exists = True
             if not json_exists:
                 zip_ref.extractall()
@@ -77,12 +76,16 @@ class RecordingRealWorld(BaseRecording):
                     unzipped_byte_json = unzipped.read()
                     unzipped_json = json.loads(unzipped_byte_json.decode('utf-8').replace("'", '"'))
                 return unzipped_json
+        print(sc_path)
         with open(sc_path, 'r') as f:
             first_line = f.readline()
-            print(first_line)
-            for line in f:
-                pass
-            last_line = line
+            try:
+                for line in f:
+                    pass
+                last_line = line
+            except Exception:
+                # file has only one line
+                last_line = first_line
 
         # calc time delta of first and last system call
         start_time = str(first_line).split(' ')[0]
@@ -111,7 +114,7 @@ class RecordingRealWorld(BaseRecording):
         # write metadata as json to zip 
         with open(json_path, 'w+') as file:
             json.dump(result_dict, file)
-        with ZipFile(self.path, 'w') as zip_ref:
+        with ZipFile(self.path, 'w', compresslevel=8, compression=ZIP_DEFLATED) as zip_ref:
             zip_ref.write(json_path,
                           os.path.basename(json_path))
             zip_ref.write(sc_path,

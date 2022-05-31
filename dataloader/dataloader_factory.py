@@ -58,4 +58,4 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
 
 
 def raise_value_error():
-    raise ValueError('invalid dataset structure, please use LID-DS 2019 or LID-DS 2021 dataset scenarios')
+    raise ValueError('invalid dataset structure, please use LID-DS 2019, LID-DS 2021  or real world dataset scenarios')
