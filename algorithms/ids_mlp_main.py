@@ -45,7 +45,7 @@ if __name__ == '__main__':
     batch_size = 50
 
     # run config
-    scenario_range = scenario_names[3:4]
+    scenario_range = scenario_names[0:1]
     lid_ds_base_path = "/home/felix/repos/LID-DS/LID-DS-2021"
     ###################
 
@@ -75,7 +75,8 @@ if __name__ == '__main__':
             output_label=ohe,
             hidden_size=hidden_size,
             hidden_layers=hidden_layers,
-            batch_size=batch_size
+            batch_size=batch_size,
+            learning_rate=0.003
         )
 
         ###################
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         ids = IDS(data_loader=dataloader,
                   resulting_building_block=mlp,
                   create_alarms=False,
-                  plot_switch=True)
+                  plot_switch=False)
 
         print("at evaluation:")
         # threshold
@@ -95,13 +96,13 @@ if __name__ == '__main__':
         pprint(results)
 
         # enrich results with configuration and save to disk
-        results['algorithm'] = "SOM"
+        results['algorithm'] = "MLP"
         results['ngram_length'] = ngram_length
         results['w2v_size'] = w2v_size
         results['thread_aware'] = thread_aware
         results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
-        result_path = 'results/results_som.json'
+        result_path = 'results/results_mlp.json'
 
-        ids.draw_plot()
-
+        # ids.draw_plot()
+        print(mlp.get_net_weights())
