@@ -1,5 +1,3 @@
-import typing
-
 from algorithms.building_block import BuildingBlock
 from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
@@ -34,10 +32,10 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
         self.write = ['write', 'writev']
         self.read = ['read', 'readv']
         self.send_socket = ['sendfile', 'sendmsg']
-        self.recv_socket =  ['recvfrom', 'recv', 'recvmsg']
-        self.get_dents =  ['getdents']
+        self.recv_socket = ['recvfrom', 'recv', 'recvmsg']
+        self.get_dents = ['getdents']
         self.not_interesting = ['clone', 'getcwd', 'lseek', 'fcntl', 'futex', 'epoll_wait']
-        self.error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET', 'EPIPE']
+        self.error_codes = ['EAGAIN', 'EINVAL', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT']
         self.interesting = self.read \
                            + self.write \
                            + self.send_socket \
@@ -120,6 +118,8 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
                         print(f' Syscall: {syscall.name()}')
                 try:
                     if return_type is not None and return_type != 'error':
+                        print(return_type)
+                        print(self._max[return_type])
                         normalized_bytes = current_bytes/self._max[return_type]
                     elif return_type != 'error':
                         normalized_bytes = 0
