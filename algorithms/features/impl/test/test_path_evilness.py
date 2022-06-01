@@ -55,7 +55,7 @@ def test_path_evilness():
 
     # only valid training data
     training_syscalls_round_1 = [syscall_1, syscall_2, syscall_3, syscall_4]
-    pe1 = PathEvilness(scenario_path='/Test/test', path='algorithms/Models')
+    pe1 = PathEvilness(scenario_path='/Test/test', path='algorithms/Models', force_retrain=True)
     """
     
     scenario path is a mock that is only used to name the tree model
