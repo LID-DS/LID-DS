@@ -1,27 +1,26 @@
-from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.int_embedding import IntEmbedding
 
-from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
-
-from dataloader.dataloader_factory import dataloader_factory
-from dataloader.direction import Direction
-
 from algorithms.persistance import save_to_json
+from algorithms.decision_engines.stide import Stide
+
+from dataloader.direction import Direction
+from dataloader.dataloader_factory import dataloader_factory
 
 from pprint import pprint
+
 
 if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes
     """
     ngram_length = 5
-    embedding_size = 4
     thread_aware = True
     window_length = 100
 
-    path = '/media/tk/SSD/ganzmann_data/'
-    # path='../../WHK/Data/real_world/'
+    # path = '/media/tk/SSD/ganzmann_data/'
+    path='../../WHK/Data/real_world/'
     # data loader for scenario
     dataloader = dataloader_factory(path, direction=Direction.CLOSE)
 

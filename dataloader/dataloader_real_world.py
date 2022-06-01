@@ -229,6 +229,40 @@ class DataLoaderRealWorld(BaseDataLoader):
                 metadata_dict[TEST][get_file_name(file)] = temp_dict
         return metadata_dict
 
+    def distinct_syscalls_training_data(self) -> int:
+        """
+
+        calculate distinct syscall names in training data
+        try to load from file json file in training folder
+
+        Returns:
+        int: distinct syscalls in training data
+
+        """
+        json_path = '/training/distinct_syscalls.json'
+        try:
+            with open(self.scenario_path + json_path, 'r') as distinct_syscalls:
+                distinct_json = json.load(distinct_syscalls)
+                self._distinct_syscalls = distinct_json['distinct_syscalls']
+        except Exception:
+            print('Could not load distinct syscalls. Calculating now...')
+
+        if self._distinct_syscalls is not None:
+            return self._distinct_syscalls
+        else:
+            syscall_dict = {}
+            description = 'Calculating distinct syscalls'.rjust(25)
+            for recording in tqdm(self.training_data(), description, unit=' recording'):
+                for syscall in recording.syscalls():
+                    if syscall.name() in syscall_dict:
+                        continue
+                    else:
+                        syscall_dict[syscall.name()] = True
+            self._distinct_syscalls = len(syscall_dict)
+            with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
+                json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
+            return self._distinct_syscalls
+
 
 if __name__ == '__main__':
     base_path = '../../WHK/Data/real_world'
