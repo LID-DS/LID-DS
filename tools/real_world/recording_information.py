@@ -11,7 +11,7 @@ if __name__ == '__main__':
     window_length = 100
 
     # path = '/media/tk/SSD/ganzmann_data/'
-    path='/home/tk-whk/Documents/WHK/Data/real_world/'
+    path='/home/tk-whk/Documents/WHK/Data/real_world'
     # data loader for scenario
     dataloader = dataloader_factory(path, direction=Direction.CLOSE)
 
@@ -22,14 +22,14 @@ if __name__ == '__main__':
     val_time = 0
     for data in val_data:
         val_time += data.metadata()['recording_time']
-    print(f'validation recording_time: {(val_time/60)/60} h')
+    print(f'Validation recording_time: {(val_time/60)/60} h')
     training_time = 0
     for data in train_data:
         training_time += data.metadata()['recording_time']
-    print(f'training recording_time: {(training_time/60)/60} h')
+    print(f'Training recording_time: {(training_time/60)/60} h')
     test_time = 0
     for data in test_data:
         test_time += data.metadata()['recording_time']
-    print(f'test recording_time: {test_time/60} min')
+    print(f'Test recording_time: {(test_time/60)/60} h')
     full_recording_time = training_time + val_time + test_time
-    print(f'full recording time: {full_recording_time/60}')
+    print(f'Full recording time: {(full_recording_time/60)/60}')
