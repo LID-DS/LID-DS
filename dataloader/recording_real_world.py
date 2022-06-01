@@ -62,30 +62,28 @@ class RecordingRealWorld(BaseRecording):
             Returns:
             dict: metadata dictionary
         """
-        sc_path = os.path.basename(self.path)[:-3] + 'sc'
-        json_path = os.path.basename(self.path)[:-3] + 'json'
+        base_path = os.path.dirname(self.path)
+        sc_path = base_path + '/' + os.path.basename(self.path)[:-3] + 'sc'
+        json_path = base_path + '/' + os.path.basename(self.path)[:-3] + 'json'
+        json_file_name = os.path.basename(self.path)[:-3] + 'json'
         json_exists = False
         with ZipFile(self.path, 'r') as zip_ref:
             # check if json file already exists 
-            if json_path in zip_ref.namelist():
+            if json_file_name in zip_ref.namelist():
                 json_exists = True
             if not json_exists:
-                zip_ref.extractall()
+                zip_ref.extractall(os.path.dirname(self.path))
             else:
-                with zip_ref.open(json_path) as unzipped:
+                with zip_ref.open(json_file_name) as unzipped:
                     unzipped_byte_json = unzipped.read()
                     unzipped_json = json.loads(unzipped_byte_json.decode('utf-8').replace("'", '"'))
                 return unzipped_json
-        print(sc_path)
-        with open(sc_path, 'r') as f:
-            first_line = f.readline()
-            try:
-                for line in f:
-                    pass
-                last_line = line
-            except Exception:
-                # file has only one line
-                last_line = first_line
+        # get first and last line of sc file
+        head = os.popen(f'head {sc_path}').read()
+        tail = os.popen(f'tail {sc_path}').read()
+        first_line = head.split('\n')[0]
+        tail_split = tail.split('\n')
+        last_line = tail_split[len(tail_split) - 2]  # -2 because of empty line at the end
 
         # calc time delta of first and last system call
         start_time = str(first_line).split(' ')[0]
