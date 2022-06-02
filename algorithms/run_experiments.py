@@ -64,6 +64,6 @@ for thread_aware in thread_aware_list:
                                     num_experiments += 1
                                     command = f"sbatch --job-name=ex_{num_experiments:05} {script} {base_path} {scenario} {batch_size} {epochs} {embedding_size} {ngram_length} {time_delta} {thread_change_flag} {return_value}"
                                     print(command)
-                                    # start_job(command)
+                                    start_job(command)
 
 print("num_experiments = {}".format(num_experiments))

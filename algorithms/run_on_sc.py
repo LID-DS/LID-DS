@@ -1,8 +1,7 @@
 #!/bin/bash
-#SBATCH --time=200:00:00
-#SBATCH --partition=clara-job
-#SBATCH --gres=gpu:rtx2080ti:2
-#SBATCH --mem=150G
+#SBATCH --time=100:00:00
+#SBATCH --partition=polaris-job
+#SBATCH --mem=20G
 #SBATCH --nodes=1
 
 # source /scratch/ws/1/tikl664d-master/master/bin/activate
@@ -52,6 +51,5 @@ fi
 if [[ $9 == "True" ]]; then
     flags="$flags$return_value_flag"
 fi
-echo $flags
 python ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
 # srun python test.py
