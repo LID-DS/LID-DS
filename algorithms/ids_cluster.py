@@ -59,6 +59,7 @@ if __name__ == '__main__':
     window_length = 100
     ngram_length = 5
 
+    dataloader = dataloader_factory(base_path, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
     int_embedding = IntEmbedding()
