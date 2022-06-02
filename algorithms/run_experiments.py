@@ -15,18 +15,17 @@ scenarios = [
 ]
 
 epochs = 20
+windows = [100]
 batch_sizes = [1024]
-embedding_sizes = ["4", "6", "8"]
-ngram_lengths = ["6", "2"]
+embedding_sizes = ["8"]
+ngram_lengths = ["5"]
 thread_aware_list = ["True"]
-time_deltas = ["True", "False"]
-thread_change_flags = ["True", "False"]
-return_values = ["True", "False"]
-# base_path = '/home/tikl664d/projects/p_madgan/ws_link/scratch/tikl664d-test-workspace/Dataset2019/'
+time_deltas = ["False"]
+thread_change_flags = ["False"]
+return_values = ["False"]
 base_path = '/home/sc.uni-leipzig.de/te697mily/master/Praxis/Data/'
 
-# script = "/home/tikl664d/projects/p_madgan/ws_link/scratch/tikl664d-test-workspace/LID-DS/algorithms/run_hpc.sh"
-script = '/home/sc.uni-leipzig.de/te697mily/master/Praxis/LID-DS/algorithms/run_on_hpc.sh'
+script = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'
 
 max_jobs_in_queue = 100
 num_experiments = 0
@@ -60,10 +59,11 @@ for thread_aware in thread_aware_list:
                 for thread_change_flag in thread_change_flags:
                     for return_value in return_values:
                         for ngram_length in ngram_lengths:
-                            for scenario in scenarios:
-                                num_experiments += 1
-                                command = f"sbatch --job-name=ex_{num_experiments:05} {script} {base_path} {scenario} {batch_size} {epochs} {embedding_size} {ngram_length} {time_delta} {thread_change_flag} {return_value}"
-                                print(command)
-                                start_job(command)
+                            for window in windows:
+                                for scenario in scenarios:
+                                    num_experiments += 1
+                                    command = f"sbatch --job-name=ex_{num_experiments:05} {script} {base_path} {scenario} {batch_size} {epochs} {embedding_size} {ngram_length} {time_delta} {thread_change_flag} {return_value}"
+                                    print(command)
+                                    # start_job(command)
 
 print("num_experiments = {}".format(num_experiments))
