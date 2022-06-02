@@ -32,7 +32,6 @@ class Entropy(BuildingBlock):
             syscall(Syscall): syscall to calc entropy of
         """
         value = self._feature.get_result(syscall)
-        print(type(value))
         if type(value) == int:
             # every digit as list entry
             res = [int(x) for x in str(value)]
