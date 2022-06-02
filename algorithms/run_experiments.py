@@ -23,7 +23,7 @@ thread_aware_list = ["True"]
 time_deltas = ["False"]
 thread_change_flags = ["False"]
 return_values = ["False"]
-base_path = '/home/sc.uni-leipzig.de/te697mily/master/Praxis/Data/'
+base_path = '/home/sc.uni-leipzig.de/te697mily/Data/'
 
 script = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'
 
