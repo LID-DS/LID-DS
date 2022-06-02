@@ -35,7 +35,7 @@ if __name__ == '__main__':
                         help='Scenario name')
     parser.add_argument('-n', dest='ngram_length', action='store', type=int, required=True,
                         help='ngram length')
-    parser.add_argument('-w', dest='window-length', action='store', type=int, required=True,
+    parser.add_argument('-w', dest='window_length', action='store', type=int, required=True,
                         help='window length')
     parser.add_argument('-e', dest='embedding_size', action='store', type=int, required=True,
                         help='embedding size')
