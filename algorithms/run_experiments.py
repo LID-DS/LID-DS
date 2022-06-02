@@ -62,7 +62,7 @@ for thread_aware in thread_aware_list:
                             for window in windows:
                                 for scenario in scenarios:
                                     num_experiments += 1
-                                    command = f"sbatch --job-name=ex_{num_experiments:05} {script} {base_path} {scenario} {batch_size} {epochs} {embedding_size} {ngram_length} {time_delta} {thread_change_flag} {return_value}"
+                                    command = f"sbatch --job-name=ex_{num_experiments:05} {script} {base_path} {scenario} {batch_size} {epochs} {embedding_size} {ngram_length} {window} {thread_change_flag} {return_value}"
                                     print(command)
                                     start_job(command)
 
