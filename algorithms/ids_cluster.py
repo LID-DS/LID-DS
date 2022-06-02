@@ -55,11 +55,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(f'Start with scenario {args.scenario}')
 
-    thread_aware = True
-    window_length = 100
-    ngram_length = 5
+    thread_aware = args.thread_aware
+    window_length = args.window_length
+    ngram_length = args.ngram_length
 
-    dataloader = dataloader_factory(base_path, direction=Direction.OPEN)
+    dataloader = dataloader_factory(args.base_path, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
     int_embedding = IntEmbedding()
