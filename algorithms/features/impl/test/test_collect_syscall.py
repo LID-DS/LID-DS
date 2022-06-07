@@ -62,8 +62,9 @@ def test_collect_syscall():
 
     col = CollectSyscall(feature_list=[pe, rv])
 
-    assert col._calculate(syscall_11) is None    # opening syscall
-    assert col._calculate(syscall_12) == (0, 10)  # closing (pe=0,rv=10)
+    assert col._calculate(syscall_11) is None    # closing syscall
+    assert col._calculate(syscall_12) is None  # opening syscall 
+    assert col._calculate(syscall_13) == (0, 10)  # closing (pe=0,rv=10)
 
     pe = PathEvilness(scenario_path='Test/test',
                       path='algorithms/Models',
