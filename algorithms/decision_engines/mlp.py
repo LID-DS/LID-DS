@@ -219,11 +219,14 @@ class MLP(BuildingBlock):
             if input_vector in self._result_dict:
                 return self._result_dict[input_vector]
             else:
-                in_tensor = torch.tensor(input_vector)
+                in_tensor = torch.tensor(input_vector, dtype=torch.float32)
                 mlp_out = self._model(in_tensor)
 
-                label_index = label.index(1)  # getting the index of the actual next datapoint
-                anomaly_score = 1 - mlp_out[label_index]
+                try: 
+                    label_index = label.index(1)  # getting the index of the actual next datapoint
+                    anomaly_score = 1 - mlp_out[label_index]
+                except:
+                    anomaly_score = 1
 
                 self._result_dict[input_vector] = anomaly_score
                 return anomaly_score
