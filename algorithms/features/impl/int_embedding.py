@@ -7,6 +7,9 @@ from algorithms.features.impl.syscall_name import SyscallName
 class IntEmbedding(BuildingBlock):
     """
         convert system call name to unique integer
+        
+        Params:
+        building_block: BB which should be embedded as int
     """
 
     def __init__(self, building_block: BuildingBlock = None):
