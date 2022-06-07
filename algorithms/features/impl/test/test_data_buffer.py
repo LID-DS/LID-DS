@@ -1,9 +1,6 @@
-import base64
-
+from algorithms.features.impl.data_buffer import DataBuffer
 from dataloader.syscall_2021 import Syscall2021
 from dataloader.syscall_2019 import Syscall2019
-
-from algorithms.features.impl.data_buffer import DataBuffer
 
 
 def test_data_buffer():
@@ -18,13 +15,9 @@ def test_data_buffer():
     syscall_5 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631064318591700272 33 604836 apache2 604836 writev < res=274 data=FgMDANoEAADWAAABLADQiKBNVJWsSrM3g2cncm+h9cvVmHhqIHNBIaAHZ9NxylaHczULmo/S4GWzIM70XmqcGG+SWQLpstg+fd7loxUnpHQ=")
 
-    db = DataBuffer()
-    assert db.get_result(syscall_1) is None  # syscall 2019
+    db = DataBuffer()    
+    assert db.get_result(syscall_1) == None # syscall 2019
     assert db.get_result(syscall_2) == "J....5.5.23....hJyAy_PR...................*yE-M}Q\Z0|E.mysql_native_password."
-    assert db.get_result(syscall_3) is None
-    data_buffer = str(base64.b64decode(syscall_4.param(param_name='data')))
-    assert db.get_result(syscall_4) == data_buffer
-    data_buffer = str(base64.b64decode(syscall_5.param(param_name='data')))
-    assert db.get_result(syscall_5) == data_buffer
-    db = DataBuffer(decode=False)
+    assert db.get_result(syscall_3) == None 
+    assert db.get_result(syscall_4) == "FwMDAU1v8Mm2YkhDrBPnVbzCG33b1N3hnXmeVAZ9/VXFkW1dIv44P2/krMovxnOHA/bkoZ6zJiCN/mmuYj8wAH8U4Cl5qDMLmlHvjr/YBMQ="
     assert db.get_result(syscall_5) == 'FgMDANoEAADWAAABLADQiKBNVJWsSrM3g2cncm+h9cvVmHhqIHNBIaAHZ9NxylaHczULmo/S4GWzIM70XmqcGG+SWQLpstg+fd7loxUnpHQ='
