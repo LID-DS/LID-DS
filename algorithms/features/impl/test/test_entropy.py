@@ -55,5 +55,5 @@ def test_entropy():
     assert ent._calculate(syscall_2) is None              # No data buffer
     assert ent._calculate(syscall_3) is None              # No data buffer
     assert round(ent._calculate(syscall_4), 2) == 3.94
-    assert round(ent._calculate(syscall_5), 2) == 5.42
-    assert round(ent._calculate(syscall_6), 2) == 5.37
+    assert round(ent._calculate(syscall_5), 2) == 4.03
+    assert round(ent._calculate(syscall_6), 2) == 4.02
