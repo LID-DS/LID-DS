@@ -1,6 +1,7 @@
-from algorithms.features.impl.int_embedding import IntEmbedding
-from dataloader.syscall import Syscall
 from dataloader.syscall_2021 import Syscall2021
+
+from algorithms.features.impl.processID import ProcessID
+from algorithms.features.impl.int_embedding import IntEmbedding
 
 
 def test_int_embedding():
@@ -11,7 +12,7 @@ def test_int_embedding():
     syscall_3 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047762210355 33 3686302 apache2 3686302 getuid < uid=33(www-data) ")
     syscall_4 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            "1631209047762210355 33 3686302 apache2 3686302 unknown < uid=33(www-data) ")
+                            "1631209047762210355 33 4686302 apache2 3686302 unknown < uid=33(www-data) ")
 
     si = IntEmbedding()
     # trianing
@@ -23,5 +24,17 @@ def test_int_embedding():
     # detection
     assert si._calculate(syscall_1) == 1
     assert si._calculate(syscall_2) == 1
-    assert si._calculate(syscall_3) == 2 
-    assert si._calculate(syscall_4) == 0    
+    assert si._calculate(syscall_3) == 2
+    assert si._calculate(syscall_4) == 0
+
+    pid = ProcessID()
+    si = IntEmbedding(building_block=pid)
+    si._syscall_dict = {}
+    si.train_on(syscall_1)
+    si.train_on(syscall_2)
+    si.train_on(syscall_3)
+
+    assert si._calculate(syscall_1) == 1
+    assert si._calculate(syscall_2) == 2
+    assert si._calculate(syscall_3) == 1
+    assert si._calculate(syscall_4) == 0

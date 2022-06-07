@@ -92,8 +92,8 @@ def test_collect_syscall():
     # starts with closed syscall
     assert col._calculate(syscall_11) is None
     assert col._calculate(syscall_12) is None
-    assert col._calculate(syscall_13) == (0, 10.0, '0', 18.000000378000006) 
+    assert col._calculate(syscall_13) == (0, 10.0, '0', 18.000000377983007) 
     assert col._calculate(syscall_14) is None
-    assert col._calculate(syscall_15) == (1.0, 0, '1(O_RDONLY)', 10.000000220000004)
+    assert col._calculate(syscall_15) == (1.0, 0, '1(O_RDONLY)', 10.000000219991005)
     assert col._calculate(syscall_16) is None
-    assert col._calculate(syscall_17) == (0, 0.0, '0', 10.000000220000004)
+    assert col._calculate(syscall_17) == (0, 0.0, '0', 10.000000219991005)
