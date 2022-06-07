@@ -41,7 +41,7 @@ def test_collect_syscall():
                              '1631249047761414620 0 30244 Process-1 31393 write > ')
     syscall_15 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631259047761424621 0 30244 Process-1 31393 write < fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) dirfd=-100(AT_FDCWD) name=/usr/local/tomcat/conf/tomcat-users.xml flags=1(O_RDONLY) mode=0 dev=802 ')
-    syscall_17 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+    syscall_16 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631269047761434622 0 30244 Catalina-utilit 31393 read > fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) ')
     syscall_17 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631279047761444623 0 30244 Catalina-utilit 31393 read < res=0 ')
@@ -64,8 +64,9 @@ def test_collect_syscall():
 
     col = CollectSyscall(feature_list=[pe, rv])
 
-    assert col._calculate(syscall_11) is None    # opening syscall
-    assert col._calculate(syscall_12) == (0, 10)  # closing (pe=0,rv=10)
+    assert col._calculate(syscall_11) is None    # closing syscall
+    assert col._calculate(syscall_12) is None  # opening syscall 
+    assert col._calculate(syscall_13) == (0, 10)  # closing (pe=0,rv=10)
 
     pe = PathEvilness(scenario_path='Test/test',
                       path='algorithms/Models',
