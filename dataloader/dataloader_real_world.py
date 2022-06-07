@@ -260,16 +260,3 @@ class DataLoaderRealWorld(BaseDataLoader):
             with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
-
-
-if __name__ == '__main__':
-    base_path = '../../WHK/Data/real_world'
-    dataloader = DataLoaderRealWorld(base_path)
-    function_list = [dataloader.training_data,
-                     dataloader.validation_data,
-                     dataloader.test_data]
-    for f in function_list:
-        data = f()
-        for recording in tqdm(data):
-            print(recording.name)
-            print(recording.metadata()['exploit'])
