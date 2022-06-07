@@ -1,5 +1,3 @@
-import pytest
-
 from dataloader.syscall_2021 import Syscall2021
 from dataloader.syscall_2019 import Syscall2019
 
@@ -34,12 +32,10 @@ def test_entropy():
     pid = ProcessID()
     ent = Entropy(feature=pid)
 
-    assert ent._calculate(syscall_1) == 1               # 10
+    assert ent._calculate(syscall_1) == 0               # 10
     assert ent._calculate(syscall_2) == 0               # 11
-    assert ent._calculate(syscall_3) == 1               # 12
+    assert ent._calculate(syscall_3) == 0               # 12
     assert ent._calculate(syscall_4) is None            # Syscall 2019 has no pid
-    assert round(ent._calculate(syscall_5), 1) == 2.3   # 604836 
-    assert round(ent._calculate(syscall_6), 1) == 2.3   # 123123
 
     name = SyscallName()
     ent = Entropy(feature=name)
