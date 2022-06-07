@@ -42,8 +42,6 @@ class TimeDelta(BuildingBlock):
         if self._thread_aware:
             thread_id = syscall.thread_id()
         delta = self._calc_delta(current_time, thread_id)
-        print(delta)
-        print(self._max_time_delta)
         normalized_delta = delta / self._max_time_delta
         return normalized_delta
 
