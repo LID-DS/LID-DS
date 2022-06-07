@@ -1,23 +1,21 @@
-from dataloader.syscall import Syscall
+import typing
 
 from algorithms.building_block import BuildingBlock
-from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.util.Singleton import Singleton
+from dataloader.syscall import Syscall
 
 
-class IntEmbedding(BuildingBlock):
+class IntEmbedding(BuildingBlock, metaclass=Singleton):
     """
         convert system call name to unique integer
     """
 
-    def __init__(self, building_block: BuildingBlock = None):
+    def __init__(self):
         super().__init__()
         self._syscall_dict = {}
-        if building_block is None:
-            building_block = SyscallName()
-        self._dependency_list = [building_block]
 
     def depends_on(self):
-        return self._dependency_list
+        return []
 
     def train_on(self, syscall: Syscall):
         """
@@ -25,18 +23,15 @@ class IntEmbedding(BuildingBlock):
             integer is current length of syscall_dict
             keep 0 free for unknown syscalls
         """
-        bb_value = self._dependency_list[0].get_result(syscall)
-        if bb_value not in self._syscall_dict:
-            self._syscall_dict[bb_value] = len(self._syscall_dict) + 1
+        if syscall.name() not in self._syscall_dict:
+            self._syscall_dict[syscall.name()] = len(self._syscall_dict) + 1
 
     def _calculate(self, syscall: Syscall):
         """
-            transforms given building_block to integer
+            transforms given syscall name to integer
         """
-        bb_value = self._dependency_list[0].get_result(syscall)
-        print(bb_value)
         try:
-            sys_to_int = self._syscall_dict[bb_value]
+            sys_to_int = self._syscall_dict[syscall.name()]
         except KeyError:
             sys_to_int = 0
         return sys_to_int
