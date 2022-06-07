@@ -97,3 +97,4 @@ def test_collect_syscall():
     assert col._calculate(syscall_15) == (1.0, 0, '1(O_RDONLY)', 10.000000219991005)
     assert col._calculate(syscall_16) is None
     assert col._calculate(syscall_17) == (0, 0.0, '0', 10.000000219991005)
+    assert col._calculate(syscall_17) == (0, 0.0, '0', 10.000000219991005)
