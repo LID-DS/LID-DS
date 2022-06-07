@@ -1,6 +1,7 @@
-from algorithms.building_block import BuildingBlock
-
 from dataloader.syscall import Syscall
+from dataloader.direction import Direction
+
+from algorithms.building_block import BuildingBlock
 
 
 class CollectSyscall(BuildingBlock):
@@ -38,8 +39,11 @@ class CollectSyscall(BuildingBlock):
         """
         thread_id = syscall.thread_id()
         syscall_name = syscall.name()
+        # create new buffer for given thread_id
         if thread_id not in self._buffer:
             self._buffer[thread_id] = {}
+        # if syscall not in thread buffer
+        # create new syscall_name buffer
         if syscall_name not in self._buffer[thread_id]:
             # if first syscall is closing one, discard it
             if syscall.direction() == Direction.CLOSE:
@@ -48,6 +52,7 @@ class CollectSyscall(BuildingBlock):
             closing_syscall = False
         else:
             closing_syscall = True
+        # save features in dict for syscall
         for feature in self._dependency_list:
             feature_name = type(feature).__name__
             feature_result = feature.get_result(syscall)
