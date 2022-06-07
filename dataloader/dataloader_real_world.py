@@ -2,7 +2,6 @@ import os
 import glob
 import json
 import errno
-import nest_asyncio
 from enum import Enum
 from tqdm import tqdm
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -123,8 +122,6 @@ class DataLoaderRealWorld(BaseDataLoader):
                 scenario_path
             )
 
-        # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
-        nest_asyncio.apply()
         self.scenario_path = scenario_path
         print(f"loading {scenario_path}")
 
