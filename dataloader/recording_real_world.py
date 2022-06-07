@@ -88,11 +88,8 @@ class RecordingRealWorld(BaseRecording):
         # calc time delta of first and last system call
         start_time = str(first_line).split(' ')[0]
         end_time = str(last_line).split(' ')[0]
-        start_time = datetime.fromtimestamp(int(start_time)*10**(-9))
-        end_time = datetime.fromtimestamp(int(end_time) * 10**(-9))
-        recording_time = end_time - start_time
+        recording_time = (int(end_time) - int(start_time)) * 10 ** -9
         # convert timestamp to float
-        recording_time = recording_time.total_seconds()
         if 'malicious' in self.name:
             result_dict = {
                 "exploit": True,
