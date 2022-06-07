@@ -32,16 +32,18 @@ def test_collect_syscall():
     syscall_10 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631211047761464618 0 30244 Process-1 31393 stat < res=100 path=/usr/local/tomcat/conf/tomcat-users.xml')
     syscall_11 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             '1631221047761464618 0 30244 Process-1 31393 writev >')
+                            '1631209147761484609 0 30244 Process-1 31394 writev < addr=7FE7FC0011B8 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
     syscall_12 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             '1631239047761464619 0 30244 Process-1 31393 writev < res=100 path=/usr/local/tomcat/conf/tomcat-users.xml')
+                             '1631221047761464618 0 30244 Process-1 31393 writev >')
     syscall_13 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             '1631249047761414620 0 30244 Process-1 31393 write > ')
+                             '1631239047761464619 0 30244 Process-1 31393 writev < res=100 path=/usr/local/tomcat/conf/tomcat-users.xml')
     syscall_14 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             '1631259047761424621 0 30244 Process-1 31393 write < fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) dirfd=-100(AT_FDCWD) name=/usr/local/tomcat/conf/tomcat-users.xml flags=1(O_RDONLY) mode=0 dev=802 ')
+                             '1631249047761414620 0 30244 Process-1 31393 write > ')
     syscall_15 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             '1631269047761434622 0 30244 Catalina-utilit 31393 read > fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) ')
+                             '1631259047761424621 0 30244 Process-1 31393 write < fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) dirfd=-100(AT_FDCWD) name=/usr/local/tomcat/conf/tomcat-users.xml flags=1(O_RDONLY) mode=0 dev=802 ')
     syscall_16 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                             '1631269047761434622 0 30244 Catalina-utilit 31393 read > fd=64(<f>/usr/local/tomcat/conf/tomcat-users.xml) ')
+    syscall_17 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631279047761444623 0 30244 Catalina-utilit 31393 read < res=0 ')
 
     training_syscalls = [syscall_1, syscall_2,
@@ -87,9 +89,11 @@ def test_collect_syscall():
 
     col = CollectSyscall(feature_list=[pe, rv, flag, str_max])
 
+    # starts with closed syscall
     assert col._calculate(syscall_11) is None
-    assert col._calculate(syscall_12) == (0, 10.0, '0', 18.000000378000006) 
-    assert col._calculate(syscall_13) is None
-    assert col._calculate(syscall_14) == (1.0, 0, '1(O_RDONLY)', 10.000000220000004)
-    assert col._calculate(syscall_15) is None
-    assert col._calculate(syscall_16) == (0, 0.0, '0', 10.000000220000004)
+    assert col._calculate(syscall_12) is None
+    assert col._calculate(syscall_13) == (0, 10.0, '0', 18.000000378000006) 
+    assert col._calculate(syscall_14) is None
+    assert col._calculate(syscall_15) == (1.0, 0, '1(O_RDONLY)', 10.000000220000004)
+    assert col._calculate(syscall_16) is None
+    assert col._calculate(syscall_17) == (0, 0.0, '0', 10.000000220000004)
