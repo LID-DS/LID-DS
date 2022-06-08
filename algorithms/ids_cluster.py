@@ -6,10 +6,12 @@ from pprint import pprint
 
 from algorithms.ids import IDS
 
+from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
 
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
 from algorithms.persistance import save_to_json
 
@@ -55,18 +57,26 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(f'Start with scenario {args.scenario}')
 
+    scenario = args.scenario
     thread_aware = args.thread_aware
     window_length = args.window_length
     ngram_length = args.ngram_length
+    embedding_size = args.embedding_size
 
     dataloader = dataloader_factory(args.base_path, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
-    int_embedding = IntEmbedding()
+    # int_embedding = IntEmbedding()
+    som_epochs = 1000
+    w2v = W2VEmbedding(epochs=500,
+                       scenario_path=scenario,
+                       vector_size=embedding_size,
+                       window_size=window_length)
     # now build ngrams from these integers
-    ngram = Ngram([int_embedding], thread_aware, ngram_length)
+    ngram = Ngram([w2v], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
-    stide = Stide(ngram, window_length=window_length)
+    # stide = Stide(ngram, window_length=window_length)
+    som = Som(ngram, epochs=som_epochs, size=50)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,

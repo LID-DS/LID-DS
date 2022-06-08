@@ -23,6 +23,7 @@
 module load matplotlib
 pip install --upgrade pip
 pip install --user tqdm
+pip install --user minisom
 
 
 # parameters:
