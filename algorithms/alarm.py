@@ -34,7 +34,12 @@ class Alarm:
                 path: path of recording
         """
         if '.zip' in path:
-            self.dataset = 'LID-DS-2021'
+            # if LID-DS 2021 zipfile contains 4 files
+            with ZipFile(self.path, 'r') as zip_ref:
+                if len(zip_ref.namelist()) > 2:
+                    self.dataset = 'LID-DS-2021'
+                else:
+                    self.dataset = 'Real World'
         else:
             self.dataset = 'LID-DS-2019'
 
@@ -47,6 +52,8 @@ class Alarm:
         """
         if self.dataset == 'LID-DS-2019':
             self.scenario = os.path.basename(os.path.dirname(path))
+        elif self.dataset == 'Real World':
+            self.scenario = 'real_world'
         else:
             dirname = os.path.basename(os.path.dirname(path))
             if dirname == 'training' or dirname == 'validation':
@@ -63,5 +70,3 @@ class Alarm:
         """
         index = path.find(self.scenario)
         self.filepath = path[index:]
-
-
