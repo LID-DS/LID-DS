@@ -46,7 +46,7 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
                 zip_path = path.join(scenario_path, 'test')
                 example_file = listdir(zip_path)[0]
                 _, sub_file_extension = path.splitext(example_file)
-                if sub_file_extension == '.zip':
+                if sub_file_extension == '.zip' or sub_file_extension == '.scap':
                     print('Real world data detected, initializing Dataloader')
                     return DataLoaderRealWorld(scenario_path, direction)
                 else:

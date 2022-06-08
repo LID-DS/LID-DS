@@ -15,6 +15,17 @@ class W2VEmbedding(BuildingBlock):
         Special for this one:
             uses n_gram feature stream to create sentences for word corpus
             -> thread and file awareness given
+
+        Args:
+            vector_size: the w2v output vector size
+            window_size: size of w2v context window
+            epochs: number of epochs for 2v training
+            scenario_path: path of the LID-DS scenario (used for model persist)
+            path: path for Models directory
+            force_train: bool that decides if w2v model shall be loaded or forced to retrain
+            distinct: true if training dataset shall be distinct, gives tremendous increase in training speed
+            thread_aware: true if training sentences shall be created thread aware
+            unknown_input_value: value that gets set for every dimension if unknown input word is given to w2v model
     """
 
     def __init__(self,
@@ -25,7 +36,8 @@ class W2VEmbedding(BuildingBlock):
                  path: str = 'Models',
                  force_train: bool = False,
                  distinct: bool = True,
-                 thread_aware=True):
+                 thread_aware=True,
+                 unknown_input_value: float = 0.0):
         super().__init__()
         scenario_name = os.path.basename(os.path.normpath(scenario_path))
         path = path + f'/{scenario_name}'
@@ -46,6 +58,7 @@ class W2VEmbedding(BuildingBlock):
         if not force_train:
             self.load()
 
+        self._unknown_input_value = unknown_input_value
         self._dependency_list = []
 
     def depends_on(self):
@@ -88,7 +101,7 @@ class W2VEmbedding(BuildingBlock):
         try:
             return tuple(self.w2vmodel.wv[syscall.name()].tolist())
         except KeyError:
-            return tuple([0] * self._vector_size)
+            return tuple([self._unknown_input_value] * self._vector_size)
 
     def load(self):
         """

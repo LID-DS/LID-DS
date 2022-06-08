@@ -105,7 +105,7 @@ class AE(BuildingBlock):
         self._validation_set = set()
         self._result_dict = {}
 
-        self._early_stopping_num_epochs = 200
+        self._early_stopping_num_epochs = 50
 
     def depends_on(self):
         return self._dependency_list
@@ -132,7 +132,7 @@ class AE(BuildingBlock):
             weight_decay=0.01
         )
         loss_dq = collections.deque(maxlen=self._early_stopping_num_epochs)
-        best_avg_loss = math.inf
+        best_avg_val_loss = math.inf
         ae_ds = AEDataset(self._training_set)
         ae_ds_val = AEDataset(self._validation_set)
         data_loader = torch.utils.data.DataLoader(ae_ds, batch_size=self._batch_size, shuffle=True)
@@ -168,13 +168,13 @@ class AE(BuildingBlock):
 
             # print epoch results
             bar.set_description(f"fit AE: {avg_loss:.5f}|{avg_val_loss:.5f}".rjust(27), refresh=True)            
-            if avg_loss < best_avg_loss:
-                best_avg_loss = avg_loss
+            if avg_val_loss < best_avg_val_loss:
+                best_avg_val_loss = avg_val_loss
 
-            loss_dq.append(avg_loss)            
+            loss_dq.append(avg_val_loss)
             stop_early = True
             for l in loss_dq:
-                if l == best_avg_loss:
+                if l == best_avg_val_loss:
                     stop_early = False
             if stop_early:                
                 break

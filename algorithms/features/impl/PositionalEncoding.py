@@ -6,7 +6,7 @@ from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class PositionalEncoding(BuildingBlock, metaclass=Singleton):
+class PositionalEncoding(BuildingBlock):
     """
         convert a number to an n dimensional vector using positional encoding from Attention is all you need (http://papers.nips.cc/paper/7181-attention-is-all-you-%0Aneed.pdf)
     """

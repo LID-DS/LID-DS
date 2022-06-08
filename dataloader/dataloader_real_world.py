@@ -2,7 +2,6 @@ import os
 import glob
 import json
 import errno
-import nest_asyncio
 from enum import Enum
 from tqdm import tqdm
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -123,8 +122,6 @@ class DataLoaderRealWorld(BaseDataLoader):
                 scenario_path
             )
 
-        # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
-        nest_asyncio.apply()
         self.scenario_path = scenario_path
         print(f"loading {scenario_path}")
 
@@ -263,16 +260,3 @@ class DataLoaderRealWorld(BaseDataLoader):
             with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)
             return self._distinct_syscalls
-
-
-if __name__ == '__main__':
-    base_path = '../../WHK/Data/real_world'
-    dataloader = DataLoaderRealWorld(base_path)
-    function_list = [dataloader.training_data,
-                     dataloader.validation_data,
-                     dataloader.test_data]
-    for f in function_list:
-        data = f()
-        for recording in tqdm(data):
-            print(recording.name)
-            print(recording.metadata()['exploit'])

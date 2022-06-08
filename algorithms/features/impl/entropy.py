@@ -32,19 +32,18 @@ class Entropy(BuildingBlock):
             syscall(Syscall): syscall to calc entropy of
         """
         value = self._feature.get_result(syscall)
-        print(type(value))
         if type(value) == int:
             # every digit as list entry
-            res = [int(x) for x in str(value)]
+            res = [value]
         elif type(value) == str:
             res = list(value)
-        elif type(value) == list:
-            res = value
+        elif type(value) == tuple:
+            res = list(value)
         elif value is None:
             return None
         else:
             print('''Sadly this feature is only implemented for:
-                  str, int and list.''')
+                  str, int and tuple.''')
             raise ValueError
         entropy = self._calc_entropy(res)
 
@@ -53,7 +52,7 @@ class Entropy(BuildingBlock):
     def _calc_entropy(self,
                       label: list,
                       unit: str = 'shannon'):
-        """ 
+        """
             Computes entropy of label distribution.
             Label can be list of variable entries thanks to Counter.
             Base is set to 2 through unit -> Shannon entropy
@@ -63,10 +62,10 @@ class Entropy(BuildingBlock):
             float: entropy value
         """
         base = {
-             'shannon' : 2.,
-             'natural' : math.exp(1),
-             'hartley' : 10.
-        } 
+             'shannon': 2.,
+             'natural': math.exp(1),
+             'hartley': 10.
+        }
         if len(label) <= 1:
             return 0
 
