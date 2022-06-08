@@ -1,4 +1,6 @@
 from os import listdir, path
+
+from dataloader.dataloader_real_world import DataLoaderRealWorld
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_loader_2019 import DataLoader2019
 from dataloader.data_loader_2021 import DataLoader2021
@@ -22,6 +24,8 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     LID-DS 2021 has three subdirs that lead to empty file extension
     if subdirs are detected the dataset subdir with normal test data is opened
     if it contains zip files a DataLoader 2021 Object is returned
+
+    Real World Data also has three subdirs, but no extra subdirs (normal, idle, normal_and_attack)
     """
     # if base_file_extension == '.txt' or base_file_extension == '.csv':
     if "runs.csv" in file_list:
@@ -30,18 +34,28 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     elif base_file_extension == '':
         try:
             normal_path = path.join(scenario_path, 'test', 'normal')
-            example_file = listdir(normal_path)[0]
-            _, sub_file_extension = path.splitext(example_file)
-            if sub_file_extension == '.zip':
-                print('LID-DS 2021 detected, initializing Dataloader')
-                return DataLoader2021(scenario_path, direction)
+            if path.isdir(normal_path):
+                example_file = listdir(normal_path)[0]
+                _, sub_file_extension = path.splitext(example_file)
+                if sub_file_extension == '.zip':
+                    print('LID-DS 2021 detected, initializing Dataloader')
+                    return DataLoader2021(scenario_path, direction)
+                else:
+                    raise_value_error()
             else:
-                raise_value_error()
-        except:
+                zip_path = path.join(scenario_path, 'test')
+                example_file = listdir(zip_path)[0]
+                _, sub_file_extension = path.splitext(example_file)
+                if sub_file_extension == '.zip':
+                    print('Real world data detected, initializing Dataloader')
+                    return DataLoaderRealWorld(scenario_path, direction)
+                else:
+                    raise_value_error()
+        except Exception:
             raise_value_error()
     else:
         raise_value_error()
 
 
 def raise_value_error():
-    raise ValueError('invalid dataset structure, please use LID-DS 2019 or LID-DS 2021 dataset scenarios')
+    raise ValueError('invalid dataset structure, please use LID-DS 2019, LID-DS 2021  or real world dataset scenarios')

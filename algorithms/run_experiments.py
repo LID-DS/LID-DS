@@ -11,7 +11,8 @@ scenarios = [
     # "EPS_CWE-434/",
     # "PHP_CWE-434/",
     # "SQL_Injection_CWE-89/"
-    "ZipSlip/"
+    # "ZipSlip/"
+    "real_world/"
 ]
 
 epochs = 20
