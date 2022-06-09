@@ -1,4 +1,5 @@
 import os
+import sys
 import math
 
 from pprint import pprint
@@ -10,6 +11,12 @@ from dataloader.dataloader_factory import dataloader_factory
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
 if __name__ == '__main__':
+
+    lid_ds_version_number = 1
+    lid_ds_version = [
+        "LID-DS-2019",
+        "LID-DS-2021"
+    ]
 
     # scenarios ordered by training data size asc
     # 0 - 14
@@ -43,11 +50,22 @@ if __name__ == '__main__':
 
     # run config
     scenario_range = scenario_names[0:1]
-    lid_ds_base_path = "/home/felix/repos/LID-DS/LID-DS-2021"
     ###################
 
+    # getting the LID-DS base path from argument or environment variable
+    if len(sys.argv) > 1:
+        lid_ds_base_path = sys.argv[1]
+    else:
+        try:
+            lid_ds_base_path = os.environ['LID_DS_BASE']
+        except KeyError:
+            raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
+                             "$LID_DS_BASE")
+
     for scenario_number in range(0, len(scenario_range)):
-        scenario_path = os.path.join(lid_ds_base_path, scenario_range[scenario_number])
+        scenario_path = os.path.join(lid_ds_base_path,
+                                     lid_ds_version[lid_ds_version_number],
+                                     scenario_range[scenario_number])
         dataloader = dataloader_factory(scenario_path, direction=Direction.OPEN)
 
         # features
