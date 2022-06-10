@@ -4,6 +4,7 @@ from pprint import pprint
 from algorithms.decision_engines.som import Som
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
+from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
@@ -41,7 +42,7 @@ if __name__ == '__main__':
 
     # run config
     scenario_range = scenario_names[0:1]
-    lid_ds_base_path = "/home/felix/repos/LID-DS/LID-DS-2021"
+    lid_ds_base_path = "/media/sf_Masterarbeit/Material/LID-DS-2021"
     ###################
 
     for scenario_number in range(0, len(scenario_range)):
@@ -50,12 +51,19 @@ if __name__ == '__main__':
 
         # features
         ###################
+
+        
+        
+        
         w2v = W2VEmbedding(epochs=50,
                            scenario_path=scenario_path,
                            vector_size=w2v_size,
                            window_size=ngram_length)
         ngram = Ngram([w2v], thread_aware, ngram_length)
-        som = Som(ngram, epochs=som_epochs, size=som_size)
+        
+        ohe = OneHotEncoding(input=ngram)
+        
+        som = Som(ohe, epochs=som_epochs, size=som_size)
         config_name = f"som_n_{ngram_length}_w_{w2v_size}_e_{som_epochs}_t_{thread_aware}"
 
         ###################

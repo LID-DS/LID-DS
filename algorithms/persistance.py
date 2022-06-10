@@ -1,5 +1,5 @@
 import pandas as pd
-import os.path
+import os
 import json
 
 def save_to_json(result_dict: dict, path: str):
@@ -39,8 +39,9 @@ def save_to_json(result_dict: dict, path: str):
         with open(path, 'w') as file:
             json.dump(result_list, file, indent=2)
     else:
-        print('No persistent data yet')
+        print('No persistent data yet. Creating results-folder.')
         result_list = [complete_dict]
+        os.mkdir(os.path.dirname(path))
         with open(path, 'w') as file:
             json.dump(result_list, file, indent=2)
 
