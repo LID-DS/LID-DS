@@ -40,13 +40,19 @@ class FileDescriptor(BuildingBlock, metaclass=Singleton):
 
     @staticmethod
     def _get_fd_part(fd, mode: FDMode):
-        fd_parts = fd[:-1].split('(')
-        part = fd_parts[mode]
-        pattern = r'<.*>'
-        if '->' in part:
-            return tuple(re.sub(pattern, '', e) for e in part.split('->'))
+        if '(' in fd:
+            fd_parts = fd[:-1].split('(')
+            part = fd_parts[mode]
+            pattern = r'<.*>'
+            if '->' in part:
+                return tuple(re.sub(pattern, '', e) for e in part.split('->'))
+            else:
+                return tuple([re.sub(pattern, '', part)])
         else:
-            return tuple([re.sub(pattern, '', part)])
+            if mode == FDMode.ID:
+                return fd
+            else:
+                return None
 
     def depends_on(self):
         return []
