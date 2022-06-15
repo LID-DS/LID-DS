@@ -40,89 +40,110 @@ def test_filedescriptor():
                             "1631209047761484608 0 3686302 apache2 3686302 open < fd=-1(EPERM) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
 
     # LID-DS 2019
+    # normal fd with file
     syscall_8 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
                             "1631042440442667302 0 1488641 gs 1488641 mmap > addr=0 length=237568 prot=3(PROT_READ|PROT_WRITE) flags=10(MAP_PRIVATE|MAP_ANONYMOUS) fd=9(<f>/proc/sys/kernel/ngroups_max) offset=0",
                             1)
 
+    # out_fd and in_fd mixed ip with file
     syscall_9 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
                             "31971 16:15:08.028039855 1 101 nginx 22454 > sendfile out_fd=13(<4t>172.17.0.1:45440->172.17.0.5:8080) in_fd=14(<f>/tmp/nginx/5/77/42e5373cc524f2ebe558749ab23c7775) offset=613 size=612",
                             1)
 
+    # normal fd with ip
     syscall_10 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
                              "31971 16:15:08.028039855 1 101 nginx 22454 > sendfile fd=13(<4t>172.17.0.1:45440->172.17.0.5:8080) offset=613 size=612",
                              1)
 
+    # no fd
     syscall_11 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
                              "31971 16:15:08.028039855 1 101 nginx 22454 > sendfile offset=613 size=612",
                              1)
 
+    # fd=-1(EPERM)
     syscall_12 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
-                             "31971 16:15:08.028039855 1 101 nginx 22454 > sendfile fd=13(<4t>172.17.0.1:45440->172.17.0.5:8080) offset=613 size=612",
-                             1)
-
-    syscall_13 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
                              "10832 19:07:21.859231950 5 0 gs 749 > mmap addr=0 length=237568 prot=3(PROT_READ|PROT_WRITE) flags=10(MAP_PRIVATE|MAP_ANONYMOUS) fd=-1(EPERM) offset=0",
                              1)
 
-    syscall_14 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
-                             "157462 19:08:39.730662843 0 0 python3 7839 > close fd=5(<p>)",
-                             1)
+    # fd=5(<p>) -> co Content
+    syscall_13 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
+                             "157462 19:08:39.730662843 0 0 python3 7839 > close fd=5(<p>)",   1)
 
-    syscall_15 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
+    # fd = 9 -> content = None and id = 9
+    syscall_14 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
                              "126960 19:30:31.111336634 5 0 gs 5666 > read fd=9 size=4096",
                              1)
 
     fd = FileDescriptor(mode=FDMode.Content)
-
-    # print(fd_content.get_result(syscall_1))
-    # print(fd_content.get_result(syscall_2))
+    fdid = FileDescriptor(mode=FDMode.ID)
 
     assert fd.get_result(syscall_1) == ('/proc/sys/kernel/ngroups_max',)
+    assert fdid.get_result(syscall_1) == (9,)
 
-    assert fd.get_result(syscall_2) == ('172.17.0.1:36368', '172.17.0.3:3306')
+    assert fd.get_result(syscall_2) == ('172.17.0.1:36368->172.17.0.3:3306', )
+    assert fdid.get_result(syscall_2) == (53,)
 
-    assert fd.get_result(syscall_3) ==  ('/etc/nginx/html/images/dashboard_full_2.jpg', '172.21.0.3:50122', '172.21.0.7:80')
 
-    assert fd.get_result(syscall_4) == None
+    assert fd.get_result(syscall_3) == (
+    '/etc/nginx/html/images/dashboard_full_2.jpg', '172.21.0.3:50122->172.21.0.7:80')
+    assert fdid.get_result(syscall_3) == (20, 9)
 
-    assert fd.get_result(syscall_5) == None
+    assert fd.get_result(syscall_4) is None
+    assert fdid.get_result(syscall_4) is None
+
+    assert fd.get_result(syscall_5) is None
+    assert fdid.get_result(syscall_5) == (10,)
 
     assert fd.get_result(syscall_6) == ('fd',)
+    assert fdid.get_result(syscall_6) == (3, )
 
     assert fd.get_result(syscall_7) == ('EPERM',)
+    assert fdid.get_result(syscall_7) == (-1,)
 
+    # LID-DS 2019
     assert fd.get_result(syscall_8) == ('/proc/sys/kernel/ngroups_max',)
+    assert fdid.get_result(syscall_8) == (9,)
 
-    assert fd.get_result(syscall_9) == ('/tmp/nginx/5/77/42e5373cc524f2ebe558749ab23c7775', '172.17.0.1:45440', '172.17.0.5:8080')
-
-    assert fd.get_result(syscall_10) ==  ('172.17.0.1:45440', '172.17.0.5:8080')
-
-    assert fd.get_result(syscall_11) == None
-
-    assert fd.get_result(syscall_12) == ('172.17.0.1:45440', '172.17.0.5:8080')
-
-    assert fd.get_result(syscall_13) == ('EPERM',)
-
-    assert fd.get_result(syscall_14) ==  ('',)
-
-    assert fd.get_result(syscall_15) == None
+    assert fd.get_result(syscall_9) == (
+    '/tmp/nginx/5/77/42e5373cc524f2ebe558749ab23c7775', '172.17.0.1:45440->172.17.0.5:8080')
+    assert fdid.get_result(syscall_9) == (14, 13)
 
 
-"""
+    assert fd.get_result(syscall_10) == ('172.17.0.1:45440->172.17.0.5:8080', )
+    assert fdid.get_result(syscall_10) == (13,)
+
+    assert fd.get_result(syscall_11) is None
+    assert fdid.get_result(syscall_11) is None
+
+
+    assert fd.get_result(syscall_12) == ('EPERM',)
+    assert fdid.get_result(syscall_12) == (-1,)
+
+    assert fd.get_result(syscall_13) is None
+    assert fdid.get_result(syscall_13) == (5, )
+
+    assert fd.get_result(syscall_14) is None
+    assert fdid.get_result(syscall_14) == (9,)
+
+
+
 if __name__ == '__main__':
     test_filedescriptor()
 
     path = os.environ['LID_DS_BASE'] + '/LID-DS-2021'
     scenarios = os.listdir(path)
 
-    substrings = ['<f>', '<d>', 'EPERM', '<4t>', '<p>']
-
+    #  substrings = ['<f>', '<d>', 'EPERM', '<4t>', '<p>']
+    fde = FileDescriptor(mode=FDMode.Content)
     for scenario in scenarios:
         dataloader = dataloader_factory(os.environ['LID_DS_BASE'] + '/LID-DS-2021/' + scenario)
-
+        for recording in tqdm(dataloader.training_data()):
+            for syscall in recording.syscalls():
+                fd = fde.get_result(syscall)
         for recording in tqdm(dataloader.validation_data()):
             for syscall in recording.syscalls():
-                if 'fd' in syscall.params():
-                    if not any(x in syscall.param('fd') for x in substrings):
-                        print(syscall.syscall_line)
-"""
+                fd = fde.get_result(syscall)
+        for recording in tqdm(dataloader.test_data()):
+            for syscall in recording.syscalls():
+                fd = fde.get_result(syscall)
+

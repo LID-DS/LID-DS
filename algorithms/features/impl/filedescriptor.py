@@ -11,7 +11,7 @@ class FDMode(IntEnum):
     Content = 1
 
 
-class FileDescriptor(BuildingBlock, metaclass=Singleton):
+class FileDescriptor(BuildingBlock):
 
     def __init__(self, mode: FDMode):
         super().__init__()
@@ -43,14 +43,18 @@ class FileDescriptor(BuildingBlock, metaclass=Singleton):
         if '(' in fd:
             fd_parts = fd[:-1].split('(')
             part = fd_parts[mode]
-            pattern = r'<.*>'
-            if '->' in part:
-                return tuple(re.sub(pattern, '', e) for e in part.split('->'))
-            else:
-                return tuple([re.sub(pattern, '', part)])
+            pattern = r'<.{,5}>'
+            try:
+                return tuple([int(re.sub(pattern, '', part))])
+            except ValueError:
+                fd_tuple = tuple([re.sub(pattern, '', part)])
+                if len(fd_tuple[0]) == 0:
+                    return None
+                else:
+                    return fd_tuple
         else:
             if mode == FDMode.ID:
-                return fd
+                return (int(fd), )
             else:
                 return None
 
