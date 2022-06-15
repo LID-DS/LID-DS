@@ -12,9 +12,9 @@ def test_collect_syscall():
     # legit
 
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            '1631209147761484609 0 30244 Process-1 31394 write > addr=7FE7FC0011B8 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
+                            '1631209147761484609 0 30244 Process-1 31394 writev > addr=7FE7FC0011B8 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
     syscall_2 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            '1631209247761482610 0 30244 Process-1 31394 write < res=10')
+                            '1631209247761482610 0 30244 Process-1 31394 writev < res=10')
     syscall_3 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidiys_bhaskara_7006.zip',
                             '1631209347761487611 0 30244 Process-2 30532 read > addr=7FE87C0D6F28 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
     syscall_4 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
