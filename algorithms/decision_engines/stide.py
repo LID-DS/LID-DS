@@ -1,4 +1,5 @@
 from collections import deque
+from pprint import pprint
 
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
@@ -31,7 +32,7 @@ class Stide(BuildingBlock):
         if ngram != None:            
             if ngram not in self._normal_database:
                 self._normal_database.add(ngram)
-    
+                #pprint(f"Added N-Gram: {ngram}")
     def fit(self):
         print(f"stide.train_set: {len(self._normal_database)}".rjust(27))
 
@@ -45,6 +46,7 @@ class Stide(BuildingBlock):
                 mismatch = 0
             else:
                 mismatch = 1
+                #pprint(f"Stide: N-Gram not in database: {ngram}")
             if len(self._sliding_window) == self._window_length:
                 self._mismatch_count -= self._sliding_window[0]
             self._mismatch_count += mismatch

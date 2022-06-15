@@ -103,6 +103,7 @@ class DataLoader2021(BaseDataLoader):
             self._direction = direction
             self._metadata_list = self.collect_metadata()
             self._distinct_syscalls = None
+            self._retraining_data = None
         else:
             print(f'Could not find {scenario_path}!!!!')
             raise FileNotFoundError(
@@ -130,7 +131,10 @@ class DataLoader2021(BaseDataLoader):
         """
         recordings = self.extract_recordings(category=TRAINING,
                                              recording_type=recording_type)
-        return recordings
+        if self._retraining_data is not None: 
+            return recordings + self._retraining_data
+        else:
+            return recordings
 
     def validation_data(self, recording_type: RecordingType = None) -> list:
         """
@@ -167,6 +171,15 @@ class DataLoader2021(BaseDataLoader):
         recordings = self.extract_recordings(category=TEST,
                                              recording_type=recording_type)
         return recordings
+
+    def set_retraining_data(self, data):
+        """ Adds retraining data to the IDS
+
+        Args:
+            data (List[Recording]): the data which has to be added
+        """
+        self._retraining_data = data
+
 
     def extract_recordings(self,
                            category: str,

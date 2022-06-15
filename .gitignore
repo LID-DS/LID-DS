@@ -45,3 +45,11 @@ runs.log
 # Models
 
 algorithms/Models/*
+
+# Results
+
+algorithms/results
+
+# Images
+
+scenarios/EPS_CWE-434/normal/images

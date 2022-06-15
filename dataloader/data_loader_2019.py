@@ -29,6 +29,7 @@ class DataLoader2019(BaseDataLoader):
         self._exploit_recordings = None
         self._distinct_syscalls = None
         self._direction = direction
+        self._retraining_data = None # Has to be a list of Recordings
 
         self.extract_recordings()
 
@@ -39,7 +40,10 @@ class DataLoader2019(BaseDataLoader):
             list of training data
 
         """
-        return self._normal_recordings[:TRAINING_SIZE]
+        if self._retraining_data is not None:
+          return self._normal_recordings[:TRAINING_SIZE] + self._retraining_data
+        else:
+            return self._normal_recordings[:TRAINING_SIZE]
 
     def validation_data(self) -> list:
         """
@@ -61,6 +65,14 @@ class DataLoader2019(BaseDataLoader):
         random.shuffle(recordings)
 
         return recordings
+
+    def set_retraining_data(self, data):
+        """ Adds retraining data to the IDS
+
+        Args:
+            data (List[Recording]): the data which has to be added
+        """
+        self._retraining_data = data
 
     def extract_recordings(self):
         """

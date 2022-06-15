@@ -1,5 +1,6 @@
 from tqdm import tqdm
 from algorithms.building_block import BuildingBlock
+from pprint import pprint
 
 from algorithms.performance_measurement import PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
@@ -63,13 +64,18 @@ class IDS:
         description = 'anomaly detection'.rjust(27)
 
         for recording in tqdm(data, description, unit=" recording"):
+            #pprint(f"Current recording: {recording.name}")
             self.performance.new_recording(recording)
             if self.plot is not None:
                 self.plot.new_recording(recording)
-
+            private_counter = 0
             for syscall in recording.syscalls():
                 anomaly_score = self._final_bb.get_result(syscall)
+                private_counter += 1
                 if anomaly_score != None:
+                    #if anomaly_score > 0.0 and recording.name == "tasteless_moore_9765":
+                        #pprint("tasteless_moore_9765-Recording:")
+                        #pprint(f"Current Anomaly-Score is: {anomaly_score} at line: {private_counter}")
                     self.performance.analyze_syscall(syscall, anomaly_score)
                     if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())

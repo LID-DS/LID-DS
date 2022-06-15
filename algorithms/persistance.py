@@ -39,9 +39,11 @@ def save_to_json(result_dict: dict, path: str):
         with open(path, 'w') as file:
             json.dump(result_list, file, indent=2)
     else:
-        print('No persistent data yet. Creating results-folder.')
+        if not os.path.exists(os.path.dirname(path)):
+            os.mkdir(os.path.dirname(path))
+            print('No persistent data yet. Creating results-folder.')
+        print('Creating file.')
         result_list = [complete_dict]
-        os.mkdir(os.path.dirname(path))
         with open(path, 'w') as file:
             json.dump(result_list, file, indent=2)
 
