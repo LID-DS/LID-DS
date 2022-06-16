@@ -1,12 +1,10 @@
 import os
-
 from tqdm import tqdm
 
-from algorithms.features.impl.filedescriptor import FileDescriptor, FDMode
-from algorithms.features.impl.syscall_name import SyscallName
-from dataloader.dataloader_factory import dataloader_factory
 from dataloader.syscall_2019 import Syscall2019
 from dataloader.syscall_2021 import Syscall2021
+from dataloader.dataloader_factory import dataloader_factory
+from algorithms.features.impl.filedescriptor import FileDescriptor, FDMode
 
 
 def test_filedescriptor():
@@ -38,6 +36,11 @@ def test_filedescriptor():
     # fd=-1(EPERM)
     syscall_7 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047761484608 0 3686302 apache2 3686302 open < fd=-1(EPERM) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
+
+    # only out_fd
+    syscall_7b = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                            "1631209047761484608 0 3686302 apache2 3686302 open < out_fd=9(<4t>172.21.0.3:50122->172.21.0.7:80) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
+
 
     # LID-DS 2019
     # normal fd with file
@@ -74,6 +77,11 @@ def test_filedescriptor():
                              "126960 19:30:31.111336634 5 0 gs 5666 > read fd=9 size=4096",
                              1)
 
+    # only out_fd
+    syscall_15 = Syscall2019('CVE-2017-7529/microscopic_cocks_8401.txt',
+                            "31971 16:15:08.028039855 1 101 nginx 22454 > sendfile out_fd=13(<4t>172.17.0.1:45440->172.17.0.5:8080) offset=613 size=612",
+                            1)
+
     fd = FileDescriptor(mode=FDMode.Content)
     fdid = FileDescriptor(mode=FDMode.ID)
 
@@ -82,7 +90,6 @@ def test_filedescriptor():
 
     assert fd.get_result(syscall_2) == ('172.17.0.1:36368->172.17.0.3:3306', )
     assert fdid.get_result(syscall_2) == (53,)
-
 
     assert fd.get_result(syscall_3) == (
     '/etc/nginx/html/images/dashboard_full_2.jpg', '172.21.0.3:50122->172.21.0.7:80')
@@ -99,6 +106,9 @@ def test_filedescriptor():
 
     assert fd.get_result(syscall_7) == ('EPERM',)
     assert fdid.get_result(syscall_7) == (-1,)
+
+    assert fd.get_result(syscall_7b) == ('172.21.0.3:50122->172.21.0.7:80',)
+    assert fdid.get_result(syscall_7b) == (9,)
 
     # LID-DS 2019
     assert fd.get_result(syscall_8) == ('/proc/sys/kernel/ngroups_max',)
@@ -125,25 +135,5 @@ def test_filedescriptor():
     assert fd.get_result(syscall_14) is None
     assert fdid.get_result(syscall_14) == (9,)
 
-
-
-if __name__ == '__main__':
-    test_filedescriptor()
-
-    path = os.environ['LID_DS_BASE'] + '/LID-DS-2021'
-    scenarios = os.listdir(path)
-
-    #  substrings = ['<f>', '<d>', 'EPERM', '<4t>', '<p>']
-    fde = FileDescriptor(mode=FDMode.Content)
-    for scenario in scenarios:
-        dataloader = dataloader_factory(os.environ['LID_DS_BASE'] + '/LID-DS-2021/' + scenario)
-        for recording in tqdm(dataloader.training_data()):
-            for syscall in recording.syscalls():
-                fd = fde.get_result(syscall)
-        for recording in tqdm(dataloader.validation_data()):
-            for syscall in recording.syscalls():
-                fd = fde.get_result(syscall)
-        for recording in tqdm(dataloader.test_data()):
-            for syscall in recording.syscalls():
-                fd = fde.get_result(syscall)
-
+    assert fd.get_result(syscall_15) == ('172.17.0.1:45440->172.17.0.5:8080',)
+    assert fdid.get_result(syscall_15) == (13,)
