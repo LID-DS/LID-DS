@@ -76,7 +76,7 @@ if __name__ == '__main__':
     ###################
     thread_aware = True
     window_length = 100
-    ngram_length = 3
+    ngram_length = 7
     embedding_size = 10
     #--------------------
     

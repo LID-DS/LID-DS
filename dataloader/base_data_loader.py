@@ -70,6 +70,14 @@ class BaseDataLoader:
             data (List[Recording]): the data which has to be added
         """      
         pass
+    
+    def set_revalidation_data(self, data):
+        """ Adds validation data to the IDS
+
+        Args:
+            data (List[Recording]): the data which has to be added
+        """
+        pass
 
 
     def extract_recordings(self, category: str) -> list:

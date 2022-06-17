@@ -86,10 +86,6 @@ class IDS:
             if self.performance.alarms is not None:
                 self.performance.alarms.end_alarm()
 
-            # run end alarm once to ensure that last alarm gets saved
-            if self.performance.alarms is not None:
-                self.performance.alarms.end_alarm()
-
     def draw_plot(self, filename=None):
         # plot data if wanted
         if self.plot is not None:

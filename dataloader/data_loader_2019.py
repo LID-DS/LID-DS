@@ -30,6 +30,7 @@ class DataLoader2019(BaseDataLoader):
         self._distinct_syscalls = None
         self._direction = direction
         self._retraining_data = None # Has to be a list of Recordings
+        self._revalidation_data = None # Has to be a list of Recordings
 
         self.extract_recordings()
 
@@ -52,7 +53,10 @@ class DataLoader2019(BaseDataLoader):
                     list of validation data
 
                 """
-        return self._normal_recordings[TRAINING_SIZE:TRAINING_SIZE + VALIDATION_SIZE]
+        if self._revalidation_data is not None:
+            return self._normal_recordings[TRAINING_SIZE:TRAINING_SIZE + VALIDATION_SIZE] + self._revalidation_data
+        else:
+            return self._normal_recordings[TRAINING_SIZE:TRAINING_SIZE + VALIDATION_SIZE]
 
     def test_data(self) -> list:
         """
@@ -73,6 +77,14 @@ class DataLoader2019(BaseDataLoader):
             data (List[Recording]): the data which has to be added
         """
         self._retraining_data = data
+        
+    def set_revalidation_data(self, data):
+        """ Adds validation data to the IDS
+
+        Args:
+            data (List[Recording]): the data which has to be added
+        """
+        self._revalidation_data = data
 
     def extract_recordings(self):
         """
