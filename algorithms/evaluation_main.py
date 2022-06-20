@@ -75,6 +75,7 @@ def parse_cli_arguments():
                                                      'CVE-2020-13942',
                                                      'CVE-2020-23839',
                                                      'CWE-89-SQL-injection',
+                                                     "SQL_Injection_CWE-89",
                                                      'EPS_CWE-434',
                                                      'Juice-Shop',
                                                      'PHP_CWE-434',
@@ -113,6 +114,8 @@ if __name__ == '__main__':
     embedding_size = 10
     #--------------------
         
+    # Configuration of chosen decision engine
+    ####################
     
     # STIDE
     if args.algorithm == 'stide':
