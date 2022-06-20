@@ -3,6 +3,7 @@ from pprint import pprint
 from datetime import datetime
 
 import os
+import sys
 
 
 from argparse import ArgumentParser
@@ -87,6 +88,7 @@ def parse_cli_arguments():
     parser.add_argument('--results', '-r', action='store_true', default='/results')
     parser.add_argument('--base-path', '-b', default='/home/sc.uni-leipzig.de/lz603fxao/Material', help='Base path of the LID-DS')
 
+
     return parser.parse_args()
 
 
@@ -96,6 +98,13 @@ def parse_cli_arguments():
 if __name__ == '__main__':
 
     args = parse_cli_arguments()
+    
+    # Check ob die Kombination vorhanden ist.
+    if args.version == 'LID-DS-2019':
+        if args.scenario in ['CWE-89-SQL-injection', 'CVE-2020-23839', 'CVE-2020-9484', 'CVE-2020-13942' , 'Juice-Shop' , 'CVE-2017-12635_6']:
+            sys.exit('This combination of LID-DS Version and Scenario aren\'t available.')
+    
+    
     pprint("Performing Host-based Intrusion Detection with:")
     pprint(f"Version: {args.version}") 
     pprint(f"Scenario: {args.scenario}")
@@ -168,6 +177,12 @@ if __name__ == '__main__':
         
     # Extracting Systemcalls from False Alarms
     false_alarm_list = [alarm for alarm in ids.performance.alarms.alarms if not alarm.correct]
+    
+    # Stop all of this if we didn't found any false alarms. Empty lists are considered false.
+    if not false_alarm_list:
+        sys.exit('The decision engine didn\'t found any false alarms which it could play back. Stopping here.')
+        
+    
     basename_recording_list = set([os.path.basename(false_alarm.filepath) for false_alarm in false_alarm_list])
     false_alarm_recording_list = [recording for recording in dataloader.test_data() if os.path.basename(recording.path) in basename_recording_list]
     data_structure = {}
