@@ -52,15 +52,12 @@ class ReturnValue(BuildingBlock, metaclass=Singleton):
                 normalized_bytes = -1
             try:
                 if return_type != 'not_int':
-                    #print(return_type)
-                    #print(self._max[return_type])
                     if syscall.name() in self._max:
                         if self._max[syscall.name()] != 0:
                             normalized_bytes = current_bytes/self._max[syscall.name()]
                         else:
                             normalized_bytes = 0
                     else:
-                        print('that')
                         normalized_bytes = -1
                 else:
                     normalized_bytes = -1
