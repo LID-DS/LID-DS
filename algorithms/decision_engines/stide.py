@@ -46,7 +46,7 @@ class Stide(BuildingBlock):
                 mismatch = 0
             else:
                 mismatch = 1
-                #pprint(f"Stide: N-Gram not in database: {ngram}")
+                #pprint(f"Stide: N-Gram not in database: {ngram}, name: {syscall.name()}, thread-id: {syscall.thread_id()}")
             if len(self._sliding_window) == self._window_length:
                 self._mismatch_count -= self._sliding_window[0]
             self._mismatch_count += mismatch

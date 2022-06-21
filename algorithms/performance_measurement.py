@@ -2,7 +2,6 @@ from algorithms.alarms import Alarms
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
-
 class PerformanceMeasurement:
 
     def __init__(self, create_alarms: bool = False):

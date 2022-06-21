@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     # scenarios orderd by training data size asc
     # 0 - 14    
-    select_scenario_number = 3
+    select_scenario_number = 0
     scenario_names = [
         "CVE-2017-7529",
         "CVE-2014-0160",
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     # A lot of features
     ###################
     thread_aware = True
-    window_length = 100
-    ngram_length = 7
+    window_length = 1000
+    ngram_length = 5
     embedding_size = 10
     #--------------------
     
@@ -136,9 +136,7 @@ if __name__ == '__main__':
     results['scenario'] =  lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
     
     result_path = f"results/results_{algorithm_name}_{lid_ds_version[select_lid_ds_version_number]}.json"
-    #pprint(os.getcwd())
-    #pprint(os.path.basename(os.getcwd()))
-    #pprint(os.path.dirname(os.getcwd()))
+
     
     save_to_json(results, result_path) 
 
@@ -146,11 +144,6 @@ if __name__ == '__main__':
     if generate_and_write_alarms:
         with open(f"results/alarms_{config_name}_{lid_ds_version[select_lid_ds_version_number]}_{scenario_names[select_scenario_number]}.json", 'w') as jsonfile:
             json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)
-
-    # plot
-    # now = datetime.now()  # datetime object containing current date and time    
-    # dt_string = now.strftime("%Y-%m-%d_%H-%M-%S")  # YY-mm-dd_H-M-S    
-    # ids.draw_plot(f"results/figure_{config_name}_{dt_string}.png")
     
     # -----------------        This will be my personal space right here        ------------------------------- 
     false_alarm_list = [alarm for alarm in ids.performance.alarms.alarms if not alarm.correct]
@@ -160,17 +153,6 @@ if __name__ == '__main__':
     # Dies hier ist notwenig um die richtigen Recordings in einer Liste zu erhalten, welche zu den False-Alarms gehören.
     basename_recording_list = set([os.path.basename(false_alarm.filepath) for false_alarm in false_alarm_list])
     false_alarm_recording_list = [recording for recording in dataloader.test_data() if os.path.basename(recording.path) in basename_recording_list]
-
-    #pprint("Vergleiche die Listen auf gleiche Reihenfolge:")
-    #for x in false_alarm_list:
-    #    pprint(x.filepath)
-    #pprint("Zweite:")
-    #for x in false_alarm_recording_list:
-    #    pprint(x.name)
-
-    # Bisher sieht es so aus, als ob immer die gleiche Reihenfolge der Dateien eingehalten wird. Dadurch kann ich nun einen Counter, der auf die Indexe zugreift, nutzen.
-
-    #pprint("Resulting list of recordings which have to be handled:")
     
     # Die neue Datenstruktur
     data_structure = {}
@@ -227,10 +209,13 @@ if __name__ == '__main__':
                 #pprint(temp_list)
             
             
+                expected_count_calls = (current_false_alarm.last_line_id - current_false_alarm.first_line_id) + 1 + window_length + len(dict) * ngram_length
+                pprint(f"Expected number of systemcalls: {expected_count_calls}")
+            
                 while(not enough_calls(dict, ngram_length) and backwards_counter != 0):
                     current_call = temp_list[backwards_counter]
                     #pprint(current_call)
-                    if current_call.thread_id() in dict.keys():
+                    if current_call.thread_id() in dict.keys() and dict[current_call.thread_id()] <= ngram_length: ################# BAUSTELLE #######################
                         dict[current_call.thread_id()] += 1 
                         systemcall_list.insert(0, current_call)
                     backwards_counter -= 1
@@ -241,7 +226,7 @@ if __name__ == '__main__':
         #pprint("Extracted calls:")
         #pprint(f"First line id: {current_false_alarm.first_line_id} Last line id: {current_false_alarm.last_line_id}")
         #for call in systemcall_list:
-        #    pprint(f"{call}, Embedding: {intEmbedding._syscall_dict[call.name]}")
+            #pprint(f"{call}, Embedding: {intEmbedding._syscall_dict[call.name()]}")
         
         # Rein damit in was persistentes. ID hinzugefügt um verschiedene Alerts in der gleichen ZIP zu unterscheiden.
         data_structure[os.path.basename(current_false_alarm.filepath) + "_" + '{:0>5}'.format(counter)] = systemcall_list
@@ -303,7 +288,10 @@ if __name__ == '__main__':
 
     pprint("At evaluation:")
     # threshold
-    ids_retrained.determine_threshold()
+    #ids_retrained.determine_threshold()
+    pprint(f"Freezing Threshold on: {ids.threshold}")
+    ids_retrained.performance.set_threshold(ids.threshold)
+    
     # detection
     ids_retrained.do_detection()
     # print results
@@ -323,9 +311,6 @@ if __name__ == '__main__':
     results_new['scenario'] =  lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
     
     result_new_path = f"results/results_{algorithm_name}_{lid_ds_version[select_lid_ds_version_number]}.json"
-    #pprint(os.getcwd())
-    #pprint(os.path.basename(os.getcwd()))
-    #pprint(os.path.dirname(os.getcwd()))
     
     save_to_json(results_new, result_new_path) 
 

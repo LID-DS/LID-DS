@@ -63,7 +63,7 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
 
-        for recording in tqdm(data, description, unit=" recording"):
+        for recording in tqdm(data, description, unit=" recording"):   
             #pprint(f"Current recording: {recording.name}")
             self.performance.new_recording(recording)
             if self.plot is not None:
@@ -73,7 +73,7 @@ class IDS:
                 anomaly_score = self._final_bb.get_result(syscall)
                 private_counter += 1
                 if anomaly_score != None:
-                    #if anomaly_score > 0.0 and recording.name == "tasteless_moore_9765":
+                    #if anomaly_score > 0.0 and recording.name == "stale_shannon_5694":
                         #pprint("tasteless_moore_9765-Recording:")
                         #pprint(f"Current Anomaly-Score is: {anomaly_score} at line: {private_counter}")
                     self.performance.analyze_syscall(syscall, anomaly_score)

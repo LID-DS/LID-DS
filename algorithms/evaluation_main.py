@@ -39,7 +39,7 @@ from dataloader.direction import Direction
 from algorithms.persistance import save_to_json
 
 
-class ArtificialRecording:
+class ArtificialRecording:  # Brauche ich um die Systemcalls dem Trainingsdatensatz hinzuzufügen
     def __init__(self, name, syscalls):
          self.name = name
          self._syscalls = syscalls
@@ -50,18 +50,13 @@ class ArtificialRecording:
     def __repr__(self) -> str:
         return f"ArtificialRecording, Name: {self.name}, Nr. of Systemcalls: {len(self._syscalls)}"
 
-def enough_calls(dict, max): 
+def enough_calls(dict, max):    # Benutze ich um festzustellen, wann ich genügend Systemcalls für einen False-Alert habe
     for key in dict.keys():
         if dict[key] < max:
              return False
     return True    
 
-
-
-def start_evaluation():
-    pass
-
-
+# Argument Parser für bessere die Nutzbarkeit eines einzelnen Scripts, welches dann auf dem Cluster gecallt wird.
 def parse_cli_arguments(): 
     parser = ArgumentParser(description='Playing Back False-Positives Pipeline')
     parser.add_argument('--version', '-v', choices=['LID-DS-2019', 'LID-DS-2021'], required=True, help='Which version of the LID-DS?')
@@ -92,9 +87,7 @@ def parse_cli_arguments():
     return parser.parse_args()
 
 
-
-
-# Take the entrypoint etc. from the existing example_main.py
+# Startpunkt
 if __name__ == '__main__':
 
     args = parse_cli_arguments()
@@ -115,7 +108,7 @@ if __name__ == '__main__':
     scenario_path = f"{args.base_path}/{args.version}/{args.scenario}"     
     dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH) # Results differ, currently BOTH was the best performing
     
-    # Using the best found implementation of STIDE in Grimmers Paper (Window-Length & n-Gram-Length) 
+    # Beste Implementierung des STIDE in M. Grimmers Paper (Window-Length & n-Gram-Length) 
     ###################
     thread_aware = True
     window_length = 1000
@@ -154,7 +147,7 @@ if __name__ == '__main__':
     
     ###################
     pprint("At evaluation:")
-    ids.determine_threshold()
+    ids.determine_threshold()   
     ids.do_detection()
     results = ids.performance.get_performance()
     pprint(results)
@@ -162,7 +155,7 @@ if __name__ == '__main__':
     # Preparing results
     config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
-    # Enrich results with configuration and save to disk
+    # Enrich results with configuration
     results['algorithm'] = args.algorithm
     results['ngram_length'] = ngram_length
     results['window_length'] = window_length
@@ -171,9 +164,12 @@ if __name__ == '__main__':
     results['scenario'] =  args.version + "/" + args.scenario
     result_path = f"results/results_{args.algorithm}_{args.version}_{args.scenario}.json"
 
+    # Saving results
     save_to_json(results, result_path) 
     with open(f"results/alarms_{config_name}_{args.version}_{args.scenario}.json", 'w') as jsonfile:
         json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)
+        
+    # ---------------------------------------------------------------------------------------------------------#    
         
     # Extracting Systemcalls from False Alarms
     false_alarm_list = [alarm for alarm in ids.performance.alarms.alarms if not alarm.correct]
@@ -182,12 +178,14 @@ if __name__ == '__main__':
     if not false_alarm_list:
         sys.exit('The decision engine didn\'t found any false alarms which it could play back. Stopping here.')
         
-    
+    # Collect all corresponding recordings 
     basename_recording_list = set([os.path.basename(false_alarm.filepath) for false_alarm in false_alarm_list])
     false_alarm_recording_list = [recording for recording in dataloader.test_data() if os.path.basename(recording.path) in basename_recording_list]
     data_structure = {}
     for counter in range(len(false_alarm_list)):
-        current_false_alarm = false_alarm_list[counter]
+        
+        current_false_alarm = false_alarm_list[counter]  # Momentaner False-Alarm
+        # Hole dazugehöriges Recording
         faster_current_basename = os.path.basename(current_false_alarm.filepath)
         for recording in false_alarm_recording_list:
             if os.path.basename(recording.path) == faster_current_basename:
@@ -195,8 +193,9 @@ if __name__ == '__main__':
             
         #systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= current_false_alarm.first_line_id and systemcall.line_id <= current_false_alarm.last_line_id]
         systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= max([current_false_alarm.first_line_id - window_length, 0]) and systemcall.line_id <= current_false_alarm.last_line_id] # mit Fensterbetrachtung
-        if thread_aware:
         
+        if thread_aware:
+            # Gehe die Systemcalls rückwärts ab bis du von jedem Thread n-gram-length viele Systemcalls hast um die N-Grams zu füllen bzw. zu initialisieren
             backwards_counter = max([current_false_alarm.first_line_id - window_length, 0])
             if backwards_counter != 0:
                 thread_id_set = set([systemcall.thread_id() for systemcall in systemcall_list])
@@ -215,18 +214,20 @@ if __name__ == '__main__':
                         systemcall_list.insert(0, current_call)
                     backwards_counter -= 1
         else:
+            # Ansonsten reichen die Systemcalls des Alarms + die des Windows + n-gram-length viele um das einzige N-Gram richtig zu initialisieren
             systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= max([current_false_alarm.first_line_id - window_length - ngram_length, 0]) and systemcall.line_id <= current_false_alarm.last_line_id] # mit Fensterbetrachtung
-            
+        
+        # Speichere diese False-Alarms + Extrahierte Systemcalls ab
         data_structure[os.path.basename(current_false_alarm.filepath) + "_" + '{:0>5}'.format(counter)] = systemcall_list
     
-    # MODYFIABLE! Hier kann ich auch einstellen, nur einen Teil der False-Alarms ins Trainig zurückgehen zu lassen.
+    # MODYFIABLE! Hier könnte ich einstellen, nur einen Teil der False-Alarms ins Trainig zurückgehen zu lassen.
     all_recordings = []
     for key in data_structure.keys():
         new_recording = ArtificialRecording(key, data_structure[key])
         all_recordings.append(new_recording)
     pprint(len(f"Number of constructed recordings: {all_recordings}"))
 
-    # Das hier einfach auf set_revalidation_data(all_recordings) setzen um die Trainingsbeispiele bei den Validierungsdaten einzufügen. TODO. Vielleicht erst damit experimentieren, wenn die Parallelisierung fertig ist.
+    # Das hier einfach auf set_revalidation_data(all_recordings) setzen um die Trainingsbeispiele bei den Validierungsdaten einzufügen. TODO´(Muss noch evaluiert werden). Vielleicht erst damit experimentieren, wenn die Parallelisierung fertig ist.
     dataloader.set_retraining_data(all_recordings)
 
     ######## New IDS ########################
@@ -235,7 +236,12 @@ if __name__ == '__main__':
         plot_switch=False)
         
     pprint("At evaluation:")
-    ids_retrained.determine_threshold()
+    
+    #pprint(f"Freezing Threshold on: {ids.threshold}")
+    #ids_retrained.performance.set_threshold(ids.threshold)
+    
+    # Hier wird der Schwellenwert noch neu bestimmt. TODO (Was passiert wenn ich den Freeze?)
+    ids_retrained.determine_threshold() 
     ids_retrained.do_detection()
     results_new = ids_retrained.performance.get_performance()
     pprint(results_new)
@@ -244,7 +250,7 @@ if __name__ == '__main__':
     algorithm_name = f"{args.algorithm}_retrained"
     config_name = f"algorithm_{algorithm_name}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
-    # Enrich results with configuration and save to disk
+    # Enrich results with configuration 
     results_new['algorithm'] = algorithm_name
     results_new['ngram_length'] = ngram_length
     results_new['window_length'] = window_length
@@ -253,6 +259,7 @@ if __name__ == '__main__':
     results_new['scenario'] =  args.version + "/" + args.scenario
     result_new_path = f"results/results_{algorithm_name}_{args.version}_{args.scenario}.json"
 
+    # Save results
     save_to_json(results_new, result_new_path) 
     with open(f"results/alarms_{config_name}_{args.version}_{args.scenario}.json", 'w') as jsonfile:
         json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)
