@@ -2,10 +2,59 @@ from tqdm import tqdm
 from algorithms.building_block import BuildingBlock
 from pprint import pprint
 
+from algorithms.alarms import Alarms
 from algorithms.performance_measurement import PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
 from dataloader.base_data_loader import BaseDataLoader
 from algorithms.data_preprocessor import DataPreprocessor
+from dataloader.base_recording import BaseRecording
+
+class SingleRecordingPerformance:
+    
+    def __init__(self, threshold: float, create_alarms: bool = False):
+        self._treshold = threshold
+        self._fp = 0
+        self._tp = 0
+        self._fn = 0
+        self._tn = 0
+        self._alarm_count = 0
+        self._create_alarms = create_alarms
+        
+        self._current_exploit_time = None
+        self._exploit_count = 0
+        self._alarm = False
+        
+        # CFP things
+        self._cfp_count_exploits = 0
+        self._current_cfp_stream = 0
+        self._current_cfp_stream_exploits = 0
+        self._exploit_anomaly_score_count = 0
+        self._first_syscall_of_cfp_list_exploits = []
+        self._last_syscall_of_cfp_list_exploits = []
+        self._cfp_counter_wait_exploits = False
+
+        self._cfp_count_normal = 0
+        self._current_cfp_stream_normal = 0
+        self._normal_score_count = 0
+        self._first_syscall_of_cfp_list_normal = []
+        self._last_syscall_of_cfp_list_normal = []
+        self._cfp_counter_wait_normal = False
+        if self.create_alarms:
+            self.alarms = Alarms()
+        else:
+            self.alarms = None
+    
+    
+    def analyze_syscall(self, syscall, anomaly_score):
+        pass
+    
+    
+    def get_cfp_indices(self):
+        pass
+    
+
+
+
 
 
 class IDS:
@@ -23,6 +72,7 @@ class IDS:
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
+        self._create_alarms = create_alarms
         self.performance = PerformanceMeasurement(create_alarms)
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
@@ -63,19 +113,23 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
 
-        for recording in tqdm(data, description, unit=" recording"):   
+        # Paralleler shit hier
+        
+        
+        # Dann reduce 
+        
+        
+        
+
+        # Hier das Alte aber funktionierende
+        for recording in tqdm(data, description, unit=" recording"):
             #pprint(f"Current recording: {recording.name}")
             self.performance.new_recording(recording)
             if self.plot is not None:
                 self.plot.new_recording(recording)
-            private_counter = 0
             for syscall in recording.syscalls():
                 anomaly_score = self._final_bb.get_result(syscall)
-                private_counter += 1
                 if anomaly_score != None:
-                    #if anomaly_score > 0.0 and recording.name == "stale_shannon_5694":
-                        #pprint("tasteless_moore_9765-Recording:")
-                        #pprint(f"Current Anomaly-Score is: {anomaly_score} at line: {private_counter}")
                     self.performance.analyze_syscall(syscall, anomaly_score)
                     if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
@@ -91,3 +145,29 @@ class IDS:
         if self.plot is not None:
             self.plot.feed_figure()
             self.plot.show_plot(filename)
+            
+   
+    def process_recording(self, recording: BaseRecording) -> SingleRecordingPerformance:
+        # New Recording - calls reinnehmen nachdem ich sie verstehe
+        results = SingleRecordingPerformance(threshold=self.threshold, create_alarms=self._create_alarms)
+        
+        for syscall in recording:
+            anomaly_score = self._final_bb.get_result(syscall)
+            if anomaly_score != None:
+                results.analyze_syscall(syscall, anomaly_score) 
+                if self.plot is not None: 
+                    self.plot.add_to_plot_data(anomaly_score, syscall, results.get_cfp_indices())
+    
+            
+            self._data_preprocessor.new_recording() ############# Muss noch übersetzt werden TODO
+
+            # run end alarm once to ensure that last alarm gets saved
+            if results.alarms is not None:
+                results.alarms.end_alarm()
+    
+    
+        return results
+    
+    
+    
+    
