@@ -16,14 +16,14 @@ scenarios = [
 ]
 
 epochs = 20
-windows = [100]
+windows = [100, 1000]
 batch_sizes = [1024]
-embedding_sizes = ["11"]
-ngram_lengths = ["9"]
-thread_aware_list = ["True"]
-time_deltas = ["False"]
-thread_change_flags = ["False"]
-return_values = ["False"]
+embedding_sizes = [5]
+ngram_lengths = [5, 7]
+thread_aware_list = [True]
+time_deltas = [False]
+thread_change_flags = [False]
+return_values = [False]
 base_path = '/home/sc.uni-leipzig.de/te697mily/Data/real_world'
 
 script = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'

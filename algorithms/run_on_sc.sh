@@ -14,9 +14,9 @@
 # module load CUDA/10.1.243-GCC-8.3.0
 # module load CUDA/10.1.243-iccifort-2019.5.281
 # module load Python/3.9.5-GCCcore-10.3.0
-# module load PyTorch/1.8.1-fosscuda-2020b
+module load PyTorch/1.8.1-fosscuda-2020b
 # module load PyTorch/1.7.1-fosscuda-2019b-Python-3.7.4             
-# module load PyTorch/1.8.1-foss-2020b
+# module load PyTorch/1.8.1-fosscuda-2020b
 # module load PyTorch/1.8.1-fosscuda-2019b-Python-3.7.4             
 # PyTorch/1.9.0-fosscuda-2020b
 

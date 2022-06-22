@@ -1,4 +1,6 @@
 import os
+from zipfile import ZipFile
+
 from dataloader.syscall import Syscall
 
 
