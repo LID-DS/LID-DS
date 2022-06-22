@@ -1,9 +1,8 @@
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class ReturnValue(BuildingBlock, metaclass=Singleton):
+class ReturnValue(BuildingBlock):
     """
     calculate system call return value for specific syscalls.
     Include:
