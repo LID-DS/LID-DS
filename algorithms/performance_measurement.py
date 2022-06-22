@@ -2,8 +2,26 @@ from algorithms.alarms import Alarms
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
-class PerformanceMeasurement:
+class Performance:
+    def __init__(self):
+        self._treshold = 0.0
+        self._exploit_time = None
+        self._alarms = Alarms()
 
+    def set_threshold(self, threshold: float):
+        self._treshold = threshold
+
+    def set_exploit_time(self, exploit_time):
+        self._exploit_time = exploit_time
+
+    def analyze_systemcall(self, systemcall: Syscall, anomaly_score: float):
+        pass
+
+    def get_exploit_time(self):
+        return self._exploit_time
+
+
+class PerformanceMeasurement:
     def __init__(self, create_alarms: bool = False):
         self._threshold = 0.0
         self._performance_values = {}

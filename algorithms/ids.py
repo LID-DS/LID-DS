@@ -1,9 +1,10 @@
+from os import get_exec_path
 from tqdm import tqdm
 from algorithms.building_block import BuildingBlock
 from pprint import pprint
 
 from algorithms.alarms import Alarms
-from algorithms.performance_measurement import PerformanceMeasurement
+from algorithms.performance_measurement import Performance, PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
 from dataloader.base_data_loader import BaseDataLoader
 from algorithms.data_preprocessor import DataPreprocessor
@@ -114,7 +115,23 @@ class IDS:
         description = 'anomaly detection'.rjust(27)
 
         # Paralleler shit hier
-        
+        for recording in tqdm(data, description, uni=" recording"): # Hier muss ganz sicher noch was anderes hin
+            performance = Performance()
+            performance.set_threshold(self.threshold)
+
+            # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
+            if recording.metadata()["exploit"]:
+                performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
+
+
+            # Jetzt nach Exploit-Time unterscheiden
+            if performance.get_exploit_time() is not None:
+                pass
+
+            elif performance.get_exploit_time() is None:
+                pass
+
+
         
         # Dann reduce 
         
