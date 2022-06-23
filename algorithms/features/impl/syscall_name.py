@@ -1,11 +1,10 @@
 import typing
 
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class SyscallName(BuildingBlock, metaclass=Singleton):
+class SyscallName(BuildingBlock):
 
     def __init__(self):
         super().__init__()

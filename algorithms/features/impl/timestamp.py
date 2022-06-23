@@ -1,10 +1,8 @@
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class Timestamp(BuildingBlock, metaclass=Singleton):
-
+class Timestamp(BuildingBlock):
     def __init__(self):
         super().__init__()
 

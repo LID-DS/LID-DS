@@ -2,7 +2,6 @@ import typing
 import numpy as np
 
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
