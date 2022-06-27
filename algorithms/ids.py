@@ -66,16 +66,21 @@ class IDS:
     def detect_on_recording(self, recording: BaseRecording) -> Performance:
         performance = Performance()
         performance.set_threshold(self.threshold)
-            # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
+        
+        # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
         if recording.metadata()["exploit"]:
             performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
+            performance._exploit_count += 1
 
         for syscall in recording.syscalls():
             anomaly_score = self._final_bb.get_result(syscall)
             if anomaly_score != None:
                 performance.analyze_syscall(syscall, anomaly_score)
 
-            # run end alarm once to ensure that last alarm gets saved
+           
+        self._data_preprocessor.new_recording()
+        
+        # run end alarm once to ensure that last alarm gets saved
         if performance.alarms is not None:
             performance.alarms.end_alarm()
             
@@ -90,19 +95,6 @@ class IDS:
         """
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
-
-        # Paralleler shit hier
-
-        results = process_map(self.verarbeiteRecording, data)
-        pprint(results) # Ich gehe davon aus, dass ich eine Liste an Performance-Objekten erhalte.
-
-
-
-        # TODO: Consectuvie Sachen im Nachhinein bestimmen
-        # Dann reduce 
-        
-        #exit(1)
-        
 
         # Hier das Alte aber funktionierende
         for recording in tqdm(data, description, unit=" recording"):

@@ -8,8 +8,9 @@ class Performance:
         self._threshold = 0.0
         self._exploit_time = None
         self.alarms = Alarms()
-        self._alarm = None
+        self._alarm = False
         self._alarm_count = 0
+        self._exploit_count = 0
         self._fp = 0
         self._tp = 0
         self._fn = 0
@@ -22,12 +23,14 @@ class Performance:
         self._exploit_time = exploit_time
 
     def analyze_syscall(self, syscall: Syscall, anomaly_score: float):
-
+        
         syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
-
+        
         # files with exploit
         if self._exploit_time is not None:
+            
             if anomaly_score > self._threshold:
+                
                 if self._exploit_time > syscall_time:
                     self._fp += 1
                     self.alarms.add_or_update_alarm(syscall, False)
@@ -67,6 +70,7 @@ class Performance:
         final_Performance.set_threshold(left._threshold)   
         
         final_Performance._alarm_count = left._alarm_count + right._alarm_count
+        final_Performance._exploit_count = left._exploit_count + right._exploit_count
         final_Performance._fp = left._fp + right._fp
         final_Performance._tp = left._tp + right._tp
         final_Performance._fn = left._fn + right._fn
@@ -79,7 +83,47 @@ class Performance:
         return self._exploit_time
     
     def __repr__(self) -> str:
-        return f"Performance-Instance: Alarm_Count: {self._alarm_count}, FPs: {self._fp}, TPs: {self._tp}, FNs: {self._fn}, TNs: {self._tn}"
+        return f"Performance-Instance: Alarm_Count: {self._alarm_count}, Exploit_count: {self._exploit_count}, FPs: {self._fp}, TPs: {self._tp}, FNs: {self._fn}, TNs: {self._tn}"
+    def get_results(self):
+        
+        try:
+            detection_rate = self._alarm_count / self._exploit_count
+        except ZeroDivisionError:
+            detection_rate = 0
+        #try:
+       #     precision_cfa = self._alarm_count / (self._alarm_count + self._cfp_count_normal + self._cfp_count_exploits)
+        #except ZeroDivisionError:
+         #   precision_cfa = 0
+        try:
+            precision_sys = self._alarm_count / (self._alarm_count + self._fp)
+        except ZeroDivisionError:
+            precision_sys = 0
+
+        #try:
+            #f1_cfa = 2 * (precision_cfa * detection_rate) / (precision_cfa + detection_rate)
+        #except ZeroDivisionError:
+            #f1_cfa = 0
+
+        performance_values = {"false_positives": self._fp,
+                              "true_positives": self._tp,
+                              "true_negatives": self._tn,
+                              "false_negatives": self._fn,
+                              "correct_alarm_count": self._alarm_count,
+                              "exploit_count": self._exploit_count,
+                              "detection_rate": detection_rate,
+                              #"consecutive_false_positives_normal": self._cfp_count_normal,
+                              #"consecutive_false_positives_exploits": self._cfp_count_exploits,
+                              "recall": detection_rate,
+                              #"precision_with_cfa": precision_cfa,
+                              "precision_with_syscalls": precision_sys,
+                              #"f1_cfa": f1_cfa
+                              }
+        self.result = performance_values
+
+        return performance_values
+        
+        
+        
 
 
 class PerformanceMeasurement:

@@ -1,3 +1,4 @@
+from calendar import c
 import json
 from pprint import pprint
 from datetime import datetime
@@ -44,7 +45,7 @@ from functools import reduce
 # Take the entrypoint etc. from the existing example_main.py
 if __name__ == '__main__':
 
-    select_lid_ds_version_number = 0
+    select_lid_ds_version_number = 1
     lid_ds_version = [
         "LID-DS-2019", 
         "LID-DS-2021"
@@ -87,13 +88,7 @@ if __name__ == '__main__':
     
     intEmbedding = IntEmbedding()
     ngram_1 = Ngram([intEmbedding], thread_aware, ngram_length)
-
-    
     stide = Stide(ngram_1)
-
-
-
-
 
     ###################
     # the IDS
@@ -103,58 +98,48 @@ if __name__ == '__main__':
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
     
+    # Bestimme Schwellenwert
     ids.determine_threshold()
 
+    # Lade Test-Datem
     data = dataloader.test_data()
     
-
-    class TestStruct:
+    class Container:
         def __init__(self, ids, recording):
             self.ids = ids
             self. recording = recording
 
-    listStructs = [TestStruct(ids, recording) for recording in data]
 
-    def calculate(struct: TestStruct) -> Performance:
+    containered_recordings = [Container(ids, recording) for recording in data]
+
+    def calculate(struct: Container) -> Performance:
+        # Copy the whole IDS with its building blocks
         working_copy = deepcopy(struct.ids)
+        # Calculate the performance on the current recording
         performance = working_copy.detect_on_recording(struct.recording)
         return performance
 
-    results = process_map(calculate, listStructs, chunksize = 1)
-
-    pprint(f" Result is: {results}")
+    results = process_map(calculate, containered_recordings, chunksize = 1)
 
 
-    completeResult = reduce(Performance.add, results)
+    completeResult = reduce(Performance.add, results) # Um die CFP zu bestimmen müsste ich wahrscheinlich noch einen Index mitgeben für jedes Recording. Dann nach dem Prozess-Map danach sortieren und dann die CFP usw. errechnen (TODO). Sind aber für mich unwichtig.
 
-
-    pprint(completeResult)
-
-    # TODO: Testen ob das auf größeren Datensätzen dann auch schneller geht
-
-
-
-
-
+    results = completeResult.get_results()
+    pprint(results)
     
-
-
-
-
-    exit(0)
-
     #pprint("Integer-Embedding:")
     #pprint(intEmbedding._syscall_dict)
 
     print("At evaluation:")
     # threshold
-    ids.determine_threshold()
+    #ids.determine_threshold()
     # detection
-    ids.do_detection()
+    #ids.do_detection()
     # print results
-    results = ids.performance.get_performance()
-    pprint(results)
     
+    #results = ids.performance.get_performance()
+    #pprint(results)
+
     # Preparing results
     algorithm_name = "stide"
     config_name = f"algorithm_{algorithm_name}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
@@ -170,12 +155,12 @@ if __name__ == '__main__':
     result_path = f"results/results_{algorithm_name}_{lid_ds_version[select_lid_ds_version_number]}.json"
 
     
-    save_to_json(results, result_path) 
+    #save_to_json(results, result_path) 
 
     # Generate alarms - care, the save_to_json takes care that the results-folder was created.
-    if generate_and_write_alarms:
-        with open(f"results/alarms_{config_name}_{lid_ds_version[select_lid_ds_version_number]}_{scenario_names[select_scenario_number]}.json", 'w') as jsonfile:
-            json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)
+    #if generate_and_write_alarms:
+    #    with open(f"results/alarms_{config_name}_{lid_ds_version[select_lid_ds_version_number]}_{scenario_names[select_scenario_number]}.json", 'w') as jsonfile:
+    #        json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)
     
     # -----------------        This will be my personal space right here        ------------------------------- 
     false_alarm_list = [alarm for alarm in ids.performance.alarms.alarms if not alarm.correct]
