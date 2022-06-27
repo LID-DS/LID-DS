@@ -21,11 +21,10 @@ class Ngram(BuildingBlock):
         """
         super().__init__()
         self._ngram_buffer = {}
-        self._list_of_feature_ids = []
-        for feature in feature_list:
-            self._list_of_feature_ids.append(feature.get_id())
         self._thread_aware = thread_aware
         self._ngram_length = ngram_length
+        # calculate this value later
+        self._deque_length = None
         self._dependency_list = []
         self._dependency_list.extend(feature_list)
 
@@ -37,43 +36,57 @@ class Ngram(BuildingBlock):
         writes the ngram into dependencies if its complete
         otherwise does not write into dependencies
         """
-
-        dependencies = {}
-        check = True
+        dependencies = []
+        all_dependencies_are_not_none = True
+        # call get_result on each dependency
+        # build the ngram if all dependencies are not None
         for feature in self._dependency_list:
-            dependencies[feature.get_id()] = feature.get_result(syscall)
-            if dependencies[feature.get_id()] is None:
-                check = False
-        if check:
-            thread_id = 0
-            if self._thread_aware:
-                thread_id = syscall.thread_id()
-            if thread_id not in self._ngram_buffer:
-                self._ngram_buffer[thread_id] = deque(maxlen=self._ngram_length)
+            result = feature.get_result(syscall)
+            if result is None:
+                all_dependencies_are_not_none = False
+            else:
+                Ngram._concat(result, dependencies)
+
+        # if all dependencies are not none: build the ngram 
+        if all_dependencies_are_not_none:
+
+            # get the length of one ngram element
+            # example: a 3-gram can consist of
+            # 3 strings
+            # 3 2-element arrays
+            # and so on
+
+            if self._deque_length is None:
+                self._deque_length = self._ngram_length * len(dependencies)
             
-            self._ngram_buffer[thread_id].append(dependencies)
-            if len(self._ngram_buffer[thread_id]) == self._ngram_length:
-                ngram_value = self._collect_features(self._ngram_buffer[thread_id])
-                return tuple(ngram_value)
+            # group by thread id            
+            thread_id = syscall.thread_id() if self._thread_aware else 0
+            if thread_id not in self._ngram_buffer:                
+                self._ngram_buffer[thread_id] = deque(maxlen=self._deque_length)
+            
+            # append the current dependencies to the ngram
+            self._ngram_buffer[thread_id].extend(dependencies)
+
+            # return the ngram if its complete
+            if len(self._ngram_buffer[thread_id]) == self._deque_length:                
+                return tuple(self._ngram_buffer[thread_id])
         return None
 
-    def _collect_features(self, deque_of_dicts: deque) -> list:
+    def _concat(source_value, target_vector):
         """
-        in:  a deque of dictionaries like {feature_id_1: value_1, feature_id_2: value_2}
-        out: the ngram consisting of the selected features
-        """
-        array = []
-        for feature_dict in deque_of_dicts:
-            for feature_id in self._list_of_feature_ids:
-                if feature_id in feature_dict:
-                    if isinstance(feature_dict[feature_id], Iterable):
-                        if isinstance(feature_dict[feature_id], str):
-                            array.append(feature_dict[feature_id])
-                        else:
-                            array.extend(feature_dict[feature_id])
-                    else:
-                        array.append(feature_dict[feature_id])
-        return array
+        the source_value (could be a Iterable, str or other) is concated to target_vector (array)
+        """        
+        if isinstance(source_value, Iterable):
+            if isinstance(source_value, str):
+                # source is iterable, but its a string -> call append
+                target_vector.append(source_value)
+            else:
+                # source is iterable and no string -> call extend
+                target_vector.extend(source_value)
+        else:
+            # source is not iterable: just call append
+            target_vector.append(source_value)
+
 
     def new_recording(self):
         """

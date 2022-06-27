@@ -85,13 +85,9 @@ class Syscall2019(Syscall):
 
     def process_id(self) -> int:
         """
-        casts process_id from string to int
-        Returns:
-            int: process id
+            LID-DS 2019 Dataset does not include process ID.
         """
-        if self._process_id is None:
-            self._process_id = int(self._line_list[SyscallSplitPart.PROCESS_ID])
-        return self._process_id
+        return None
 
     def process_name(self) -> str:
         """
@@ -156,7 +152,10 @@ class Syscall2019(Syscall):
 
     def param(self, param_name: str) -> (bytes, str):
         """
-        runs the params() method and returns the requested
+        runs the params() method and returns the requested parameter
+
+        Params:
+            param_name(str): name of requested parameter
         Returns:
             str or bytes: syscall parameter value
         """

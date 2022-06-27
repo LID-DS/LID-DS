@@ -53,38 +53,39 @@ def test_time_delta():
     for syscall in syscalls:
         td.train_on(syscall)
     td.fit()
-    # biggest time delta 579 nanoseconds
+    print('done with training')
+    # biggest time delta 579661 nanoseconds
     max_time_delta = td._max_time_delta
 
-    # first syscall, no time delta    
-    assert td._calculate(syscall_1) == 0
-    # second syscall has biggest time_delta -> normalized = 1    
-    assert td._calculate(syscall_2) == 1.0
-    # timedelta of 100 nanoseconds: 100/579    
-    assert td._calculate(syscall_3) == 100 / max_time_delta
-
-    td = TimeDelta(thread_aware=True)
-    id = td.get_id()
-    for syscall in syscalls:
-        td.train_on(syscall)
-    td.fit()
-    # biggest time delta 579 nanoseconds
-    max_time_delta = td._max_time_delta
-    # first syscall, no time delta    
+    # first syscall, no time delta
     assert td._calculate(syscall_1) == 0
     # second syscall has biggest time_delta -> normalized = 1
     assert td._calculate(syscall_2) == 1.0
-    # timedelta of 100 nanoseconds: 100/579
-    assert td._calculate(syscall_3) == 100 / max_time_delta
+    # timedelta of 100000 nanoseconds: 100000/579661
+    assert td._calculate(syscall_3) == 100000 / max_time_delta
+
+    td = TimeDelta(thread_aware=True)
+    # id = td.get_id()
+    for syscall in syscalls:
+        td.train_on(syscall)
+    td.fit()
+    # biggest time delta 579 microseconds
+    max_time_delta = td._max_time_delta
+    # first syscall, no time delta
+    assert td._calculate(syscall_1) == 0
+    # second syscall has biggest time_delta -> normalized = 1
+    assert td._calculate(syscall_2) == 1.0
+    # timedelta of 100000 nanoseconds: 100000/579661
+    assert td._calculate(syscall_3) == 100000 / max_time_delta
     # new thread_id so delta = 0
     assert td._calculate(syscall_4) == 0
-    # timedelta of 110 nanoseconds: 110/579
-    assert td._calculate(syscall_5) == 110 / max_time_delta
+    # timedelta of 110000 nanoseconds: 110000/579661
+    assert td._calculate(syscall_5) == 110000 / max_time_delta
     # new thread_id so delta = 0
     assert td._calculate(syscall_6) == 0
-    # timedelta of 110 nanoseconds: 110/579
-    assert td._calculate(syscall_7) == 400 / max_time_delta
-    # timedelta of 290 nanoseconds: 290/579
-    assert td._calculate(syscall_8) == 290 / max_time_delta
-    # timedelta of 300 nanoseconds: 300/579
-    assert td._calculate(syscall_9) == 300 / max_time_delta
+    # timedelta of 400000 nanoseconds: 400000/579661
+    assert td._calculate(syscall_7) == 400000 / max_time_delta
+    # timedelta of 290000 nanoseconds: 290000/579
+    assert td._calculate(syscall_8) == 290000 / max_time_delta
+    # timedelta of 300000 nanoseconds: 300000/579
+    assert td._calculate(syscall_9) == 300000 / max_time_delta

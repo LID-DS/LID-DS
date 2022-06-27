@@ -1,8 +1,7 @@
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 
-class UnknownFlags(BuildingBlock, metaclass=Singleton):
+class UnknownFlags(BuildingBlock):
     def __init__(self):
         super().__init__()
         self._flag_dict = {}
