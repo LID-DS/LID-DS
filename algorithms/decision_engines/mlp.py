@@ -131,12 +131,15 @@ class MLP(BuildingBlock):
 
             calculates loss on validation data and stops when no optimization occurs
         """
+        print(f"MLP.train_set: {len(self._training_set)}".rjust(27))
+        
         self._model = Feedforward(
             input_size=self._input_size,
             hidden_size=self.hidden_size,
             output_size=self._output_size,
             hidden_layers=self.hidden_layers
         ).model
+        self._model.train()
 
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
         optimizer = optim.Adam(self._model.parameters(), lr=self.learning_rate)  # using Adam optimizer
@@ -145,20 +148,20 @@ class MLP(BuildingBlock):
         train_data_set = MLPDataset(self._training_set)
         val_data_set = MLPDataset(self._validation_set)
 
-        # loss preparation for early stop of training
-        loss_dq = collections.deque(maxlen=self._early_stop_epochs)
+        # loss preparation for early stop of training        
+        epochs_since_last_best = 0
         best_avg_loss = math.inf
+        best_weights = {}
 
         # initializing the torch dataloaders for training and validation
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
 
-        max_epochs = 100000
-        bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")  # fancy print for training
-
+        max_epochs = 10000
         # iterate through max epochs
+        bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")  # fancy print for training        
         for e in bar:
-            running_loss = 0
+            # running_loss = 0
 
             # training
             for i, data in enumerate(train_data_loader):
@@ -172,7 +175,7 @@ class MLP(BuildingBlock):
                 loss.backward()  # compute gradients
                 optimizer.step()  # update weights
 
-                running_loss += loss.item()
+                # running_loss += loss.item()
 
             # validation
             val_loss = 0.0
@@ -188,18 +191,28 @@ class MLP(BuildingBlock):
 
             if avg_val_loss < best_avg_loss:
                 best_avg_loss = avg_val_loss
+                best_weights = self._model.state_dict()
+                epochs_since_last_best = 1
+            else:
+                epochs_since_last_best += 1
 
             # determine if loss optimization occurred in last x epochs, if not stop training
-            loss_dq.append(avg_val_loss)
-            stop_early = True
-            for l in loss_dq:
-                if l == best_avg_loss:
-                    stop_early = False
-            if stop_early:
-                break
+            #loss_dq.append(avg_val_loss)
+            stop_early = False
+            if epochs_since_last_best >= self._early_stop_epochs:
+                stop_early = True
 
             # refreshs the fancy printing
-            bar.set_description(f"fit MLP, loss: {avg_val_loss:.5f}, epoch: {e}".rjust(27), refresh=True)
+            bar.set_description(f"fit MLP {epochs_since_last_best}|{best_avg_loss:.5f}".rjust(27), refresh=True)
+
+            if stop_early:
+                break
+        
+        print(f"stop at {bar.n} epochs".rjust(27))        
+        self._result_dict = {}
+        self._model.load_state_dict(best_weights)
+        self._model.eval()
+
 
     def _calculate(self, syscall: Syscall):
         """
@@ -294,12 +307,16 @@ class Feedforward:
         hidden_layer_list = []
         for i in range(hidden_layers):
             hidden_layer_list.append(nn.Linear(self.hidden_size, self.hidden_size))
+            hidden_layer_list.append(nn.Dropout(p=0.5))
             hidden_layer_list.append(nn.ReLU())
+
 
         return [
                    nn.Linear(self.input_size, self.hidden_size),
+                   nn.Dropout(p=0.5),
                    nn.ReLU()
                ] + hidden_layer_list + [
                    nn.Linear(self.hidden_size, self.output_size),
+                   nn.Dropout(p=0.5),
                    nn.Softmax()
                ]

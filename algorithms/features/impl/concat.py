@@ -30,6 +30,7 @@ class Concat(BuildingBlock):
             returns None
         """
         result_vector = []
+        error = False
         for bb in self._dependency_list:
             tmp_input = bb.get_result(syscall)
             if tmp_input is not None:                
@@ -41,6 +42,10 @@ class Concat(BuildingBlock):
                     except TypeError:
                         result_vector.append(tmp_input)
             else:
-                return None
-        return tuple(result_vector)
+                error = True
+        if not error:
+            return tuple(result_vector)
+        else:
+            return None
+
 

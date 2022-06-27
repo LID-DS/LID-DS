@@ -42,6 +42,8 @@ class MinMaxScaling(BuildingBlock):
         self._diff = self._max - self._min
         if self._diff == 0:
             print(f"cant calculate MinMaxScaling for {self._bb_to_scale} - instead calculating identity function")
+        else:
+            print(f"MMS for {self._bb_to_scale.__class__.__name__}: [{self._min:.3f},{self._max:.3f}]")
 
     def _calculate(self, syscall: Syscall):
         """
