@@ -72,7 +72,7 @@ if __name__ == '__main__':
     ]    
 
     # base path
-    lid_ds_base_path = "D:\Masterarbeit\Datensatz"
+    lid_ds_base_path = "/media/sf_Masterarbeit/Material"
 
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version[select_lid_ds_version_number]}/{scenario_names[select_scenario_number]}"        
     dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH) # Results differ, currently BOTH was the best performing

@@ -65,6 +65,7 @@ class IDS:
 
     def detect_on_recording(self, recording: BaseRecording) -> Performance:
         performance = Performance()
+        pprint(f"Threshold is: {self.treshold}")
         performance.set_threshold(self.treshold)
             # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
         if recording.metadata()["exploit"]:
