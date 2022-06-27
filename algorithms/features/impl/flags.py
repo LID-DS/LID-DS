@@ -1,9 +1,8 @@
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class Flags(BuildingBlock, metaclass=Singleton):
+class Flags(BuildingBlock):
 
     def __init__(self):
         super().__init__()

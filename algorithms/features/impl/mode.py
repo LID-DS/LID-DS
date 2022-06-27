@@ -1,9 +1,8 @@
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class Mode(BuildingBlock, metaclass=Singleton):
+class Mode(BuildingBlock):
 
     def __init__(self):
         super().__init__()
