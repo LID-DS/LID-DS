@@ -1,5 +1,7 @@
 from os import get_exec_path
 from tqdm import tqdm
+from tqdm.contrib.concurrent import process_map
+
 from algorithms.building_block import BuildingBlock
 from pprint import pprint
 
@@ -10,52 +12,6 @@ from dataloader.base_data_loader import BaseDataLoader
 from algorithms.data_preprocessor import DataPreprocessor
 from dataloader.base_recording import BaseRecording
 
-class SingleRecordingPerformance:
-    
-    def __init__(self, threshold: float, create_alarms: bool = False):
-        self._treshold = threshold
-        self._fp = 0
-        self._tp = 0
-        self._fn = 0
-        self._tn = 0
-        self._alarm_count = 0
-        self._create_alarms = create_alarms
-        
-        self._current_exploit_time = None
-        self._exploit_count = 0
-        self._alarm = False
-        
-        # CFP things
-        self._cfp_count_exploits = 0
-        self._current_cfp_stream = 0
-        self._current_cfp_stream_exploits = 0
-        self._exploit_anomaly_score_count = 0
-        self._first_syscall_of_cfp_list_exploits = []
-        self._last_syscall_of_cfp_list_exploits = []
-        self._cfp_counter_wait_exploits = False
-
-        self._cfp_count_normal = 0
-        self._current_cfp_stream_normal = 0
-        self._normal_score_count = 0
-        self._first_syscall_of_cfp_list_normal = []
-        self._last_syscall_of_cfp_list_normal = []
-        self._cfp_counter_wait_normal = False
-        if self.create_alarms:
-            self.alarms = Alarms()
-        else:
-            self.alarms = None
-    
-    
-    def analyze_syscall(self, syscall, anomaly_score):
-        pass
-    
-    
-    def get_cfp_indices(self):
-        pass
-    
-
-
-
 
 
 class IDS:
@@ -63,7 +19,8 @@ class IDS:
                  data_loader: BaseDataLoader,
                  resulting_building_block: BuildingBlock,                 
                  plot_switch: bool,
-                 create_alarms: bool = False):
+                 create_alarms: bool = False,
+                 recording: BaseRecording = None):
         self._data_loader = data_loader
         self._final_bb = resulting_building_block
         self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block)
@@ -79,6 +36,7 @@ class IDS:
             self.plot = ScorePlot(data_loader.scenario_path)
         else:
             self.plot = None
+        self._recording = recording
 
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
@@ -105,6 +63,25 @@ class IDS:
             self.plot.threshold = max_score
         print(f"threshold={max_score:.3f}".rjust(27))
 
+    def detect_on_recording(self, recording: BaseRecording) -> Performance:
+        performance = Performance()
+        performance.set_threshold(self.treshold)
+            # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
+        if recording.metadata()["exploit"]:
+            performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
+
+        for syscall in recording.syscalls():
+            anomaly_score = self._final_bb.get_result(syscall)
+            if anomaly_score != None:
+                performance.analyze_syscall(syscall, anomaly_score)
+
+            # run end alarm once to ensure that last alarm gets saved
+        if performance.alarms is not None:
+            performance.alarms.end_alarm()
+            
+        return Performance() # TODO
+
+
     def do_detection(self):
         """
         detecting performance values using the test data,
@@ -115,27 +92,16 @@ class IDS:
         description = 'anomaly detection'.rjust(27)
 
         # Paralleler shit hier
-        for recording in tqdm(data, description, uni=" recording"): # Hier muss ganz sicher noch was anderes hin
-            performance = Performance()
-            performance.set_threshold(self.threshold)
 
-            # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
-            if recording.metadata()["exploit"]:
-                performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
+        results = process_map(self.verarbeiteRecording, data)
+        pprint(results) # Ich gehe davon aus, dass ich eine Liste an Performance-Objekten erhalte.
 
 
-            # Jetzt nach Exploit-Time unterscheiden
-            if performance.get_exploit_time() is not None:
-                pass
 
-            elif performance.get_exploit_time() is None:
-                pass
-
-
-        
+        # TODO: Consectuvie Sachen im Nachhinein bestimmen
         # Dann reduce 
         
-        
+        #exit(1)
         
 
         # Hier das Alte aber funktionierende
@@ -162,29 +128,4 @@ class IDS:
         if self.plot is not None:
             self.plot.feed_figure()
             self.plot.show_plot(filename)
-            
-   
-    def process_recording(self, recording: BaseRecording) -> SingleRecordingPerformance:
-        # New Recording - calls reinnehmen nachdem ich sie verstehe
-        results = SingleRecordingPerformance(threshold=self.threshold, create_alarms=self._create_alarms)
-        
-        for syscall in recording:
-            anomaly_score = self._final_bb.get_result(syscall)
-            if anomaly_score != None:
-                results.analyze_syscall(syscall, anomaly_score) 
-                if self.plot is not None: 
-                    self.plot.add_to_plot_data(anomaly_score, syscall, results.get_cfp_indices())
-    
-            
-            self._data_preprocessor.new_recording() ############# Muss noch übersetzt werden TODO
-
-            # run end alarm once to ensure that last alarm gets saved
-            if results.alarms is not None:
-                results.alarms.end_alarm()
-    
-    
-        return results
-    
-    
-    
-    
+           

@@ -7,15 +7,67 @@ class Performance:
         self._treshold = 0.0
         self._exploit_time = None
         self._alarms = Alarms()
+        self._alarm = None
+        self._alarm_count = 0
+        self._fp = 0
+        self._tp = 0
+        self._fn = 0
+        self._tn = 0
 
     def set_threshold(self, threshold: float):
         self._treshold = threshold
 
-    def set_exploit_time(self, exploit_time):
+    def set_exploit_time(self, exploit_time): 
         self._exploit_time = exploit_time
 
-    def analyze_systemcall(self, systemcall: Syscall, anomaly_score: float):
-        pass
+    def analyze_syscall(self, syscall: Syscall, anomaly_score: float):
+
+        syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
+
+        # files with exploit
+        if self._exploit_time is not None:
+            if anomaly_score > self._threshold:
+                if self._exploit_time > syscall_time:
+                    self._fp += 1
+                    if self.create_alarms:
+                        self.alarms.add_or_update_alarm(syscall, False)
+
+                elif self._exploit_time <= syscall_time:
+
+                    if self.create_alarms:
+                        self.alarms.add_or_update_alarm(syscall, True)
+                    
+                    if self._alarm is False:
+                        self._tp += 1
+                        self._alarm_count += 1
+                        self._alarm = True
+                    
+                    elif self._alarm is True:
+                        self._tp += 1
+
+            elif anomaly_score <= self._threshold:
+                if self.create_alarms:
+                    self.alarms.end_alarm()
+
+                if self._current_exploit_time > syscall_time:
+                    self._tn += 1
+                elif self._current_exploit_time <= syscall_time:
+                    self._fn += 1
+
+        # files without exploit
+        elif self._current_exploit_time is None:
+ 
+            if anomaly_score > self._threshold:
+                self._fp += 1
+
+                if self.create_alarms:
+                    self.alarms.add_or_update_alarm(syscall, False)
+
+            if anomaly_score <= self._threshold:
+                if self.create_alarms:
+                    self.alarms.end_alarm()
+
+                self._tn += 1
 
     def get_exploit_time(self):
         return self._exploit_time

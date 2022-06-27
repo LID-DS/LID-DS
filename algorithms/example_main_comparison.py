@@ -4,6 +4,8 @@ from datetime import datetime
 
 import os
 
+from py import process
+
 from alarm import Alarm
 
 from algorithms.decision_engines.ae import AE, AEMode
@@ -32,14 +34,17 @@ from algorithms.features.impl.stream_variance import StreamVariance
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.features.impl.timestamp import Timestamp 
 from algorithms.ids import IDS
+from algorithms.performance_measurement import Performance
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 from algorithms.persistance import save_to_json
+from copy import deepcopy
+from tqdm.contrib.concurrent import process_map
 
 # Take the entrypoint etc. from the existing example_main.py
 if __name__ == '__main__':
 
-    select_lid_ds_version_number = 1
+    select_lid_ds_version_number = 0
     lid_ds_version = [
         "LID-DS-2019", 
         "LID-DS-2021"
@@ -67,7 +72,7 @@ if __name__ == '__main__':
     ]    
 
     # base path
-    lid_ds_base_path = "/media/sf_Masterarbeit/Material"
+    lid_ds_base_path = "D:\Masterarbeit\Datensatz"
 
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version[select_lid_ds_version_number]}/{scenario_names[select_scenario_number]}"        
     dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH) # Results differ, currently BOTH was the best performing
@@ -82,23 +87,10 @@ if __name__ == '__main__':
     
     intEmbedding = IntEmbedding()
     ngram_1 = Ngram([intEmbedding], thread_aware, ngram_length)
-    
-    # w2v = W2VEmbedding(embedding_size,10,1000,scenario_path,"Models/W2V/",True)
-    # ohe = OneHotEncoding(input=intEmbedding)
-    
-    # ngram_2 = Ngram([w2v],True,ngram_length)
-    # ngram_3 = Ngram([ohe], True, ngram_length)
+
     
     stide = Stide(ngram_1)
 
-    # ae = AE(ngram_2, 5, AEMode.LOSS, batch_size=512)
-
-    # pe = PathEvilness(scenario_path, force_retrain=True)
-
-    # rv = ReturnValue()
-
-    # concat = Concat([rv])
-    # som = Som(concat)
 
 
 
@@ -110,6 +102,47 @@ if __name__ == '__main__':
             resulting_building_block=stide,
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
+    
+    ids.determine_threshold()
+
+    # TODO: Behandle den DataLoader unabhängig vom IDS. Dann kann ich einfach für die Erkennung einzelne Brocken an Recordings verteilen.
+    # Außerdem kann ich nach dem Training einfach deepcopys vom IDS erstellen. Das muss ich aber testen.
+    data = dataloader.test_data()
+    
+
+    class TestStruct:
+        def __init__(self, ids, recording):
+            self.ids = ids
+            self. recording = recording
+
+    listStructs = [TestStruct(ids, recording) for recording in data]
+
+    
+
+    def calculate(struct: TestStruct) -> Performance:
+        working_copy = deepcopy(struct.ids)
+        performance = working_copy.detect_on_recording(struct.recording)
+        return performance
+
+    results = process_map(calculate, listStructs)
+
+    pprint(results)
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    exit(0)
 
     #pprint("Integer-Embedding:")
     #pprint(intEmbedding._syscall_dict)
