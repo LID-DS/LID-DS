@@ -65,8 +65,7 @@ class IDS:
 
     def detect_on_recording(self, recording: BaseRecording) -> Performance:
         performance = Performance()
-        pprint(f"Threshold is: {self.treshold}")
-        performance.set_threshold(self.treshold)
+        performance.set_threshold(self.threshold)
             # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
         if recording.metadata()["exploit"]:
             performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
@@ -80,7 +79,7 @@ class IDS:
         if performance.alarms is not None:
             performance.alarms.end_alarm()
             
-        return Performance() # TODO
+        return performance
 
 
     def do_detection(self):
@@ -129,4 +128,7 @@ class IDS:
         if self.plot is not None:
             self.plot.feed_figure()
             self.plot.show_plot(filename)
+            
+    def __repr__(self) -> str:
+        return f"IDS-Object with Algorithm: {self._final_bb} and threshold: {self.threshold} and dataloader: {self._data_loader}"
            

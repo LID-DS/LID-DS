@@ -1,12 +1,13 @@
+from typing import final
 from algorithms.alarms import Alarms
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
 class Performance:
     def __init__(self):
-        self._treshold = 0.0
+        self._threshold = 0.0
         self._exploit_time = None
-        self._alarms = Alarms()
+        self.alarms = Alarms()
         self._alarm = None
         self._alarm_count = 0
         self._fp = 0
@@ -15,7 +16,7 @@ class Performance:
         self._tn = 0
 
     def set_threshold(self, threshold: float):
-        self._treshold = threshold
+        self._threshold = threshold
 
     def set_exploit_time(self, exploit_time): 
         self._exploit_time = exploit_time
@@ -29,13 +30,10 @@ class Performance:
             if anomaly_score > self._threshold:
                 if self._exploit_time > syscall_time:
                     self._fp += 1
-                    if self.create_alarms:
-                        self.alarms.add_or_update_alarm(syscall, False)
+                    self.alarms.add_or_update_alarm(syscall, False)
 
                 elif self._exploit_time <= syscall_time:
-
-                    if self.create_alarms:
-                        self.alarms.add_or_update_alarm(syscall, True)
+                    self.alarms.add_or_update_alarm(syscall, True)
                     
                     if self._alarm is False:
                         self._tp += 1
@@ -46,31 +44,42 @@ class Performance:
                         self._tp += 1
 
             elif anomaly_score <= self._threshold:
-                if self.create_alarms:
-                    self.alarms.end_alarm()
+                self.alarms.end_alarm()
 
-                if self._current_exploit_time > syscall_time:
+                if self._exploit_time > syscall_time:
                     self._tn += 1
-                elif self._current_exploit_time <= syscall_time:
+                elif self._exploit_time <= syscall_time:
                     self._fn += 1
 
         # files without exploit
-        elif self._current_exploit_time is None:
+        elif self._exploit_time is None:
  
             if anomaly_score > self._threshold:
                 self._fp += 1
-
-                if self.create_alarms:
-                    self.alarms.add_or_update_alarm(syscall, False)
+                self.alarms.add_or_update_alarm(syscall, False)
 
             if anomaly_score <= self._threshold:
-                if self.create_alarms:
-                    self.alarms.end_alarm()
-
+                self.alarms.end_alarm()
                 self._tn += 1
+
+    def add(left: 'Performance', right: 'Performance') -> 'Performance':
+        final_Performance = Performance()
+        final_Performance.set_threshold(left._threshold)   
+        
+        final_Performance._alarm_count = left._alarm_count + right._alarm_count
+        final_Performance._fp = left._fp + right._fp
+        final_Performance._tp = left._tp + right._tp
+        final_Performance._fn = left._fn + right._fn
+        final_Performance._tn = left._tn + right._tn
+        
+        
+        return final_Performance
 
     def get_exploit_time(self):
         return self._exploit_time
+    
+    def __repr__(self) -> str:
+        return f"Performance-Instance: Alarm_Count: {self._alarm_count}, FPs: {self._fp}, TPs: {self._tp}, FNs: {self._fn}, TNs: {self._tn}"
 
 
 class PerformanceMeasurement:

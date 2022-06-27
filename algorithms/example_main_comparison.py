@@ -3,8 +3,7 @@ from pprint import pprint
 from datetime import datetime
 
 import os
-
-from py import process
+from time import sleep
 
 from alarm import Alarm
 
@@ -40,6 +39,7 @@ from dataloader.direction import Direction
 from algorithms.persistance import save_to_json
 from copy import deepcopy
 from tqdm.contrib.concurrent import process_map
+from functools import reduce
 
 # Take the entrypoint etc. from the existing example_main.py
 if __name__ == '__main__':
@@ -105,8 +105,6 @@ if __name__ == '__main__':
     
     ids.determine_threshold()
 
-    # TODO: Behandle den DataLoader unabhängig vom IDS. Dann kann ich einfach für die Erkennung einzelne Brocken an Recordings verteilen.
-    # Außerdem kann ich nach dem Training einfach deepcopys vom IDS erstellen. Das muss ich aber testen.
     data = dataloader.test_data()
     
 
@@ -117,21 +115,22 @@ if __name__ == '__main__':
 
     listStructs = [TestStruct(ids, recording) for recording in data]
 
-    
-
     def calculate(struct: TestStruct) -> Performance:
         working_copy = deepcopy(struct.ids)
         performance = working_copy.detect_on_recording(struct.recording)
         return performance
 
-    results = process_map(calculate, listStructs)
+    results = process_map(calculate, listStructs, chunksize = 1)
 
-    pprint(results)
-
-
+    pprint(f" Result is: {results}")
 
 
+    completeResult = reduce(Performance.add, results)
 
+
+    pprint(completeResult)
+
+    # TODO: Testen ob das auf größeren Datensätzen dann auch schneller geht
 
 
 
