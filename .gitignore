@@ -27,7 +27,7 @@ coverage.xml
 *,cover
 
 # IPython Notebook
-*.ipynb
+# *.ipynb
 
 # Translations
 *.mo
