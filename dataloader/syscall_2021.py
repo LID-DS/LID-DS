@@ -201,6 +201,3 @@ class Syscall2021(Syscall):
                 return param_value
         except KeyError:
             pass
-        
-    def __repr__(self):
-        return f"Syscall2021, name: {self.name()}, direction: {self.direction()} ,process id: {self.process_id()}, thread id: {self.thread_id()}, line id: {self.line_id}"

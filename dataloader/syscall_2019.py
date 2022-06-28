@@ -165,6 +165,3 @@ class Syscall2019(Syscall):
             return param_value
         except KeyError:
             pass
-    
-    def __repr__(self):
-        return f"Syscall2019, name: {self.name()}, direction: {self.direction()}, thread id: {self.thread_id()}, line id: {self.line_id}"

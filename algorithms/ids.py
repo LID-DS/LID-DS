@@ -15,8 +15,7 @@ class IDS:
                  data_loader: BaseDataLoader,
                  resulting_building_block: BuildingBlock,                 
                  plot_switch: bool,
-                 create_alarms: bool = False,
-                 recording: BaseRecording = None):
+                 create_alarms: bool = False):
         self._data_loader = data_loader
         self._final_bb = resulting_building_block
         self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block)
@@ -32,7 +31,6 @@ class IDS:
             self.plot = ScorePlot(data_loader.scenario_path)
         else:
             self.plot = None
-        self._recording = recording
 
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
@@ -92,9 +90,7 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
 
-        # Hier das Alte aber funktionierende
         for recording in tqdm(data, description, unit=" recording"):
-            #pprint(f"Current recording: {recording.name}")
             self.performance.new_recording(recording)
             if self.plot is not None:
                 self.plot.new_recording(recording)
@@ -117,6 +113,4 @@ class IDS:
             self.plot.feed_figure()
             self.plot.show_plot(filename)
             
-    def __repr__(self) -> str:
-        return f"IDS-Object with Algorithm: {self._final_bb}, Threshold: {self.threshold} and Dataloader: {self._data_loader}"
            

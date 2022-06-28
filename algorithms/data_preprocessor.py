@@ -2,7 +2,6 @@ from typing import Union
 import urllib
 from tqdm import tqdm
 from algorithms.building_block import BuildingBlock
-from pprint import pprint
 from algorithms.building_block_manager import BuildingBlockManager
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.syscall import Syscall
@@ -80,7 +79,6 @@ class DataPreprocessor:
                 for recording in tqdm(self._data_loader.training_data(),
                                     f"train bb {current_generation + 1}/{num_generations}".rjust(27),
                                     unit=" recording"):
-                    #pprint(f"Current Recording:{recording.name}")
                     for syscall in recording.syscalls():                        
                         # calculate already fitted bbs
                         for previous_generation in range(0, current_generation):
