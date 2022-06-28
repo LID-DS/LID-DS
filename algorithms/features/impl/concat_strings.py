@@ -2,7 +2,10 @@ import math
 from collections import deque
 
 from algorithms.building_block import BuildingBlock
+
+from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.threadID import ThreadID
+
 from dataloader.syscall import Syscall
 
 
@@ -32,14 +35,15 @@ class ConcatStrings(BuildingBlock):
         result_str = ""
         error = False        
         tmp_input = self._bb.get_result(syscall)
-        if tmp_input is not None:                
-            for element in tmp_input:                
-                if isinstance(element, str):                    
+        if not isinstance(self._bb, Concat):
+            print('Please use Concat BB')
+            raise ValueError 
+        if tmp_input is not None: 
+            for element in tmp_input:
+                if isinstance(element, str):
                     result_str += element
                 else:
                     result_str += str(element)
             return result_str
         else:
             return None
-
-

@@ -47,5 +47,3 @@ class Concat(BuildingBlock):
             return tuple(result_vector)
         else:
             return None
-
-

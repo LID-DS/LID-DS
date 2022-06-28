@@ -62,7 +62,6 @@ class DataPreprocessor:
                 return True
         return False
 
-
     def _prepare_and_fit_building_blocks(self):
         """
         preprocessing for building blocks
@@ -115,17 +114,6 @@ class DataPreprocessor:
                                             f"fitting bbs {current_generation + 1}/{num_generations}".rjust(27),
                                             unit=" bbs"):
                     current_bb.fit()
-
-    #def calculate_building_blocks_for_syscall(self, syscall: Syscall):
-    #    """
-    #    calculates all building blocks for the given system call        
-    #    Returns: a dictionary with all calculated building block results
-    #    """
-    #    # first calculate all bbs in the correct order        
-    #    for current_generation in range(0, len(self._building_block_manager.building_block_generations)):
-    #        for current_bb in self._building_block_manager.building_block_generations[current_generation]:
-    #            current_bb.get_result(syscall)
-    #    return dependencies
 
     def new_recording(self):
         """

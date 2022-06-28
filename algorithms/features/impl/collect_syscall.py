@@ -55,7 +55,7 @@ class CollectSyscall(BuildingBlock):
         # save features in dict for syscall
         for feature in self._dependency_list:
             feature_name = type(feature).__name__
-            feature_result = feature.get_result(syscall)            
+            feature_result = feature.get_result(syscall)
             self._buffer[thread_id][syscall_name][feature_name] = feature_result
         if closing_syscall:
             result_list = []

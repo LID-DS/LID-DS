@@ -148,7 +148,7 @@ class MLP(BuildingBlock):
         train_data_set = MLPDataset(self._training_set)
         val_data_set = MLPDataset(self._validation_set)
 
-        # loss preparation for early stop of training        
+        # loss preparation for early stop of training
         epochs_since_last_best = 0
         best_avg_loss = math.inf
         best_weights = {}
@@ -161,8 +161,6 @@ class MLP(BuildingBlock):
         # iterate through max epochs
         bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")  # fancy print for training        
         for e in bar:
-            # running_loss = 0
-
             # training
             for i, data in enumerate(train_data_loader):
                 inputs, labels = data
@@ -174,8 +172,6 @@ class MLP(BuildingBlock):
 
                 loss.backward()  # compute gradients
                 optimizer.step()  # update weights
-
-                # running_loss += loss.item()
 
             # validation
             val_loss = 0.0
@@ -197,7 +193,6 @@ class MLP(BuildingBlock):
                 epochs_since_last_best += 1
 
             # determine if loss optimization occurred in last x epochs, if not stop training
-            #loss_dq.append(avg_val_loss)
             stop_early = False
             if epochs_since_last_best >= self._early_stop_epochs:
                 stop_early = True

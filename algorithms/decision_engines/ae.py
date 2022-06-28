@@ -148,7 +148,6 @@ class AE(BuildingBlock):
         val_data_loader = torch.utils.data.DataLoader(ae_ds_val, batch_size=self._batch_size, shuffle=True)
         bar = tqdm(range(0, self._epochs), 'training'.rjust(27), unit=" epochs")                
         for epoch in bar:            
-            # epoch_loss = 0.0            
             count = 0            
             for (batch_index, batch) in enumerate(data_loader):
                 count += 1
@@ -157,12 +156,10 @@ class AE(BuildingBlock):
                 # forward
                 oupt = self._autoencoder(X)                # compute output
                 loss_value = self._loss_function(oupt, Y)  # compute loss (a tensor)
-                # epoch_loss += loss_value.item()            # accumulate for display
                 # backward                
                 self._optimizer.zero_grad()                # prepare gradients
                 loss_value.backward()                      # compute gradients
                 self._optimizer.step()                     # update weights
-            # avg_loss = epoch_loss /count
 
             # validation
             val_loss = 0.0
@@ -184,10 +181,6 @@ class AE(BuildingBlock):
             
             stop_early = False
             
-            #for l in loss_dq:            
-            #    if l == best_avg_val_loss:
-            #        stop_early = False
-            #        break
             if epochs_since_last_best >= self._early_stopping_num_epochs:
                 stop_early = True
 
@@ -201,7 +194,6 @@ class AE(BuildingBlock):
         self._result_dict = {}
         self._autoencoder.load_state_dict(best_weights)
         self._autoencoder.eval()        
-
 
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
