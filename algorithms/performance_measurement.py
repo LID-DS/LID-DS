@@ -1,5 +1,5 @@
-from typing import final
 from algorithms.alarms import Alarms
+
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
@@ -111,12 +111,12 @@ class Performance:
                               "correct_alarm_count": self._alarm_count,
                               "exploit_count": self._exploit_count,
                               "detection_rate": detection_rate,
-                              #"consecutive_false_positives_normal": self._cfp_count_normal,
-                              #"consecutive_false_positives_exploits": self._cfp_count_exploits,
+                              "consecutive_false_positives_normal": 'Not implemented.',
+                              "consecutive_false_positives_exploits": 'Not implemented.',
                               "recall": detection_rate,
-                              #"precision_with_cfa": precision_cfa,
+                              "precision_with_cfa": 'Not implemented.',
                               "precision_with_syscalls": precision_sys,
-                              #"f1_cfa": f1_cfa
+                              "f1_cfa": 'Not implemented.'
                               }
         self.result = performance_values
 
@@ -124,8 +124,6 @@ class Performance:
         
         
         
-
-
 class PerformanceMeasurement:
     def __init__(self, create_alarms: bool = False):
         self._threshold = 0.0

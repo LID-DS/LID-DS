@@ -1,15 +1,11 @@
-from os import get_exec_path
 from tqdm import tqdm
-from tqdm.contrib.concurrent import process_map
 
 from algorithms.building_block import BuildingBlock
-from pprint import pprint
-
-from algorithms.alarms import Alarms
 from algorithms.performance_measurement import Performance, PerformanceMeasurement
 from algorithms.score_plot import ScorePlot
-from dataloader.base_data_loader import BaseDataLoader
 from algorithms.data_preprocessor import DataPreprocessor
+
+from dataloader.base_data_loader import BaseDataLoader
 from dataloader.base_recording import BaseRecording
 
 
@@ -122,5 +118,5 @@ class IDS:
             self.plot.show_plot(filename)
             
     def __repr__(self) -> str:
-        return f"IDS-Object with Algorithm: {self._final_bb} and threshold: {self.threshold} and dataloader: {self._data_loader}"
+        return f"IDS-Object with Algorithm: {self._final_bb}, Threshold: {self.threshold} and Dataloader: {self._data_loader}"
            
