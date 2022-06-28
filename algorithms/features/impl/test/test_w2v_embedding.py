@@ -1,3 +1,4 @@
+from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from dataloader.syscall_2021 import Syscall2021
 
@@ -48,13 +49,12 @@ def test_w2v_embedding():
                              "1631209047762064269 0 3686303 apache2 3686303 627272 < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
 
     vector_size = 3
+    name = SyscallName()
     embedding = W2VEmbedding(
+        word=name,
         vector_size=vector_size,
         window_size=4,
-        epochs=50,
-        scenario_path='/test/test',  # mock that is only used for model name
-        path='algorithms/Models',
-        force_train=True
+        epochs=50
     )
 
     training_syscalls = [syscall_1, syscall_2, syscall_3, syscall_4, syscall_5, syscall_6, syscall_7, syscall_8]
