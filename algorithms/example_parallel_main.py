@@ -33,7 +33,7 @@ if __name__ == '__main__':
     lid_ds_version = "LID-DS-2021"
     scenario_name = "CVE-2017-7529"
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version}/{scenario_name}"        
-    dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE) # just load < closing system calls for this example
+    dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH) # just load < closing system calls for this example
 
     ### features (for more information see Paper: "Improving Host-based Intrusion Detection Using Thread Information", International Symposium on Emerging Information Security and Applications (EISA), 2021)
     thread_aware = True
