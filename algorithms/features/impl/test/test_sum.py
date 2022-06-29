@@ -1,6 +1,6 @@
 import pytest
 
-from algorithms.features.impl.Sum import Sum
+from algorithms.features.impl.sum import Sum
 from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.syscall_name import SyscallName
