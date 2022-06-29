@@ -1,10 +1,14 @@
 from tqdm import tqdm
+from typing import Type
+
 from algorithms.building_block import BuildingBlock
 
-from algorithms.performance_measurement import PerformanceMeasurement
-from algorithms.score_plot import ScorePlot
+from dataloader.base_recording import BaseRecording
 from dataloader.base_data_loader import BaseDataLoader
-from algorithms.data_preprocessor import DataPreprocessor
+
+from algorithms.score_plot import ScorePlot
+from algorithms.data_preprocessor import DataPreprocessor 
+from algorithms.performance_measurement import Performance, PerformanceMeasurement
 
 
 class IDS:
@@ -79,6 +83,37 @@ class IDS:
             # run end alarm once to ensure that last alarm gets saved
             if self.performance.alarms is not None:
                 self.performance.alarms.end_alarm()
+
+    def detect_on_single_recording(self, recording: Type[BaseRecording]) -> Performance:
+        """
+        detecting performance values using single recording
+        create Performance object and return it
+
+        Args:
+            recording: single recording to calculate performance on
+        Returns:
+            Performance: performance object
+        """
+        performance = Performance()
+        performance.set_threshold(self.threshold)
+
+        # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
+        if recording.metadata()["exploit"]:
+            performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
+            performance._exploit_count += 1
+
+        for syscall in recording.syscalls():
+            anomaly_score = self._final_bb.get_result(syscall)
+            if anomaly_score != None:
+                performance.analyze_syscall(syscall, anomaly_score)
+
+        self._data_preprocessor.new_recording()
+
+        # run end alarm once to ensure that last alarm gets saved
+        if performance.alarms is not None:
+            performance.alarms.end_alarm()
+
+        return performance
 
     def draw_plot(self, filename=None):
         # plot data if wanted
