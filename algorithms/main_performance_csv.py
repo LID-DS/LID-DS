@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
                     ids.train_decision_engine()
                     ids.determine_threshold()
-                    ids.do_detection()
+                    ids.detect()
                     performance_dict = ids.performance.get_performance()
                     performance_dict["scenario"] = f"{name}"
                     performance_dict["thread_aware"] = f"{flag}"

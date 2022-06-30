@@ -141,10 +141,10 @@ if __name__ == '__main__':
     ids.determine_threshold()
     start = time.time()
     # detection
-    ids.do_detection()
+    stats = ids.detect().get_performance()
     end = time.time()
     detection_time = (end - start)/60  # in min
-    stats = ids.performance.get_performance()
+
     if stats is None:
         stats = {}
     stats['scenario'] = scenario_names[scenario_number]

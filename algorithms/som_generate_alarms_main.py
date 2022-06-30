@@ -95,7 +95,7 @@ if __name__ == '__main__':
         # threshold
         ids.determine_threshold()
         # detection
-        ids.do_detection()
+        ids.detect()
         # print results
         results = ids.performance.get_performance()
         pprint(results)
