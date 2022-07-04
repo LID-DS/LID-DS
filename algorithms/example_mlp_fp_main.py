@@ -194,22 +194,6 @@ def construct_Syscalls(container: FalseAlertContainer) -> FalseAlertResult:
     
 # Take the entrypoint etc. from the existing example_main.py
 if __name__ == '__main__':
-    
-    #set_start_method('spawn')
-    
-    
-    print(cuda.is_available())
-    
-    print(cuda.current_device())
-    
-    print(cuda.device(0))
-    
-    print(cuda.device_count())
-    
-    print(cuda.get_device_name(0))
-    
-    #pprint(f"CUDA: {cuda.is_available()}")
-
 
     select_lid_ds_version_number = 1
     lid_ds_version = [
@@ -265,13 +249,13 @@ if __name__ == '__main__':
     # ngram_3 = Ngram([ohe], True, ngram_length)
 
     ####################################### STIDE - Specs ###################################
-    thread_aware = True
-    window_length = 1000
-    ngram_length = 5
+    # thread_aware = True
+    # window_length = 1000
+    # ngram_length = 5
         
-    intEmbedding = IntEmbedding()
-    ngram_1 = Ngram([intEmbedding], thread_aware, ngram_length)
-    stide = Stide(ngram_1, window_length=window_length)
+    # intEmbedding = IntEmbedding()
+    # ngram_1 = Ngram([intEmbedding], thread_aware, ngram_length)
+    # stide = Stide(ngram_1, window_length=window_length)
     ####################################### STIDE - Specs - End #############################
 
     # pe = PathEvilness(scenario_path, force_retrain=True)
@@ -282,29 +266,33 @@ if __name__ == '__main__':
     # som = Som(concat)
 
     ####################################### MLP - Specs ##################################
-    # ngram_length = 7
-    # w2v_size = 5
-    # thread_aware = True
-    # hidden_size = 150
-    # hidden_layers = 4
-    # batch_size = 50
-    # epochs = 50
-    # learning_rate = 0.003
+    ngram_length = 7
+    w2v_size = 5
+    thread_aware = True
+    hidden_size = 150
+    hidden_layers = 4
+    batch_size = 50
+    epochs = 50
+    learning_rate = 0.003
         
-    # w2v = W2VEmbedding(w2v_size, w2v_size, epochs, scenario_path, thread_aware=thread_aware)
-    # ngram = Ngram([w2v], thread_aware, ngram_length)
-    # ngram_minus_one = NgramMinusOne(ngram, w2v_size)
-    # inte = IntEmbedding()
-    # ohe = OneHotEncoding(inte)
+    w2v = W2VEmbedding(word=SyscallName(),
+                       vector_size=w2v_size,
+                       window_size=w2v_size,
+                       epochs=epochs,
+                       thread_aware=thread_aware)
+    ngram = Ngram([w2v], thread_aware, ngram_length)
+    ngram_minus_one = NgramMinusOne(ngram, w2v_size)
+    inte = IntEmbedding()
+    ohe = OneHotEncoding(inte)
         
         
-    # mlp = MLP(ngram_minus_one,
-    #     ohe,
-    #     hidden_size,
-    #     hidden_layers,
-    #     batch_size,
-    #     learning_rate
-    # )
+    mlp = MLP(ngram_minus_one,
+        ohe,
+        hidden_size,
+        hidden_layers,
+        batch_size,
+        learning_rate
+    )
     ####################################### MLP - Specs - End ##############################
 
 
@@ -364,10 +352,10 @@ if __name__ == '__main__':
     # the IDS
 
 
-    
+    #pprint(mlp)
     
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=stide,
+            resulting_building_block=mlp,
             create_alarms=True,
             plot_switch=False)
     
@@ -375,10 +363,11 @@ if __name__ == '__main__':
     ids.determine_threshold()
     
     #ids.detect()
-    performance = ids.detect_parallel()
+    performance = ids.detect()
     results = performance.get_results()
     pprint(results)
     
+    exit()
     # Lade Test-Datem
     #test_data = dataloader.test_data()
     #pprint(f"Len test data: {len(test_data)}")

@@ -12,6 +12,8 @@ from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 class MLPDataset(Dataset):
     """
     torch dataloader that presents syscall data as tensors to neural network
@@ -24,8 +26,8 @@ class MLPDataset(Dataset):
         self.x_data = []
         self.y_data = []
         for datapoint in data:
-            self.x_data.append(torch.from_numpy(np.asarray(datapoint[0], dtype=np.float32)))
-            self.y_data.append(torch.from_numpy(np.asarray(datapoint[1], dtype=np.float32)))
+            self.x_data.append(torch.from_numpy(np.asarray(datapoint[0], dtype=np.float32)).to(device))
+            self.y_data.append(torch.from_numpy(np.asarray(datapoint[1], dtype=np.float32)).to(device))
 
     def __len__(self):
         """
@@ -138,7 +140,7 @@ class MLP(BuildingBlock):
             hidden_size=self.hidden_size,
             output_size=self._output_size,
             hidden_layers=self.hidden_layers
-        ).model
+        ).model.to(device)
         self._model.train()
 
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
@@ -227,7 +229,7 @@ class MLP(BuildingBlock):
             if input_vector in self._result_dict:
                 return self._result_dict[input_vector]
             else:
-                in_tensor = torch.tensor(input_vector, dtype=torch.float32)
+                in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 mlp_out = self._model(in_tensor)
 
                 try: 
@@ -313,5 +315,5 @@ class Feedforward:
                ] + hidden_layer_list + [
                    nn.Linear(self.hidden_size, self.output_size),
                    nn.Dropout(p=0.5),
-                   nn.Softmax()
+                   nn.Softmax(dim=0)
                ]
