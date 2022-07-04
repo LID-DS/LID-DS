@@ -102,7 +102,7 @@ class Performance:
                 self._tn += 1
 
     def add(left: Performance, right: Performance) -> Performance:
-        final_performance = Performance()
+        final_performance = Performance(create_alarms=True)
         final_performance.set_threshold(left._threshold)
         final_performance._alarm_count = left._alarm_count + right._alarm_count
         final_performance._exploit_count = left._exploit_count + right._exploit_count
@@ -112,6 +112,8 @@ class Performance:
         final_performance._tn = left._tn + right._tn
         final_performance._cfp_count_exploits = left._cfp_count_exploits + right._cfp_count_exploits
         final_performance._cfp_count_normal = left._cfp_count_normal + right._cfp_count_normal
+        final_performance.alarms.alarms = left.alarms.alarms + right.alarms.alarms
+        
         return final_performance
 
     #def get_exploit_time(self):

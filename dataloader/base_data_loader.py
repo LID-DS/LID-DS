@@ -63,6 +63,30 @@ class BaseDataLoader:
         """
         pass
 
+    def set_retraining_data(self, data):  
+        """ Adds retraining data to the IDS
+
+        Args:
+            data (List[Recording]): the data which has to be added
+        """      
+        pass
+    
+    def set_revalidation_data(self, data):
+        """ Adds validation data to the IDS
+
+        Args:
+            data (List[Recording]): the data which has to be added
+        """
+        pass
+
+    def unload_retraining_data(self):
+        """ Resets the retraining data """
+        pass
+
+    def unload_revalidation_data(self):
+        """ Resets the revalidation data """
+        pass
+
     def extract_recordings(self, category: str) -> list:
         """
 

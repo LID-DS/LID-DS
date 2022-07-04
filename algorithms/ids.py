@@ -101,7 +101,7 @@ class IDS:
         Returns:
             Performance: performance object
         """
-        performance = Performance()
+        performance = Performance(create_alarms=True)
         performance.set_threshold(self.threshold)
 
         # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
@@ -163,6 +163,7 @@ class IDS:
             ids_and_recordings, 
             chunksize = 1,
             desc="anomaly detection".rjust(27),
+            max_workers=4, # Musste das begrenzen da mir sonst alles abschmierte
             unit=" recordings")
 
         # Sum up performances
