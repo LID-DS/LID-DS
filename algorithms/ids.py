@@ -1,3 +1,6 @@
+from http.client import ImproperConnectionState
+from time import time
+from matplotlib.image import imread
 from tqdm import tqdm
 from typing import Type
 
@@ -13,6 +16,7 @@ from dataloader.base_data_loader import BaseDataLoader
 from algorithms.score_plot import ScorePlot
 from algorithms.data_preprocessor import DataPreprocessor 
 from algorithms.performance_measurement import Performance
+from pprint import pprint
 
 
 
@@ -82,7 +86,6 @@ class IDS:
                     self.performance.analyze_syscall(syscall, anomaly_score)
                     if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
-
             self._data_preprocessor.new_recording()
 
             # run end alarm once to ensure that last alarm gets saved

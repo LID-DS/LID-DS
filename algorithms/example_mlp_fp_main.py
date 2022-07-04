@@ -57,7 +57,7 @@ def enough_calls(dict, max):
     
     
 class FalseAlertContainer:
-    def __init__(self, alarm, alarm_recording_list, window_length, ngram_length, thread_aware) -> None:
+    def __init__(self, alarm, alarm_recording_list, ngram_length, thread_aware, window_length = 0) -> None:
         self.alarm = alarm
         self.alarm_recording_list = alarm_recording_list
         self.window_length = window_length
@@ -118,6 +118,8 @@ def construct_Syscalls(container: FalseAlertContainer) -> FalseAlertResult:
         if os.path.basename(recording.path) == faster_current_basename:
             current_recording = recording
     
+    if container.window_length is None:
+        container.window_length = 0
     
     systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= max([alarm.first_line_id - container.window_length, 0]) and systemcall.line_id <= alarm.last_line_id] # mit Fensterbetrachtung
     
@@ -255,7 +257,7 @@ if __name__ == '__main__':
         
     # intEmbedding = IntEmbedding()
     # ngram_1 = Ngram([intEmbedding], thread_aware, ngram_length)
-    # stide = Stide(ngram_1, window_length=window_length)
+    # decision_engine = Stide(ngram_1, window_length=window_length)
     ####################################### STIDE - Specs - End #############################
 
     # pe = PathEvilness(scenario_path, force_retrain=True)
@@ -266,11 +268,11 @@ if __name__ == '__main__':
     # som = Som(concat)
 
     ####################################### MLP - Specs ##################################
-    ngram_length = 7
+    ngram_length = 3
     w2v_size = 5
     thread_aware = True
-    hidden_size = 150
-    hidden_layers = 4
+    hidden_size = 20
+    hidden_layers = 2
     batch_size = 50
     epochs = 50
     learning_rate = 0.003
@@ -286,7 +288,7 @@ if __name__ == '__main__':
     ohe = OneHotEncoding(inte)
         
         
-    mlp = MLP(ngram_minus_one,
+    decision_engine = MLP(ngram_minus_one,
         ohe,
         hidden_size,
         hidden_layers,
@@ -315,7 +317,7 @@ if __name__ == '__main__':
     #                     )
     
     # ngram_2 = Ngram([w2v], thread_aware, ngram_length)
-    # ae = AE(ngram_2,
+    # decision_engine = AE(ngram_2,
     #         hidden_size,
     #         AEMode.LOSS,
     #         batch_size
@@ -332,17 +334,17 @@ if __name__ == '__main__':
     # epochs = 50
     # window_length=10
 
-    # w2v = W2VEmbedding(vector_size=w2v_size,
-    #                    window_size=ngram_length,
-    #                    epochs=epochs,
-    #                    scenario_path=scenario_path
-    #         )
+    # w2v = W2VEmbedding(SyscallName(),
+    #                    vector_size= w2v_size, 
+    #                    window_size= w2v_size,
+    #                    epochs= epochs
+    #                 )
     
     # ngram = Ngram([w2v], thread_aware, ngram_length)
     
     # ohe = OneHotEncoding(input=ngram)
-    
-    # som = Som(input_vector=ohe,
+
+    # decision_engine = Som(input_vector=ngram,
     #           epochs=som_epochs,
     #           size=som_size)
     ######################################## SOM - Specs - End ###############################
@@ -352,11 +354,10 @@ if __name__ == '__main__':
     # the IDS
 
 
-    #pprint(mlp)
-    
+    generate_and_write_alarms = True
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=mlp,
-            create_alarms=True,
+            resulting_building_block=decision_engine,
+            create_alarms=generate_and_write_alarms,
             plot_switch=False)
     
     # Bestimme Schwellenwert
@@ -366,49 +367,21 @@ if __name__ == '__main__':
     performance = ids.detect()
     results = performance.get_results()
     pprint(results)
-    
-    exit()
-    # Lade Test-Datem
-    #test_data = dataloader.test_data()
-    #pprint(f"Len test data: {len(test_data)}")
-    
-    # Zusammen gepackte IDS + Recording die als Datenpakete verteilt werden
-    #containered_recordings = [Container(ids, recording) for recording in test_data]
-    #pprint('Anomaly detection:')
-    # Use parallel execution for the single recordings
-    
-    #with Pool(min(32, cpu_count() + 4)) as pool:
-    #    temp_results = pool.map(calculate, containered_recordings)
-    #temp_results = process_map(calculate, containered_recordings, chunksize = 1)
 
-    # Get the results together again
-    #performance = reduce(Performance.add, temp_results) 
-    
-    # Print the results
- 
-    #pprint("Integer-Embedding:")
-    #pprint(intEmbedding._syscall_dict)
-
-    # Alte, Sequenzielle Sachen: 
-    # threshold
-    #ids.determine_threshold()
-    # detection
-    #ids.do_detection()
-    # print results
-    #results = ids.performance.get_performance()
-    #pprint(results)
-    
-    
     #print("At evaluation:")
     # Preparing results
-    algorithm_name = "stide"
-    config_name = f"algorithm_{algorithm_name}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
+    algorithm_name = "mlp"
+    config_name = f"algorithm_{algorithm_name}_n_{ngram_length}_t_{thread_aware}"
     
     # Enrich results with configuration and save to disk
     results['algorithm'] = algorithm_name
     results['ngram_length'] = ngram_length
-    results['window_length'] = window_length
     results['thread_aware'] = thread_aware
+    results['hidden_size'] = hidden_size
+    results['hidden_layers'] = hidden_layers
+    results['batch_size'] = batch_size
+    results['epochs'] = epochs
+    results['learning_rate'] = learning_rate
     results['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results['scenario'] =  lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
     
@@ -422,7 +395,9 @@ if __name__ == '__main__':
     
     # -----------------        This will be my personal space right here        ------------------------------- 
     false_alarm_list = [alarm for alarm in performance.alarms.alarms if not alarm.correct]
-    #pprint(false_alarm_list)
+    pprint(false_alarm_list)
+    if not false_alarm_list:
+        exit('Didn\'t found any false positives! Interrupting.')
     
     # An diesem Punkt sind sämtliche false-Alarms in der false-alarm-list.
     # Dies hier ist notwenig um die richtigen Recordings in einer Liste zu erhalten, welche zu den False-Alarms gehören.
@@ -432,147 +407,20 @@ if __name__ == '__main__':
 
     containerList = []
     for alarm in false_alarm_list: 
-        containerList.append(FalseAlertContainer(alarm, false_alarm_recording_list, window_length, ngram_length, thread_aware))
+        containerList.append(FalseAlertContainer(alarm, false_alarm_recording_list, ngram_length, thread_aware))
     
-    #start = time()
+    start = time()
     pprint("Playing back false positive alarms:")
-    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1)
+    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1, max_workers = 5)
     
-    #pprint(alarm_results)
+    pprint(alarm_results)
     
     final_results = reduce(FalseAlertResult.add, alarm_results)
-    #pprint(final_results)
-    #end = time() 
-    #pprint(f"Parallel took {end-start} seconds.")
+    pprint(final_results)
+    end = time() 
+    pprint(f"Parallel took {end-start} seconds.")
     
-    
-        
-    # Die neue Datenstruktur
-    # data_structure = {}
-    # description = "Playing back False Positives Alarms"
-    
-    # start = time()
-    # for counter in tqdm(range(len(false_alarm_list)), description, unit=' False Alarms'): 
-        
-    #     current_false_alarm = false_alarm_list[counter]
-    #     faster_current_basename = os.path.basename(current_false_alarm.filepath)
-    
-    #     # Sucht anhand des Alarms das passende Recording dazu.
-    #     for recording in false_alarm_recording_list:
-    #         if os.path.basename(recording.path) == faster_current_basename:
-    #             current_recording = recording
-                
-    #     # Funktioniert bis hier.
-    #     #pprint(f"Current false alarm path: {os.path.basename(current_false_alarm.filepath)}")
-    #     #pprint(f"Current recording path: {os.path.basename(current_recording.path)}")
-    #     #pprint(current_false_alarm.filepath)
-        
-    #     ################ Optimieren ####################
-    #     #systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= current_false_alarm.first_line_id and systemcall.line_id <= current_false_alarm.last_line_id]
-    #     systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= max([current_false_alarm.first_line_id - window_length, 0]) and systemcall.line_id <= current_false_alarm.last_line_id] # mit Fensterbetrachtung
-        
-    #     # Hier muss noch kalkuliert werden, wie weit ich tatsächlich in der Datei nach vorne muss um alle originalen N-Grams herstellen zu können.
-        
-    #     if thread_aware:
-            
-    #         backwards_counter = max([current_false_alarm.first_line_id - window_length -1, 0]) # -1 weil ich nicht den ersten Call des Windows will, den habe ich ja schon durch die systemcall List
-    #         if backwards_counter != 0:
-    #             thread_id_set = set([systemcall.thread_id() for systemcall in systemcall_list])
-    #             pprint("Threads:")
-    #             print(thread_id_set)
-    
-    #             # Init    
-    #             dict = {}
-    #             for thread in thread_id_set:
-    #                 dict[thread] = 0
-    
-    #             # Jetzt muss ich theoretisch rückwärts das Teil runter gehen. 
-    #             # Diese Funktion checkt darauf, ob alle Einträge von dict mindestens max sind und gibt nur dann True zurück
-    #             def enough_calls(dict, max): 
-    #                 for key in dict.keys():
-    #                     if dict[key] < max:
-    #                         return False
-    #                 return True    
-
-    #             # Die Idee ist die folgende: Gehe solange zurück, bis du n Systemcalls für jede thread_id hast. Das garantiert uns die richtigen N-Grams, da diese Systemcalls das N-Gram entsprechend auffüllen, bevor wir bei first_line - window ankommen.
-    #             # Dabei nimmst du den momentanen call und checkst, ob er mit unseren Threads zu tun hat. Da uns die NGrams der anderen Threads nicht interessieren, werfen wir die zugehörigen Systemcalls einfach weg
-    #             pprint(f"Starting on line {backwards_counter}:")
-            
-    #             # Mach mir den Generator zur Liste. Hier könnte ich ab der last_line_id auch schon abbrechen für Performance.
-    #             temp_list = []
-    #             for x in current_recording.syscalls():
-    #                 temp_list.append(x)
-    #                 if x.line_id == current_false_alarm.last_line_id:
-    #                     break # Geh raus sobald du genug Systemcalls für diesen Alarm hast
-    #             pprint(f"Count of Systemcalls in this recording: {len(temp_list)}")
-            
-    #             # Das macht es der Bestimmung der Line_id wesentlich leichter, da von hinten (current_false_alarm.last_line_id ) nach vorne gegangen wird und nicht von Anfang an durch die gesamte Datei.
-    #             # Da wir nicht über Indizes arbeiten sondern über die lineID, geht es klar das der backwards_counter weiter verringert wird.
-    #             temp_list.reverse() 
-            
-    #             expected_count_calls = (current_false_alarm.last_line_id - current_false_alarm.first_line_id) + 1 + window_length + len(dict) * ngram_length # +1 um den End-Call auch mitzunehmen
-    #             pprint(f"Expected number of systemcalls: {expected_count_calls}")
-                
-    #             while(not enough_calls(dict, ngram_length) and backwards_counter != 0):
-    #                 current_call = None
-    #                 for call in temp_list: # Leider muss ich den richtigen Call anhand der line_id suchen, da ich mich nicht auf deren Kontinuität verlassen kann.
-    #                     if call.line_id == backwards_counter:
-    #                         current_call = call  
-    #                         break  
-                    
-    #                 # Es gibt anscheinend Line_IDs, die nicht in der Liste von Systemcalls einem der Calls entsprechen.
-    #                 if current_call is None:
-    #                     backwards_counter -=1 
-    #                     continue
-                    
-    #                 #pprint(current_call)
-    #                 if current_call.thread_id() in dict.keys() and dict[current_call.thread_id()] < ngram_length: ################# BAUSTELLE ####################### - ginge theoretisch auch n-gram-length -1 ? Theoretisch wäre dann ja trotzdem das richtige n-gram initialisiert oder?
-    #                     dict[current_call.thread_id()] += 1 
-    #                     systemcall_list.insert(0, current_call)
-                        
-    #                 backwards_counter -= 1
-    #             print(f"Ended with backwards_counter: {backwards_counter} and final dict{dict}")
-    #             pprint(f"Acutal number of systemcalls: {len(systemcall_list)}")
-    #     else:
-    #         # Ohne Beachtung der ThreadIDs
-    #         systemcall_list = [systemcall for systemcall in current_recording.syscalls() if systemcall.line_id >= max([current_false_alarm.first_line_id - window_length - ngram_length, 0]) and systemcall.line_id <= current_false_alarm.last_line_id] # mit Fensterbetrachtung
-        
-    #     #pprint("Extracted calls:")
-    #     #pprint(f"First line id: {current_false_alarm.first_line_id} Last line id: {current_false_alarm.last_line_id}")
-    #     #for call in systemcall_list:
-    #         #pprint(f"{call}, Embedding: {intEmbedding._syscall_dict[call.name()]}")
-        
-    #     # Rein damit in was persistentes. ID hinzugefügt um verschiedene Alerts in der gleichen ZIP zu unterscheiden.
-    #     data_structure[os.path.basename(current_false_alarm.filepath) + "_" + '{:0>5}'.format(counter)] = systemcall_list
-    # end = time()
-    # pprint(f"Getting all system calls took {end - start} Seconds")
-    
-    #pprint(data_structure)
-    
-        
-    # Jetzt muss ich aus den Recordings die Systemcalls sammeln und auf die beschränken, welche innerhalb der Lines des False-Alarm sind.
-    # Hier muss ich auch die Window-Größe betrachten und von der StartNummer noch abziehen. 
-    # Um von 0 wegzukommen kann ich sowas wie Max(x-100, 0) machen.
-    # Einen check-Recording muss ich nicht ausführen, da das schon in der INIT des Recordings passiert.
-    # Perfekt, es werden genau die Systemcalls extrahiert, die in den Grenzen der Werte im Alarm-Objekt liegen, sogar in der richtigen Reihenfolge. 
-    # Als nächstes nehme ich noch das Fenster davor hinzu. Klappt auch wunderbar. Dann fehlt noch die Datenstruktur, die das ganze zusammenführt und verwendbar macht. 
-    # Die hat erstmal den vorläufigen Namen "data_structure". Im nächsten Schritt muss ich nun das IDS nochmal mit den neuen Systemcalls weitertrainieren.
-    
-    # Man kännte noch überlegen die ID von hinten nach vorne zu verschieben. Ist bisher aber nicht so wichtig.
-    
-
-
-
-    # Note: Das IDS hat keine Trainingsmethode, sondern nur Threshold und Detection-Methoden. Eine Möglichkeit wäre, einfach die neuen Trainingsdaten zu den alten hinzuzufügen und dann ein neues IDS damit zu erstellen. Dazu muss ich an den DataLoader und dessen
-    # Methode training_data() rankommen. Ich könnte dann einfach neue Recordings pro False-Alarm bauen. Dann muss ich diese in einer Liste verpacken und dem DataLoader mittels add_retraining_data(data) übergeben.
-   
-    
-    # TODO?: Taktik Nummer zwei bedeutet, die neuen Daten zum schon trainierten Satz hinzuzufügen. Das wird sich wohl als schwieriger gestalten.
-    
-    
-    # Also bastel ich mir zuerst ein künstliches Recording zusammen, das nur für Trainingsdaten geeignet ist (auf Wish bestellt)
-
-        
+ 
     # MODYFIABLE! Hier kann ich auch einstellen, nur einen Teil der False-Alarms ins Training zurückgehen zu lassen.
     all_recordings = []
     #pprint(f"Number of played back Alarms: {limit} / {len(data_structure)}")
@@ -604,7 +452,7 @@ if __name__ == '__main__':
     
     
     ids_retrained = IDS(data_loader=dataloader,
-            resulting_building_block=stide,
+            resulting_building_block=decision_engine,
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
 
@@ -622,32 +470,28 @@ if __name__ == '__main__':
     containered_recordings = [Container(ids_retrained, recording) for recording in test_data]
     # Use parallel execution for the single recordings
     pprint('Anomaly detection:')
-    temp_results = process_map(calculate, containered_recordings, chunksize = 1)
+    temp_results = process_map(calculate, containered_recordings, chunksize = 1, max_workers = 5)
 
     # Get the results together again
-    performance_new = reduce(Performance.add, temp_results) # Um die CFP zu bestimmen müsste ich wahrscheinlich noch einen Index mitgeben für jedes Recording. Dann nach dem Prozess-Map danach sortieren und dann die CFP usw. errechnen (TODO). Sind aber für mich unwichtig.
+    performance_new = reduce(Performance.add, temp_results)
 
     # Print the results
     results_new = performance_new.get_results()
     pprint(results_new)
-    
-    #ids_retrained.do_detection()
-    #pprint(ids.performance.get_performance())
-    # Old detection
-    #ids_retrained.do_detection()
-    # print results
-    #results_new = ids_retrained.performance.get_performance()
-    #pprint(results_new)
 
     # Preparing results
     algorithm_name = "stide_retrained"
-    config_name = f"algorithm_{algorithm_name}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
+    config_name = f"algorithm_{algorithm_name}_n_{ngram_length}_t_{thread_aware}"
     
     # Enrich results with configuration and save to disk
     results_new['algorithm'] = algorithm_name
     results_new['ngram_length'] = ngram_length
-    results_new['window_length'] = window_length
     results_new['thread_aware'] = thread_aware
+    results_new['hidden_size'] = hidden_size
+    results_new['hidden_layers'] = hidden_layers
+    results_new['batch_size'] = batch_size
+    results_new['epochs'] = epochs
+    results_new['learning_rate'] = learning_rate
     results_new['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results_new['scenario'] =  lid_ds_version[select_lid_ds_version_number] + "/" + scenario_names[select_scenario_number]
     

@@ -1,7 +1,7 @@
 from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.ngram import Ngram
 from dataloader.syscall import Syscall
-
+from pprint import pprint
 
 class NgramMinusOne(BuildingBlock):
     """
@@ -29,8 +29,10 @@ class NgramMinusOne(BuildingBlock):
             k (int),v (list): key is ID of this class, ngram_value as tuple
         """
         ngram_value = self._ngram.get_result(syscall)
+        #pprint(f"Current ngram: {ngram_value}")
         if ngram_value is not None:
-                ngram_value = ngram_value[:-self._element_size]
+                ngram_value = ngram_value[:-1]
+                #pprint(f"Ngram minus one: {ngram_value}")
                 return tuple(ngram_value)
         else:
             return None
