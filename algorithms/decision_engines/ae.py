@@ -12,7 +12,6 @@ from algorithms.building_block import BuildingBlock
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 class AEMode(Enum):
     LOSS = 1
     HIDDEN = 2
@@ -63,7 +62,7 @@ class AENetwork(nn.Module):
                 hidden_size),
             torch.nn.Dropout(p=0.5),
             torch.nn.SELU()           
-        ).to(device)
+        )
           
         # Building an linear decoder with Linear
         # layer followed by SELU activation function
@@ -83,7 +82,7 @@ class AENetwork(nn.Module):
                 self._input_size),
             torch.nn.Dropout(p=0.5),
             torch.nn.SELU()
-        ).to(device)
+        )
 
     def forward(self, x):
         encoded = self.encoder(x)
