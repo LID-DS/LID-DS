@@ -15,7 +15,6 @@ from algorithms.data_preprocessor import DataPreprocessor
 from algorithms.performance_measurement import Performance
 
 
-
 class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
@@ -31,6 +30,7 @@ class IDS:
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
+        self._create_alarms = create_alarms
         self.performance = Performance(create_alarms)
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
@@ -90,7 +90,6 @@ class IDS:
                 self.performance.alarms.end_alarm()
         return self.performance
 
-
     def detect_on_single_recording(self, recording: Type[BaseRecording]) -> Performance:
         """
         detecting performance values using single recording
@@ -101,7 +100,7 @@ class IDS:
         Returns:
             Performance: performance object
         """
-        performance = Performance()
+        performance = Performance(self._create_alarms)
         performance.set_threshold(self.threshold)
 
         # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
@@ -127,7 +126,6 @@ class IDS:
         if self.plot is not None:
             self.plot.feed_figure()
             self.plot.show_plot(filename)
-
 
     def _calculate(recording_ids_tuple: tuple) -> Performance:
         """
@@ -159,13 +157,16 @@ class IDS:
 
         # parallel calculation for every recording
         performance_list = process_map(
-            IDS._calculate, 
-            ids_and_recordings, 
+            IDS._calculate,
+            ids_and_recordings,
             chunksize = 1,
             desc="anomaly detection".rjust(27),
             unit=" recordings")
 
         # Sum up performances
-        final_performance = reduce(Performance.add, performance_list)
+        if self._create_alarms:
+            final_performance = reduce(Performance.add_with_alarms, performance_list)
+        else:
+            final_performance = reduce(Performance.add, performance_list)
         
         return final_performance
