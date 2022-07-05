@@ -37,8 +37,9 @@ if __name__ == '__main__':
     name = SyscallName()
     inte = IntEmbedding(name)
     random_numbers = RandomValue(size=1,scale=math.pi*2.0)
-    w2v = Sum([W2VEmbedding(word=inte,vector_size=enc_size,window_size=10,epochs=1000), SinusoidalEncoding(random_numbers,enc_size)])
-    ngram = Ngram(feature_list = [w2v],thread_aware = thread_aware,ngram_length = ngram_length)
+    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=10,epochs=1000)
+    sum = Sum([w2v, SinusoidalEncoding(random_numbers,enc_size)])
+    ngram = Ngram(feature_list = [sum],thread_aware = thread_aware,ngram_length = ngram_length)
     ae = AE(ngram,ae_hidden_size,batch_size=256,max_training_time=120)
     stream_window = StreamSum(ae,True,600)
 
@@ -47,6 +48,9 @@ if __name__ == '__main__':
             resulting_building_block=stream_window,
             create_alarms=False,
             plot_switch=False)
+
+    # after training - dont add random numbers
+    sum._dependency_list = [w2v]
 
     print("at evaluation:")
     # threshold
