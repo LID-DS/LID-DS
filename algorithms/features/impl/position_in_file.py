@@ -1,9 +1,8 @@
 from algorithms.building_block import BuildingBlock
-from algorithms.util.Singleton import Singleton
 from dataloader.syscall import Syscall
 
 
-class PositionInFile(BuildingBlock, metaclass=Singleton):
+class PositionInFile(BuildingBlock):
     """
     returns the line of the current system call
     """

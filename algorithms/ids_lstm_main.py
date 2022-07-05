@@ -1,3 +1,7 @@
+import os
+import sys
+import time
+
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.time_delta import TimeDelta
@@ -15,13 +19,12 @@ from algorithms.decision_engines.lstm import LSTM
 from dataloader.direction import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
-import time
 
 if __name__ == '__main__':
     """
     this is an example script to show the usage uf our classes
     """
-    lid_ds_version_number = 0
+    lid_ds_version_number = 1
     lid_ds_version = [
         "LID-DS-2019",
         "LID-DS-2021"
@@ -45,8 +48,18 @@ if __name__ == '__main__':
         "CVE-2020-13942",
         "CVE-2017-12635_6"
     ]
-    # todo: change this to your base path
-    lid_ds_base_path = "/home/tk/Documents/Dataset"
+
+    # getting the LID-DS base path from argument or environment variable
+    if len(sys.argv) > 1:
+        lid_ds_base_path = sys.argv[1]
+    else:
+        try:
+            lid_ds_base_path = os.environ['LID_DS_BASE']
+        except KeyError:
+            raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
+                             "$LID_DS_BASE")
+
+    # config
     hidden_dim = 64
     hidden_layers = 1
     ngram_length = 6
@@ -128,10 +141,10 @@ if __name__ == '__main__':
     ids.determine_threshold()
     start = time.time()
     # detection
-    ids.do_detection()
+    stats = ids.detect().get_performance()
     end = time.time()
     detection_time = (end - start)/60  # in min
-    stats = ids.performance.get_performance()
+
     if stats is None:
         stats = {}
     stats['scenario'] = scenario_names[scenario_number]

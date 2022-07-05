@@ -61,7 +61,7 @@ class CollectSyscall(BuildingBlock):
             result_list = []
             for feature in self._dependency_list:
                 result_list.append(self._buffer[thread_id][syscall_name][type(feature).__name__])
-            self._buffer[thread_id][syscall_name] = None
+            self._buffer[thread_id][syscall_name] = {}
             return tuple(result_list)
         else:
             return None

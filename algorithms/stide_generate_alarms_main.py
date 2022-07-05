@@ -1,3 +1,5 @@
+import os
+import sys
 import json
 from pprint import pprint
 
@@ -17,7 +19,7 @@ if __name__ == '__main__':
         "LID-DS-2021"
     ]
 
-    # scenarios orderd by training data size asc
+    # scenarios ordered by training data size asc
     # 0 - 14    
     scenario_names = [
         "CVE-2017-7529",
@@ -35,12 +37,19 @@ if __name__ == '__main__':
         "Juice-Shop",
         "CVE-2020-13942",
         "CVE-2017-12635_6"
-    ]    
+    ]
 
-    # todo: change this to your base path
-    lid_ds_base_path = "/home/grimmer/data"
+    # getting the LID-DS base path from argument or environment variable
+    if len(sys.argv) > 1:
+        lid_ds_base_path = sys.argv[1]
+    else:
+        try:
+            lid_ds_base_path = os.environ['LID_DS_BASE']
+        except KeyError:
+            raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
+                             "$LID_DS_BASE")
 
-    for select_scenario_number in range(0,len(scenario_names)):
+    for select_scenario_number in range(0, len(scenario_names)):
         for thread_aware in [False, True]:
             for ngram_length in [3, 5, 7]:
                 scenario_path = f"{lid_ds_base_path}/{lid_ds_version[select_lid_ds_version_number]}/{scenario_names[select_scenario_number]}"        
@@ -50,7 +59,7 @@ if __name__ == '__main__':
                 ###################
                 window_length = 100
                 ngram = Ngram([IntEmbedding()], thread_aware, ngram_length)   
-                stide = Stide(ngram)    
+                stide = Stide(ngram, window_length)    
                 config_name = f"n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
                 ###################
@@ -65,7 +74,7 @@ if __name__ == '__main__':
                 # threshold
                 ids.determine_threshold()
                 # detection
-                ids.do_detection()
+                ids.detect()
                 # print results
                 results = ids.performance.get_performance()
                 pprint(results)

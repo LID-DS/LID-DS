@@ -46,10 +46,7 @@ if __name__ == '__main__':
     # threshold
     ids.determine_threshold()
     # detection
-    ids.do_detection()
-    # print(results)
-    pprint(ids.performance.get_performance())
-    results = ids.performance.get_performance()
+    results = ids.detect().get_performance()
     pprint(results)
 
     # enrich results with configuration and save to disk

@@ -10,7 +10,7 @@ from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
 
-device = torch.device("cpu") 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 
 
 class AEMode(Enum):
@@ -28,7 +28,7 @@ class AEDataset(td.Dataset):
         data_array = []
         for line in data:
             data_array.append(line)
-        self.xy_data = torch.tensor(data_array, dtype=torch.float32).to(device) 
+        self.xy_data = torch.tensor(data_array, dtype=torch.float32, device=device)
 
     def __len__(self):
         return len(self.xy_data)
@@ -51,14 +51,17 @@ class AENetwork(nn.Module):
             torch.nn.Linear(
                 self._input_size, 
                 int(self._input_size * self._factor)),
+            torch.nn.Dropout(p=0.5),
             torch.nn.SELU(),                    
             torch.nn.Linear(
                 int(self._input_size * self._factor), 
                 int(self._input_size * self._factor * self._factor)),
+            torch.nn.Dropout(p=0.5),
             torch.nn.SELU(),            
             torch.nn.Linear(
                 int(self._input_size * self._factor * self._factor), 
                 hidden_size),
+            torch.nn.Dropout(p=0.5),
             torch.nn.SELU()           
         )
           
@@ -68,14 +71,17 @@ class AENetwork(nn.Module):
             torch.nn.Linear(
                 hidden_size, 
                 int(self._input_size*self._factor*self._factor)),
+            torch.nn.Dropout(p=0.5),
             torch.nn.SELU(),                             
             torch.nn.Linear(
                 int(self._input_size*self._factor*self._factor), 
                 int(self._input_size*self._factor)),            
+            torch.nn.Dropout(p=0.5),
             torch.nn.SELU(),       
             torch.nn.Linear(
                 int(self._input_size*self._factor), 
                 self._input_size),
+            torch.nn.Dropout(p=0.5),
             torch.nn.SELU()
         )
 
@@ -123,23 +129,25 @@ class AE(BuildingBlock):
             self._validation_set.add(tuple(input_vector))
         
     def fit(self):
-        print(f"ae.train_set: {len(self._training_set)}".rjust(27))
-        self._autoencoder = AENetwork(self._input_size ,self._hidden_size)               
+        print(f"AE.train_set: {len(self._training_set)}".rjust(27))
+        self._autoencoder = AENetwork(self._input_size ,self._hidden_size).to(device)         
         self._autoencoder.train()
         self._optimizer = torch.optim.Adam(            
             self._autoencoder.parameters(),
             lr = 0.001,# lr = 0.001,
             weight_decay=0.01
         )
-        loss_dq = collections.deque(maxlen=self._early_stopping_num_epochs)
+        # loss preparation for early stop of training        
         best_avg_val_loss = math.inf
+        epochs_since_last_best = 0
+        best_weights = {}
+
         ae_ds = AEDataset(self._training_set)
         ae_ds_val = AEDataset(self._validation_set)
         data_loader = torch.utils.data.DataLoader(ae_ds, batch_size=self._batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(ae_ds_val, batch_size=self._batch_size, shuffle=True)
-        bar = tqdm(range(0, self._epochs), 'training'.rjust(27), unit=" epochs")        
+        bar = tqdm(range(0, self._epochs), 'training'.rjust(27), unit=" epochs")                
         for epoch in bar:            
-            epoch_loss = 0.0            
             count = 0            
             for (batch_index, batch) in enumerate(data_loader):
                 count += 1
@@ -148,12 +156,10 @@ class AE(BuildingBlock):
                 # forward
                 oupt = self._autoencoder(X)                # compute output
                 loss_value = self._loss_function(oupt, Y)  # compute loss (a tensor)
-                epoch_loss += loss_value.item()            # accumulate for display
                 # backward                
                 self._optimizer.zero_grad()                # prepare gradients
                 loss_value.backward()                      # compute gradients
                 self._optimizer.step()                     # update weights
-            avg_loss = epoch_loss /count
 
             # validation
             val_loss = 0.0
@@ -166,23 +172,29 @@ class AE(BuildingBlock):
                 count += 1
             avg_val_loss = val_loss / count
 
-            # print epoch results
-            bar.set_description(f"fit AE: {avg_loss:.5f}|{avg_val_loss:.5f}".rjust(27), refresh=True)            
             if avg_val_loss < best_avg_val_loss:
                 best_avg_val_loss = avg_val_loss
+                best_weights = self._autoencoder.state_dict()
+                epochs_since_last_best = 1
+            else:
+                epochs_since_last_best += 1
+            
+            stop_early = False
+            
+            if epochs_since_last_best >= self._early_stopping_num_epochs:
+                stop_early = True
 
-            loss_dq.append(avg_val_loss)
-            stop_early = True
-            for l in loss_dq:
-                if l == best_avg_val_loss:
-                    stop_early = False
-            if stop_early:                
+            # print epoch results
+            bar.set_description(f"fit AE: {epochs_since_last_best}|{best_avg_val_loss:.5f}".rjust(27), refresh=True)            
+
+            if stop_early:
                 break
 
         print(f"stop at {bar.n} epochs".rjust(27))
         self._result_dict = {}
-        self._autoencoder.eval()
-        
+        self._autoencoder.load_state_dict(best_weights)
+        self._autoencoder.eval()        
+
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:            
@@ -191,7 +203,7 @@ class AE(BuildingBlock):
             else:
                 # Output of Autoencoder        
                 result = 0
-                in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
+                in_t = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 if self._mode == AEMode.LOSS:
                     # calculating the autoencoder:
                     ae_output_t = self._autoencoder(in_t)

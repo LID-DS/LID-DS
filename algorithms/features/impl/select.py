@@ -39,5 +39,4 @@ class Select(BuildingBlock):
         if result is None:
             return None
         else:
-            result_list = list(result)
-            return tuple(result_list[self._start:self._end:self._step])
+            return result[self._start:self._end:self._step]
