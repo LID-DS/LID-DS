@@ -61,8 +61,9 @@ if __name__ == '__main__':
     # parallel / map-reduce
     performance = ids.detect_parallel()
     results = performance.get_results()
-    print(performance.alarms.alarm_list)
-    print(results)
+
+    # to get alarms:
+    # print(performance.alarms.alarm_list)
 
     ### print results
     pprint(results)
