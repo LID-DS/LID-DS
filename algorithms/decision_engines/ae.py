@@ -1,5 +1,6 @@
 import collections
 from enum import Enum
+import time
 import torch
 import torch.utils.data.dataset as td
 import torch.nn as nn
@@ -95,7 +96,7 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256):
+    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600):
         super().__init__()                
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
@@ -110,6 +111,7 @@ class AE(BuildingBlock):
         self._training_set = set() # we use distinct training data
         self._validation_set = set()
         self._result_dict = {}
+        self._max_training_time = max_training_time # time in seconds
 
         self._early_stopping_num_epochs = 50
 
@@ -141,6 +143,7 @@ class AE(BuildingBlock):
         best_avg_val_loss = math.inf
         epochs_since_last_best = 0
         best_weights = {}
+        training_start_time = time.time()
 
         ae_ds = AEDataset(self._training_set)
         ae_ds_val = AEDataset(self._validation_set)
@@ -180,12 +183,18 @@ class AE(BuildingBlock):
                 epochs_since_last_best += 1
             
             stop_early = False
-            
+
+            # early stopping by epochs
             if epochs_since_last_best >= self._early_stopping_num_epochs:
                 stop_early = True
 
+            # early stopping by time
+            duration = time.time() - training_start_time
+            if duration > self._max_training_time:
+                stop_early = True
+
             # print epoch results
-            bar.set_description(f"fit AE: {epochs_since_last_best}|{best_avg_val_loss:.5f}".rjust(27), refresh=True)            
+            bar.set_description(f"fit AE: {self._max_training_time - duration:.1f}|{epochs_since_last_best}/{self._early_stopping_num_epochs}|{best_avg_val_loss:.5f}".rjust(27), refresh=True)            
 
             if stop_early:
                 break

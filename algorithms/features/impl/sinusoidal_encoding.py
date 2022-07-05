@@ -5,9 +5,9 @@ from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
-class PositionalEncoding(BuildingBlock):
+class SinusoidalEncoding(BuildingBlock):
     """
-        convert a number to an n dimensional vector using positional encoding from Attention is all you need (http://papers.nips.cc/paper/7181-attention-is-all-you-%0Aneed.pdf)
+        convert a number to an n dimensional vector using sinusoidal encoding from Attention is all you need (http://papers.nips.cc/paper/7181-attention-is-all-you-%0Aneed.pdf)
     """
 
     def __init__(self, number: BuildingBlock, n: int):
@@ -21,11 +21,11 @@ class PositionalEncoding(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-            transforms given number to pos. encoding
+            transforms given number to sinusoidal encoding
         """        
         number = self._number.get_result(syscall)
         if number is not None:
-            return PositionalEncoding._pe(number,self._dimensions)
+            return SinusoidalEncoding._pe(number,self._dimensions)
         else:
             return None
         
