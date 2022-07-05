@@ -66,22 +66,22 @@ if __name__ == '__main__':
     embedding_size = args.embedding_size
     hidden_size = int(math.sqrt(ngram_length * embedding_size))
 
-    dataloader = dataloader_factory(args.base_path, direction=Direction.OPEN)
+    dataloader = dataloader_factory(args.base_path + '/' + scenario, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
-    embedding = IntEmbedding()
+    # embedding = IntEmbedding()
     # som_epochs = 1000
-    # embedding = W2VEmbedding(epochs=50,
-                       	     # scenario_path=scenario,
-                       	     # vector_size=embedding_size,
-                       	     # window_size=window_length)
+    embedding = W2VEmbedding(epochs=50,
+                       	     scenario_path=scenario,
+                       	     vector_size=embedding_size,
+                       	     window_size=ngram_length)
     # # now build ngrams from these integers
     ngram = Ngram([embedding], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
-    de = Stide(ngram, window_length=window_length)
+    # de = Stide(ngram, window_length=window_length)
     # som = Som(ngram, epochs=som_epochs, size=50)
-    # de = AE(input_vector=ngram,
-	    # hidden_size=hidden_size)
+    de = AE(input_vector=ngram,
+	    hidden_size=hidden_size)
 	    	
     ### the IDS    
     ids = IDS(data_loader=dataloader,
@@ -102,10 +102,10 @@ if __name__ == '__main__':
     ### print results and plot the anomaly scores
     results = ids.performance.get_performance()
     pprint(results)
-    results['scenario'] = scenario 
+    results['scenario'] = 'real world' 
     results['ngram'] = ngram_length
-    # results['embedding'] = embedding_size
-    results['algorithm'] = 'stide'
+    results['embedding'] = embedding_size
+    results['algorithm'] = 'ae'
     results['detection_time'] = detection_time
     result_path = 'persistent_data/real_world.json'
     save_to_json(results, result_path)

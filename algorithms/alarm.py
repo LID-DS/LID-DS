@@ -37,7 +37,7 @@ class Alarm:
         """
         if '.zip' in path:
             # if LID-DS 2021 zipfile contains 4 files
-            with ZipFile(self.path, 'r') as zip_ref:
+            with ZipFile(path, 'r') as zip_ref:
                 if len(zip_ref.namelist()) > 2:
                     self.dataset = 'LID-DS-2021'
                 else:

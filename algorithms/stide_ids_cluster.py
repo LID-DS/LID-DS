@@ -11,7 +11,11 @@ from algorithms.decision_engines.ae import AE
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
 
+from algorithms.features.impl.mode import Mode
+from algorithms.features.impl.flags import Flags
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.concat import Concat
+from algorithms.features.impl.process_name import ProcessName
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
@@ -66,17 +70,20 @@ if __name__ == '__main__':
     embedding_size = args.embedding_size
     hidden_size = int(math.sqrt(ngram_length * embedding_size))
 
-    dataloader = dataloader_factory(args.base_path, direction=Direction.OPEN)
+    dataloader = dataloader_factory(args.base_path + '/' + scenario, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
     embedding = IntEmbedding()
+    mode = Mode()
+    flags = Flags()
+    process_name = ProcessName()
     # som_epochs = 1000
     # embedding = W2VEmbedding(epochs=50,
                        	     # scenario_path=scenario,
                        	     # vector_size=embedding_size,
                        	     # window_size=window_length)
     # # now build ngrams from these integers
-    ngram = Ngram([embedding], thread_aware, ngram_length)
+    ngram = Ngram([embedding, mode, flags, process_name], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
     de = Stide(ngram, window_length=window_length)
     # som = Som(ngram, epochs=som_epochs, size=50)
@@ -102,10 +109,12 @@ if __name__ == '__main__':
     ### print results and plot the anomaly scores
     results = ids.performance.get_performance()
     pprint(results)
-    results['scenario'] = scenario 
+    results['scenario'] = 'real_world' 
     results['ngram'] = ngram_length
+    results['window'] = window_length
     # results['embedding'] = embedding_size
     results['algorithm'] = 'stide'
     results['detection_time'] = detection_time
-    result_path = 'persistent_data/real_world.json'
+    results['type'] = 'mode_flag_process'
+    result_path = 'persistent_data/stide_mode_flag_v2.json'
     save_to_json(results, result_path)

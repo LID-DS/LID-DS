@@ -1,14 +1,32 @@
+import time
 from pprint import pprint
 import sys
 import os
 
+<<<<<<< Updated upstream
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
 from algorithms.ids import IDS
 
 from dataloader.dataloader_factory import dataloader_factory
+=======
+>>>>>>> Stashed changes
 from dataloader.direction import Direction
+from dataloader.dataloader_factory import dataloader_factory
+
+from algorithms.ids import IDS
+
+from algorithms.features.impl.mode import Mode
+from algorithms.features.impl.flags import Flags
+from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.concat import Concat
+from algorithms.features.impl.int_embedding import IntEmbedding
+
+from algorithms.decision_engines.stide import Stide
+
+from algorithms.persistance import save_to_json, print_as_table
+
 
 if __name__ == '__main__':
 
@@ -32,15 +50,18 @@ if __name__ == '__main__':
     dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE) # just load < closing system calls for this example
 
     ### features (for more information see Paper: "Improving Host-based Intrusion Detection Using Thread Information", International Symposium on Emerging Information Security and Applications (EISA), 2021)
-    thread_aware = False
+    thread_aware = True
     window_length = 100
     ngram_length = 7
 
     ### building blocks    
     # first: map each systemcall to an integer
     int_embedding = IntEmbedding()
+    flags = Flags()
+    mode = Mode()
+    concat = Concat([int_embedding, flags, mode])
     # now build ngrams from these integers
-    ngram = Ngram([int_embedding], thread_aware, ngram_length)
+    ngram = Ngram([concat], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
     stide = Stide(ngram, window_length)
     
@@ -59,7 +80,22 @@ if __name__ == '__main__':
     # results = ids.detect().get_results()   
     
     # parallel / map-reduce
+    start = time.time()
     results = ids.detect_parallel().get_results()
+    # detection
+    end = time.time()
+    detection_time = (end - start)/60  # in min
 
     ### print results
     pprint(results)
+
+    if results is None:
+        results = {}
+    results['scenario'] = scenario_name
+    results['ngram'] = ngram_length
+    results['window'] = window_length
+    results['detection_time'] = detection_time
+    now = datetime.now()  # datetime object containing current date and time    
+    result_path = 'persistent_data/stide_flag_mode.json'
+    save_to_json(results, result_path)
+    print_as_table(path=result_path)

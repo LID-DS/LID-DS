@@ -13,6 +13,8 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     """
     file_list = listdir(scenario_path)
     file_list.sort()
+    print(scenario_path)
+    print(file_list)
 
     _, base_file_extension = path.splitext(file_list[0])
     # print(base_file_extension)

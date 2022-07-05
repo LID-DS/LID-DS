@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=100:00:00
-#SBATCH --partition=galaxy-job
+#SBATCH --partition=polaris-job
 #SBATCH --mem=20G
 #SBATCH --nodes=1
 
@@ -22,6 +22,7 @@ module load PyTorch/1.8.1-fosscuda-2020b
 
 module load matplotlib
 pip install --upgrade pip
+pip install --user -e ../
 pip install --user tqdm
 pip install --user minisom
 
@@ -47,5 +48,5 @@ if [[ $9 == "True" ]]; then
     flags="$flags$return_value_flag"
 fi
 echo $1
-python ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
-# srun python test.py
+# python ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
+python stide_ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags

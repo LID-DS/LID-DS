@@ -10,21 +10,22 @@ scenarios = [
     # "CVE-2019-5418/",
     # "EPS_CWE-434/",
     # "PHP_CWE-434/",
-    # "SQL_Injection_CWE-89/"
+    # "SQL_Injection_CWE-89/",
     # "ZipSlip/"
     "real_world/"
 ]
 
 epochs = 20
-windows = [100, 1000]
+windows = [500, 600, 700, 800, 900, 1000]
 batch_sizes = [1024]
-embedding_sizes = [5]
-ngram_lengths = [5, 7]
+embedding_sizes = [7]
+ngram_lengths = [3, 5, 7]
 thread_aware_list = [True]
 time_deltas = [False]
 thread_change_flags = [False]
 return_values = [False]
-base_path = '/home/sc.uni-leipzig.de/te697mily/Data/real_world'
+# base_path = '/home/sc.uni-leipzig.de/te697mily/Data/LID-DS-2019/'
+base_path = '/work/user/te697mily/Data/'
 
 script = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'
 
