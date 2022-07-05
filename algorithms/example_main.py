@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # now build ngrams from these integers
     ngram = Ngram([int_embedding], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
-    stide = Stide(ngram)
+    stide = Stide(ngram, window_length)
     
     ### the IDS
     ids = IDS(data_loader=dataloader,
