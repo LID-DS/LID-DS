@@ -225,6 +225,7 @@ class MLP(BuildingBlock):
             returns: anomaly score
         """
         input_vector = self.input_vector.get_result(syscall)
+        #pprint(f"Current syscall result: {input_vector}")
         label = self.output_label.get_result(syscall)
         if input_vector is not None:
             if input_vector in self._result_dict:

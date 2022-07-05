@@ -268,11 +268,11 @@ if __name__ == '__main__':
     # som = Som(concat)
 
     ####################################### MLP - Specs ##################################
-    ngram_length = 3
+    ngram_length = 7
     w2v_size = 5
     thread_aware = True
-    hidden_size = 20
-    hidden_layers = 2
+    hidden_size = 50
+    hidden_layers = 4
     batch_size = 50
     epochs = 50
     learning_rate = 0.003
@@ -283,7 +283,7 @@ if __name__ == '__main__':
                        epochs=epochs,
                        thread_aware=thread_aware)
     ngram = Ngram([w2v], thread_aware, ngram_length)
-    ngram_minus_one = NgramMinusOne(ngram, w2v_size)
+    ngram_minus_one = NgramMinusOne(ngram)
     inte = IntEmbedding()
     ohe = OneHotEncoding(inte)
         

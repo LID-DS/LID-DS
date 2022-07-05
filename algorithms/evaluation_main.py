@@ -31,6 +31,7 @@ from algorithms.features.impl.ngram import Ngram
 #from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
+from algorithms.features.impl.syscall_name import SyscallName
 #from algorithms.features.impl.stream_variance import StreamVariance
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 #from algorithms.features.impl.timestamp import Timestamp 
@@ -235,7 +236,7 @@ if __name__ == '__main__':
 
     # MLP - TODO
     elif args.algorithm == 'mlp':
-        ngram_length = 7
+        ngram_length = 11
         w2v_size = 5
         thread_aware = True
         hidden_size = 150
@@ -244,14 +245,18 @@ if __name__ == '__main__':
         epochs = 50
         learning_rate = 0.003
         
-        w2v = W2VEmbedding(w2v_size, w2v_size, epochs, scenario_path, thread_aware=thread_aware)
+        w2v = W2VEmbedding(word=SyscallName(),
+                       vector_size=w2v_size,
+                       window_size=w2v_size,
+                       epochs=epochs,
+                       thread_aware=thread_aware)
         ngram = Ngram([w2v], thread_aware, ngram_length)
-        ngram_minus_one = NgramMinusOne(ngram, w2v_size)
+        ngram_minus_one = NgramMinusOne(ngram)
         inte = IntEmbedding()
         ohe = OneHotEncoding(inte)
         
         
-        decision_engine = MLP(ngram_minus_one,
+        decision_engine = MLP(ohe,
             ohe,
             hidden_size,
             hidden_layers,
@@ -280,10 +285,12 @@ if __name__ == '__main__':
     pprint("At evaluation:")
     ids.determine_threshold()   
     
-    test_data = dataloader.test_data()
-    containered_recordings = [Container(ids, recording) for recording in test_data]
-    temp_results = process_map(calculate, containered_recordings, chunksize = 1)
-    performance = reduce(Performance.add, temp_results)
+    
+    if args.algorithm == 'mlp': 
+        performance = ids.detect()
+    else:
+        performance = ids.detect_parallel()
+    
     
     results = performance.get_results()
     pprint(results)

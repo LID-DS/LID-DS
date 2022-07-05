@@ -12,12 +12,11 @@ class NgramMinusOne(BuildingBlock):
 
     """
 
-    def __init__(self, ngram: Ngram, element_size: int):
+    def __init__(self, ngram: Ngram):
         super().__init__()
         self._dependency_list = []
         self._dependency_list.append(ngram)
         self._ngram = ngram
-        self._element_size = element_size
 
     def depends_on(self):
         return self._dependency_list

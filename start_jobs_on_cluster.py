@@ -11,9 +11,10 @@ if __name__ == '__main__':
     
     job_counter = 0
     
-    number_of_play_back_alarms = ['1', '2', '3', 'all']
+    number_of_play_back_alarms = [#'1', '2', '3',
+                                  'all']
     
-    result_path = 'results_eval_4'
+    result_path = 'results_find_mlp_fps'
     
     for version in lid_ds_versions:
         if version=="LID-DS-2019":
