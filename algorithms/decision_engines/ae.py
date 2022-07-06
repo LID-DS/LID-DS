@@ -96,7 +96,7 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600):
+    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600, early_stopping_epochs=50):
         super().__init__()                
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
@@ -113,7 +113,7 @@ class AE(BuildingBlock):
         self._result_dict = {}
         self._max_training_time = max_training_time # time in seconds
 
-        self._early_stopping_num_epochs = 50
+        self._early_stopping_num_epochs = early_stopping_epochs
 
     def depends_on(self):
         return self._dependency_list
@@ -149,57 +149,67 @@ class AE(BuildingBlock):
         ae_ds_val = AEDataset(self._validation_set)
         data_loader = torch.utils.data.DataLoader(ae_ds, batch_size=self._batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(ae_ds_val, batch_size=self._batch_size, shuffle=True)
-        bar = tqdm(range(0, self._epochs), 'training'.rjust(27), unit=" epochs")                
-        for epoch in bar:            
-            count = 0            
-            for (batch_index, batch) in enumerate(data_loader):
-                count += 1
-                X = batch  # inputs
-                Y = batch  # targets (same as inputs)
-                # forward
-                oupt = self._autoencoder(X)                # compute output
-                loss_value = self._loss_function(oupt, Y)  # compute loss (a tensor)
-                # backward                
-                self._optimizer.zero_grad()                # prepare gradients
-                loss_value.backward()                      # compute gradients
-                self._optimizer.step()                     # update weights
+        
+        with tqdm(total=self._max_training_time, unit=" epoch", bar_format="{l_bar}{bar}| {n:0.1f}/{total}s") as bar:              
+            last_ts = time.time()            
+            epoch_counter = 0
+            bar.set_description(f"fit AE: {epoch_counter}|{0}/{self._early_stopping_num_epochs}|None".rjust(27), refresh=True)
+            while True:
+                epoch_counter += 1
+                count = 0            
+                for (batch_index, batch) in enumerate(data_loader):
+                    count += 1
+                    X = batch  # inputs
+                    Y = batch  # targets (same as inputs)
+                    # forward
+                    oupt = self._autoencoder(X)                # compute output
+                    loss_value = self._loss_function(oupt, Y)  # compute loss (a tensor)
+                    # backward                
+                    self._optimizer.zero_grad()                # prepare gradients
+                    loss_value.backward()                      # compute gradients
+                    self._optimizer.step()                     # update weights
 
-            # validation
-            val_loss = 0.0
-            count = 0
-            for (batch_index, batch) in enumerate(val_data_loader):
-                X = batch
-                outputs = self._autoencoder(X)
-                loss_value = self._loss_function(outputs, X)
-                val_loss += loss_value.item()
-                count += 1
-            avg_val_loss = val_loss / count
+                # validation
+                val_loss = 0.0
+                count = 0
+                for (batch_index, batch) in enumerate(val_data_loader):
+                    X = batch
+                    outputs = self._autoencoder(X)
+                    loss_value = self._loss_function(outputs, X)
+                    val_loss += loss_value.item()
+                    count += 1
+                avg_val_loss = val_loss / count
 
-            if avg_val_loss < best_avg_val_loss:
-                best_avg_val_loss = avg_val_loss
-                best_weights = self._autoencoder.state_dict()
-                epochs_since_last_best = 1
-            else:
-                epochs_since_last_best += 1
-            
-            stop_early = False
+                if avg_val_loss < best_avg_val_loss:
+                    best_avg_val_loss = avg_val_loss
+                    best_weights = self._autoencoder.state_dict()
+                    epochs_since_last_best = 1
+                else:
+                    epochs_since_last_best += 1
+                
+                stop_early = False
 
-            # early stopping by epochs
-            if epochs_since_last_best >= self._early_stopping_num_epochs:
-                stop_early = True
+                # early stopping by epochs
+                if epochs_since_last_best >= self._early_stopping_num_epochs:
+                    stop_early = True
 
-            # early stopping by time
-            duration = time.time() - training_start_time
-            if duration > self._max_training_time:
-                stop_early = True
+                # early stopping by time
+                duration = time.time() - training_start_time
+                if duration > self._max_training_time:
+                    stop_early = True
 
-            # print epoch results
-            bar.set_description(f"fit AE: {self._max_training_time - duration:.1f}|{epochs_since_last_best}/{self._early_stopping_num_epochs}|{best_avg_val_loss:.5f}".rjust(27), refresh=True)            
+                # print epoch results
+                # {self._max_training_time - duration:.1f}|
+                bar.set_description(f"fit AE: {epoch_counter}|{epochs_since_last_best}/{self._early_stopping_num_epochs}|{best_avg_val_loss:.5f}".rjust(27), refresh=True)
+                
+                dts = time.time() - last_ts 
+                bar.update(dts)
+                last_ts = time.time()
+                
+                if stop_early:
+                    break
 
-            if stop_early:
-                break
-
-        print(f"stop at {bar.n} epochs".rjust(27))
+        print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))
         self._result_dict = {}
         self._autoencoder.load_state_dict(best_weights)
         self._autoencoder.eval()        
