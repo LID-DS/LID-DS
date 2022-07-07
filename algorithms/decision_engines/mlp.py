@@ -1,7 +1,6 @@
 import math
 import torch
-import collections
-
+import time
 import numpy as np
 import torch.nn as nn
 
@@ -64,7 +63,9 @@ class MLP(BuildingBlock):
                  hidden_size: int,
                  hidden_layers: int,
                  batch_size: int,
-                 learning_rate: float = 0.003):
+                 learning_rate: float = 0.003,
+                 max_training_time=600, 
+                 early_stopping_epochs=50):
         super().__init__()
 
         self.input_vector = input_vector
@@ -84,10 +85,14 @@ class MLP(BuildingBlock):
         self._validation_set = set()
         self._model = None  # to be initialized in fit()
 
-        # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 100
+        # for early stopping
+        self._max_training_time = max_training_time # time in seconds
+        self._early_stopping_num_epochs = early_stopping_epochs
 
         self._result_dict = {}
+
+
+
 
     def train_on(self, syscall: Syscall):
         """
@@ -149,65 +154,74 @@ class MLP(BuildingBlock):
         val_data_set = MLPDataset(self._validation_set)
 
         # loss preparation for early stop of training
+        best_avg_val_loss = math.inf
         epochs_since_last_best = 0
-        best_avg_loss = math.inf
         best_weights = {}
+        training_start_time = time.time()
 
         # initializing the torch dataloaders for training and validation
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
-
-        max_epochs = 10000
-        # iterate through max epochs
-        bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")  # fancy print for training        
-        for e in bar:
-            # training
-            for i, data in enumerate(train_data_loader):
-                inputs, labels = data
-
-                optimizer.zero_grad()  # prepare gradients
-
-                outputs = self._model(inputs)  # compute output
-                loss = criterion(outputs, labels)  # compute loss
-
-                loss.backward()  # compute gradients
-                optimizer.step()  # update weights
-
-            # validation
-            val_loss = 0.0
-            count = 0
-            # calculate validation loss
-            for i, data in enumerate(val_data_loader):
-                inputs, labels = data
-                outputs = self._model(inputs)
-                loss = criterion(outputs, labels)
-                val_loss += loss.item()
-                count += 1
-            avg_val_loss = val_loss / count
-
-            if avg_val_loss < best_avg_loss:
-                best_avg_loss = avg_val_loss
-                best_weights = self._model.state_dict()
-                epochs_since_last_best = 1
-            else:
-                epochs_since_last_best += 1
-
-            # determine if loss optimization occurred in last x epochs, if not stop training
-            stop_early = False
-            if epochs_since_last_best >= self._early_stop_epochs:
-                stop_early = True
-
-            # refreshs the fancy printing
-            bar.set_description(f"fit MLP {epochs_since_last_best}|{best_avg_loss:.5f}".rjust(27), refresh=True)
-
-            if stop_early:
-                break
         
-        print(f"stop at {bar.n} epochs".rjust(27))        
+        with tqdm(total=self._max_training_time, unit=" epoch", bar_format="{l_bar}{bar}| {n:0.1f}/{total}s") as bar:              
+            last_ts = time.time()            
+            epoch_counter = 0
+            bar.set_description(f"fit MLP: {epoch_counter}|{0}/{self._early_stopping_num_epochs}|None".rjust(27), refresh=True)
+            while True:
+                epoch_counter += 1                
+                for i, data in enumerate(train_data_loader):
+                    inputs, labels = data
+                    optimizer.zero_grad()  # prepare gradients
+                    outputs = self._model(inputs)  # compute output
+                    loss = criterion(outputs, labels)  # compute loss
+                    loss.backward()  # compute gradients
+                    optimizer.step()  # update weights
+
+                # validation
+                val_loss = 0.0
+                count = 0
+                # calculate validation loss
+                for i, data in enumerate(val_data_loader):
+                    inputs, labels = data
+                    outputs = self._model(inputs)
+                    loss = criterion(outputs, labels)
+                    val_loss += loss.item()
+                    count += 1
+                avg_val_loss = val_loss / count
+
+                if avg_val_loss < best_avg_val_loss:
+                    best_avg_val_loss = avg_val_loss
+                    best_weights = self._model.state_dict()
+                    epochs_since_last_best = 1
+                else:
+                    epochs_since_last_best += 1
+
+                stop_early = False
+
+                # early stopping by epochs
+                if epochs_since_last_best >= self._early_stopping_num_epochs:
+                    stop_early = True
+
+                # early stopping by time
+                duration = time.time() - training_start_time
+                if duration > self._max_training_time:
+                    stop_early = True
+
+                # refreshs the fancy printing
+                bar.set_description(f"fit MLP: {epoch_counter}|{epochs_since_last_best}/{self._early_stopping_num_epochs}|{best_avg_val_loss:.5f}".rjust(27), refresh=True)
+
+                dts = time.time() - last_ts 
+                bar.update(dts)
+                last_ts = time.time()
+                
+                if stop_early:
+                    break
+
+        
+        print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))
         self._result_dict = {}
         self._model.load_state_dict(best_weights)
-        self._model.eval()
-
+        self._model.eval() 
 
     def _calculate(self, syscall: Syscall):
         """

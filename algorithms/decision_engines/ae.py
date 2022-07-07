@@ -1,4 +1,3 @@
-import collections
 from enum import Enum
 import time
 import torch
@@ -112,7 +111,6 @@ class AE(BuildingBlock):
         self._validation_set = set()
         self._result_dict = {}
         self._max_training_time = max_training_time # time in seconds
-
         self._early_stopping_num_epochs = early_stopping_epochs
 
     def depends_on(self):
@@ -155,10 +153,8 @@ class AE(BuildingBlock):
             epoch_counter = 0
             bar.set_description(f"fit AE: {epoch_counter}|{0}/{self._early_stopping_num_epochs}|None".rjust(27), refresh=True)
             while True:
-                epoch_counter += 1
-                count = 0            
-                for (batch_index, batch) in enumerate(data_loader):
-                    count += 1
+                epoch_counter += 1                
+                for (batch_index, batch) in enumerate(data_loader):                    
                     X = batch  # inputs
                     Y = batch  # targets (same as inputs)
                     # forward

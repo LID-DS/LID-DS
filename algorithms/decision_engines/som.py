@@ -1,5 +1,5 @@
 import math
-import sys
+import time
 
 from matplotlib import pyplot as plt
 
@@ -13,7 +13,7 @@ from numpy.linalg import norm
 
 class Som(BuildingBlock):
     def __init__(self, input_vector: BuildingBlock, epochs: int = 50, sigma: float = 1.0, learning_rate: float = 0.5,
-                 max_size: int = None, size=None):
+                 max_size: int = None, size=None, max_training_time=600):
         """
             Anomaly Detection Engine based on Teuvo Kohonen's Self-Organizing-Map (SOM)
 
@@ -43,6 +43,9 @@ class Som(BuildingBlock):
         self._max_size = max_size
         self._size = size
         self.custom_fields = {}
+        # for early stopping
+        self._max_training_time = max_training_time # time in seconds
+
 
     def depends_on(self):
         return self._dependency_list
@@ -93,9 +96,16 @@ class Som(BuildingBlock):
                             sigma=self._sigma,
                             learning_rate=self._learning_rate)
 
-        for epoch in tqdm(range(self._epochs), desc='Training SOM'.rjust(27)):
+        # for early stopping
+        training_start_time = time.time()
+
+        for epoch in tqdm(range(self._epochs), desc='Training SOM'.rjust(27)):            
             for vector in self._buffer:
                 self._som.update(vector, self._som.winner(vector), epoch, self._epochs)
+            # check early stopping by time
+            duration = time.time() - training_start_time
+            if duration > self._max_training_time:
+                break
 
     def _calculate(self, syscall: Syscall):
         """
