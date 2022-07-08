@@ -37,8 +37,8 @@ if __name__ == '__main__':
     inte = IntEmbedding(name)
     w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=10,epochs=1000)
     ngram = Ngram(feature_list = [w2v],thread_aware = thread_aware,ngram_length = ngram_length)
-    ae = AE(ngram,ae_hidden_size,batch_size=256,max_training_time=120,early_stopping_epochs=10000)
-    stream_window = StreamSum(ae,True,600)
+    ae = AE(ngram,ae_hidden_size,batch_size=256,max_training_time=120,early_stopping_epochs=100000)
+    stream_window = StreamSum(ae,True,100)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     w2v = Sum([W2VEmbedding(word=inte,vector_size=enc_size,window_size=10,epochs=1000), SinusoidalEncoding(position,enc_size)])
     ngram = Ngram(feature_list = [w2v],thread_aware = thread_aware,ngram_length = ngram_length)    
     ae = AE(ngram,ae_hidden_size,batch_size=256,max_training_time=120,early_stopping_epochs=100)
-    stream_window = StreamSum(ae,True,600)
+    stream_window = StreamSum(ae,True,700)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,
