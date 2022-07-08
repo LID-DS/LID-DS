@@ -10,7 +10,8 @@ from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 
 class AEMode(Enum):
     LOSS = 1

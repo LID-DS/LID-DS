@@ -1,38 +1,25 @@
 import json
-import math
 from pprint import pprint
-from datetime import datetime
 
 import os
-from time import sleep, time
-import torch
-from alarm import Alarm
+from time import time
 
 from algorithms.decision_engines.ae import AE, AEMode
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
-
+from algorithms.decision_engines.mlp import MLP
+from algorithms.features.impl.stream_sum import StreamSum
 #from algorithms.features.impl.Sum import Sum
 #from algorithms.features.impl.Difference import Difference
 #from algorithms.features.impl.Minimum import Minimum
 #from algorithms.features.impl.PositionInFile import PositionInFile
 #from algorithms.features.impl.PositionalEncoding import PositionalEncoding
-from algorithms.features.impl.concat import Concat
-from algorithms.features.impl.dbscan import DBScan
+from algorithms.features.impl.select import Select
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.ngram import Ngram
-from algorithms.features.impl.one_minus_x import OneMinusX
-from algorithms.features.impl.path_evilness import PathEvilness
-from algorithms.features.impl.return_value import ReturnValue
-from algorithms.features.impl.stream_average import StreamAverage
-from algorithms.features.impl.stream_maximum import StreamMaximum
-from algorithms.features.impl.stream_minimum import StreamMinimum
-from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
-from algorithms.features.impl.stream_variance import StreamVariance
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
-from algorithms.features.impl.timestamp import Timestamp 
 from algorithms.features.impl.syscall_name import SyscallName
 
 from algorithms.ids import IDS
@@ -43,11 +30,8 @@ from algorithms.persistance import save_to_json
 from copy import deepcopy
 from tqdm.contrib.concurrent import process_map
 from functools import reduce
-from tqdm import tqdm
-from algorithms.features.impl.ngram_minus_one import NgramMinusOne
-from algorithms.decision_engines.mlp import MLP
-from multiprocessing import Pool, cpu_count, set_start_method
-from torch import cuda
+
+
 
 def enough_calls(dict, max): 
     for key in dict.keys():
@@ -205,14 +189,15 @@ if __name__ == '__main__':
 
     # scenarios orderd by training data size asc
     # 0 - 14    
-    select_scenario_number = 0
+    select_scenario_number = 1
     scenario_names = [
         "CVE-2017-7529",
         "CVE-2014-0160",
         "CVE-2012-2122",
         "Bruteforce_CWE-307",
         "CVE-2020-23839",
-        "CWE-89-SQL-injection",
+        "CWE-89-SQL-injection", # LID-DS-2021 exclusive
+        "SQL_Injection_CWE-89", # LID-DS-2019 exclusive
         "PHP_CWE-434",
         "ZipSlip",
         "CVE-2018-3760",
@@ -225,8 +210,8 @@ if __name__ == '__main__':
     ]    
 
     # base path
-    # lid_ds_base_path = "/media/sf_Masterarbeit/Material"
-    lid_ds_base_path = "S:\Masterarbeit\Material"
+    lid_ds_base_path = "/media/sf_Masterarbeit/Material"
+    # lid_ds_base_path = "S:\Masterarbeit\Material"
     play_back_count_alarms = 'all'
 
 
@@ -269,32 +254,42 @@ if __name__ == '__main__':
 
     ####################################### MLP - Specs ##################################
     ngram_length = 7
-    w2v_size = 5
+    w2v_vector_size = 8
+    w2v_window_size = 10
     thread_aware = True
-    hidden_size = 50
-    hidden_layers = 4
-    batch_size = 50
-    epochs = 50
+    hidden_size = 64
+    hidden_layers = 3
+    batch_size = 256
+    epochs = 1000
     learning_rate = 0.003
         
-    w2v = W2VEmbedding(word=SyscallName(),
-                       vector_size=w2v_size,
-                       window_size=w2v_size,
+    syscall = SyscallName()
+    inte = IntEmbedding(syscall)
+        
+    w2v = W2VEmbedding(word=inte,
+                       vector_size=w2v_vector_size,
+                       window_size=w2v_window_size,
                        epochs=epochs,
                        thread_aware=thread_aware)
-    ngram = Ngram([w2v], thread_aware, ngram_length)
-    ngram_minus_one = NgramMinusOne(ngram)
-    inte = IntEmbedding()
+    
+    # Soll künstlich ein Ngram der Größe NGram-Length+1 erzeugen, damit wir NGram-Length viele Inputs haben und das Letzte als Output haben.
+    # Das OHE nimmt ja immer den aktuellen Call und dadurch ist der aktuelle Call das Label, während Select nur die vorigen N-Gram-Length viele Systemcalls reingibt. 
+    ngram = Ngram([w2v], thread_aware, ngram_length + 1) 
+    select = Select(ngram, 0, (ngram_length * w2v_vector_size)) 
+
     ohe = OneHotEncoding(inte)
         
-        
-    decision_engine = MLP(ngram_minus_one,
+    mlp = MLP(select,
         ohe,
         hidden_size,
         hidden_layers,
         batch_size,
         learning_rate
-    )
+    )   
+    
+    stream = StreamSum(mlp, thread_aware, window_length=100)
+        
+    decision_engine = stream
     ####################################### MLP - Specs - End ##############################
 
 
@@ -368,6 +363,8 @@ if __name__ == '__main__':
     results = performance.get_results()
     pprint(results)
 
+    pprint(mlp._result_dict.values())
+
     #print("At evaluation:")
     # Preparing results
     algorithm_name = "mlp"
@@ -395,10 +392,11 @@ if __name__ == '__main__':
     
     # -----------------        This will be my personal space right here        ------------------------------- 
     false_alarm_list = [alarm for alarm in performance.alarms.alarms if not alarm.correct]
-    pprint(false_alarm_list)
+    #pprint(false_alarm_list)
     if not false_alarm_list:
         exit('Didn\'t found any false positives! Interrupting.')
     
+
     # An diesem Punkt sind sämtliche false-Alarms in der false-alarm-list.
     # Dies hier ist notwenig um die richtigen Recordings in einer Liste zu erhalten, welche zu den False-Alarms gehören.
     basename_recording_list = set([os.path.basename(false_alarm.filepath) for false_alarm in false_alarm_list])
@@ -413,10 +411,10 @@ if __name__ == '__main__':
     pprint("Playing back false positive alarms:")
     alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1, max_workers = 5)
     
-    pprint(alarm_results)
+    #pprint(alarm_results)
     
     final_results = reduce(FalseAlertResult.add, alarm_results)
-    pprint(final_results)
+    #pprint(final_results)
     end = time() 
     pprint(f"Parallel took {end-start} seconds.")
     
@@ -438,11 +436,12 @@ if __name__ == '__main__':
         exit(f'{play_back_count_alarms} played back alarms led to playing back zero false alarms. Program stops.')
     
     
-    pprint("All Artifical Recordings:")
-    pprint(all_recordings)
+    #pprint("All Artifical Recordings:")
+    #pprint(all_recordings)
+
 
     # Jetzt verändere ich den DataLoader:
-    dataloader.set_retraining_data(all_recordings) # Aus unerfindlichen Gründen ist das hier das treibende Problem der Parallelisierung. # TODO Das hinzufügen von Daten zum DataLoader macht ihn extrem langsam.
+    dataloader.set_retraining_data(all_recordings)
     #dataloader.set_revalidation_data(all_recordings)
     
     # Und generiere das IDS nochmal völlig neu.
@@ -464,16 +463,8 @@ if __name__ == '__main__':
     pprint(f"Freezing Threshold on: {ids.threshold}")
     ids_retrained.threshold = ids.threshold 
     
-    # Lade Test-Daten erneut ?
-    test_data = dataloader.test_data()
-    # Genau die gleiche parallele Aktion wieder
-    containered_recordings = [Container(ids_retrained, recording) for recording in test_data]
-    # Use parallel execution for the single recordings
-    pprint('Anomaly detection:')
-    temp_results = process_map(calculate, containered_recordings, chunksize = 1, max_workers = 5)
-
     # Get the results together again
-    performance_new = reduce(Performance.add, temp_results)
+    performance_new = ids_retrained.detect()
 
     # Print the results
     results_new = performance_new.get_results()

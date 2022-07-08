@@ -1,6 +1,6 @@
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
-
+from pprint import pprint
 
 class Select(BuildingBlock):
     """
@@ -39,4 +39,5 @@ class Select(BuildingBlock):
         if result is None:
             return None
         else:
+            #pprint(f"Input: {result}, len is {len(result)} -> Result: {result[self._start:self._end:self._step]} , len is {len(result[self._start:self._end:self._step])}")
             return result[self._start:self._end:self._step]

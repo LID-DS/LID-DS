@@ -1,11 +1,12 @@
 from enum import IntEnum
-from datetime import datetime
+from datetime import date, datetime
 from time import mktime
 from typing import Tuple
 
 from dataloader.direction import Direction
 from dataloader.syscall import Syscall
 from dataloader.base_recording import BaseRecording
+from pprint import pprint
 
 
 class SyscallSplitPart(IntEnum):
@@ -58,8 +59,9 @@ class Syscall2019(Syscall):
             timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
-            self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 10 ** 9
-
+            #self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 10 ** 9
+            self._timestamp_unix = (timestamp_datetime - datetime(1970, 1, 1)).total_seconds() * 10 ** 9
+            #pprint(self._timestamp_unix)
         return self._timestamp_unix
 
     def timestamp_datetime(self) -> datetime:

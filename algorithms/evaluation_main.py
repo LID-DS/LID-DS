@@ -8,10 +8,13 @@ import sys
 
 from argparse import ArgumentParser
 
+from numpy import vectorize
+
 #from algorithms.decision_engines.ae import AE, AEMode
 #from algorithms.decision_engines.som import Som
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.decision_engines.stide import Stide
+from algorithms.features.impl.select import Select
 #from algorithms.features.impl.Sum import Sum
 #from algorithms.features.impl.Difference import Difference
 #from algorithms.features.impl.Minimum import Minimum
@@ -234,34 +237,38 @@ if __name__ == '__main__':
         ngram = Ngram([intEmbedding], thread_aware, ngram_length)
         decision_engine = Stide(ngram, window_length)
 
-    # MLP - TODO
+    # MLP 
     elif args.algorithm == 'mlp':
-        ngram_length = 11
-        w2v_size = 5
+        ngram_length = 7
+        w2v_vector_size = 8
+        w2v_window_size = 10
         thread_aware = True
-        hidden_size = 150
-        hidden_layers = 4
-        batch_size = 50
-        epochs = 50
-        learning_rate = 0.003
+        hidden_size = 64
+        hidden_layers = 3
+        batch_size = 256
+        epochs = 1000
+        # learning_rate = 0.003
         
-        w2v = W2VEmbedding(word=SyscallName(),
-                       vector_size=w2v_size,
-                       window_size=w2v_size,
+        syscall = SyscallName()
+        inte = IntEmbedding(syscall)
+        
+        w2v = W2VEmbedding(word=inte,
+                       vector_size=w2v_vector_size,
+                       window_size=w2v_window_size,
                        epochs=epochs,
                        thread_aware=thread_aware)
-        ngram = Ngram([w2v], thread_aware, ngram_length)
-        ngram_minus_one = NgramMinusOne(ngram)
-        inte = IntEmbedding()
-        ohe = OneHotEncoding(inte)
+        ohe = OneHotEncoding(syscall)
         
+        ngram = Ngram([w2v], thread_aware, ngram_length) 
         
-        decision_engine = MLP(ohe,
+        select = Select(ngram, start = 0, end = (w2v_vector_size * ngram_length) - 1) 
+
+        decision_engine = MLP(select,
             ohe,
             hidden_size,
             hidden_layers,
             batch_size,
-            learning_rate
+            # learning_rate
         )
         
     # AE - TODO
@@ -295,13 +302,23 @@ if __name__ == '__main__':
     results = performance.get_results()
     pprint(results)
     
+    net_weigths = decision_engine.get_net_weights()
+    pprint(net_weigths)
     # Preparing results
-    config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
-
+    
+    if args.algorithm == 'stide':
+        config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
+    else: 
+        config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_t_{thread_aware}"
+    
+    
     # Enrich results with configuration
     results['algorithm'] = args.algorithm
     results['ngram_length'] = ngram_length
-    results['window_length'] = window_length
+    
+    if args.algorithm == 'stide':
+        results['window_length'] = window_length
+        
     results['thread_aware'] = thread_aware
     results['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results['scenario'] =  args.version + "/" + args.scenario
@@ -405,13 +422,13 @@ if __name__ == '__main__':
     pprint(f"Freezing Threshold on: {ids.threshold}")
     ids_retrained.threshold = ids.threshold
     
-    # ids_retrained.do_detection()
-    
-    containered_recordings = [Container(ids_retrained, recording) for recording in test_data]
-    temp_results = process_map(calculate, containered_recordings, chunksize = 1)
-    performance_new = reduce(Performance.add, temp_results)
+    if args.algorithm == 'mlp': 
+        performance_new = ids.detect()
+    else:
+        performance_new = ids.detect_parallel()
+        
+
     results_new = performance_new.get_results()
-    
     pprint(results_new)
 
     # Preparing second results

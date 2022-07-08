@@ -10,10 +10,10 @@ from torch import optim
 from torch.utils.data import Dataset
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
-from time import time
 from pprint import pprint
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 
 class MLPDataset(Dataset):
     """
@@ -88,7 +88,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 100
+        self._early_stop_epochs = 5000
 
         self._result_dict = {}
 
@@ -182,6 +182,9 @@ class MLP(BuildingBlock):
             # calculate validation loss
             for i, data in enumerate(val_data_loader):
                 inputs, labels = data
+                #pprint(f"Input is: {inputs}, label is: {labels}")
+                #pprint(len(labels[0])) # Irgendwie ist labels immer 183 lang - ungeachtet der BatchSize. Allerdings stimmt die Größe des Labels dann mit der Länge vom OHE ein.
+                #pprint(sum(0 == i for i in labels[0]))
                 outputs = self._model(inputs)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
@@ -233,14 +236,17 @@ class MLP(BuildingBlock):
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 mlp_out = self._model(in_tensor)
-
+                #pprint(mlp_out)
+                #pprint(sum(mlp_out))
                 try: 
-                    label_index = label.index(1)  # getting the index of the actual next datapoint
-                    anomaly_score = 1 - mlp_out[label_index]
+                    label_index = label.index(1)  # getting the index of the actual next datapoint - mithilfe von index sucht man den Systemcall, der mit 1 gelabelt ist. 
+                    anomaly_score = 1 - mlp_out[label_index] # Das Ergebnis ist dann 1 - die Sicherheit des MLPs, dass es genau dieser Systemcall sein sollte.
+                    
                 except:
                     anomaly_score = 1
 
                 self._result_dict[input_vector] = anomaly_score
+                #pprint(f"Current Anomaly-Score: {anomaly_score}")
                 return anomaly_score
         else:
             return None

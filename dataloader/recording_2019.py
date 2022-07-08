@@ -2,6 +2,7 @@ import datetime
 import os
 import time
 from dataloader.base_recording import BaseRecording
+from pprint import pprint
 
 from dataloader.direction import Direction
 from dataloader.syscall_2019 import Syscall, Syscall2019
@@ -95,14 +96,14 @@ class Recording2019(BaseRecording):
         """
         syscall_generator = self.syscalls()
         first_syscall_timestamp = next(syscall_generator).timestamp_datetime()
-
         # subtracting 2 seconds because of bad precision of relative timestamp in LID-DS 2019
         relative_time = int(self.recording_data_list[RecordingDataParts.WARMUP_TIME]) - 2
-
         # multiplying with 10⁹ to get nanoseconds from seconds
         absolute_time = first_syscall_timestamp + datetime.timedelta(seconds=relative_time)
-
         # casting to unix timestamp
-        absolute_timestamp = time.mktime(absolute_time.timetuple())
+        
+        yikes = (absolute_time - datetime.datetime(1970, 1, 1)).total_seconds()* (10**9)
+        #pprint(yikes)
+        # absolute_timestamp = time.mktime(absolute_time.timetuple())
 
-        return absolute_timestamp
+        return yikes
