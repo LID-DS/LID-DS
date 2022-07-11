@@ -19,7 +19,7 @@ from algorithms.data_preprocessor import DataPreprocessor
 from algorithms.performance_measurement import Performance
 from pprint import pprint
 
-
+from sys import platform
 
 class IDS:
     def __init__(self,
@@ -162,12 +162,17 @@ class IDS:
         ids_and_recordings = [(self, recording) for recording in self._data_loader.test_data()]
 
         # parallel calculation for every recording
+        if platform in ['win32', 'cygwin']:
+            max_workers = 4 # Musste das begrenzen da mir sonst alles abschmierte
+        else:
+            max_workers = min(32, cpu_count() + 4)
+        
         performance_list = process_map(
             IDS._calculate, 
             ids_and_recordings, 
             chunksize = 20, # Bewirkt im MLP einen enormen Leistungsschub
             desc="anomaly detection".rjust(27),
-            max_workers=min(32, cpu_count() + 4), # Musste das begrenzen da mir sonst alles abschmierte
+            max_workers=max_workers, 
             unit=" recordings")
 
         # Sum up performances

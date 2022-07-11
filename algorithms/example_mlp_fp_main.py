@@ -3,6 +3,7 @@ from pprint import pprint
 
 import os
 from time import time
+from sys import platform
 
 from algorithms.decision_engines.ae import AE, AEMode
 from algorithms.decision_engines.som import Som
@@ -210,8 +211,14 @@ if __name__ == '__main__':
     ]    
 
     # base path
-    lid_ds_base_path = "/media/sf_Masterarbeit/Material"
-    # lid_ds_base_path = "S:\Masterarbeit\Material"
+    pprint(platform)
+    if platform == 'linux':
+      lid_ds_base_path = "/media/sf_Masterarbeit/Material"
+    elif platform in ['win32', 'cygwin']:
+      lid_ds_base_path = "S:\Masterarbeit\Material"
+    else:
+      exit("Unknown operating system. Interrupting.")
+    
     play_back_count_alarms = 'all'
 
 
@@ -408,9 +415,13 @@ if __name__ == '__main__':
     for alarm in false_alarm_list: 
         containerList.append(FalseAlertContainer(alarm, false_alarm_recording_list, ngram_length, thread_aware))
     
+    if platform in ['win32', 'cygwin']:
+        max_workers = 4 # Musste das begrenzen da mir sonst alles abschmierte
+    else:
+        max_workers = min(32, os.cpu_count() + 4)
     start = time()
     pprint("Playing back false positive alarms:")
-    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1, max_workers = 5)
+    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1, max_workers = 4)
     
     #pprint(alarm_results)
     
