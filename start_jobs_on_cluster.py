@@ -7,7 +7,7 @@ if __name__ == '__main__':
                        'LID-DS-2021']
     
     algorithms = ['stide', 'ae', 'mlp', 'som']
-    algorithm = algorithms[0]
+    algorithm = algorithms[2]
     
     job_counter = 0
     

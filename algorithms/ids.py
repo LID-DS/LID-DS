@@ -1,4 +1,5 @@
 from http.client import ImproperConnectionState
+from os import cpu_count
 from time import time
 from matplotlib.image import imread
 from tqdm import tqdm
@@ -22,7 +23,7 @@ from pprint import pprint
 
 class IDS:
     def __init__(self,
-                 data_loader: BaseDataLoader,
+                 data_loader: BaseDataLoader,               
                  resulting_building_block: BuildingBlock,                 
                  plot_switch: bool,
                  create_alarms: bool = False):
@@ -164,9 +165,9 @@ class IDS:
         performance_list = process_map(
             IDS._calculate, 
             ids_and_recordings, 
-            chunksize = 1,
+            chunksize = 20, # Bewirkt im MLP einen enormen Leistungsschub
             desc="anomaly detection".rjust(27),
-            max_workers=4, # Musste das begrenzen da mir sonst alles abschmierte
+            max_workers=min(32, cpu_count() + 4), # Musste das begrenzen da mir sonst alles abschmierte
             unit=" recordings")
 
         # Sum up performances

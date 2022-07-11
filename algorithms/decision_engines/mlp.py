@@ -1,4 +1,5 @@
 import math
+import re
 import torch
 import collections
 
@@ -88,10 +89,10 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 5000
+        self._early_stop_epochs = 100
 
         self._result_dict = {}
-
+        self._train_counter = 0
     def train_on(self, syscall: Syscall):
         """
             building the training data set with input vector and labels
@@ -110,8 +111,8 @@ class MLP(BuildingBlock):
 
             if self._output_size == 0:
                 self._output_size = len(output_label)
-
             self._training_set.add((input_vector, output_label))
+            self._train_counter += 1
 
     def val_on(self, syscall: Syscall):
         """
@@ -160,7 +161,7 @@ class MLP(BuildingBlock):
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
 
-        max_epochs = 10000
+        max_epochs = 50000
         # iterate through max epochs
         bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")  # fancy print for training        
         for e in bar:
@@ -213,6 +214,10 @@ class MLP(BuildingBlock):
         self._result_dict = {}
         self._model.load_state_dict(best_weights)
         self._model.eval()
+        
+        # for param in self._model.parameters():
+            # param.requires_grad = False
+            # pprint(f"Model_param: {param}")
 
 
     def _calculate(self, syscall: Syscall):
@@ -235,7 +240,8 @@ class MLP(BuildingBlock):
                 return self._result_dict[input_vector]
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
-                mlp_out = self._model(in_tensor)
+                with torch.no_grad():
+                    mlp_out = self._model(in_tensor)
                 #pprint(mlp_out)
                 #pprint(sum(mlp_out))
                 try: 

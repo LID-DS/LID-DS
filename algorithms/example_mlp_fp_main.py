@@ -253,8 +253,8 @@ if __name__ == '__main__':
     # som = Som(concat)
 
     ####################################### MLP - Specs ##################################
-    ngram_length = 7
-    w2v_vector_size = 8
+    ngram_length = 5
+    w2v_vector_size = 5
     w2v_window_size = 10
     thread_aware = True
     hidden_size = 64
@@ -355,15 +355,16 @@ if __name__ == '__main__':
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
     
+    pprint(f"Train_counter_before: {mlp._train_counter}")
+    
     # Bestimme Schwellenwert
     ids.determine_threshold()
     
-    #ids.detect()
-    performance = ids.detect()
+    performance = ids.detect_parallel()
     results = performance.get_results()
     pprint(results)
 
-    pprint(mlp._result_dict.values())
+    # pprint(mlp._result_dict.values())
 
     #print("At evaluation:")
     # Preparing results
@@ -416,7 +417,7 @@ if __name__ == '__main__':
     final_results = reduce(FalseAlertResult.add, alarm_results)
     #pprint(final_results)
     end = time() 
-    pprint(f"Parallel took {end-start} seconds.")
+    pprint(f"Parallel playing-back-false-alarms took {end-start} seconds.")
     
  
     # MODYFIABLE! Hier kann ich auch einstellen, nur einen Teil der False-Alarms ins Training zurückgehen zu lassen.
@@ -449,22 +450,27 @@ if __name__ == '__main__':
     #ngram = Ngram([intEmbedding], thread_aware, ngram_length)
     #stide = Stide(ngram, window_length=window_length)
     
+    # Resetting train_counter
+    mlp._train_counter = 0
     
     ids_retrained = IDS(data_loader=dataloader,
             resulting_building_block=decision_engine,
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
 
+
+    pprint(f"Train_counter_with_retraining: {mlp._train_counter}")
+    
     # Cleaning dataloader for performance issues. Deepcopy is probably the thing which slows down the whole execution.
     dataloader.unload_retraining_data()
     #pprint("At evaluation:")
     # threshold
-    #ids_retrained.determine_threshold()
-    pprint(f"Freezing Threshold on: {ids.threshold}")
-    ids_retrained.threshold = ids.threshold 
+    ids_retrained.determine_threshold()
+    # pprint(f"Freezing Threshold on: {ids.threshold}")
+    # ids_retrained.threshold = ids.threshold 
     
     # Get the results together again
-    performance_new = ids_retrained.detect()
+    performance_new = ids_retrained.detect_parallel()
 
     # Print the results
     results_new = performance_new.get_results()
