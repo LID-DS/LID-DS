@@ -7,6 +7,7 @@ from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 
 from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
@@ -24,27 +25,27 @@ if __name__ == '__main__':
         exit()        
 
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version}/{scenario_name}"        
-    dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE)
+    dataloader = dataloader_factory(scenario_path,direction=Direction.OPEN)
 
     ### features
     thread_aware = True
     ngram_length = 7
     enc_size = 10
-    ae_hidden_size = int(math.sqrt(ngram_length * enc_size))
+    # ae_hidden_size = int(math.sqrt(ngram_length * enc_size))
 
     ### building blocks  
     name = SyscallName()
     inte = IntEmbedding(name)
-    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=10,epochs=1000)
+    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=20,epochs=50)
     ngram = Ngram(feature_list = [w2v],thread_aware = thread_aware,ngram_length = ngram_length)
-    ae = AE(ngram,ae_hidden_size,batch_size=256,max_training_time=120,early_stopping_epochs=100000)
-    stream_window = StreamSum(ae,True,100)
+    ae = AE(ngram,0,batch_size=256,max_training_time=20,early_stopping_epochs=100000)
+    stream_window = StreamSum(ae,True,50)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,
             resulting_building_block=stream_window,
             create_alarms=False,
-            plot_switch=False)
+            plot_switch=True)
 
     print("at evaluation:")
     # threshold
@@ -52,4 +53,8 @@ if __name__ == '__main__':
     # detection
     results = ids.detect().get_results()
 
+    print(ae._cached_results.cache_info())
+
     pprint(results)
+
+    ids.draw_plot()

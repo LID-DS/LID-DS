@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import lru_cache
 import time
 import torch
 import torch.utils.data.dataset as td
@@ -42,47 +43,46 @@ class AENetwork(nn.Module):
     the actual autoencoder as torch module
     """
     def __init__(self, input_size, hidden_size):
-        super().__init__()
+        super().__init__()        
         self._input_size = input_size
         self._factor = 0.7
-        # Building an linear encoder with Linear
-        # layer followed by SELU activation function
+        first_hidden_layer_size = self._input_size #int(self._input_size * 1.333)
+        # Building an encoder
         self.encoder = torch.nn.Sequential(
-            torch.nn.Linear(
-                self._input_size, 
-                int(self._input_size * self._factor)),
+            torch.nn.Linear(self._input_size, first_hidden_layer_size),
             torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),                    
-            torch.nn.Linear(
-                int(self._input_size * self._factor), 
-                int(self._input_size * self._factor * self._factor)),
+            torch.nn.ReLU(),
+            
+            torch.nn.Linear(first_hidden_layer_size, int(first_hidden_layer_size * pow(self._factor,2))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),            
-            torch.nn.Linear(
-                int(self._input_size * self._factor * self._factor), 
-                hidden_size),
+            torch.nn.ReLU(),
+
+            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,2)), int(first_hidden_layer_size * pow(self._factor,3))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.SELU()           
+            torch.nn.ReLU(),
+
+            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,3)), int(first_hidden_layer_size * pow(self._factor,4))),
+            torch.nn.Dropout(p=0.5),
+            torch.nn.ReLU()
         )
           
-        # Building an linear decoder with Linear
-        # layer followed by SELU activation function
+        # Building an decoder
         self.decoder = torch.nn.Sequential(
-            torch.nn.Linear(
-                hidden_size, 
-                int(self._input_size*self._factor*self._factor)),
+            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,4)), int(first_hidden_layer_size * pow(self._factor,3))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),                             
-            torch.nn.Linear(
-                int(self._input_size*self._factor*self._factor), 
-                int(self._input_size*self._factor)),            
+            torch.nn.ReLU(),
+
+            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,3)), int(first_hidden_layer_size * pow(self._factor,2))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),       
-            torch.nn.Linear(
-                int(self._input_size*self._factor), 
-                self._input_size),
+            torch.nn.ReLU(),
+
+            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,2)), first_hidden_layer_size),
             torch.nn.Dropout(p=0.5),
-            torch.nn.SELU()
+            torch.nn.ReLU(),
+
+            torch.nn.Linear(first_hidden_layer_size, self._input_size),
+            torch.nn.Dropout(p=0.5),
+            #torch.nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -102,14 +102,11 @@ class AE(BuildingBlock):
         self._mode = mode 
         self._hidden_size = hidden_size
         self._input_size = 0
-        self._autoencoder = None # AENetwork(input_size,hidden_size)               
-        #self._autoencoder.train()
-        self._loss_function = torch.nn.MSELoss()
-        self._epochs = 100000
+        self._autoencoder = None 
+        self._loss_function = torch.nn.MSELoss()        
         self._batch_size = batch_size
-        self._training_set = set() # we use distinct training data
-        self._validation_set = set()
-        self._result_dict = {}
+        self._training_set = set() 
+        self._validation_set = set()        
         self._max_training_time = max_training_time # time in seconds
         self._early_stopping_num_epochs = early_stopping_epochs
 
@@ -134,8 +131,8 @@ class AE(BuildingBlock):
         self._autoencoder.train()
         self._optimizer = torch.optim.Adam(            
             self._autoencoder.parameters(),
-            lr = 0.001,# lr = 0.001,
-            weight_decay=0.01
+            lr = 0.01,# lr = 0.001,
+            #weight_decay=0.01
         )
         # loss preparation for early stop of training        
         best_avg_val_loss = math.inf
@@ -205,47 +202,47 @@ class AE(BuildingBlock):
                 if stop_early:
                     break
 
-        print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))
-        self._result_dict = {}
+        print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))        
         self._autoencoder.load_state_dict(best_weights)
         self._autoencoder.eval()        
 
+    @lru_cache(maxsize=1000)
+    def _cached_results(self, input_vector):
+        if input_vector is None:            
+            return None            
+        else:            
+            # Output of Autoencoder        
+            result = 0
+            in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
+            if self._mode == AEMode.LOSS:
+                # calculating the autoencoder:
+                ae_output_t = self._autoencoder(in_t)
+                # Calculating the loss function
+                result = self._loss_function(ae_output_t, in_t).item()
+            if self._mode == AEMode.HIDDEN:
+                # calculating only the encoder part of the autoencoder:
+                ae_encoder_t = self._autoencoder.encoder(in_t)
+                result = tuple(ae_encoder_t.tolist())
+            if self._mode == AEMode.LOSS_AND_HIDDEN:
+                # encoder
+                ae_encoder_t = self._autoencoder.encoder(in_t)
+                # decoder
+                ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
+                # loss:
+                loss = self._loss_function(ae_decoder_t, in_t).item()
+                # hidden:
+                hidden = ae_encoder_t.tolist()
+                # result
+                rl = [loss]
+                rl.extend(hidden)
+                result = tuple(rl)
+
+            return result    
+
+
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
-        if input_vector is not None:            
-            if input_vector in self._result_dict:
-                return self._result_dict[input_vector]
-            else:
-                # Output of Autoencoder        
-                result = 0
-                in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
-                if self._mode == AEMode.LOSS:
-                    # calculating the autoencoder:
-                    ae_output_t = self._autoencoder(in_t)
-                    # Calculating the loss function
-                    result = self._loss_function(ae_output_t, in_t).item()
-                if self._mode == AEMode.HIDDEN:
-                    # calculating only the encoder part of the autoencoder:
-                    ae_encoder_t = self._autoencoder.encoder(in_t)
-                    result = tuple(ae_encoder_t.tolist())
-                if self._mode == AEMode.LOSS_AND_HIDDEN:
-                    # encoder
-                    ae_encoder_t = self._autoencoder.encoder(in_t)
-                    # decoder
-                    ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
-                    # loss:
-                    loss = self._loss_function(ae_decoder_t, in_t).item()
-                    # hidden:
-                    hidden = ae_encoder_t.tolist()
-                    # result
-                    rl = [loss]
-                    rl.extend(hidden)
-                    result = tuple(rl)
-
-                self._result_dict[input_vector] = result
-                return result    
-        else:
-            return None            
+        return self._cached_results(input_vector)
 
     def new_recording(self):
         pass
