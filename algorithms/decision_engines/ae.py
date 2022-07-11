@@ -10,7 +10,7 @@ from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
 
-device = torch.device("cpu") 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 
 
 class AEMode(Enum):
@@ -28,7 +28,7 @@ class AEDataset(td.Dataset):
         data_array = []
         for line in data:
             data_array.append(line)
-        self.xy_data = torch.tensor(data_array, dtype=torch.float32).to(device) 
+        self.xy_data = torch.tensor(data_array, dtype=torch.float32, device=device)
 
     def __len__(self):
         return len(self.xy_data)
@@ -130,7 +130,7 @@ class AE(BuildingBlock):
         
     def fit(self):
         print(f"AE.train_set: {len(self._training_set)}".rjust(27))
-        self._autoencoder = AENetwork(self._input_size ,self._hidden_size)               
+        self._autoencoder = AENetwork(self._input_size ,self._hidden_size).to(device)         
         self._autoencoder.train()
         self._optimizer = torch.optim.Adam(            
             self._autoencoder.parameters(),
@@ -203,7 +203,7 @@ class AE(BuildingBlock):
             else:
                 # Output of Autoencoder        
                 result = 0
-                in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
+                in_t = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 if self._mode == AEMode.LOSS:
                     # calculating the autoencoder:
                     ae_output_t = self._autoencoder(in_t)
