@@ -22,12 +22,12 @@ if __name__ == '__main__':
             raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
                              "$LID_DS_BASE")
 
-    lid_ds_version = "LID-DS-2021"
-    #scenario_name = "CVE-2017-7529"
+    lid_ds_version = "LID-DS-2019"
+    scenario_name = "CVE-2017-7529"
     #scenario_name = "CVE-2014-0160"
-    scenario_name = "Bruteforce_CWE-307"
+    #scenario_name = "Bruteforce_CWE-307"
     #scenario_name = "CVE-2012-2122"
-    
+
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version}/{scenario_name}"
     dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE) # just load < closing system calls for this example
 
@@ -43,23 +43,27 @@ if __name__ == '__main__':
     ngram = Ngram([int_embedding], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
     stide = Stide(ngram, window_length)
-    
+
     ### the IDS
     ids = IDS(data_loader=dataloader,
             resulting_building_block=stide,
-            create_alarms=False,
+            create_alarms=True,
             plot_switch=False)
 
     print("at evaluation:")
     # threshold
     ids.determine_threshold()
-    
-    # detection 
+
+    # detection
     # normal / seriell
-    # results = ids.detect().get_results()   
-    
+    # results = ids.detect().get_results()
+
     # parallel / map-reduce
-    results = ids.detect_parallel().get_results()
+    performance = ids.detect_parallel()
+    results = performance.get_results()
+
+    # to get alarms:
+    # print(performance.alarms.alarm_list)
 
     ### print results
     pprint(results)
