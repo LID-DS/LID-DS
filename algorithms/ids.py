@@ -157,9 +157,9 @@ class IDS:
 
         # parallel calculation for every recording
         performance_list = process_map(
-            IDS._calculate,
-            ids_and_recordings,
-            chunksize = 1,
+            IDS._calculate, 
+            ids_and_recordings, 
+            chunksize = 20,
             desc="anomaly detection".rjust(27),
             unit=" recordings")
 

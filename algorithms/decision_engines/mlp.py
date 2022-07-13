@@ -229,7 +229,9 @@ class MLP(BuildingBlock):
                 return self._result_dict[input_vector]
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
-                mlp_out = self._model(in_tensor)
+                
+                with torch.no_grad():
+                    mlp_out = self._model(in_tensor)
 
                 try: 
                     label_index = label.index(1)  # getting the index of the actual next datapoint
