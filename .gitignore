@@ -48,3 +48,6 @@ runs.log
 # Models
 
 algorithms/Models/*
+
+# Scenarios
+scenarios/EPS_CWE-434/normal/images

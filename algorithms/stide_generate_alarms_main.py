@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 ###################
                 window_length = 100
                 ngram = Ngram([IntEmbedding()], thread_aware, ngram_length)   
-                stide = Stide(ngram)    
+                stide = Stide(ngram, window_length)    
                 config_name = f"n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
                 ###################

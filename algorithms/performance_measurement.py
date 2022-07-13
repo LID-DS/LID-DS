@@ -22,7 +22,7 @@ class Performance:
         self._current_cfp_stream = 0
         self.result = None
         self.create_alarms = create_alarms
-        
+
         # for cfp screening
         self._cfp_count_exploits = 0
         self._current_cfp_stream_exploits = 0
@@ -114,8 +114,11 @@ class Performance:
         final_performance._cfp_count_normal = left._cfp_count_normal + right._cfp_count_normal
         return final_performance
 
-    #def get_exploit_time(self):
-    #    return self._exploit_time
+    def add_with_alarms(left: Performance, right: Performance) -> Performance:
+        final_performance = Performance.add(left, right)
+        final_performance.alarms = Alarms()
+        final_performance.alarms.alarm_list = left.alarms.alarm_list + right.alarms.alarm_list
+        return final_performance
 
     def new_recording(self, recording: BaseRecording):
         """
@@ -141,7 +144,6 @@ class Performance:
         # ending alarm
         if self.create_alarms:
             self.alarms.end_alarm()
-
 
     def __repr__(self) -> str:
         return f"Performance-Instance: Alarm_Count: {self._alarm_count}, Exploit_count: {self._exploit_count}, FPs: {self._fp}, TPs: {self._tp}, FNs: {self._fn}, TNs: {self._tn}"
@@ -235,5 +237,3 @@ class Performance:
         self.result = performance_values
 
         return performance_values
-
-

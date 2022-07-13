@@ -10,6 +10,7 @@ from torch.utils.data import Dataset
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 
 class MLPDataset(Dataset):
     """
@@ -23,8 +24,8 @@ class MLPDataset(Dataset):
         self.x_data = []
         self.y_data = []
         for datapoint in data:
-            self.x_data.append(torch.from_numpy(np.asarray(datapoint[0], dtype=np.float32)))
-            self.y_data.append(torch.from_numpy(np.asarray(datapoint[1], dtype=np.float32)))
+            self.x_data.append(torch.from_numpy(np.asarray(datapoint[0], dtype=np.float32)).to(device=device))
+            self.y_data.append(torch.from_numpy(np.asarray(datapoint[1], dtype=np.float32)).to(device=device))
 
     def __len__(self):
         """
@@ -143,7 +144,7 @@ class MLP(BuildingBlock):
             hidden_size=self.hidden_size,
             output_size=self._output_size,
             hidden_layers=self.hidden_layers
-        ).model
+        ).model.to(device)
         self._model.train()
 
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
@@ -241,8 +242,10 @@ class MLP(BuildingBlock):
             if input_vector in self._result_dict:
                 return self._result_dict[input_vector]
             else:
-                in_tensor = torch.tensor(input_vector, dtype=torch.float32)
-                mlp_out = self._model(in_tensor)
+                in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
+                
+                with torch.no_grad():
+                    mlp_out = self._model(in_tensor)
 
                 try: 
                     label_index = label.index(1)  # getting the index of the actual next datapoint
