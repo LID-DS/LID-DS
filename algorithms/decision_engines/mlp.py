@@ -1,3 +1,4 @@
+from dbm import gnu
 import math
 import re
 import torch
@@ -11,7 +12,8 @@ from torch import optim
 from torch.utils.data import Dataset
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
-from pprint import pprint
+import numpy
+import random
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 device = torch.device('cpu')
@@ -89,7 +91,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 100
+        self._early_stop_epochs = 300
 
         self._result_dict = {}
         self._train_counter = 0
@@ -157,9 +159,13 @@ class MLP(BuildingBlock):
         best_avg_loss = math.inf
         best_weights = {}
 
+        # Eliminate randomness
+        generator = torch.Generator()
+        generator.manual_seed(0)
+
         # initializing the torch dataloaders for training and validation
-        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
-        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
+        train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=False, worker_init_fn=seed_worker, generator=generator)
+        val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=False, worker_init_fn=seed_worker, generator=generator)
 
         max_epochs = 50000
         # iterate through max epochs
@@ -279,6 +285,10 @@ class MLP(BuildingBlock):
                 }
         return weight_dict
 
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    numpy.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 
 class Feedforward:

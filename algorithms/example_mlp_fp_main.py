@@ -31,7 +31,9 @@ from algorithms.persistance import save_to_json
 from copy import deepcopy
 from tqdm.contrib.concurrent import process_map
 from functools import reduce
-
+import torch
+import random
+import numpy
 
 
 def enough_calls(dict, max): 
@@ -42,7 +44,7 @@ def enough_calls(dict, max):
     
     
 class FalseAlertContainer:
-    def __init__(self, alarm, alarm_recording_list, ngram_length, thread_aware, window_length = 0) -> None:
+    def __init__(self, alarm, alarm_recording_list, ngram_length, window_length, thread_aware) -> None:
         self.alarm = alarm
         self.alarm_recording_list = alarm_recording_list
         self.window_length = window_length
@@ -190,7 +192,7 @@ if __name__ == '__main__':
 
     # scenarios orderd by training data size asc
     # 0 - 14    
-    select_scenario_number = 1
+    select_scenario_number = 0
     scenario_names = [
         "CVE-2017-7529",
         "CVE-2014-0160",
@@ -260,6 +262,15 @@ if __name__ == '__main__':
     # som = Som(concat)
 
     ####################################### MLP - Specs ##################################
+    
+    # Stopping Randomness
+    torch.manual_seed(0)
+    random.seed(0)
+    numpy.random.seed(0)
+    torch.use_deterministic_algorithms(True)
+    
+    
+    
     ngram_length = 5
     w2v_vector_size = 5
     w2v_window_size = 10
@@ -269,6 +280,7 @@ if __name__ == '__main__':
     batch_size = 256
     epochs = 1000
     learning_rate = 0.003
+    window_length = 10
         
     syscall = SyscallName()
     inte = IntEmbedding(syscall)
@@ -294,7 +306,7 @@ if __name__ == '__main__':
         learning_rate
     )   
     
-    stream = StreamSum(mlp, thread_aware, window_length=100)
+    stream = StreamSum(mlp, thread_aware, window_length = window_length)
         
     decision_engine = stream
     ####################################### MLP - Specs - End ##############################
@@ -362,7 +374,10 @@ if __name__ == '__main__':
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
     
-    pprint(f"Train_counter_before: {mlp._train_counter}")
+    first_train_counter = mlp._train_counter
+    first_length_train_set = len(mlp._training_set)
+    pprint(f"Train_counter_before: {first_train_counter}, train-set-length: {first_length_train_set}")
+    
     
     # Bestimme Schwellenwert
     ids.determine_threshold()
@@ -371,8 +386,9 @@ if __name__ == '__main__':
     results = performance.get_results()
     pprint(results)
 
-    # pprint(mlp._result_dict.values())
 
+    pprint(mlp._result_dict.values())
+ 
     #print("At evaluation:")
     # Preparing results
     algorithm_name = "mlp"
@@ -397,7 +413,7 @@ if __name__ == '__main__':
     # Generate alarms - care, the save_to_json takes care that the results-folder was created.
     with open(f"results/alarms_{config_name}_{lid_ds_version[select_lid_ds_version_number]}_{scenario_names[select_scenario_number]}.json", 'w') as jsonfile:
         json.dump(performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)
-    
+           
     # -----------------        This will be my personal space right here        ------------------------------- 
     false_alarm_list = [alarm for alarm in performance.alarms.alarms if not alarm.correct]
     #pprint(false_alarm_list)
@@ -413,7 +429,7 @@ if __name__ == '__main__':
 
     containerList = []
     for alarm in false_alarm_list: 
-        containerList.append(FalseAlertContainer(alarm, false_alarm_recording_list, ngram_length, thread_aware))
+        containerList.append(FalseAlertContainer(alarm, false_alarm_recording_list, ngram_length, window_length, thread_aware))
     
     if platform in ['win32', 'cygwin']:
         max_workers = 4 # Musste das begrenzen da mir sonst alles abschmierte
@@ -421,7 +437,7 @@ if __name__ == '__main__':
         max_workers = min(32, os.cpu_count() + 4)
     start = time()
     pprint("Playing back false positive alarms:")
-    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1, max_workers = 4)
+    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 20, max_workers = max_workers)
     
     #pprint(alarm_results)
     
@@ -448,21 +464,35 @@ if __name__ == '__main__':
         exit(f'{play_back_count_alarms} played back alarms led to playing back zero false alarms. Program stops.')
     
     
-    #pprint("All Artifical Recordings:")
-    #pprint(all_recordings)
-
+    pprint("All Artifical Recordings:")
+    pprint(all_recordings)
+    
 
     # Jetzt verändere ich den DataLoader:
     dataloader.set_retraining_data(all_recordings)
     #dataloader.set_revalidation_data(all_recordings)
     
     # Und generiere das IDS nochmal völlig neu.
-    #intEmbedding = IntEmbedding()
-    #ngram = Ngram([intEmbedding], thread_aware, ngram_length)
-    #stide = Stide(ngram, window_length=window_length)
+    syscall = SyscallName()
+    inte = IntEmbedding(syscall)
+        
+    w2v = W2VEmbedding(word=inte,
+                       vector_size=w2v_vector_size,
+                       window_size=w2v_window_size,
+                       epochs=epochs,
+                       thread_aware=thread_aware)
     
-    # Resetting train_counter
-    mlp._train_counter = 0
+    ngram = Ngram([w2v], thread_aware, ngram_length + 1) 
+    select = Select(ngram, 0, (ngram_length * w2v_vector_size)) 
+    mlp_new = MLP(select,
+        ohe,
+        hidden_size,
+        hidden_layers,
+        batch_size,
+        learning_rate)
+    
+    decision_engine = StreamSum(mlp_new, thread_aware, window_length)
+    
     
     ids_retrained = IDS(data_loader=dataloader,
             resulting_building_block=decision_engine,
@@ -470,7 +500,7 @@ if __name__ == '__main__':
             plot_switch=False)
 
 
-    pprint(f"Train_counter_with_retraining: {mlp._train_counter}")
+    pprint(f"Additional Training examples: {mlp_new._train_counter - first_train_counter}, additional Uniques: {len(mlp_new._training_set) - first_length_train_set}")
     
     # Cleaning dataloader for performance issues. Deepcopy is probably the thing which slows down the whole execution.
     dataloader.unload_retraining_data()
