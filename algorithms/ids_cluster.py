@@ -11,7 +11,11 @@ from algorithms.decision_engines.ae import AE
 from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
 
+from algorithms.features.impl.mode import Mode
+from algorithms.features.impl.flags import Flags
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.concat import Concat
+from algorithms.features.impl.process_name import ProcessName
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
@@ -69,19 +73,16 @@ if __name__ == '__main__':
     dataloader = dataloader_factory(args.base_path + scenario, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
-    embedding = IntEmbedding()
-    # som_epochs = 1000
-    # embedding = W2VEmbedding(epochs=50,
-                       	     # scenario_path=scenario,
-                       	     # vector_size=embedding_size,
-                       	     # window_size=window_length)
+    syscall_embedding = IntEmbedding()
+    flags = Flags()
+    mode = Mode()
+    process = ProcessName()
+    process_embedding = IntEmbedding(process)
+    concat = Concat([syscall_embedding, mode, flags, process_embedding)
     # # now build ngrams from these integers
-    ngram = Ngram([embedding], thread_aware, ngram_length)
+    ngram = Ngram([concat], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
     de = Stide(ngram, window_length=window_length)
-    # som = Som(ngram, epochs=som_epochs, size=50)
-    # de = AE(input_vector=ngram,
-	    # hidden_size=hidden_size)
 	    	
     ### the IDS    
     ids = IDS(data_loader=dataloader,
