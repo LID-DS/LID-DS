@@ -48,5 +48,6 @@ if [[ $9 == "True" ]]; then
     flags="$flags$return_value_flag"
 fi
 echo $1
-# python ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
-python stide_ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
+python ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
+# python stide_ids_cluster.py -d $1 -s $2 -b $3 -ep $4 -e $5 -n $6 -w $7 $flags
+# python test_map_reduce.py

@@ -66,7 +66,7 @@ if __name__ == '__main__':
     embedding_size = args.embedding_size
     hidden_size = int(math.sqrt(ngram_length * embedding_size))
 
-    dataloader = dataloader_factory(args.base_path, direction=Direction.OPEN)
+    dataloader = dataloader_factory(args.base_path + scenario, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
     embedding = IntEmbedding()
@@ -94,18 +94,20 @@ if __name__ == '__main__':
     ids.determine_threshold()
     # detection
     start = time.time()
-    ids.do_detection()
+    performance = ids.detect()
     end = time.time()
 
     detection_time = (end - start)/60  # in min
 
+    print(detection_time)
     ### print results and plot the anomaly scores
-    results = ids.performance.get_performance()
+    results = performance.get_results()
     pprint(results)
     results['scenario'] = scenario 
     results['ngram'] = ngram_length
     # results['embedding'] = embedding_size
     results['algorithm'] = 'stide'
+    results['window'] = window_length 
     results['detection_time'] = detection_time
-    result_path = 'persistent_data/real_world.json'
+    result_path = 'persistent_data/prallel_test.json'
     save_to_json(results, result_path)
