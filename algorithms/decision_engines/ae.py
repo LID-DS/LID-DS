@@ -42,7 +42,7 @@ class AENetwork(nn.Module):
     """
     the actual autoencoder as torch module
     """
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size):
         super().__init__()        
         self._input_size = input_size
         self._factor = 0.7
@@ -95,12 +95,11 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, hidden_size, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600, early_stopping_epochs=50):
+    def __init__(self, input_vector: BuildingBlock, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600, early_stopping_epochs=50):
         super().__init__()                
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
         self._mode = mode 
-        self._hidden_size = hidden_size
         self._input_size = 0
         self._autoencoder = None 
         self._loss_function = torch.nn.MSELoss()        
@@ -127,12 +126,14 @@ class AE(BuildingBlock):
         
     def fit(self):
         print(f"AE.train_set: {len(self._training_set)}".rjust(27))
-        self._autoencoder = AENetwork(self._input_size ,self._hidden_size).to(device)         
+        self._autoencoder = AENetwork(self._input_size).to(device)         
         self._autoencoder.train()
         self._optimizer = torch.optim.Adam(            
             self._autoencoder.parameters(),
-            lr = 0.01,# lr = 0.001,
-            #weight_decay=0.01
+            lr = 0.001,
+            betas=(0.9,0.999),
+            eps=1e-07,
+            amsgrad=False
         )
         # loss preparation for early stop of training        
         best_avg_val_loss = math.inf
@@ -216,18 +217,21 @@ class AE(BuildingBlock):
             in_t = torch.tensor(input_vector, dtype=torch.float32).to(device) 
             if self._mode == AEMode.LOSS:
                 # calculating the autoencoder:
-                ae_output_t = self._autoencoder(in_t)
+                with torch.no_grad():
+                    ae_output_t = self._autoencoder(in_t)
                 # Calculating the loss function
                 result = self._loss_function(ae_output_t, in_t).item()
             if self._mode == AEMode.HIDDEN:
                 # calculating only the encoder part of the autoencoder:
-                ae_encoder_t = self._autoencoder.encoder(in_t)
+                with torch.no_grad():
+                    ae_encoder_t = self._autoencoder.encoder(in_t)
                 result = tuple(ae_encoder_t.tolist())
             if self._mode == AEMode.LOSS_AND_HIDDEN:
-                # encoder
-                ae_encoder_t = self._autoencoder.encoder(in_t)
-                # decoder
-                ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
+                with torch.no_grad():
+                    # encoder                
+                    ae_encoder_t = self._autoencoder.encoder(in_t)
+                    # decoder
+                    ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
                 # loss:
                 loss = self._loss_function(ae_decoder_t, in_t).item()
                 # hidden:
