@@ -98,7 +98,6 @@ class Performance:
             if anomaly_score <= self._threshold:
                 if self.create_alarms:
                     self.alarms.end_alarm()
-
                 self._cfp_end_normal()
                 self._tn += 1
 
