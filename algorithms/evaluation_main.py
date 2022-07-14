@@ -196,7 +196,7 @@ def parse_cli_arguments():
                                                       'som'], required=True, help='Which algorithm shall perform the detection?')
     parser.add_argument('--play_back_count_alarms', '-p' , choices=['1', '2', '3', 'all'], default='all', help='Number of False Alarms that shall be played back or all.')
     parser.add_argument('--results', '-r', default='results', help='Path for the results of the evaluation')
-    parser.add_argument('--base-path', '-b', default='/work/user/lz603fxao/Material', help='Base path of the LID-DS')
+    parser.add_argument('--base-path', '-b', default='/home/sc.uni-leipzig.de/lz603fxao/Material', help='Base path of the LID-DS')
     parser.add_argument('--config', '-c', choices=['0', '1', '2'], default='0', help='Configuration of the MLP which will be used in this evaluation')
 
 
@@ -428,9 +428,9 @@ if __name__ == '__main__':
     # Preparing results
     
     if args.algorithm == 'stide':
-        config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
+        config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}" # TODO: Kann das raus?
     else: 
-        config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_t_{thread_aware}"
+        config_name = f"algorithm_{args.algorithm}_c_{args.config}_n_{ngram_length}_t_{thread_aware}"
     
     
     # Enrich results with configuration
@@ -442,7 +442,7 @@ if __name__ == '__main__':
     # results['thread_aware'] = thread_aware
     results['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results['scenario'] =  args.version + "/" + args.scenario
-    result_path = f"{args.results}/results_{args.algorithm}_{args.version}_{args.scenario}.json"
+    result_path = f"{args.results}/results_{args.algorithm}_config_{args.config}_{args.version}_{args.scenario}.json"
 
     # Saving results
     save_to_json(results, result_path) 
@@ -490,8 +490,8 @@ if __name__ == '__main__':
         exit(f'Percentage of {args.play_back_percentage} playing back alarms lead to playing back zero false alarms. Program stops.')
     
     
-    pprint("All Artifical Recordings:")
-    pprint(all_recordings)
+    # pprint("All Artifical Recordings:")
+    # pprint(all_recordings)
 
     # Das hier einfach auf set_revalidation_data(all_recordings) setzen um die Trainingsbeispiele bei den Validierungsdaten einzufügen. TODO´(Muss noch evaluiert werden). 
     dataloader.set_retraining_data(all_recordings)
@@ -689,7 +689,7 @@ if __name__ == '__main__':
 
     # Preparing second results
     algorithm_name = f"{args.algorithm}_retrained"
-    config_name = f"algorithm_{algorithm_name}_p_{args.play_back_count_alarms}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
+    config_name = f"algorithm_{algorithm_name}_c_{args.config}_p_{args.play_back_count_alarms}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
     # Enrich results with configuration 
     results_new['algorithm'] = algorithm_name
@@ -702,7 +702,7 @@ if __name__ == '__main__':
     # results_new['thread_aware'] = thread_aware
     results_new['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results_new['scenario'] =  args.version + "/" + args.scenario
-    result_new_path = f"{args.results}/results_{algorithm_name}_p_{args.play_back_count_alarms}_{args.version}_{args.scenario}.json"
+    result_new_path = f"{args.results}/results_{algorithm_name}_config_{args.config}_p_{args.play_back_count_alarms}_{args.version}_{args.scenario}.json"
 
     # Save results
     save_to_json(results_new, result_new_path) 

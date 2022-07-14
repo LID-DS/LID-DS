@@ -1,9 +1,6 @@
-from dbm import gnu
 import math
 from pprint import pprint
-import re
 import torch
-import collections
 
 import numpy as np
 import torch.nn as nn
@@ -18,6 +15,8 @@ import random
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 device = torch.device('cpu')
+use_independent_validation = False
+
 
 class MLPDataset(Dataset):
     """
@@ -124,11 +123,14 @@ class MLP(BuildingBlock):
             Args:
                 syscall: the current system call object
         """
-        input_vector = self.input_vector.get_result(syscall)
-        output_label = self.output_label.get_result(syscall)
+        if use_independent_validation:
+            pass
+        else: 
+            input_vector = self.input_vector.get_result(syscall)
+            output_label = self.output_label.get_result(syscall)
 
-        if input_vector is not None and output_label is not None:
-            self._validation_set.add((input_vector, output_label))
+            if input_vector is not None and output_label is not None:
+                self._validation_set.add((input_vector, output_label))
 
     def fit(self):
         """
@@ -151,32 +153,34 @@ class MLP(BuildingBlock):
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
         optimizer = optim.Adam(self._model.parameters(), lr=self.learning_rate)  # using Adam optimizer
 
-        # building the datasets
-        train_data_set = MLPDataset(self._training_set) 
-        val_data_set = MLPDataset(self._validation_set)
 
+        
+        if use_independent_validation:
+            # building the datasets
+            train_set_length = len(self._training_set)
+            interrupt_counter = round(0.8 * train_set_length) # Aufteilung 80 % Training, 20% Verify
+        
+            # # Sets for train-phase
+            final_train_set = set()
+            final_val_set = set()
+        
+            counter = 0
+            for tuple in self._training_set:
+                if counter >= interrupt_counter: 
+                    final_val_set.add(tuple)
+                else: 
+                    final_train_set.add(tuple)
+                counter += 1
+        
+            pprint(f"Train_set_length was {train_set_length}, is now splitted in {len(final_train_set)} parts training and {len(final_val_set)} parts verify.")
 
-        # # building the datasets
-        # train_set_length = len(self._training_set)
-        # interrupt_counter = round(0.8 * train_set_length) # Aufteilung 80 % Training, 20% Verify
+            train_data_set = MLPDataset(final_train_set) 
+            val_data_set = MLPDataset(final_val_set)
         
-        # # Sets for train-phase
-        # final_train_set = set()
-        # final_val_set = set()
-        
-        # counter = 0
-        # for tuple in self._training_set:
-        #     counter += 1
-        #     if counter >= interrupt_counter: 
-        #         final_val_set.add(tuple)
-        #     else: 
-        #         final_train_set.add(tuple)
-        
-        # pprint(f"Train_set_length was {train_set_length}, is now splitted in {len(final_train_set)} parts training and {len(final_val_set)} parts verify.")
-        
-        # train_data_set = MLPDataset(final_train_set) 
-        # val_data_set = MLPDataset(final_val_set)
-
+        else: 
+            # building the datasets
+            train_data_set = MLPDataset(self._training_set) 
+            val_data_set = MLPDataset(self._validation_set)
 
         # loss preparation for early stop of training
         epochs_since_last_best = 0
@@ -235,12 +239,12 @@ class MLP(BuildingBlock):
                 stop_early = True
 
             # refreshs the fancy printing
-            bar.set_description(f"fit MLP {epochs_since_last_best}|{best_avg_loss:.5f}".rjust(27), refresh=True)
+            # bar.set_description(f"fit MLP {epochs_since_last_best}|{best_avg_loss:.5f}".rjust(27), refresh=True)
 
             if stop_early:
                 break
         
-        print(f"stop at {bar.n} epochs".rjust(27))        
+        print(f"stop at {bar.n} epochs with average loss of {best_avg_loss:.5f}".rjust(27))        
         self._result_dict = {}
         self._model.load_state_dict(best_weights)
         self._model.eval()
