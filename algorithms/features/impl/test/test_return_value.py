@@ -79,40 +79,16 @@ def test_return_value():
                             '1 0 30244 Process-2 30532 read > addr=7FE87C0D6F28 op=129(FUTEX_PRIVATE_FLAG|FUTEX_WAKE) val=1')
 
     syscalls = [
-        syscall_1,
-        syscall_2,
-        syscall_3,
-        syscall_4,
-        syscall_5,
-        syscall_6,
-        syscall_7,
-        syscall_8,
-        syscall_9,
-        syscall_10,
-        syscall_11,
-        syscall_12,
-        syscall_13,
-        syscall_14,
-        syscall_15,
-        syscall_16,
-        syscall_17,
-        syscall_18,
-        syscall_19,
-        syscall_20,
-        syscall_21,
-        syscall_22,
-        syscall_23,
-        syscall_24,
-        syscall_25,
-        syscall_26,
-        syscall_27,
-        syscall_28,
-        syscall_29,
-        syscall_30,
-        syscall_31
-    ]
+        syscall_1, syscall_2, syscall_3, syscall_4,
+        syscall_5, syscall_6, syscall_7, syscall_8,
+        syscall_9, syscall_10, syscall_11, syscall_12,
+        syscall_13, syscall_14, syscall_15, syscall_16,
+        syscall_17, syscall_18, syscall_19, syscall_20,
+        syscall_21, syscall_22, syscall_23, syscall_24,
+        syscall_25, syscall_26, syscall_27, syscall_28,
+        syscall_29, syscall_30, syscall_31 ]
 
-    rv = ReturnValue()
+    rv = ReturnValue(min_max_scaling=True)
     for syscall in syscalls:
         rv.train_on(syscall)
 
@@ -155,3 +131,19 @@ def test_return_value():
     assert rv._calculate(syscall_34) == 0/rv._max['read']
     assert rv._calculate(syscall_35) == 5/rv._max['read']
     assert rv._calculate(syscall_36) == 0/rv._max['read']
+
+    rv = ReturnValue(min_max_scaling=False)
+    for syscall in syscalls:
+        rv.train_on(syscall)
+    assert rv._calculate(syscall_25) == 268
+    assert rv._calculate(syscall_26) == 576
+    assert rv._calculate(syscall_27) == 570
+    assert rv._calculate(syscall_28) == 118
+    assert rv._calculate(syscall_29) == 118
+    assert rv._calculate(syscall_30) == 612
+    assert rv._calculate(syscall_31) == 400
+    assert rv._calculate(syscall_32) == 10  # write not in training data 
+    assert rv._calculate(syscall_33) == 0 
+    assert rv._calculate(syscall_34) == 0
+    assert rv._calculate(syscall_35) == 5
+    assert rv._calculate(syscall_36) == 0
