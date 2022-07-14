@@ -2,6 +2,7 @@ import sys
 import math
 from pprint import pprint
 from algorithms.decision_engines.ae import AE
+from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
@@ -30,20 +31,16 @@ if __name__ == '__main__':
     ### features
     thread_aware = True
     ngram_length = 7
-    enc_size = 10
     
     ### building blocks  
     name = SyscallName()
     inte = IntEmbedding(name)
-    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=20,epochs=50)
-    #ohe = OneHotEncoding(inte)
-    ngram = Ngram(feature_list = [w2v],thread_aware = thread_aware,ngram_length = ngram_length)
-    ae = AE(ngram,batch_size=256,max_training_time=20,early_stopping_epochs=10000)
-    stream_window = StreamSum(ae,False,100)
+    ngram = Ngram([inte],True,ngram_length)
+    stide = Stide(input=ngram,window_length=100)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=stream_window,
+            resulting_building_block=stide,
             create_alarms=False,
             plot_switch=False)
 
@@ -52,8 +49,9 @@ if __name__ == '__main__':
     ids.determine_threshold()
     # detection
     results = ids.detect_parallel().get_results()
+    #results = ids.detect().get_results()
 
-    print(ae._cached_results.cache_info())
+    #print(ae._cached_results.cache_info())
 
     pprint(results)
 

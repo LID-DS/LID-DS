@@ -100,13 +100,17 @@ class IDS:
         Returns:
             Performance: performance object
         """
+        
         performance = Performance(self._create_alarms)
         performance.set_threshold(self.threshold)
 
+        # is this necessary?
+        performance.new_recording(recording)
+
         # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
-        if recording.metadata()["exploit"]:
-            performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
-            performance._exploit_count += 1
+        #if recording.metadata()["exploit"]:
+        #    performance.set_exploit_time(recording.metadata()["time"]["exploit"][0]["absolute"])
+        #    performance._exploit_count += 1
 
         for syscall in recording.syscalls():
             anomaly_score = self._final_bb.get_result(syscall)
@@ -168,5 +172,5 @@ class IDS:
             final_performance = reduce(Performance.add_with_alarms, performance_list)
         else:
             final_performance = reduce(Performance.add, performance_list)
-        
+
         return final_performance
