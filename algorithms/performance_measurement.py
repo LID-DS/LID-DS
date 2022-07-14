@@ -99,9 +99,6 @@ class Performance:
                 if self.create_alarms:
                     self.alarms.end_alarm()
 
-                if self._cfp_counter_wait_normal is True:
-                    if self._current_cfp_stream_normal > 0:
-                        print(syscall.recording_path)
                 self._cfp_end_normal()
                 self._tn += 1
 
@@ -143,9 +140,6 @@ class Performance:
 
         # ending cfa before new recording starts
         self._cfp_end_exploits()
-        if self._cfp_counter_wait_normal is True:
-            if self._current_cfp_stream_normal > 0:
-                print(recording.metadata()["name"])
         self._cfp_end_normal()
 
         # ending alarm
