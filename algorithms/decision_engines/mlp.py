@@ -91,7 +91,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 300
+        self._early_stop_epochs = 5000
 
         self._result_dict = {}
         self._train_counter = 0

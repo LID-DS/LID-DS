@@ -10,11 +10,6 @@ from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
 from algorithms.decision_engines.mlp import MLP
 from algorithms.features.impl.stream_sum import StreamSum
-#from algorithms.features.impl.Sum import Sum
-#from algorithms.features.impl.Difference import Difference
-#from algorithms.features.impl.Minimum import Minimum
-#from algorithms.features.impl.PositionInFile import PositionInFile
-#from algorithms.features.impl.PositionalEncoding import PositionalEncoding
 from algorithms.features.impl.select import Select
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
@@ -184,7 +179,7 @@ def construct_Syscalls(container: FalseAlertContainer) -> FalseAlertResult:
 # Take the entrypoint etc. from the existing example_main.py
 if __name__ == '__main__':
 
-    select_lid_ds_version_number = 1
+    select_lid_ds_version_number = 0
     lid_ds_version = [
         "LID-DS-2019", 
         "LID-DS-2021"
@@ -270,35 +265,65 @@ if __name__ == '__main__':
     torch.use_deterministic_algorithms(True)
     
     
-    
-    ngram_length = 5
-    w2v_vector_size = 5
-    w2v_window_size = 10
-    thread_aware = True
+    ##################################### Konfig 1 ######################################### 
+    # ngram_length = 5
+    # w2v_vector_size = 5
+    # w2v_window_size = 10
+    # thread_aware = True
+    # hidden_size = 64
+    # hidden_layers = 3
+    # batch_size = 256
+    # epochs = 1000
+    # learning_rate = 0.003
+    # window_length = 10
+        
+    ##################################### Konfig 2 #########################################   
+    # ngram_length = 3
+    # w2v_vector_size = 8
+    # w2v_window_size = 15
+    # thread_aware = True
+    # hidden_size = 32
+    # hidden_layers = 4
+    # batch_size = 256
+    # epochs = 1000
+    # learning_rate = 0.003
+    # window_length = 100       
+        
+    ##################################### Konfig 3 ######################################### 
+    ngram_length = 7
     hidden_size = 64
     hidden_layers = 3
     batch_size = 256
-    epochs = 1000
     learning_rate = 0.003
-    window_length = 10
+    window_length = 5
+    thread_aware = True
+
+       
+        
+        
+
         
     syscall = SyscallName()
     inte = IntEmbedding(syscall)
-        
-    w2v = W2VEmbedding(word=inte,
-                       vector_size=w2v_vector_size,
-                       window_size=w2v_window_size,
-                       epochs=epochs,
-                       thread_aware=thread_aware)
+    
+    # w2v = W2VEmbedding(word=inte,
+    #                    vector_size=w2v_vector_size,
+    #                    window_size=w2v_window_size,
+    #                    epochs=epochs,
+    #                    thread_aware=thread_aware)
     
     # Soll künstlich ein Ngram der Größe NGram-Length+1 erzeugen, damit wir NGram-Length viele Inputs haben und das Letzte als Output haben.
     # Das OHE nimmt ja immer den aktuellen Call und dadurch ist der aktuelle Call das Label, während Select nur die vorigen N-Gram-Length viele Systemcalls reingibt. 
-    ngram = Ngram([w2v], thread_aware, ngram_length + 1) 
-    select = Select(ngram, 0, (ngram_length * w2v_vector_size)) 
+    # ngram_w2v = Ngram([w2v], thread_aware, ngram_length + 1) 
+    # select_w2v = Select(ngram_w2v, 0, (ngram_length * w2v_vector_size)) 
 
     ohe = OneHotEncoding(inte)
-        
-    mlp = MLP(select,
+    ngram_ohe = Ngram([ohe], thread_aware, ngram_length + 1)
+    select_ohe = Select(ngram_ohe, 0, (ngram_length * 23)) # 23 is the ohe_vector-size. Aber da die erst in der Initialisierung festgestellt wird, kann ich die vorher nicht angeben.
+    
+    
+    
+    mlp = MLP(select_ohe,
         ohe,
         hidden_size,
         hidden_layers,
@@ -374,6 +399,8 @@ if __name__ == '__main__':
             create_alarms=generate_and_write_alarms,
             plot_switch=False)
     
+    
+    # pprint(ohe.get_embedding_size())
     first_train_counter = mlp._train_counter
     first_length_train_set = len(mlp._training_set)
     pprint(f"Train_counter_before: {first_train_counter}, train-set-length: {first_length_train_set}")
@@ -437,7 +464,7 @@ if __name__ == '__main__':
         max_workers = min(32, os.cpu_count() + 4)
     start = time()
     pprint("Playing back false positive alarms:")
-    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 20, max_workers = max_workers)
+    alarm_results = process_map(construct_Syscalls, containerList, chunksize = 50, max_workers = max_workers) # TODO: Viel größere Chunksize benutzen - 100 hat nicht gut funktioniert, war wohl zu viel.
     
     #pprint(alarm_results)
     
@@ -465,7 +492,7 @@ if __name__ == '__main__':
     
     
     pprint("All Artifical Recordings:")
-    pprint(all_recordings)
+    #pprint(all_recordings)
     
 
     # Jetzt verändere ich den DataLoader:
@@ -476,15 +503,20 @@ if __name__ == '__main__':
     syscall = SyscallName()
     inte = IntEmbedding(syscall)
         
-    w2v = W2VEmbedding(word=inte,
-                       vector_size=w2v_vector_size,
-                       window_size=w2v_window_size,
-                       epochs=epochs,
-                       thread_aware=thread_aware)
+    # w2v = W2VEmbedding(word=inte,
+    #                    vector_size=w2v_vector_size,
+    #                    window_size=w2v_window_size,
+    #                    epochs=epochs,
+    #                    thread_aware=thread_aware)
     
-    ngram = Ngram([w2v], thread_aware, ngram_length + 1) 
-    select = Select(ngram, 0, (ngram_length * w2v_vector_size)) 
-    mlp_new = MLP(select,
+    # ngram = Ngram([w2v], thread_aware, ngram_length + 1) 
+    # select = Select(ngram, 0, (ngram_length * w2v_vector_size)) 
+    
+    ohe = OneHotEncoding(inte)
+    ngram_ohe = Ngram([ohe], thread_aware, ngram_length + 1)
+    select_ohe = Select(ngram_ohe, 0, (ngram_length * 23)) # 23 is the ohe_vector-size. Aber da die erst in der Initialisierung festgestellt wird, kann ich die vorher nicht angeben.
+    
+    mlp_new = MLP(select_ohe,
         ohe,
         hidden_size,
         hidden_layers,

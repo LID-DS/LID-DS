@@ -32,12 +32,12 @@ class DataPreprocessor:
         self._baseBB = BuildingBlock()        
         self._graph_dot = dot_to_str(self._building_block_manager.to_dot())
         graph_url_encode = urllib.parse.quote(self._graph_dot)        
-        url = f"https://dreampuf.github.io/GraphvizOnline/#{graph_url_encode}"
-        print("-------------------------------")
-        print("Dependency Graph Visualisation:")
-        print(url)
+        # url = f"https://dreampuf.github.io/GraphvizOnline/#{graph_url_encode}"
+        # print("-------------------------------")
+        # print("Dependency Graph Visualisation:")
+        # print(url)
         #print(self._graph_dot)
-        print("-------------------------------")
+        # print("-------------------------------")
 
         self._prepare_and_fit_building_blocks()
 
