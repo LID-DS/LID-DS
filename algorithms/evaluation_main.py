@@ -9,7 +9,9 @@ import sys
 from argparse import ArgumentParser
 
 from numpy import vectorize
-
+import torch
+import numpy
+import random
 #from algorithms.decision_engines.ae import AE, AEMode
 #from algorithms.decision_engines.som import Som
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
@@ -193,7 +195,7 @@ def parse_cli_arguments():
                                                       'ae',
                                                       'som'], required=True, help='Which algorithm shall perform the detection?')
     parser.add_argument('--play_back_count_alarms', '-p' , choices=['1', '2', '3', 'all'], default='all', help='Number of False Alarms that shall be played back or all.')
-    parser.add_argument('--results', '-r', default='/results', help='Path for the results of the evaluation')
+    parser.add_argument('--results', '-r', default='results', help='Path for the results of the evaluation')
     parser.add_argument('--base-path', '-b', default='/work/user/lz603fxao/Material', help='Base path of the LID-DS')
     parser.add_argument('--config', '-c', choices=['0', '1', '2'], default='0', help='Configuration of the MLP which will be used in this evaluation')
 
@@ -225,6 +227,12 @@ if __name__ == '__main__':
     
     #--------------------
         
+    # Stopping Randomness
+    torch.manual_seed(0)
+    random.seed(0)
+    numpy.random.seed(0)
+    torch.use_deterministic_algorithms(True)
+        
     # Configuration of chosen decision engines. Choosing best configs in M. Grimmers Paper.
     ####################
     
@@ -255,7 +263,7 @@ if __name__ == '__main__':
             hidden_size = 64
             hidden_layers = 3
             batch_size = 256
-            epochs = 1000
+            w2v_epochs = 1000
             learning_rate = 0.003
             window_length = 10
 
@@ -266,7 +274,7 @@ if __name__ == '__main__':
             settings_dict['hidden_size'] = hidden_size
             settings_dict['hidden_layers'] = hidden_layers
             settings_dict['batch_size'] = batch_size
-            settings_dict['epochs'] = epochs
+            settings_dict['w2v_epochs'] = w2v_epochs
             settings_dict['learning_rate'] = learning_rate
             settings_dict['window_length'] = window_length
 
@@ -276,7 +284,7 @@ if __name__ == '__main__':
             w2v = W2VEmbedding(word=inte,
                            vector_size=w2v_vector_size,
                            window_size=w2v_window_size,
-                           epochs=epochs,
+                           epochs=w2v_epochs,
                            thread_aware=thread_aware)
             
             ohe = OneHotEncoding(inte)
@@ -306,7 +314,7 @@ if __name__ == '__main__':
             hidden_size = 32
             hidden_layers = 4
             batch_size = 256
-            epochs = 1000
+            w2v_epochs = 1000
             learning_rate = 0.003
             window_length = 100       
             
@@ -318,7 +326,7 @@ if __name__ == '__main__':
             settings_dict['hidden_size'] = hidden_size
             settings_dict['hidden_layers'] = hidden_layers
             settings_dict['batch_size'] = batch_size
-            settings_dict['epochs'] = epochs
+            settings_dict['w2v_epochs'] = w2v_epochs
             settings_dict['learning_rate'] = learning_rate
             settings_dict['window_length'] = window_length
             
@@ -330,7 +338,7 @@ if __name__ == '__main__':
             w2v = W2VEmbedding(word=inte,
                            vector_size=w2v_vector_size,
                            window_size=w2v_window_size,
-                           epochs=epochs,
+                           epochs=w2v_epochs,
                            thread_aware=thread_aware)
             
             ohe = OneHotEncoding(inte)
@@ -417,8 +425,6 @@ if __name__ == '__main__':
     results = performance.get_results()
     pprint(results)
     
-    net_weigths = decision_engine.get_net_weights()
-    pprint(net_weigths)
     # Preparing results
     
     if args.algorithm == 'stide':
@@ -466,7 +472,7 @@ if __name__ == '__main__':
         counter += 1    
     
     pprint("Playing back false positive alarms:")
-    false_alarm_results = process_map(construct_Syscalls, containerList, chunksize = 1)
+    false_alarm_results = process_map(construct_Syscalls, containerList, chunksize = 50)
     final_playback = reduce(FalseAlertResult.add, false_alarm_results)
     
     
@@ -518,7 +524,7 @@ if __name__ == '__main__':
             hidden_size = 64
             hidden_layers = 3
             batch_size = 256
-            epochs = 1000
+            w2v_epochs = 1000
             learning_rate = 0.003
             window_length = 10
 
@@ -529,7 +535,7 @@ if __name__ == '__main__':
             settings_dict['hidden_size'] = hidden_size
             settings_dict['hidden_layers'] = hidden_layers
             settings_dict['batch_size'] = batch_size
-            settings_dict['epochs'] = epochs
+            settings_dict['w2v_epochs'] = w2v_epochs
             settings_dict['learning_rate'] = learning_rate
             settings_dict['window_length'] = window_length
 
@@ -539,7 +545,7 @@ if __name__ == '__main__':
             w2v = W2VEmbedding(word=inte,
                            vector_size=w2v_vector_size,
                            window_size=w2v_window_size,
-                           epochs=epochs,
+                           epochs=w2v_epochs,
                            thread_aware=thread_aware)
             
             ohe = OneHotEncoding(inte)
@@ -569,7 +575,7 @@ if __name__ == '__main__':
             hidden_size = 32
             hidden_layers = 4
             batch_size = 256
-            epochs = 1000
+            w2v_epochs = 1000
             learning_rate = 0.003
             window_length = 100       
             
@@ -581,7 +587,7 @@ if __name__ == '__main__':
             settings_dict['hidden_size'] = hidden_size
             settings_dict['hidden_layers'] = hidden_layers
             settings_dict['batch_size'] = batch_size
-            settings_dict['epochs'] = epochs
+            settings_dict['w2v_epochs'] = w2v_epochs
             settings_dict['learning_rate'] = learning_rate
             settings_dict['window_length'] = window_length
             
@@ -593,7 +599,7 @@ if __name__ == '__main__':
             w2v = W2VEmbedding(word=inte,
                            vector_size=w2v_vector_size,
                            window_size=w2v_window_size,
-                           epochs=epochs,
+                           epochs=w2v_epochs,
                            thread_aware=thread_aware)
             
             ohe = OneHotEncoding(inte)

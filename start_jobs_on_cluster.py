@@ -14,6 +14,8 @@ if __name__ == '__main__':
     number_of_play_back_alarms = [#'1', '2', '3',
                                   'all']
     
+    mlp_configs = ['0', '1', '2']
+    
     result_path = 'results_find_mlp_fps'
     
     for version in lid_ds_versions:
@@ -50,11 +52,12 @@ if __name__ == '__main__':
            ]    
            
         for play_back_count in number_of_play_back_alarms:
-            for scenario in scenario_names:
-                command = f'sbatch --job-name=exp_{job_counter:03} evaluation.job {version} {scenario} {algorithm} {play_back_count} {result_path}'
-                os.system(command)
-        
-                job_counter += 1
+            for config in mlp_configs:
+                for scenario in scenario_names:
+                    command = f'sbatch --job-name=exp_{job_counter:03} evaluation.job {version} {scenario} {algorithm} {config} {play_back_count} {result_path}'
+                    os.system(command)
+
+                    job_counter += 1
         
 
         

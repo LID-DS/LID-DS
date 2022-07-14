@@ -1,5 +1,6 @@
 from dbm import gnu
 import math
+from pprint import pprint
 import re
 import torch
 import collections
@@ -151,8 +152,31 @@ class MLP(BuildingBlock):
         optimizer = optim.Adam(self._model.parameters(), lr=self.learning_rate)  # using Adam optimizer
 
         # building the datasets
-        train_data_set = MLPDataset(self._training_set)
+        train_data_set = MLPDataset(self._training_set) 
         val_data_set = MLPDataset(self._validation_set)
+
+
+        # # building the datasets
+        # train_set_length = len(self._training_set)
+        # interrupt_counter = round(0.8 * train_set_length) # Aufteilung 80 % Training, 20% Verify
+        
+        # # Sets for train-phase
+        # final_train_set = set()
+        # final_val_set = set()
+        
+        # counter = 0
+        # for tuple in self._training_set:
+        #     counter += 1
+        #     if counter >= interrupt_counter: 
+        #         final_val_set.add(tuple)
+        #     else: 
+        #         final_train_set.add(tuple)
+        
+        # pprint(f"Train_set_length was {train_set_length}, is now splitted in {len(final_train_set)} parts training and {len(final_val_set)} parts verify.")
+        
+        # train_data_set = MLPDataset(final_train_set) 
+        # val_data_set = MLPDataset(final_val_set)
+
 
         # loss preparation for early stop of training
         epochs_since_last_best = 0
