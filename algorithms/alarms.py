@@ -7,7 +7,7 @@ class Alarms:
         """
             Manages Alarms for IDS Run
         """
-        self.alarms = []
+        self.alarm_list = []
         self.current_alarm = None
         self._alarm_dict = None
 
@@ -38,7 +38,7 @@ class Alarms:
             saves current alarm to alarm list
         """
         if self.current_alarm is not None:
-            self.alarms.append(self.current_alarm)
+            self.alarm_list.append(self.current_alarm)
             self.current_alarm = None
 
     def get_alarms_as_dict(self):
