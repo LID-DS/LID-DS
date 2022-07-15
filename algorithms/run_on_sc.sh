@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --time=100:00:00
-#SBATCH --partition=polaris-job
+#SBATCH --partition=galaxy-job
 #SBATCH --mem=20G
 #SBATCH --nodes=1
 

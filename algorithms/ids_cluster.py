@@ -78,7 +78,7 @@ if __name__ == '__main__':
     mode = Mode()
     process = ProcessName()
     process_embedding = IntEmbedding(process)
-    concat = Concat([syscall_embedding, mode, flags, process_embedding)
+    concat = Concat([syscall_embedding, mode, flags, process_embedding])
     # # now build ngrams from these integers
     ngram = Ngram([concat], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
