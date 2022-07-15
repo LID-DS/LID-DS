@@ -496,6 +496,14 @@ if __name__ == '__main__':
     # Das hier einfach auf set_revalidation_data(all_recordings) setzen um die Trainingsbeispiele bei den Validierungsdaten einzufügen. TODO´(Muss noch evaluiert werden). 
     dataloader.set_retraining_data(all_recordings)
 
+    ### Rebuilding IDS
+    
+    # Resetting seeds
+    torch.manual_seed(0)
+    random.seed(0)
+    numpy.random.seed(0)
+
+
     ##### New BBs ############
     # STIDE
     if args.algorithm == 'stide':

@@ -14,9 +14,13 @@ if __name__ == '__main__':
     number_of_play_back_alarms = [#'1', '2', '3',
                                   'all']
     
-    mlp_configs = ['0', '1', '2']
+    mlp_configs = [
+        '0',
+        '1',
+        '2'
+        ]
     
-    result_path = 'results_find_mlp_fps'
+    result_path = 'results_mlp_configs'
     
     for version in lid_ds_versions:
         if version=="LID-DS-2019":
