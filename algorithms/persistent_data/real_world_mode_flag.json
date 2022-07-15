@@ -1,0 +1,145 @@
+[ {
+    "performance": {
+      "true_positives": 1189,
+      "false_positives": 2459,
+      "true_negatives": 2945193460,
+      "false_negatives": 5558422,
+      "correct_alarm_count": 2,
+      "exploit_count": 2,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 23,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.08,
+      "precision_with_syscalls": 0.0008126777732629012,
+      "f1_cfa": 0.14814814814814814
+    },
+    "config": {
+      "scenario": "real_world/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 1640.5112896283467
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 2146,
+      "false_positives": 13595,
+      "true_negatives": 2945182324,
+      "false_negatives": 5557465,
+      "correct_alarm_count": 2,
+      "exploit_count": 2,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 36,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.05263157894736842,
+      "precision_with_syscalls": 0.0001470912701331176,
+      "f1_cfa": 0.1
+    },
+    "config": {
+      "scenario": "real_world/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 1649.0660741647084
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 8873,
+      "true_negatives": 2945185606,
+      "false_negatives": 5559607,
+      "correct_alarm_count": 0,
+      "exploit_count": 2,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 30,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "real_world/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 1820.5224821805955
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 622,
+      "false_positives": 2969,
+      "true_negatives": 2945191510,
+      "false_negatives": 5558985,
+      "correct_alarm_count": 2,
+      "exploit_count": 2,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 20,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.09090909090909091,
+      "precision_with_syscalls": 0.0006731740154830024,
+      "f1_cfa": 0.16666666666666669
+    },
+    "config": {
+      "scenario": "real_world/",
+      "ngram": 5,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 1830.3312357902528
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2960,
+      "true_negatives": 2945190079,
+      "false_negatives": 5559603,
+      "correct_alarm_count": 0,
+      "exploit_count": 2,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 33,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "real_world/",
+      "ngram": 7,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 2004.257697812716
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 14625,
+      "true_negatives": 2945178414,
+      "false_negatives": 5559603,
+      "correct_alarm_count": 0,
+      "exploit_count": 2,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 52,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "real_world/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 2004.9648218075433
+    }
+  }
+]

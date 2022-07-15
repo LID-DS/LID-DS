@@ -1,0 +1,3386 @@
+[
+  {
+    "performance": {
+      "true_positives": 18124,
+      "false_positives": 375,
+      "true_negatives": 1230587,
+      "false_negatives": 176757,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.31444241316270566,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 1.550472859541575
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 62580,
+      "false_positives": 1223,
+      "true_negatives": 1229739,
+      "false_negatives": 132301,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.12329749103942653,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 1.5583545049031575
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 17954,
+      "false_positives": 387,
+      "true_negatives": 1228761,
+      "false_negatives": 176927,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9717514124293786,
+      "precision_with_syscalls": 0.3076923076923077,
+      "f1_cfa": 0.98005698005698
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 1.6534788529078166
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 62238,
+      "false_positives": 1235,
+      "true_negatives": 1227913,
+      "false_negatives": 132643,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9717514124293786,
+      "precision_with_syscalls": 0.12224591329068941,
+      "f1_cfa": 0.98005698005698
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 1.6332786957422891
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 17612,
+      "false_positives": 380,
+      "true_negatives": 1226954,
+      "false_negatives": 177269,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9717514124293786,
+      "precision_with_syscalls": 0.3115942028985507,
+      "f1_cfa": 0.98005698005698
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 1.7676475008328756
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 111,
+      "false_positives": 1090,
+      "true_negatives": 2848882,
+      "false_negatives": 286118,
+      "correct_alarm_count": 2,
+      "exploit_count": 100,
+      "detection_rate": 0.02,
+      "consecutive_false_positives_normal": 16,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.02,
+      "precision_with_cfa": 0.1111111111111111,
+      "precision_with_syscalls": 0.0018315018315018315,
+      "f1_cfa": 0.03389830508474577
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 3.390648090839386
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2259,
+      "true_negatives": 2847713,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 3.3615208864212036
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 61898,
+      "false_positives": 1230,
+      "true_negatives": 1226104,
+      "false_negatives": 132983,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9717514124293786,
+      "precision_with_syscalls": 0.12268188302425106,
+      "f1_cfa": 0.98005698005698
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 1.8805593887964884
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 732,
+      "true_negatives": 2847540,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 7,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 3.5263953804969788
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2320,
+      "true_negatives": 2845952,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 3.7011718352635703
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 708,
+      "true_negatives": 2845864,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 3.817419159412384
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2698,
+      "true_negatives": 2843874,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 3.950153430302938
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 388,
+      "false_positives": 1416,
+      "true_negatives": 2683242,
+      "false_negatives": 2096129,
+      "correct_alarm_count": 6,
+      "exploit_count": 98,
+      "detection_rate": 0.061224489795918366,
+      "consecutive_false_positives_normal": 24,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.061224489795918366,
+      "precision_with_cfa": 0.2,
+      "precision_with_syscalls": 0.004219409282700422,
+      "f1_cfa": 0.09375
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 4.996980822086334
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 9,
+      "false_positives": 548,
+      "true_negatives": 3402193,
+      "false_negatives": 1509790,
+      "correct_alarm_count": 1,
+      "exploit_count": 155,
+      "detection_rate": 0.0064516129032258064,
+      "consecutive_false_positives_normal": 12,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 0.0064516129032258064,
+      "precision_with_cfa": 0.07142857142857142,
+      "precision_with_syscalls": 0.0018214936247723133,
+      "f1_cfa": 0.011834319526627219
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 5.124021999041239
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1009385,
+      "false_positives": 2478,
+      "true_negatives": 3400263,
+      "false_negatives": 500414,
+      "correct_alarm_count": 143,
+      "exploit_count": 155,
+      "detection_rate": 0.9225806451612903,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9225806451612903,
+      "precision_with_cfa": 0.9727891156462585,
+      "precision_with_syscalls": 0.0545593285005723,
+      "f1_cfa": 0.9470198675496688
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 5.119541231791178
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1866929,
+      "false_positives": 17571,
+      "true_negatives": 2667087,
+      "false_negatives": 229588,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 24,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.7948717948717948,
+      "precision_with_syscalls": 0.005264945652173913,
+      "f1_cfa": 0.8651162790697675
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 5.216148094336192
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 35043,
+      "false_positives": 2266,
+      "true_negatives": 2680708,
+      "false_negatives": 2061474,
+      "correct_alarm_count": 81,
+      "exploit_count": 98,
+      "detection_rate": 0.826530612244898,
+      "consecutive_false_positives_normal": 35,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.826530612244898,
+      "precision_with_cfa": 0.6982758620689655,
+      "precision_with_syscalls": 0.034512143161482746,
+      "f1_cfa": 0.7570093457943925
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 5.252438493569692
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 1328,
+      "true_negatives": 3399123,
+      "false_negatives": 1509799,
+      "correct_alarm_count": 0,
+      "exploit_count": 155,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 36,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 5.61148517926534
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1877535,
+      "false_positives": 28873,
+      "true_negatives": 2654101,
+      "false_negatives": 218982,
+      "correct_alarm_count": 94,
+      "exploit_count": 98,
+      "detection_rate": 0.9591836734693877,
+      "consecutive_false_positives_normal": 50,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9591836734693877,
+      "precision_with_cfa": 0.6527777777777778,
+      "precision_with_syscalls": 0.0032450719784582454,
+      "f1_cfa": 0.7768595041322315
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 5.503167378902435
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 258,
+      "false_positives": 1478,
+      "true_negatives": 3398973,
+      "false_negatives": 1509541,
+      "correct_alarm_count": 3,
+      "exploit_count": 155,
+      "detection_rate": 0.01935483870967742,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.01935483870967742,
+      "precision_with_cfa": 0.42857142857142855,
+      "precision_with_syscalls": 0.002025658338960162,
+      "f1_cfa": 0.037037037037037035
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 5.789052736759186
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 15925,
+      "false_positives": 1769,
+      "true_negatives": 2679521,
+      "false_negatives": 2080592,
+      "correct_alarm_count": 67,
+      "exploit_count": 98,
+      "detection_rate": 0.6836734693877551,
+      "consecutive_false_positives_normal": 36,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 0.6836734693877551,
+      "precision_with_cfa": 0.6442307692307693,
+      "precision_with_syscalls": 0.03649237472766884,
+      "f1_cfa": 0.6633663366336634
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 5.663327356179555
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 2,
+      "false_positives": 776,
+      "true_negatives": 3397385,
+      "false_negatives": 1509797,
+      "correct_alarm_count": 1,
+      "exploit_count": 155,
+      "detection_rate": 0.0064516129032258064,
+      "consecutive_false_positives_normal": 25,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0064516129032258064,
+      "precision_with_cfa": 0.038461538461538464,
+      "precision_with_syscalls": 0.001287001287001287,
+      "f1_cfa": 0.011049723756906077
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 5.8505597392718
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 402,
+      "true_negatives": 3397759,
+      "false_negatives": 1509799,
+      "correct_alarm_count": 0,
+      "exploit_count": 155,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 3,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 5.994979667663574
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1864372,
+      "false_positives": 15913,
+      "true_negatives": 2665377,
+      "false_negatives": 232145,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 36,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.7209302325581395,
+      "precision_with_syscalls": 0.005810321129576409,
+      "f1_cfa": 0.8193832599118942
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 5.963544754187266
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 42918,
+      "false_positives": 81,
+      "true_negatives": 13502394,
+      "false_negatives": 1714677,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9927536231884058,
+      "precision_with_syscalls": 0.6284403669724771,
+      "f1_cfa": 0.9963636363636363
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 13.893033277988433
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 15659,
+      "false_positives": 900,
+      "true_negatives": 12748199,
+      "false_negatives": 1088796,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9074074074074074,
+      "precision_with_syscalls": 0.09819639278557114,
+      "f1_cfa": 0.9514563106796117
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 14.683213460445405
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 96047,
+      "false_positives": 11502,
+      "true_negatives": 12737597,
+      "false_negatives": 1008408,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 15,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8596491228070176,
+      "precision_with_syscalls": 0.008448275862068965,
+      "f1_cfa": 0.9245283018867925
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 14.630322992801666
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 35208,
+      "false_positives": 833,
+      "true_negatives": 12746608,
+      "false_negatives": 1069247,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 13,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8828828828828829,
+      "precision_with_syscalls": 0.10526315789473684,
+      "f1_cfa": 0.937799043062201
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 14.980705531438192
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 274919,
+      "false_positives": 3120,
+      "true_negatives": 13499355,
+      "false_negatives": 1482676,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9647887323943662,
+      "precision_with_syscalls": 0.0420632483880872,
+      "f1_cfa": 0.982078853046595
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 15.706663072109222
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 113827,
+      "false_positives": 4517,
+      "true_negatives": 12742924,
+      "false_negatives": 990628,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 7,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9245283018867925,
+      "precision_with_syscalls": 0.02123510292524377,
+      "f1_cfa": 0.9607843137254902
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 15.361827127138774
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 107550,
+      "false_positives": 3026,
+      "true_negatives": 12742757,
+      "false_negatives": 996905,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9333333333333333,
+      "precision_with_syscalls": 0.03137003841229193,
+      "f1_cfa": 0.9655172413793104
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 14.391007566452027
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 32113,
+      "false_positives": 119,
+      "true_negatives": 12745664,
+      "false_negatives": 1072342,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9514563106796117,
+      "precision_with_syscalls": 0.45161290322580644,
+      "f1_cfa": 0.9751243781094527
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 15.956433471043905
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 272116,
+      "false_positives": 8488,
+      "true_negatives": 13492045,
+      "false_negatives": 1485479,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 22,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.85625,
+      "precision_with_syscalls": 0.01588405797101449,
+      "f1_cfa": 0.9225589225589226
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 16.677247281869253
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 46084,
+      "false_positives": 764,
+      "true_negatives": 13499769,
+      "false_negatives": 1711511,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 13,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9072847682119205,
+      "precision_with_syscalls": 0.15205327413984462,
+      "f1_cfa": 0.9513888888888888
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 16.79300044377645
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 261633,
+      "false_positives": 13083,
+      "true_negatives": 13485508,
+      "false_negatives": 1495962,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 36,
+      "consecutive_false_positives_exploits": 3,
+      "recall": 1.0,
+      "precision_with_cfa": 0.7784090909090909,
+      "precision_with_syscalls": 0.010363086232980333,
+      "f1_cfa": 0.8753993610223643
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 15.838985550403596
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 38840,
+      "false_positives": 1196,
+      "true_negatives": 13497395,
+      "false_negatives": 1718755,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 27,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8353658536585366,
+      "precision_with_syscalls": 0.10277569392348088,
+      "f1_cfa": 0.9102990033222591
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 17.756936943531038
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 113587,
+      "false_positives": 274,
+      "true_negatives": 15592917,
+      "false_negatives": 1705728,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 6,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9035087719298246,
+      "precision_with_syscalls": 0.27320954907161804,
+      "f1_cfa": 0.9493087557603688
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 18.699424831072488
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 215218,
+      "false_positives": 8388,
+      "true_negatives": 14348966,
+      "false_negatives": 4361873,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 12,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8849557522123894,
+      "precision_with_syscalls": 0.0117813383600377,
+      "f1_cfa": 0.9389671361502347
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 19.790047748883566
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 83855,
+      "false_positives": 1,
+      "true_negatives": 15591466,
+      "false_negatives": 1735460,
+      "correct_alarm_count": 97,
+      "exploit_count": 103,
+      "detection_rate": 0.941747572815534,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.941747572815534,
+      "precision_with_cfa": 0.9897959183673469,
+      "precision_with_syscalls": 0.9897959183673469,
+      "f1_cfa": 0.9651741293532338
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 19.35713005065918
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 10292,
+      "false_positives": 12705,
+      "true_negatives": 14342993,
+      "false_negatives": 4566799,
+      "correct_alarm_count": 15,
+      "exploit_count": 100,
+      "detection_rate": 0.15,
+      "consecutive_false_positives_normal": 20,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.15,
+      "precision_with_cfa": 0.42857142857142855,
+      "precision_with_syscalls": 0.0011792452830188679,
+      "f1_cfa": 0.2222222222222222
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 19.687421890099845
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 257653,
+      "false_positives": 791,
+      "true_negatives": 15592400,
+      "false_negatives": 1561662,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9903846153846154,
+      "precision_with_syscalls": 0.11521252796420582,
+      "f1_cfa": 0.9951690821256038
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 20.17804727156957
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 131295,
+      "false_positives": 192,
+      "true_negatives": 15591275,
+      "false_negatives": 1688020,
+      "correct_alarm_count": 98,
+      "exploit_count": 103,
+      "detection_rate": 0.9514563106796117,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 0.9514563106796117,
+      "precision_with_cfa": 0.98989898989899,
+      "precision_with_syscalls": 0.33793103448275863,
+      "f1_cfa": 0.9702970297029703
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 19.93221850792567
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 27343,
+      "false_positives": 611,
+      "true_negatives": 14356743,
+      "false_negatives": 4549748,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 27,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.78125,
+      "precision_with_syscalls": 0.14064697609001406,
+      "f1_cfa": 0.8771929824561403
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 20.63698393503825
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 67090,
+      "false_positives": 0,
+      "true_negatives": 15589743,
+      "false_negatives": 1752225,
+      "correct_alarm_count": 97,
+      "exploit_count": 103,
+      "detection_rate": 0.941747572815534,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.941747572815534,
+      "precision_with_cfa": 1.0,
+      "precision_with_syscalls": 1.0,
+      "f1_cfa": 0.97
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 20.25580811103185
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 457,
+      "false_positives": 336,
+      "true_negatives": 14355362,
+      "false_negatives": 4576634,
+      "correct_alarm_count": 16,
+      "exploit_count": 100,
+      "detection_rate": 0.16,
+      "consecutive_false_positives_normal": 23,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.16,
+      "precision_with_cfa": 0.41025641025641024,
+      "precision_with_syscalls": 0.045454545454545456,
+      "f1_cfa": 0.23021582733812948
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 21.046571258703867
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 0,
+      "true_negatives": 14354042,
+      "false_negatives": 4577091,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0,
+      "precision_with_syscalls": 0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 21.446598287423452
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 115937,
+      "false_positives": 0,
+      "true_negatives": 15589743,
+      "false_negatives": 1703378,
+      "correct_alarm_count": 98,
+      "exploit_count": 103,
+      "detection_rate": 0.9514563106796117,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9514563106796117,
+      "precision_with_cfa": 1.0,
+      "precision_with_syscalls": 1.0,
+      "f1_cfa": 0.9751243781094527
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 20.615497962633768
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 10222,
+      "false_positives": 12191,
+      "true_negatives": 14341851,
+      "false_negatives": 4566869,
+      "correct_alarm_count": 15,
+      "exploit_count": 100,
+      "detection_rate": 0.15,
+      "consecutive_false_positives_normal": 19,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 0.15,
+      "precision_with_cfa": 0.42857142857142855,
+      "precision_with_syscalls": 0.0012289038177945273,
+      "f1_cfa": 0.2222222222222222
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 22.277476692199706
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 242884,
+      "false_positives": 914,
+      "true_negatives": 87163268,
+      "false_negatives": 9716283,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.09772951628825272,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 90.26662575801214
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 77406,
+      "false_positives": 14,
+      "true_negatives": 87164168,
+      "false_negatives": 9881761,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.8761061946902655,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 93.27838530540467
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 79562,
+      "false_positives": 145,
+      "true_negatives": 87162395,
+      "false_negatives": 9879605,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9611650485436893,
+      "precision_with_syscalls": 0.4057377049180328,
+      "f1_cfa": 0.9801980198019802
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 95.08222719430924
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 253619,
+      "false_positives": 1881,
+      "true_negatives": 87160659,
+      "false_negatives": 9705548,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 2,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9801980198019802,
+      "precision_with_syscalls": 0.05,
+      "f1_cfa": 0.99
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 97.2367030262947
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 81838,
+      "false_positives": 171,
+      "true_negatives": 87160727,
+      "false_negatives": 9877329,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9428571428571428,
+      "precision_with_syscalls": 0.36666666666666664,
+      "f1_cfa": 0.9705882352941176
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 104.39715990225474
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 253215,
+      "false_positives": 3073,
+      "true_negatives": 87157825,
+      "false_negatives": 9705952,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9611650485436893,
+      "precision_with_syscalls": 0.03121059268600252,
+      "f1_cfa": 0.9801980198019802
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 104.47369848092397
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 210775,
+      "false_positives": 6479,
+      "true_negatives": 174084504,
+      "false_negatives": 19439756,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.9117647058823529,
+      "precision_with_syscalls": 0.014150943396226415,
+      "f1_cfa": 0.9300000000000002
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 184.7558111190796
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 22355,
+      "false_positives": 273,
+      "true_negatives": 174090710,
+      "false_negatives": 19628176,
+      "correct_alarm_count": 84,
+      "exploit_count": 98,
+      "detection_rate": 0.8571428571428571,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.8571428571428571,
+      "precision_with_cfa": 0.9333333333333333,
+      "precision_with_syscalls": 0.23529411764705882,
+      "f1_cfa": 0.8936170212765957
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 194.607106479009
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 24184,
+      "false_positives": 163,
+      "true_negatives": 174089194,
+      "false_negatives": 19626347,
+      "correct_alarm_count": 88,
+      "exploit_count": 98,
+      "detection_rate": 0.8979591836734694,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.8979591836734694,
+      "precision_with_cfa": 0.946236559139785,
+      "precision_with_syscalls": 0.350597609561753,
+      "f1_cfa": 0.9214659685863874
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 5,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 194.64011225700378
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 105320,
+      "false_positives": 0,
+      "true_negatives": 174089357,
+      "false_negatives": 19545211,
+      "correct_alarm_count": 40,
+      "exploit_count": 98,
+      "detection_rate": 0.40816326530612246,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.40816326530612246,
+      "precision_with_cfa": 1.0,
+      "precision_with_syscalls": 1.0,
+      "f1_cfa": 0.5797101449275363
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 5,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 201.83772119283677
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 22160,
+      "false_positives": 63,
+      "true_negatives": 174087668,
+      "false_negatives": 19628371,
+      "correct_alarm_count": 56,
+      "exploit_count": 98,
+      "detection_rate": 0.5714285714285714,
+      "consecutive_false_positives_normal": 2,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.5714285714285714,
+      "precision_with_cfa": 0.9655172413793104,
+      "precision_with_syscalls": 0.47058823529411764,
+      "f1_cfa": 0.717948717948718
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 7,
+      "window": 100,
+      "algorithm": "stide",
+      "detection_time": 208.39675161043803
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 120287,
+      "false_positives": 0,
+      "true_negatives": 174087731,
+      "false_negatives": 19530244,
+      "correct_alarm_count": 30,
+      "exploit_count": 98,
+      "detection_rate": 0.30612244897959184,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.30612244897959184,
+      "precision_with_cfa": 1.0,
+      "precision_with_syscalls": 1.0,
+      "f1_cfa": 0.46874999999999994
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 7,
+      "window": 1000,
+      "algorithm": "stide",
+      "detection_time": 209.93296095132828
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 30337,
+      "false_positives": 490,
+      "true_negatives": 1230472,
+      "false_negatives": 164544,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.2598187311178248,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 1.5291717966397604
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 39710,
+      "false_positives": 590,
+      "true_negatives": 1230372,
+      "false_negatives": 155171,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.22572178477690288,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 1.5784674366315206
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 46754,
+      "false_positives": 690,
+      "true_negatives": 1230272,
+      "false_negatives": 148127,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.19953596287703015,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 1.5484726190567017
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 52023,
+      "false_positives": 790,
+      "true_negatives": 1230172,
+      "false_negatives": 142858,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.1787941787941788,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 1.5675049901008606
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 55846,
+      "false_positives": 890,
+      "true_negatives": 1230072,
+      "false_negatives": 139035,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.16195856873822975,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 1.5636170427004497
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 58773,
+      "false_positives": 990,
+      "true_negatives": 1229972,
+      "false_negatives": 136108,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.14802065404475043,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 1.5255781213442485
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 60905,
+      "false_positives": 1090,
+      "true_negatives": 1229872,
+      "false_negatives": 133976,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.13629160063391443,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 1.5542962193489074
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 62092,
+      "false_positives": 1190,
+      "true_negatives": 1229772,
+      "false_negatives": 132789,
+      "correct_alarm_count": 172,
+      "exploit_count": 174,
+      "detection_rate": 0.9885057471264368,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9885057471264368,
+      "precision_with_cfa": 0.9772727272727273,
+      "precision_with_syscalls": 0.1262848751835536,
+      "f1_cfa": 0.9828571428571428
+    },
+    "config": {
+      "scenario": "CVE-2017-7529/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 1.5263960401217143
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 1547,
+      "true_negatives": 2848425,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 3.382794471581777
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 3126,
+      "true_negatives": 2846846,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 10,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 3.3306975245475767
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2248,
+      "true_negatives": 2847724,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 3.4072754899660747
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 63,
+      "false_positives": 2627,
+      "true_negatives": 2847345,
+      "false_negatives": 286166,
+      "correct_alarm_count": 1,
+      "exploit_count": 100,
+      "detection_rate": 0.01,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.01,
+      "precision_with_cfa": 0.14285714285714285,
+      "precision_with_syscalls": 0.000380517503805175,
+      "f1_cfa": 0.018691588785046728
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 3.511462434132894
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 1374,
+      "true_negatives": 2848598,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 3,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 3.4438614010810853
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2128,
+      "true_negatives": 2847844,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 3.35898152589798
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 1667,
+      "true_negatives": 2848305,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 3.4989372571309407
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 2076,
+      "true_negatives": 2847896,
+      "false_negatives": 286229,
+      "correct_alarm_count": 0,
+      "exploit_count": 100,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 3,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2014-0160/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 3.3768757780392966
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 14366,
+      "false_positives": 3737,
+      "true_negatives": 2680921,
+      "false_negatives": 2082151,
+      "correct_alarm_count": 59,
+      "exploit_count": 98,
+      "detection_rate": 0.6020408163265306,
+      "consecutive_false_positives_normal": 24,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.6020408163265306,
+      "precision_with_cfa": 0.7108433734939759,
+      "precision_with_syscalls": 0.01554267650158061,
+      "f1_cfa": 0.6519337016574586
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 5.170455062389374
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 990937,
+      "false_positives": 5830,
+      "true_negatives": 2678828,
+      "false_negatives": 1105580,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 25,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.788135593220339,
+      "precision_with_syscalls": 0.015701502616917103,
+      "f1_cfa": 0.861111111111111
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 5.1854257702827455
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1837165,
+      "false_positives": 7903,
+      "true_negatives": 2676755,
+      "false_negatives": 259352,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 22,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.808695652173913,
+      "precision_with_syscalls": 0.011630815407703853,
+      "f1_cfa": 0.8732394366197184
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 5.099509596824646
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1250,
+      "false_positives": 2184,
+      "true_negatives": 3400557,
+      "false_negatives": 1508549,
+      "correct_alarm_count": 8,
+      "exploit_count": 155,
+      "detection_rate": 0.05161290322580645,
+      "consecutive_false_positives_normal": 15,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.05161290322580645,
+      "precision_with_cfa": 0.34782608695652173,
+      "precision_with_syscalls": 0.0036496350364963502,
+      "f1_cfa": 0.0898876404494382
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 5.199756197134653
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 22,
+      "false_positives": 924,
+      "true_negatives": 3401817,
+      "false_negatives": 1509777,
+      "correct_alarm_count": 1,
+      "exploit_count": 155,
+      "detection_rate": 0.0064516129032258064,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0064516129032258064,
+      "precision_with_cfa": 0.1,
+      "precision_with_syscalls": 0.001081081081081081,
+      "f1_cfa": 0.01212121212121212
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 5.291392334302267
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 0,
+      "false_positives": 1114,
+      "true_negatives": 3401627,
+      "false_negatives": 1509799,
+      "correct_alarm_count": 0,
+      "exploit_count": 155,
+      "detection_rate": 0.0,
+      "consecutive_false_positives_normal": 8,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.0,
+      "precision_with_cfa": 0.0,
+      "precision_with_syscalls": 0.0,
+      "f1_cfa": 0
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 5.402935552597046
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1850777,
+      "false_positives": 9803,
+      "true_negatives": 2674855,
+      "false_negatives": 245740,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 21,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.8157894736842105,
+      "precision_with_syscalls": 0.009397736459175424,
+      "f1_cfa": 0.8773584905660378
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 5.249718630313874
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 16428,
+      "false_positives": 2808,
+      "true_negatives": 3399933,
+      "false_negatives": 1493371,
+      "correct_alarm_count": 62,
+      "exploit_count": 155,
+      "detection_rate": 0.4,
+      "consecutive_false_positives_normal": 13,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.4,
+      "precision_with_cfa": 0.8266666666666667,
+      "precision_with_syscalls": 0.021602787456445994,
+      "f1_cfa": 0.5391304347826087
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 5.314115540186564
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1856686,
+      "false_positives": 11554,
+      "true_negatives": 2673104,
+      "false_negatives": 239831,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 21,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.8157894736842105,
+      "precision_with_syscalls": 0.00798488881256976,
+      "f1_cfa": 0.8773584905660378
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 5.205596113204956
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1859936,
+      "false_positives": 13166,
+      "true_negatives": 2671492,
+      "false_negatives": 236581,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 21,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.8157894736842105,
+      "precision_with_syscalls": 0.007014103627724565,
+      "f1_cfa": 0.8773584905660378
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 5.150235370794932
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 522267,
+      "false_positives": 1588,
+      "true_negatives": 3401153,
+      "false_negatives": 987532,
+      "correct_alarm_count": 138,
+      "exploit_count": 155,
+      "detection_rate": 0.8903225806451613,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.8903225806451613,
+      "precision_with_cfa": 0.965034965034965,
+      "precision_with_syscalls": 0.07995365005793743,
+      "f1_cfa": 0.9261744966442954
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 5.223134104410807
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1862765,
+      "false_positives": 14610,
+      "true_negatives": 2670048,
+      "false_negatives": 233752,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 22,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.808695652173913,
+      "precision_with_syscalls": 0.00632523974699041,
+      "f1_cfa": 0.8732394366197184
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 5.136190537611643
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 947763,
+      "false_positives": 1549,
+      "true_negatives": 3401192,
+      "false_negatives": 562036,
+      "correct_alarm_count": 143,
+      "exploit_count": 155,
+      "detection_rate": 0.9225806451612903,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9225806451612903,
+      "precision_with_cfa": 0.9727891156462585,
+      "precision_with_syscalls": 0.08451536643026004,
+      "f1_cfa": 0.9470198675496688
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 5.298315819104513
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 8997,
+      "false_positives": 1439,
+      "true_negatives": 3401302,
+      "false_negatives": 1500802,
+      "correct_alarm_count": 29,
+      "exploit_count": 155,
+      "detection_rate": 0.1870967741935484,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.1870967741935484,
+      "precision_with_cfa": 0.8529411764705882,
+      "precision_with_syscalls": 0.019754768392370572,
+      "f1_cfa": 0.30687830687830686
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 5.480140133698781
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 1865035,
+      "false_positives": 16056,
+      "true_negatives": 2668602,
+      "false_negatives": 231482,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 23,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.8017241379310345,
+      "precision_with_syscalls": 0.005758870518298346,
+      "f1_cfa": 0.8691588785046729
+    },
+    "config": {
+      "scenario": "Bruteforce_CWE-307/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 5.260829357306163
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 993369,
+      "false_positives": 1983,
+      "true_negatives": 3400758,
+      "false_negatives": 516430,
+      "correct_alarm_count": 143,
+      "exploit_count": 155,
+      "detection_rate": 0.9225806451612903,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9225806451612903,
+      "precision_with_cfa": 0.9662162162162162,
+      "precision_with_syscalls": 0.06726246472248354,
+      "f1_cfa": 0.9438943894389439
+    },
+    "config": {
+      "scenario": "CVE-2012-2122/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 5.448238333066304
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 25151,
+      "false_positives": 1901,
+      "true_negatives": 12747198,
+      "false_negatives": 1079304,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9074074074074074,
+      "precision_with_syscalls": 0.04902451225612806,
+      "f1_cfa": 0.9514563106796117
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 13.538649241129557
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 53001,
+      "false_positives": 5054,
+      "true_negatives": 12744045,
+      "false_negatives": 1051454,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 10,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8990825688073395,
+      "precision_with_syscalls": 0.019021739130434784,
+      "f1_cfa": 0.9468599033816426
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 13.600556254386902
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 34452,
+      "false_positives": 2901,
+      "true_negatives": 12746198,
+      "false_negatives": 1070003,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9074074074074074,
+      "precision_with_syscalls": 0.03267755918639546,
+      "f1_cfa": 0.9514563106796117
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 13.832078762849171
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 79566,
+      "false_positives": 8653,
+      "true_negatives": 12740446,
+      "false_negatives": 1024889,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 13,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.875,
+      "precision_with_syscalls": 0.011198720146268997,
+      "f1_cfa": 0.9333333333333333
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 13.626124715805053
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 43903,
+      "false_positives": 3954,
+      "true_negatives": 12745145,
+      "false_negatives": 1060552,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 10,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8990825688073395,
+      "precision_with_syscalls": 0.02418558736426456,
+      "f1_cfa": 0.9468599033816426
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 14.222319805622101
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 87898,
+      "false_positives": 10053,
+      "true_negatives": 12739046,
+      "false_negatives": 1016557,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 13,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.875,
+      "precision_with_syscalls": 0.009654221258989262,
+      "f1_cfa": 0.9333333333333333
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 14.082237005233765
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 61972,
+      "false_positives": 6163,
+      "true_negatives": 12742936,
+      "false_negatives": 1042483,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 11,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8909090909090909,
+      "precision_with_syscalls": 0.01565245168503434,
+      "f1_cfa": 0.9423076923076923
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 14.387596201896667
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 235643,
+      "false_positives": 2287,
+      "true_negatives": 13500188,
+      "false_negatives": 1521952,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9647887323943662,
+      "precision_with_syscalls": 0.056518151815181515,
+      "f1_cfa": 0.982078853046595
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 14.477054170767467
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 70904,
+      "false_positives": 7364,
+      "true_negatives": 12741735,
+      "false_negatives": 1033551,
+      "correct_alarm_count": 98,
+      "exploit_count": 98,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 11,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8909090909090909,
+      "precision_with_syscalls": 0.013133208255159476,
+      "f1_cfa": 0.9423076923076923
+    },
+    "config": {
+      "scenario": "CVE-2019-5418/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 14.636827576160432
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 160060,
+      "false_positives": 1088,
+      "true_negatives": 13501387,
+      "false_negatives": 1597535,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 3,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9785714285714285,
+      "precision_with_syscalls": 0.11183673469387755,
+      "f1_cfa": 0.9891696750902527
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 15.23286050160726
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 77423,
+      "false_positives": 244,
+      "true_negatives": 13502231,
+      "false_negatives": 1680172,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 2,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9856115107913669,
+      "precision_with_syscalls": 0.35958005249343833,
+      "f1_cfa": 0.9927536231884058
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 15.497343639532724
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 133290,
+      "false_positives": 788,
+      "true_negatives": 13501687,
+      "false_negatives": 1624305,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 3,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9785714285714285,
+      "precision_with_syscalls": 0.14810810810810812,
+      "f1_cfa": 0.9891696750902527
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 15.470099445184072
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 186531,
+      "false_positives": 1427,
+      "true_negatives": 13501048,
+      "false_negatives": 1571064,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9716312056737588,
+      "precision_with_syscalls": 0.08759590792838874,
+      "f1_cfa": 0.9856115107913669
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 15.375668899218242
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 105952,
+      "false_positives": 488,
+      "true_negatives": 13501987,
+      "false_negatives": 1651643,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 3,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9785714285714285,
+      "precision_with_syscalls": 0.2192,
+      "f1_cfa": 0.9891696750902527
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 15.6524067680041
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 212061,
+      "false_positives": 1827,
+      "true_negatives": 13500648,
+      "false_negatives": 1545534,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 4,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9716312056737588,
+      "precision_with_syscalls": 0.06975560081466395,
+      "f1_cfa": 0.9856115107913669
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 15.430178074042002
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 256742,
+      "false_positives": 2720,
+      "true_negatives": 13499755,
+      "false_negatives": 1500853,
+      "correct_alarm_count": 137,
+      "exploit_count": 137,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 5,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9647887323943662,
+      "precision_with_syscalls": 0.047952397619880995,
+      "f1_cfa": 0.982078853046595
+    },
+    "config": {
+      "scenario": "CVE-2018-3760/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 15.419307577610017
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 140641,
+      "false_positives": 345,
+      "true_negatives": 15592846,
+      "false_negatives": 1678674,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9809523809523809,
+      "precision_with_syscalls": 0.22991071428571427,
+      "f1_cfa": 0.9903846153846153
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 18.0241650501887
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 129198,
+      "false_positives": 448,
+      "true_negatives": 15592743,
+      "false_negatives": 1690117,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 2,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9716981132075472,
+      "precision_with_syscalls": 0.1869328493647913,
+      "f1_cfa": 0.985645933014354
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 18.277037632465362
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 171934,
+      "false_positives": 362,
+      "true_negatives": 15592829,
+      "false_negatives": 1647381,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9903846153846154,
+      "precision_with_syscalls": 0.221505376344086,
+      "f1_cfa": 0.9951690821256038
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 18.08945240974426
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 150837,
+      "false_positives": 262,
+      "true_negatives": 15592929,
+      "false_negatives": 1668478,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9903846153846154,
+      "precision_with_syscalls": 0.2821917808219178,
+      "f1_cfa": 0.9951690821256038
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 18.355989813804626
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 178455,
+      "false_positives": 379,
+      "true_negatives": 15592812,
+      "false_negatives": 1640860,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 2,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9809523809523809,
+      "precision_with_syscalls": 0.21369294605809128,
+      "f1_cfa": 0.9903846153846153
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 18.27733370065689
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 218659,
+      "false_positives": 752,
+      "true_negatives": 15592439,
+      "false_negatives": 1600656,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9903846153846154,
+      "precision_with_syscalls": 0.12046783625730995,
+      "f1_cfa": 0.9951690821256038
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 18.192185215155284
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 238070,
+      "false_positives": 791,
+      "true_negatives": 15592400,
+      "false_negatives": 1581245,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9903846153846154,
+      "precision_with_syscalls": 0.11521252796420582,
+      "f1_cfa": 0.9951690821256038
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 18.154162077109017
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 198963,
+      "false_positives": 652,
+      "true_negatives": 15592539,
+      "false_negatives": 1620352,
+      "correct_alarm_count": 103,
+      "exploit_count": 103,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 0,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9903846153846154,
+      "precision_with_syscalls": 0.13642384105960265,
+      "f1_cfa": 0.9951690821256038
+    },
+    "config": {
+      "scenario": "PHP_CWE-434/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 18.450031121571858
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 119014,
+      "false_positives": 3099,
+      "true_negatives": 14354255,
+      "false_negatives": 4458077,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 11,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8928571428571429,
+      "precision_with_syscalls": 0.03125976867771178,
+      "f1_cfa": 0.9433962264150945
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 18.687571140130363
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 190543,
+      "false_positives": 7076,
+      "true_negatives": 14350278,
+      "false_negatives": 4386548,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 12,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8849557522123894,
+      "precision_with_syscalls": 0.013935340022296544,
+      "f1_cfa": 0.9389671361502347
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 18.773228828112284
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 54651,
+      "false_positives": 271,
+      "true_negatives": 14357083,
+      "false_negatives": 4522440,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 8,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9259259259259259,
+      "precision_with_syscalls": 0.2695417789757412,
+      "f1_cfa": 0.9615384615384615
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 19.236327242851257
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 46454,
+      "false_positives": 2435,
+      "true_negatives": 14354919,
+      "false_negatives": 4530637,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 44,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.6944444444444444,
+      "precision_with_syscalls": 0.03944773175542406,
+      "f1_cfa": 0.819672131147541
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 19.466327818234763
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 75351,
+      "false_positives": 976,
+      "true_negatives": 14356378,
+      "false_negatives": 4501740,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 9,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9174311926605505,
+      "precision_with_syscalls": 0.09293680297397769,
+      "f1_cfa": 0.9569377990430622
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 19.912330663204195
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 166196,
+      "false_positives": 5776,
+      "true_negatives": 14351578,
+      "false_negatives": 4410895,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 12,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8849557522123894,
+      "precision_with_syscalls": 0.01701837985023826,
+      "f1_cfa": 0.9389671361502347
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 19.613897077242534
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 97523,
+      "false_positives": 1913,
+      "true_negatives": 14355441,
+      "false_negatives": 4479568,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 10,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.9009009009009009,
+      "precision_with_syscalls": 0.04967709885742673,
+      "f1_cfa": 0.947867298578199
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 19.928196088473
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 142200,
+      "false_positives": 4466,
+      "true_negatives": 14352888,
+      "false_negatives": 4434891,
+      "correct_alarm_count": 100,
+      "exploit_count": 100,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 12,
+      "consecutive_false_positives_exploits": 1,
+      "recall": 1.0,
+      "precision_with_cfa": 0.8849557522123894,
+      "precision_with_syscalls": 0.021901007446342532,
+      "f1_cfa": 0.9389671361502347
+    },
+    "config": {
+      "scenario": "SQL_Injection_CWE-89/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 20.459797175725303
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 179351,
+      "false_positives": 514,
+      "true_negatives": 87163668,
+      "false_negatives": 9779816,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.16150081566068517,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 86.66523521741232
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 129427,
+      "false_positives": 214,
+      "true_negatives": 87163968,
+      "false_negatives": 9829740,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.31629392971246006,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 88.98363395929337
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 145775,
+      "false_positives": 314,
+      "true_negatives": 87163868,
+      "false_negatives": 9813392,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.2397094430992736,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 91.61217515071233
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 211356,
+      "false_positives": 714,
+      "true_negatives": 87163468,
+      "false_negatives": 9747811,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.12177121771217712,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 92.07166322867076
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 227420,
+      "false_positives": 814,
+      "true_negatives": 87163368,
+      "false_negatives": 9731747,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.10843373493975904,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 92.05287266174952
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 162569,
+      "false_positives": 414,
+      "true_negatives": 87163768,
+      "false_negatives": 9796598,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.19298245614035087,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 94.40462627410889
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 111527,
+      "false_positives": 114,
+      "true_negatives": 87164068,
+      "false_negatives": 9847640,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.4647887323943662,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 94.82566318114598
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 195448,
+      "false_positives": 614,
+      "true_negatives": 87163568,
+      "false_negatives": 9763719,
+      "correct_alarm_count": 99,
+      "exploit_count": 99,
+      "detection_rate": 1.0,
+      "consecutive_false_positives_normal": 1,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 1.0,
+      "precision_with_cfa": 0.99,
+      "precision_with_syscalls": 0.1388499298737728,
+      "f1_cfa": 0.9949748743718593
+    },
+    "config": {
+      "scenario": "EPS_CWE-434/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 96.11605154275894
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 130067,
+      "false_positives": 3273,
+      "true_negatives": 174087710,
+      "false_negatives": 19520464,
+      "correct_alarm_count": 90,
+      "exploit_count": 98,
+      "detection_rate": 0.9183673469387755,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9183673469387755,
+      "precision_with_cfa": 0.9375,
+      "precision_with_syscalls": 0.026761819803746655,
+      "f1_cfa": 0.9278350515463918
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 600,
+      "algorithm": "stide",
+      "detection_time": 171.78351329167683
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 89915,
+      "false_positives": 2073,
+      "true_negatives": 174088910,
+      "false_negatives": 19560616,
+      "correct_alarm_count": 90,
+      "exploit_count": 98,
+      "detection_rate": 0.9183673469387755,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9183673469387755,
+      "precision_with_cfa": 0.9375,
+      "precision_with_syscalls": 0.04160887656033287,
+      "f1_cfa": 0.9278350515463918
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 400,
+      "algorithm": "stide",
+      "detection_time": 170.53183207909265
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 190582,
+      "false_positives": 5582,
+      "true_negatives": 174085401,
+      "false_negatives": 19459949,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 8,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.9207920792079208,
+      "precision_with_syscalls": 0.016387665198237887,
+      "f1_cfa": 0.934673366834171
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 900,
+      "algorithm": "stide",
+      "detection_time": 172.89919792413713
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 170054,
+      "false_positives": 4782,
+      "true_negatives": 174086201,
+      "false_negatives": 19480477,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 8,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.9207920792079208,
+      "precision_with_syscalls": 0.019076923076923078,
+      "f1_cfa": 0.934673366834171
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 175.57727398077648
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 69196,
+      "false_positives": 1473,
+      "true_negatives": 174089510,
+      "false_negatives": 19581335,
+      "correct_alarm_count": 90,
+      "exploit_count": 98,
+      "detection_rate": 0.9183673469387755,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9183673469387755,
+      "precision_with_cfa": 0.9375,
+      "precision_with_syscalls": 0.05758157389635317,
+      "f1_cfa": 0.9278350515463918
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 300,
+      "algorithm": "stide",
+      "detection_time": 180.095565923055
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 149620,
+      "false_positives": 3982,
+      "true_negatives": 174087001,
+      "false_negatives": 19500911,
+      "correct_alarm_count": 90,
+      "exploit_count": 98,
+      "detection_rate": 0.9183673469387755,
+      "consecutive_false_positives_normal": 8,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9183673469387755,
+      "precision_with_cfa": 0.9183673469387755,
+      "precision_with_syscalls": 0.022102161100196464,
+      "f1_cfa": 0.9183673469387755
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 700,
+      "algorithm": "stide",
+      "detection_time": 181.43643275896707
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 110234,
+      "false_positives": 2673,
+      "true_negatives": 174088310,
+      "false_negatives": 19540297,
+      "correct_alarm_count": 90,
+      "exploit_count": 98,
+      "detection_rate": 0.9183673469387755,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9183673469387755,
+      "precision_with_cfa": 0.9375,
+      "precision_with_syscalls": 0.03257328990228013,
+      "f1_cfa": 0.9278350515463918
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 500,
+      "algorithm": "stide",
+      "detection_time": 181.71118287245432
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 46574,
+      "false_positives": 873,
+      "true_negatives": 174090110,
+      "false_negatives": 19603957,
+      "correct_alarm_count": 90,
+      "exploit_count": 98,
+      "detection_rate": 0.9183673469387755,
+      "consecutive_false_positives_normal": 6,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9183673469387755,
+      "precision_with_cfa": 0.9375,
+      "precision_with_syscalls": 0.09345794392523364,
+      "f1_cfa": 0.9278350515463918
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 200,
+      "algorithm": "stide",
+      "detection_time": 186.18038179477057
+    }
+  },
+  {
+    "performance": {
+      "true_positives": 170054,
+      "false_positives": 4782,
+      "true_negatives": 174086201,
+      "false_negatives": 19480477,
+      "correct_alarm_count": 93,
+      "exploit_count": 98,
+      "detection_rate": 0.9489795918367347,
+      "consecutive_false_positives_normal": 8,
+      "consecutive_false_positives_exploits": 0,
+      "recall": 0.9489795918367347,
+      "precision_with_cfa": 0.9207920792079208,
+      "precision_with_syscalls": 0.019076923076923078,
+      "f1_cfa": 0.934673366834171
+    },
+    "config": {
+      "scenario": "ZipSlip/",
+      "ngram": 3,
+      "window": 800,
+      "algorithm": "stide",
+      "detection_time": 277.99699268341067
+    }
+  }
+]
