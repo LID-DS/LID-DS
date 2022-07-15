@@ -61,7 +61,7 @@ if __name__ == '__main__':
                         help='Set IDS to use thread change flag of ngrams')
 
     args = parser.parse_args()
-    print(f'Start with scenario {args.scenario}')
+    print(f"Start with scenario {args.scenario}")
 
     scenario = args.scenario
     thread_aware = args.thread_aware
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     ids.determine_threshold()
     # detection
     start = time.time()
-    performance = ids.detect()
+    performance = ids.detect_parallel()
     end = time.time()
 
     detection_time = (end - start)/60  # in min
@@ -110,5 +110,8 @@ if __name__ == '__main__':
     results['algorithm'] = 'stide'
     results['window'] = window_length 
     results['detection_time'] = detection_time
-    result_path = 'persistent_data/prallel_test.json'
+    results['flag'] = True
+    results['mode'] = True
+    results['process_name'] = True
+    result_path = 'persistent_data/process_name.json'
     save_to_json(results, result_path)
