@@ -19,7 +19,7 @@ scenarios = [
 ]
 
 epochs = 20
-windows = [500, 600, 700, 800, 900, 1000]
+windows = [500, 800, 1000]
 batch_sizes = [1024]
 embedding_sizes = [7]
 ngram_lengths = [3, 5]# , 7]

@@ -1,15 +1,13 @@
 import time
 import math
 import argparse
-import traceback
 
 from pprint import pprint
 
 from algorithms.ids import IDS
 
-from algorithms.decision_engines.ae import AE
-from algorithms.decision_engines.som import Som
-from algorithms.decision_engines.stide import Stide
+from dataloader.direction import Direction
+from dataloader.dataloader_factory import dataloader_factory
 
 from algorithms.features.impl.mode import Mode
 from algorithms.features.impl.flags import Flags
@@ -17,12 +15,11 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.process_name import ProcessName
 from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.w2v_embedding import W2VEmbedding
+
+from algorithms.decision_engines.stide import Stide
 
 from algorithms.persistance import save_to_json
 
-from dataloader.direction import Direction
-from dataloader.dataloader_factory import dataloader_factory
 
 
 
