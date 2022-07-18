@@ -47,6 +47,7 @@ class Syscall2019(Syscall):
         self._direction = None
         self._params = None
         self.recording_path = recording_path
+        self._warning = False
 
     def timestamp_unix_in_ns(self) -> float:
         """
@@ -88,6 +89,16 @@ class Syscall2019(Syscall):
         """
             LID-DS 2019 Dataset does not include process ID.
         """
+        if not self._warning:
+            print('''
+                             _   _             
+                            | | (_)            
+              ___ __ _ _   _| |_ _  ___  _ __  
+             / __/ _` | | | | __| |/ _ \| '_ \ 
+            | (_| (_| | |_| | |_| | (_) | | | | Syscall 2019 has no process ID.
+             \___\__,_|\__,_|\__|_|\___/|_| |_|
+            ''')
+            self._warning = True
         return None
 
     def process_name(self) -> str:
