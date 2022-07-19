@@ -56,10 +56,15 @@ class Syscall2019(Syscall):
             float: unix timestamp of syscall
         """
         if self._timestamp_unix is None:
+            print(self._line_list[SyscallSplitPart.TIMESTAMP][0:15])
             timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
-            self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 10 ** 9
+            # change default year from 1900 to 1970
+            # so time is not negative
+            timestamp_datetime = timestamp_datetime.replace(year=1970)
+            self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 1e9 \
+                    + timestamp_datetime.microsecond
 
         return self._timestamp_unix
 

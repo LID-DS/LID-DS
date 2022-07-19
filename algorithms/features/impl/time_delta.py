@@ -38,10 +38,12 @@ class TimeDelta(BuildingBlock):
         calculate time delta of syscall
         """
         current_time = syscall.timestamp_unix_in_ns()
+        print(current_time)
         thread_id = 0
         if self._thread_aware:
             thread_id = syscall.thread_id()
         delta = self._calc_delta(current_time, thread_id)
+        print(delta)
         normalized_delta = delta / self._max_time_delta
         return normalized_delta
 
