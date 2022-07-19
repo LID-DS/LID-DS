@@ -36,7 +36,7 @@ def test_alarms():
 
     # testing of alarm end
     alarms.end_alarm()
-    assert len(alarms.alarms) == 1
+    assert len(alarms.alarm_list) == 1
     assert alarms.current_alarm is None
 
     # testing of false alarm
@@ -48,7 +48,7 @@ def test_alarms():
 
     # testing of switch from false alarm to correct alarm but consecutive calls
     alarms.add_or_update_alarm(syscall_4, True)
-    assert len(alarms.alarms) == 2
+    assert len(alarms.alarm_list) == 2
     assert vars(alarms.current_alarm) == {'first_line_id': 4, 'first_timestamp': 1631209047962064269, 'correct': True,
                                           'last_line_id': 4, 'last_timestamp': 1631209047962064269,
                                           'scenario': 'CVE-2017-7529', 'dataset': 'LID-DS-2021',
