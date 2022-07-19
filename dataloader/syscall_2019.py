@@ -56,7 +56,6 @@ class Syscall2019(Syscall):
             float: unix timestamp of syscall
         """
         if self._timestamp_unix is None:
-            print(self._line_list[SyscallSplitPart.TIMESTAMP][0:15])
             timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
@@ -78,6 +77,7 @@ class Syscall2019(Syscall):
             self._timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
+            self._timestamp_datetime = self._timestamp_datetime.replace(year=1970)
         return self._timestamp_datetime
 
     def user_id(self) -> int:
