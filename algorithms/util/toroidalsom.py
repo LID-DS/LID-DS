@@ -134,7 +134,7 @@ g3T = array([
     [1.0 / 4.0, 1.0 / 2.0, 3.0 / 4.0],
 ])
 # Euclidean 2-torus
-g2 = eye(2)
+g2 = eye(9)
 
 
 def torusDistanceFunction(x0, x1, g=g2):
@@ -254,7 +254,7 @@ class ToroidalSOM(object):
         tx = x[randint(0, Ntrain)]
 
         # Calculate distances
-        Dmap = self.distfun(array([tx]), self.xmap.T)[:, 0]
+        Dmap = self.distfun(array([tx]), self.xmap.T, eye(self.D))[:, 0]
         iBMU = Dmap.argmin()
 
         # Calculate weight function
