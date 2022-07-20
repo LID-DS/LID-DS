@@ -12,26 +12,27 @@ class ReturnValue(BuildingBlock):
         return value is not integer -> -1 
     """
 
-    def __init__(self):
+    def __init__(self, min_max_scaling=True):
         super().__init__()
-        self._max = {
-        }
+        self._max = {}
+        self._min_max_scaling = min_max_scaling
 
     def train_on(self, syscall: Syscall):
         """
         save max value of each syscall
         """
         return_value_string = syscall.param('res')
-        if return_value_string is not None:
-            try:
-                current_bytes = int(return_value_string)
-                if syscall.name() in self._max:
-                    if current_bytes >= self._max[syscall.name()]:
+        if self._min_max_scaling:
+            if return_value_string is not None:
+                try:
+                    current_bytes = int(return_value_string)
+                    if syscall.name() in self._max:
+                        if current_bytes >= self._max[syscall.name()]:
+                            self._max[syscall.name()] = current_bytes
+                    else:
                         self._max[syscall.name()] = current_bytes
-                else:
-                    self._max[syscall.name()] = current_bytes
-            except ValueError as e:
-                pass
+                except ValueError as e:
+                    pass
 
     def _calculate(self, syscall: Syscall):
         """
@@ -41,28 +42,31 @@ class ReturnValue(BuildingBlock):
             * return value was not an integer value
         """
         return_type = None
-        normalized_bytes = 0
+        return_value = 0
         return_value_string = syscall.param('res')
         if return_value_string is not None:
             try:
                 current_bytes = int(return_value_string)
             except ValueError as e:
                 return_type = 'not_int'
-                normalized_bytes = -1
+                return_value = -1
             try:
                 if return_type != 'not_int':
-                    if syscall.name() in self._max:
-                        if self._max[syscall.name()] != 0:
-                            normalized_bytes = current_bytes/self._max[syscall.name()]
+                    if self._min_max_scaling:
+                        if syscall.name() in self._max:
+                            if self._max[syscall.name()] != 0:
+                                return_value = current_bytes/self._max[syscall.name()]
+                            else:
+                                return_value = 0
                         else:
-                            normalized_bytes = 0
+                            return_value = -1
                     else:
-                        normalized_bytes = -1
+                        return_value = current_bytes
                 else:
-                    normalized_bytes = -1
+                    return_value = -1
             except ZeroDivisionError:
-                normalized_bytes = 0
-        return normalized_bytes
+                return_value = 0
+        return return_value
 
     def depends_on(self):
         return []
