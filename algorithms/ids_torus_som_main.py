@@ -2,7 +2,6 @@ import os
 import sys
 from pprint import pprint
 
-from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.torus_som import TorusSom
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
@@ -46,7 +45,7 @@ if __name__ == '__main__':
     w2v_size = 5
     som_tfac = 100
     som_tscale = 10
-    som_size = 500
+    som_size = 98
     thread_aware = True
 
     # run config
@@ -103,5 +102,3 @@ if __name__ == '__main__':
         results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
         result_path = 'results/results_som.json'
-
-        ids.draw_plot('torus_plot.png')

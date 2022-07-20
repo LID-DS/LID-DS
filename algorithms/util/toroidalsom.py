@@ -1,4 +1,4 @@
-'''
+"""
 taken from https://github.com/swilshin/toroidalsom/ and converted to Python 3
 
 
@@ -43,12 +43,13 @@ REQUIREMENTS
 @author: Simon Wilshin
 @contact: swilshin@rvc.ac.uk
 @date: Jul 2018
-'''
+"""
 
-from numpy import random, ones, exp, zeros, arange, array, eye, pi, dot, nan, sum
-from numpy.random import randint
 
+from tqdm import tqdm
 from copy import deepcopy
+from numpy.random import randint
+from numpy import random, ones, exp, zeros, arange, array, eye, pi, dot, nan, sum
 
 '''
 Useful functions for training the SOM
@@ -56,7 +57,7 @@ Useful functions for training the SOM
 
 
 def makeTrainFactor(step, Ntrain, tfac):
-    '''
+    """
     The scale of the squared exponential for the weights needs to decay in a
     suitable way so that early in the optimisation the scale is long, and
     later in the optimisation it is short. We achieve this by means of an
@@ -75,12 +76,12 @@ def makeTrainFactor(step, Ntrain, tfac):
     @return: scale factor
     @rtype: float
 
-    '''
-    return (exp(-float(step) / (Ntrain * tfac)))
+    """
+    return exp(-float(step) / (Ntrain * tfac))
 
 
 def guassianWeightScale(N, i, step, Ntrain, tfac, minscale=1e-9):
-    '''
+    """
     Calculates the weight to be assigned to the units in an update step
     based on how close they are to the best matching unit (BMU), and the
     number of steps that has already occurred.
@@ -102,7 +103,7 @@ def guassianWeightScale(N, i, step, Ntrain, tfac, minscale=1e-9):
     @type minscale: float
     @return: weights
     @rtype: array of floats
-    '''
+    """
     # Ensure step needs to be ~ Ntrain*tfac for decay to have importance
     trainFac = makeTrainFactor(step, Ntrain, tfac)
     # minscale determines the point where we start treating the best matching
@@ -116,29 +117,11 @@ def guassianWeightScale(N, i, step, Ntrain, tfac, minscale=1e-9):
         r[i] = 1.0
         return (r)
     else:
-        return (exp(-(((arange(N) - i) ** 2)) / (2 * N * N * trainFac)))
+        return exp(-(((arange(N) - i) ** 2)) / (2 * N * N * trainFac))
 
 
-# Some distance functions
-# 3-Torus induced metric obtained using conventions of
-# Wilshin, Simon, et al. "Morphology and the gradient of a symmetric potential
-# predict gait transitions of dogs." Biological cybernetics
-# 111.3-4 (2017): 269-277.
-# and
-# Wilshin, Simon, et al. "Longitudinal quasi-static stability predicts changes
-# in dog gait on rough terrain."
-# Journal of Experimental Biology (2017): jeb-149112.
-g3T = array([
-    [3.0 / 4.0, 1.0 / 2.0, 1.0 / 4.0],
-    [1.0 / 2.0, 1.0, 1.0 / 2.0],
-    [1.0 / 4.0, 1.0 / 2.0, 3.0 / 4.0],
-])
-# Euclidean 2-torus
-g2 = eye(9)
-
-
-def torusDistanceFunction(x0, x1, g=g2):
-    '''
+def torusDistanceFunction(x0, x1, g):
+    """
     Computes the Euclidean distance between all of the vectors in
     x0 (NxM) and all of the vectors in x1 (kxM), using metric g (MxM),
     modulo the topology of the torus (co-ordinates range from 0 to 2*pi). The
@@ -154,7 +137,7 @@ def torusDistanceFunction(x0, x1, g=g2):
     @type g: array of floats
     @return: distances
     @rtype: array of floats
-    '''
+    """
     dists = (
                     (
                             x1.repeat(x0.shape[0]).reshape(x1.shape[0], x1.shape[1], x0.shape[0])
@@ -162,16 +145,15 @@ def torusDistanceFunction(x0, x1, g=g2):
                             x0.transpose() + pi
                     ) % (2.0 * pi)
             ) - pi
-    return (sum(dists * ((dot(g, dists))).transpose(1, 0, 2), 1))
+    return sum(dists * ((dot(g, dists))).transpose(1, 0, 2), 1)
 
 
 class ToroidalSOM(object):
-    '''
+    """
     Implements a self-organising map on a torus (although with a suitable choice
     of distfun a more conventional SOM could be implemented). The constructor
     does not initialize the elements of the map, to initialise with
     random weights the member function random_initialisation should be called.
-    To do this automatically consider using the L{toroidalSOM} function.
 
     @ivar Nmap: Number of elements of the map
     @type Nmap: int
@@ -186,14 +168,14 @@ class ToroidalSOM(object):
     arrays and returning a kxk array of distances.
     @ivar weightfun: See L{guassianWeightScale} for an example
     @type weightfun: function with call signature f(N,i,step,Ntrain,tfac)
-    '''
+    """
 
     def __init__(
             self,
             Nmap, D,
             distfun=torusDistanceFunction, weightfun=guassianWeightScale
     ):
-        '''
+        """
         Instantiate the self organising map.
 
         @param Nmap: number of elements in the map
@@ -205,7 +187,7 @@ class ToroidalSOM(object):
         arrays and returning a kxk array of distances.
         @param weightfun: See L{guassianWeightScale} for an example
         @type weightfun: function with call signature f(N,i,step,Ntrain,tfac)
-        '''
+        """
         self.Nmap = Nmap
         self.D = D
         self.xmap = nan * ones((D, Nmap))  # Allocate the SOM weights, nans to start
@@ -214,16 +196,16 @@ class ToroidalSOM(object):
         self.weightfun = weightfun  # Function used to compute weights
 
     def random_initialisation(self):
-        '''
+        """
         Initialise the weights of the SOM to random numbers between 0 and 2*pi.
-        '''
+        """
         self.xmap0 = (2 * pi) * random.rand(
             self.D * self.Nmap
         ).reshape((self.D, self.Nmap))
         self.xmap = deepcopy(self.xmap0)
 
     def iteration(self, x, i0, i, tfac, alpha0, Nit):
-        '''
+        """
         Perform a single iteration to train the map. In an iteration an example
         from the training data set is taken and the closest element of the map is
         found. Weights of the elements of the self-organising map are then
@@ -248,7 +230,7 @@ class ToroidalSOM(object):
         @type tfac: int
         @param alpha0: base learning rate
         @type alpha0: float
-        '''
+        """
         Ntrain = x.shape[0]
         # Grab training example
         tx = x[randint(0, Ntrain)]
@@ -264,8 +246,8 @@ class ToroidalSOM(object):
         # Update map
         self.xmap = self.xmap + tl * alpha * ((tx - self.xmap.T + pi) % (2 * pi) - pi).T
 
-    def fit(self, x, tfac, tscale, alpha0, verbose=True):
-        '''
+    def fit(self, x, tfac, tscale, alpha0):
+        """
         Perform the fitting loop for tfac*tscale*x.shape[0] repetitions.
 
         @param x: training examples
@@ -276,34 +258,18 @@ class ToroidalSOM(object):
         @type tscale: float
         @param alpha0: base learning rate
         @type alpha0: float
-        @param verbose: if True then this method prints diagnostic information
-        @type verbose: bool
-        '''
+        """
         Ntrain = x.shape[0]
         i0 = 1 * Ntrain
         Nit = tfac * tscale * Ntrain
-        for i in range(Nit):
-            if i % Ntrain == 0 and verbose:
+        bar = tqdm(range(Nit), 'training'.rjust(27), unit=" epochs")
+        for i in bar:
+            if i % Ntrain == 0:
                 '''
                 Here we print some diagnostic data, note that the 'iteration' here 
                 refers to each time we consider Ntrain test examples from the training 
                 data, not each time we consider a single training example.
                 '''
-                print("Iteration:", i / Ntrain, "of", Nit / Ntrain, "and training factor:",
-                      makeTrainFactor(i0 + i, Ntrain, tfac))
+                bar.set_description(f"Iteration: {i / Ntrain} of {Nit / Ntrain} and training factor: {makeTrainFactor(i0 + i, Ntrain, tfac)}")
             self.iteration(x, i0, i, tfac, alpha0, Nit)
         self.xmap = self.xmap % (2. * pi)
-
-
-def toroidalSOM(
-        Nmap, D,
-        distfun=torusDistanceFunction, weightfun=guassianWeightScale
-):
-    '''
-    Helper function that automatically initialises the map with random weights.
-    Identical call signature to constructor of L{ToroidalSOM}. See that method
-    for documentation.
-    '''
-    som = ToroidalSOM(Nmap, D, distfun, weightfun)
-    som.random_initialisation()
-    return (som)

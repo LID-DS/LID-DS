@@ -1,16 +1,29 @@
 import numpy
-from numpy import eye
 
-from algorithms.util.toroidalsom import ToroidalSOM, torusDistanceFunction
+from numpy import eye
+from functools import lru_cache
+
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
+from algorithms.util.toroidalsom import ToroidalSOM
 
 
 class TorusSom(BuildingBlock):
-    def __init__(self, input_vector, size, tscale, tfac):
+    def __init__(self, input_vector: BuildingBlock, size: int, tscale, tfac):
+        """
+            Anomaly Detection Building Block using a toroidal SOM
+            Uses adjusted toroidal SOM Implementation from https://github.com/swilshin/toroidalsom/
+
+            Parameters:
+
+                input_vector: a Building Block
+                size: Number of Neurons to be initialized
+                tfac: number of epochs over which significant decay occurs
+                tscale: is multiplied with tfac to set total number of epochs
+
+        """
         super().__init__()
 
-        self._result_dict = {}
         self._input_vector = input_vector
         self._size = size
         self._dependency_list = [input_vector]
@@ -19,7 +32,6 @@ class TorusSom(BuildingBlock):
         self._buffer = set()
 
         self._som = None
-
 
     def depends_on(self) -> list:
         return self._dependency_list
@@ -34,7 +46,10 @@ class TorusSom(BuildingBlock):
                 self._buffer.add(input_vector)
 
     def fit(self):
-
+        """
+            initializes and trains the toroidal SOM on the training Data
+            initial learning rate is derived from number of input datapoints
+        """
         x = numpy.array(list(self._buffer))
         vector_size = x.shape[1]
         alpha0 = 100.0 / float(x.shape[0])
@@ -43,16 +58,28 @@ class TorusSom(BuildingBlock):
 
         self._som.fit(x=x, tfac=self._tfac, tscale=self._tscale, alpha0=alpha0)
 
-    def _calculate(self, syscall: Syscall):
-        input_vector = self._input_vector.get_result(syscall)
+    @lru_cache(maxsize=1000)
+    def _cached_results(self, input_vector: tuple):
+        """
+            calculates and caches anomaly score
+
+            the anomaly score is the distance on the torus between the test datapoint
+            and the weight vector of the  winning neuron
+
+            Parameters:
+                input_vector: tuple containing the test vector
+        """
         if input_vector is not None:
-            if input_vector in self._result_dict:
-                return self._result_dict[input_vector]
-            else:
-                numpy_vector = numpy.array(input_vector)
-                distances = self._som.distfun(numpy_vector, self._som.xmap.T, eye(numpy_vector.shape[0]))
-                score = distances.min()
-                self._result_dict[input_vector] = score
-                return score
+            numpy_vector = numpy.array(input_vector)
+            distances = self._som.distfun(numpy_vector, self._som.xmap.T, eye(numpy_vector.shape[0]))
+            score = distances.min()
+            return score
         else:
             return None
+
+    def _calculate(self, syscall: Syscall):
+        """
+            extracts test vector from current syscall and returns cached result
+        """
+        input_vector = self._input_vector.get_result(syscall)
+        return self._cached_results(input_vector)
