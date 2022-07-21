@@ -173,7 +173,7 @@ def parse_cli_arguments():
     parser.add_argument('--results', '-r', default='results', help='Path for the results of the evaluation')
     parser.add_argument('--base-path', '-b', default='/work/user/lz603fxao/Material', help='Base path of the LID-DS')
     parser.add_argument('--config', '-c', choices=['0', '1', '2'], default='0', help='Configuration of the MLP which will be used in this evaluation')
-
+    parser.add_argument('--use-independent-validation', '-u', choices=['True', 'False'], required=False, help='Indicates if the MLP will use the validation dataset for threshold AND stop of training or only for threshold.')
 
     return parser.parse_args()
 
@@ -224,6 +224,11 @@ if __name__ == '__main__':
 
     # MLP 
     elif args.algorithm == 'mlp':
+        independent_validation = False
+        if args.use_independent_validation is not None and args.use_independent_validation == 'True':
+            independent_validation = True
+        else: 
+            independent_validation = False
         
         settings_dict = {} # Enthält die Konfig-Infos
         if args.config == '0':
@@ -273,7 +278,8 @@ if __name__ == '__main__':
                 hidden_size,
                 hidden_layers,
                 batch_size,
-                learning_rate
+                learning_rate,
+                independent_validation
             )
             
             decision_engine = StreamSum(mlp, thread_aware, window_length)
@@ -327,7 +333,8 @@ if __name__ == '__main__':
                 hidden_size,
                 hidden_layers,
                 batch_size,
-                learning_rate
+                learning_rate,
+                independent_validation
             )
             
             decision_engine = StreamSum(mlp, thread_aware, window_length)
@@ -372,7 +379,8 @@ if __name__ == '__main__':
                 hidden_size,
                 hidden_layers,
                 batch_size,
-                learning_rate
+                learning_rate,
+                independent_validation
             )   
     
             decision_engine = StreamSum(mlp, thread_aware, window_length)
@@ -547,7 +555,8 @@ if __name__ == '__main__':
                 hidden_size,
                 hidden_layers,
                 batch_size,
-                learning_rate
+                learning_rate,
+                independent_validation
             )
             
             decision_engine = StreamSum(mlp, thread_aware, window_length)
@@ -601,7 +610,8 @@ if __name__ == '__main__':
                 hidden_size,
                 hidden_layers,
                 batch_size,
-                learning_rate
+                learning_rate,
+                independent_validation
             )
             
             decision_engine = StreamSum(mlp, thread_aware, window_length)
@@ -646,7 +656,8 @@ if __name__ == '__main__':
                 hidden_size,
                 hidden_layers,
                 batch_size,
-                learning_rate
+                learning_rate,
+                independent_validation
             )   
     
             decision_engine = StreamSum(mlp, thread_aware, window_length)

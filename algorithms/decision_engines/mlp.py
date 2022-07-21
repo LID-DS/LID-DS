@@ -15,8 +15,6 @@ import random
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 device = torch.device('cpu')
-use_independent_validation = False
-
 
 class MLPDataset(Dataset):
     """
@@ -70,7 +68,8 @@ class MLP(BuildingBlock):
                  hidden_size: int,
                  hidden_layers: int,
                  batch_size: int,
-                 learning_rate: float = 0.003):
+                 learning_rate: float = 0.003,
+                 use_independent_validation: bool = False):
         super().__init__()
 
         self.input_vector = input_vector
@@ -79,6 +78,7 @@ class MLP(BuildingBlock):
         self.hidden_layers = hidden_layers
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+        self._use_independent_validation = use_independent_validation
 
         self._dependency_list = [input_vector, output_label]
 
@@ -123,7 +123,7 @@ class MLP(BuildingBlock):
             Args:
                 syscall: the current system call object
         """
-        if use_independent_validation:
+        if self._use_independent_validation:
             pass
         else: 
             input_vector = self.input_vector.get_result(syscall)
@@ -131,6 +131,9 @@ class MLP(BuildingBlock):
 
             if input_vector is not None and output_label is not None:
                 self._validation_set.add((input_vector, output_label))
+
+    def set_learning_rate(self, learning_rate):
+        self.learning_rate = learning_rate
 
     def fit(self):
         """
@@ -141,13 +144,14 @@ class MLP(BuildingBlock):
             calculates loss on validation data and stops when no optimization occurs
         """
         print(f"MLP.train_set: {len(self._training_set)}".rjust(27))
-        
-        self._model = Feedforward(
-            input_size=self._input_size,
-            hidden_size=self.hidden_size,
-            output_size=self._output_size,
-            hidden_layers=self.hidden_layers
-        ).model.to(device)
+        print(f"Using {self.learning_rate}  as learning rate")
+        if self._model is None:
+            self._model = Feedforward(
+                input_size=self._input_size,
+                hidden_size=self.hidden_size,
+                output_size=self._output_size,
+                hidden_layers=self.hidden_layers
+            ).model.to(device)
         self._model.train()
 
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
@@ -155,12 +159,12 @@ class MLP(BuildingBlock):
 
 
         
-        if use_independent_validation:
+        if self._use_independent_validation:
             # building the datasets
             train_set_length = len(self._training_set)
             interrupt_counter = round(0.8 * train_set_length) # Aufteilung 80 % Training, 20% Verify
         
-            # # Sets for train-phase
+            # Sets for train-phase
             final_train_set = set()
             final_val_set = set()
         
