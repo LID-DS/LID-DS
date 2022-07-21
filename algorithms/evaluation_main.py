@@ -195,6 +195,7 @@ if __name__ == '__main__':
     pprint(f"Algorithm: {args.algorithm}")
     pprint(f"Configuration: {args.config}")
     pprint(f"Learning-Rate of new IDS: {args.learning_rate}")
+    pprint(f"State of independent validation: {args.use_independent_validation}")
     pprint(f"Number of maximal played back false alarms: {args.play_back_count_alarms}")
     pprint(f"Results path: {args.results}")
     pprint(f"Base path: {args.base_path}")
@@ -203,12 +204,6 @@ if __name__ == '__main__':
     dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH) # Results differ, currently BOTH was the best performing
     
     #--------------------
-        
-    # Stopping Randomness
-    torch.manual_seed(0)
-    random.seed(0)
-    numpy.random.seed(0)
-    torch.use_deterministic_algorithms(True)
         
     # Configuration of chosen decision engines. Choosing best configs in M. Grimmers Paper.
     ####################
@@ -391,6 +386,12 @@ if __name__ == '__main__':
             exit('Unknown configuration of MLP. Exiting.')
         
     
+    # Stopping Randomness
+    torch.manual_seed(0)
+    random.seed(0)
+    numpy.random.seed(0)
+    torch.use_deterministic_algorithms(True)
+    
     # IDS
     ###################
     generate_and_write_alarms = True
@@ -407,7 +408,6 @@ if __name__ == '__main__':
     pprint(results)
     
     # Preparing results
-    
     if args.algorithm == 'stide':
         config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}" # TODO: Kann das raus?
     else: 
@@ -418,9 +418,7 @@ if __name__ == '__main__':
     results['algorithm'] = args.algorithm
     for key in settings_dict.keys():
         results[key] = settings_dict[key]
-    # results['ngram_length'] = ngram_length
-    # results['window_length'] = window_length 
-    # results['thread_aware'] = thread_aware
+        
     results['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results['scenario'] =  args.version + "/" + args.scenario
     result_path = f"{args.results}/results_{args.algorithm}_config_{args.config}_{args.version}_{args.scenario}.json"
@@ -474,16 +472,10 @@ if __name__ == '__main__':
     # pprint("All Artifical Recordings:")
     # pprint(all_recordings)
 
-    # Das hier einfach auf set_revalidation_data(all_recordings) setzen um die Trainingsbeispiele bei den Validierungsdaten einzufügen.
-    dataloader.set_retraining_data(all_recordings)
+    # dataloader.set_revalidation_data(all_recordings) # Fügt die neuen Trainingsbeispiele bei den Validierungsdaten ein.
+    dataloader.set_retraining_data(all_recordings) # Fügt die neuen Trainingsbeispiele als zusätzliches Training ein.
 
     ### Rebuilding IDS
-
-    # Resetting seeds
-    torch.manual_seed(0)
-    random.seed(0)
-    numpy.random.seed(0)
-
 
     ##### New BBs ############
     # STIDE
@@ -670,6 +662,11 @@ if __name__ == '__main__':
                 exit('Unknown configuration of MLP. Exiting.')
         
         
+    # Resetting seeds
+    torch.manual_seed(0)
+    random.seed(0)
+    numpy.random.seed(0)    
+        
     ######## New IDS ########################
     ids_retrained = IDS(data_loader=dataloader,
         resulting_building_block=decision_engine,
@@ -680,7 +677,7 @@ if __name__ == '__main__':
         
     pprint("At evaluation:")
     
-    #ids_retrained.determine_threshold()  # Hier wird der Schwellenwert noch neu bestimmt.
+    # ids_retrained.determine_threshold()  # Hier wird der Schwellenwert noch neu bestimmt.
     pprint(f"Freezing Threshold on: {ids.threshold}")
     ids_retrained.threshold = ids.threshold
     performance_new = ids_retrained.detect_parallel()        
@@ -697,9 +694,7 @@ if __name__ == '__main__':
     
     for key in settings_dict.keys():
         results[key] = settings_dict[key]
-    # results_new['ngram_length'] = ngram_length
-    # results_new['window_length'] = window_length
-    # results_new['thread_aware'] = thread_aware
+        
     results_new['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results_new['scenario'] =  args.version + "/" + args.scenario
     result_new_path = f"{args.results}/results_{algorithm_name}_config_{args.config}_p_{args.play_back_count_alarms}_{args.version}_{args.scenario}.json"

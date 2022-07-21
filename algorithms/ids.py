@@ -1,7 +1,5 @@
 from http.client import ImproperConnectionState
 from os import cpu_count
-from time import time
-from matplotlib.image import imread
 from tqdm import tqdm
 from typing import Type
 
@@ -119,6 +117,7 @@ class IDS:
                 performance.analyze_syscall(syscall, anomaly_score)
 
         self._data_preprocessor.new_recording()
+        performance.new_recording(recording)
 
         # run end alarm once to ensure that last alarm gets saved
         if performance.alarms is not None:
