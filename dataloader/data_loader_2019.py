@@ -31,8 +31,13 @@ class DataLoader2019(BaseDataLoader):
         self._direction = direction
         self._retraining_data = None # Has to be a list of Recordings
         self._revalidation_data = None # Has to be a list of Recordings
+        self._overwrite_training = False
 
         self.extract_recordings()
+
+    def overwrite_training_data_with_retraining(self):
+        self._overwrite_training = True
+
 
     def training_data(self) -> list:
         """
@@ -41,7 +46,9 @@ class DataLoader2019(BaseDataLoader):
             list of training data
 
         """
-        if self._retraining_data is not None:
+        if self._overwrite_training:
+            return self._retraining_data
+        elif self._retraining_data is not None:
           return self._normal_recordings[:TRAINING_SIZE] + self._retraining_data
         else:
             return self._normal_recordings[:TRAINING_SIZE]

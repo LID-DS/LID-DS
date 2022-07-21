@@ -1,58 +1,33 @@
-import json
-from pprint import pprint
-from datetime import datetime
-
 import os
 import sys
-
-
+import json
+from pprint import pprint
 from argparse import ArgumentParser
-
-from numpy import vectorize
 import torch
 import numpy
 import random
-#from algorithms.decision_engines.ae import AE, AEMode
-#from algorithms.decision_engines.som import Som
-from algorithms.features.impl.ngram_minus_one import NgramMinusOne
+from copy import deepcopy
+from tqdm.contrib.concurrent import process_map
+from functools import reduce
+from time import time
+
+from algorithms.decision_engines.mlp import MLP
 from algorithms.decision_engines.stide import Stide
+from algorithms.ids import IDS
+from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.select import Select
-#from algorithms.features.impl.Sum import Sum
-#from algorithms.features.impl.Difference import Difference
-#from algorithms.features.impl.Minimum import Minimum
-#from algorithms.features.impl.PositionInFile import PositionInFile
-#from algorithms.features.impl.PositionalEncoding import PositionalEncoding
-#from algorithms.features.impl.concat import Concat
-#from algorithms.features.impl.dbscan import DBScan
 from algorithms.features.impl.int_embedding import IntEmbedding
-#from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.ngram import Ngram
-#from algorithms.features.impl.one_minus_x import OneMinusX
-#from algorithms.features.impl.path_evilness import PathEvilness
-#from algorithms.features.impl.return_value import ReturnValue
-#from algorithms.features.impl.stream_average import StreamAverage
-#from algorithms.features.impl.stream_maximum import StreamMaximum
-#from algorithms.features.impl.stream_minimum import StreamMinimum
-#from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
-#from algorithms.features.impl.stream_variance import StreamVariance
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
-#from algorithms.features.impl.timestamp import Timestamp 
-from algorithms.ids import IDS
+from algorithms.persistance import save_to_json
+from algorithms.performance_measurement import Performance
+
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
-from algorithms.persistance import save_to_json
-from copy import deepcopy
-from tqdm.contrib.concurrent import process_map
-from functools import reduce
-from algorithms.performance_measurement import Performance
-from tqdm import tqdm
-from time import time
-from algorithms.decision_engines.mlp import MLP
-
 
 class FalseAlertContainer:
     def __init__(self, alarm, alarm_recording_list, window_length, ngram_length) -> None:
@@ -196,7 +171,7 @@ def parse_cli_arguments():
                                                       'som'], required=True, help='Which algorithm shall perform the detection?')
     parser.add_argument('--play_back_count_alarms', '-p' , choices=['1', '2', '3', 'all'], default='all', help='Number of False Alarms that shall be played back or all.')
     parser.add_argument('--results', '-r', default='results', help='Path for the results of the evaluation')
-    parser.add_argument('--base-path', '-b', default='/home/sc.uni-leipzig.de/lz603fxao/Material', help='Base path of the LID-DS')
+    parser.add_argument('--base-path', '-b', default='/work/user/lz603fxao/Material', help='Base path of the LID-DS')
     parser.add_argument('--config', '-c', choices=['0', '1', '2'], default='0', help='Configuration of the MLP which will be used in this evaluation')
 
 
@@ -212,12 +187,12 @@ if __name__ == '__main__':
     if args.version == 'LID-DS-2019':
         if args.scenario in ['CWE-89-SQL-injection', 'CVE-2020-23839', 'CVE-2020-9484', 'CVE-2020-13942' , 'Juice-Shop' , 'CVE-2017-12635_6']:
             sys.exit('This combination of LID-DS Version and Scenario aren\'t available.')
-    
-    
+     
     pprint("Performing Host-based Intrusion Detection with:")
     pprint(f"Version: {args.version}") 
     pprint(f"Scenario: {args.scenario}")
     pprint(f"Algorithm: {args.algorithm}")
+    pprint(f"Configuration: {args.config}")
     pprint(f"Number of maximal played back false alarms: {args.play_back_count_alarms}")
     pprint(f"Results path: {args.results}")
     pprint(f"Base path: {args.base_path}")
@@ -368,7 +343,6 @@ if __name__ == '__main__':
             batch_size = 256
             learning_rate = 0.003
             window_length = 5
-
             
             settings_dict['ngram_length'] = ngram_length
             settings_dict['thread_aware'] = thread_aware
@@ -378,6 +352,12 @@ if __name__ == '__main__':
             settings_dict['learning_rate'] = learning_rate
             settings_dict['window_length'] = window_length
             
+            # Calculate Embedding_size
+            temp_i = IntEmbedding()
+            temp_ohe = OneHotEncoding(temp_i)
+            mini_ids = IDS(dataloader, temp_ohe, False, False)
+            ohe_embedding_size = temp_ohe.get_embedding_size()
+            
             # Building Blocks
             inte = IntEmbedding()
             
@@ -385,7 +365,7 @@ if __name__ == '__main__':
             
             ngram_ohe = Ngram([ohe], thread_aware, ngram_length + 1)
             
-            select_ohe = Select(ngram_ohe, 0, (ngram_length * 23)) # TODO: 23 works only for 2019:2017 rn
+            select_ohe = Select(ngram_ohe, 0, (ngram_length * ohe_embedding_size)) 
             
             mlp = MLP(select_ohe,
                 ohe,
@@ -638,7 +618,6 @@ if __name__ == '__main__':
             learning_rate = 0.003
             window_length = 5
 
-            
             settings_dict['ngram_length'] = ngram_length
             settings_dict['thread_aware'] = thread_aware
             settings_dict['hidden_size'] = hidden_size
@@ -647,6 +626,12 @@ if __name__ == '__main__':
             settings_dict['learning_rate'] = learning_rate
             settings_dict['window_length'] = window_length
             
+            # Calculate Embedding_size
+            temp_i = IntEmbedding()
+            temp_ohe = OneHotEncoding(temp_i)
+            mini_ids = IDS(dataloader, temp_ohe, False, False)
+            ohe_embedding_size = temp_ohe.get_embedding_size()
+
             # Building Blocks
             inte = IntEmbedding()
             
@@ -654,7 +639,7 @@ if __name__ == '__main__':
             
             ngram_ohe = Ngram([ohe], thread_aware, ngram_length + 1)
             
-            select_ohe = Select(ngram_ohe, 0, (ngram_length * 23)) # TODO: 23 works only for 2019:2017 rn
+            select_ohe = Select(ngram_ohe, 0, (ngram_length * ohe_embedding_size)) 
             
             mlp = MLP(select_ohe,
                 ohe,
@@ -691,7 +676,7 @@ if __name__ == '__main__':
     #ids_retrained.determine_threshold()  # Hier wird der Schwellenwert noch neu bestimmt.
     pprint(f"Freezing Threshold on: {ids.threshold}")
     ids_retrained.threshold = ids.threshold
-    performance_new = ids.detect_parallel()        
+    performance_new = ids_retrained.detect_parallel()        
     results_new = performance_new.get_results()
     pprint(results_new)
 

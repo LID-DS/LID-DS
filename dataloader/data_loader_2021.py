@@ -105,6 +105,7 @@ class DataLoader2021(BaseDataLoader):
             self._distinct_syscalls = None
             self._retraining_data = None
             self._revalidation_data = None
+            self._overwrite_training = False
         else:
             print(f'Could not find {scenario_path}!!!!')
             raise FileNotFoundError(
@@ -115,6 +116,10 @@ class DataLoader2021(BaseDataLoader):
 
         # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
         nest_asyncio.apply()
+
+    def overwrite_training_data_with_retraining(self):
+        self._overwrite_training = True
+
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
@@ -132,7 +137,10 @@ class DataLoader2021(BaseDataLoader):
         """
         recordings = self.extract_recordings(category=TRAINING,
                                              recording_type=recording_type)
-        if self._retraining_data is not None: 
+        
+        if self._overwrite_training:
+            return self._retraining_data
+        elif self._retraining_data is not None: 
             return recordings + self._retraining_data
         else:
             return recordings

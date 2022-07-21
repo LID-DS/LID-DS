@@ -27,6 +27,13 @@ class BaseDataLoader:
         self.scenario_path = scenario_path
         print(f"loading {scenario_path}")
         
+    def overwrite_training_data_with_retraining(self) -> None:
+        """
+            From now on returns only the data in the class-bound retraining variable in training context
+        """
+        pass
+        
+        
     def training_data(self) -> list:
         """
 
