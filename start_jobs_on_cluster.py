@@ -22,7 +22,7 @@ if __name__ == '__main__':
     
     independent_validations = ['True', 'False']
     
-    learning_rates = [0.005, 0.007]
+    learning_rates = [0.003, 0.005, 0.007]
     
     
     result_path = 'results_mlp_configs'
@@ -62,15 +62,11 @@ if __name__ == '__main__':
            
         for play_back_count in number_of_play_back_alarms:
             for config in mlp_configs:
-                for scenario in scenario_names:
+                for learning_rate in learning_rates:
                     for validation_mode in independent_validations:
-                        for learning_rate in learning_rates:
+                        for scenario in scenario_names:
                             command = f'sbatch --job-name=exp_{job_counter:03} evaluation.job {version} {scenario} {algorithm} {config} {play_back_count} {result_path} {validation_mode} {learning_rate}'
                             os.system(command)
 
                             job_counter += 1
-        
-
-        
-    # TODO: Die verschiedenen Algorithmen jeweils benutzen.
-        
+    

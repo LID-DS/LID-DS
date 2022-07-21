@@ -411,7 +411,7 @@ if __name__ == '__main__':
     if args.algorithm == 'stide':
         config_name = f"algorithm_{args.algorithm}_n_{ngram_length}_w_{window_length}_t_{thread_aware}" # TODO: Kann das raus?
     else: 
-        config_name = f"algorithm_{args.algorithm}_c_{args.config}_n_{ngram_length}_t_{thread_aware}"
+        config_name = f"algorithm_{args.algorithm}_c_{args.config}_i_{args.use_independent_validation}_lr_{args.learning_rate}_n_{ngram_length}_t_{thread_aware}"
     
     
     # Enrich results with configuration
@@ -421,7 +421,7 @@ if __name__ == '__main__':
         
     results['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results['scenario'] =  args.version + "/" + args.scenario
-    result_path = f"{args.results}/results_{args.algorithm}_config_{args.config}_{args.version}_{args.scenario}.json"
+    result_path = f"{args.results}/results_{args.algorithm}_config_{args.config}_i_{args.use_independent_validation}_lr_{args.learning_rate}_{args.version}_{args.scenario}.json"
 
     # Saving results
     save_to_json(results, result_path) 
@@ -686,7 +686,7 @@ if __name__ == '__main__':
 
     # Preparing second results
     algorithm_name = f"{args.algorithm}_retrained"
-    config_name = f"algorithm_{algorithm_name}_c_{args.config}_p_{args.play_back_count_alarms}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
+    config_name = f"algorithm_{algorithm_name}_c_{args.config}_p_{args.play_back_count_alarms}_i_{args.use_independent_validation}_lr_{args.learning_rate}_n_{ngram_length}_w_{window_length}_t_{thread_aware}"
 
     # Enrich results with configuration 
     results_new['algorithm'] = algorithm_name
@@ -697,7 +697,7 @@ if __name__ == '__main__':
         
     results_new['config'] = ids.get_config() # Produces strangely formatted Config-Print
     results_new['scenario'] =  args.version + "/" + args.scenario
-    result_new_path = f"{args.results}/results_{algorithm_name}_config_{args.config}_p_{args.play_back_count_alarms}_{args.version}_{args.scenario}.json"
+    result_new_path = f"{args.results}/results_{algorithm_name}_config_{args.config}_p_{args.play_back_count_alarms}_i_{args.use_independent_validation}_lr_{args.learning_rate}_{args.version}_{args.scenario}.json"
 
     # Save results
     save_to_json(results_new, result_new_path) 
