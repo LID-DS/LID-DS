@@ -20,9 +20,14 @@ if __name__ == '__main__':
         '2'
         ]
     
-    independent_validations = ['True', 'False']
+    independent_validations = ['True', 
+                            #    'False'
+                               ]
     
-    learning_rates = [0.003, 0.005, 0.007]
+    learning_rates = [0.003,
+                    #   0.005,
+                    #   0.007
+                      ]
     
     
     result_path = 'results_mlp_configs'
