@@ -75,14 +75,6 @@ class SyscallsInTimeWindow(BuildingBlock):
         self._syscall_buffer[thread_id].append(syscall)
         last_index = 0
 
-        # print('timestamp')
-        # print(syscall.timestamp_datetime())
-        # print('in buffer')
-        # print(self._syscall_buffer[thread_id][0].timestamp_datetime())
-        # print('delta')
-        # print(current_timestamp - self._syscall_buffer[thread_id][0].timestamp_unix_in_ns())
-        # print('buffer')
-        # print(len(self._syscall_buffer))
         if current_timestamp - self._syscall_buffer[thread_id][0].timestamp_unix_in_ns() \
                 >= self.window_length:
             i = 0
