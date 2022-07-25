@@ -404,6 +404,8 @@ if __name__ == '__main__':
     pprint("At evaluation:")
     ids.determine_threshold()   
     performance = ids.detect_parallel()
+    
+    pprint(performance)
     results = performance.get_results()
     pprint(results)
     
@@ -678,6 +680,8 @@ if __name__ == '__main__':
     pprint("At evaluation:")
     
     ids_retrained.determine_threshold()  # Hier wird der Schwellenwert noch neu bestimmt.
+    # dataloader.unload_revalidation_data()
+    
     # pprint(f"Freezing Threshold on: {ids.threshold}")
     # ids_retrained.threshold = ids.threshold
     performance_new = ids_retrained.detect_parallel()        

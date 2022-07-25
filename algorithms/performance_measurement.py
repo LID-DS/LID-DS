@@ -1,4 +1,5 @@
 from __future__ import annotations
+from copy import deepcopy
 
 from dataloader.syscall import Syscall
 from dataloader.base_recording import BaseRecording
@@ -41,7 +42,12 @@ class Performance:
             self.alarms = Alarms()
         else:
             self.alarms = None
-
+            
+        # Anomaly scores
+        self.max_anomaly_score_fp = 0.0
+        self.min_anomaly_score_tp = 100000.0
+         
+            
     def set_threshold(self, threshold: float):
         self._threshold = threshold
 
@@ -66,6 +72,8 @@ class Performance:
                     self._cfp_start_exploits()
                     if self.create_alarms:
                         self.alarms.add_or_update_alarm(syscall, False)
+                    if anomaly_score > self.max_anomaly_score_fp:
+                        self.max_anomaly_score_fp = deepcopy(anomaly_score)
                 elif self._current_exploit_time <= syscall_time:
                     self._cfp_end_exploits()
                     if self.create_alarms:
@@ -76,6 +84,8 @@ class Performance:
                         self._alarm = True
                     elif self._alarm is True:
                         self._tp += 1
+                    if anomaly_score <= self.min_anomaly_score_tp:
+                        self.min_anomaly_score_tp = deepcopy(anomaly_score)
 
             elif anomaly_score <= self._threshold:
                 if self.create_alarms:
@@ -95,6 +105,8 @@ class Performance:
                 self._cfp_start_normal()
                 if self.create_alarms:
                     self.alarms.add_or_update_alarm(syscall, False)
+                if anomaly_score > self.max_anomaly_score_fp:
+                    self.max_anomaly_score_fp = deepcopy(anomaly_score)
             if anomaly_score <= self._threshold:
                 if self.create_alarms:
                     self.alarms.end_alarm()
@@ -113,6 +125,9 @@ class Performance:
         final_performance._cfp_count_exploits = left._cfp_count_exploits + right._cfp_count_exploits
         final_performance._cfp_count_normal = left._cfp_count_normal + right._cfp_count_normal
         final_performance.alarms.alarms = left.alarms.alarms + right.alarms.alarms
+        
+        final_performance.max_anomaly_score_fp = max(left.max_anomaly_score_fp, right.max_anomaly_score_fp)
+        final_performance.min_anomaly_score_tp = min(left.min_anomaly_score_tp, right.min_anomaly_score_tp)
         
         return final_performance
 
@@ -146,7 +161,7 @@ class Performance:
 
 
     def __repr__(self) -> str:
-        return f"Performance-Instance: Alarm_Count: {self._alarm_count}, Exploit_count: {self._exploit_count}, FPs: {self._fp}, TPs: {self._tp}, FNs: {self._fn}, TNs: {self._tn}"
+        return f"Performance-Instance: Alarm_Count: {self._alarm_count}, Exploit_count: {self._exploit_count}, FPs: {self._fp}, TPs: {self._tp}, FNs: {self._fn}, TNs: {self._tn}, max_FP_Anomaly: {self.max_anomaly_score_fp}, min_TP_Anomaly: {self.min_anomaly_score_tp}"
 
     def _cfp_start_exploits(self):
         """
