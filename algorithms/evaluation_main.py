@@ -474,8 +474,12 @@ if __name__ == '__main__':
     # pprint("All Artifical Recordings:")
     # pprint(all_recordings)
 
-    # dataloader.set_revalidation_data(all_recordings) # Fügt die neuen Trainingsbeispiele bei den Validierungsdaten ein.
-    dataloader.set_retraining_data(all_recordings) # Fügt die neuen Trainingsbeispiele als zusätzliches Training ein.
+    if independent_validation:
+        dataloader.set_revalidation_data(all_recordings) # Fügt die neuen Trainingsbeispiele bei den Validierungsdaten ein.
+    
+    # Für Retraining
+    # dataloader.set_retraining_data(all_recordings) # Fügt die neuen Trainingsbeispiele als zusätzliches Training ein.
+
 
     ### Rebuilding IDS
 
@@ -675,15 +679,24 @@ if __name__ == '__main__':
         plot_switch=False,
         create_alarms=True)
         
-    dataloader.unload_retraining_data() # Cleaning dataloader for performance issues
-        
-    pprint("At evaluation:")
+    # Für Retraining
+    # dataloader.unload_retraining_data() # Cleaning dataloader for performance issues
     
-    ids_retrained.determine_threshold()  # Hier wird der Schwellenwert noch neu bestimmt.
-    # dataloader.unload_revalidation_data()
+
+    # Hier wird der Schwellenwert noch neu bestimmt.
+    if independent_validation:
+        ids_retrained.determine_threshold()  
+        dataloader.unload_revalidation_data()  
     
+    else:
+        ids_retrained.threshold = performance.max_anomaly_score_fp # NUR FÜR INDEPENDENT_VALIDATION = FALSE:
+    
+    # Für Retraining
     # pprint(f"Freezing Threshold on: {ids.threshold}")
     # ids_retrained.threshold = ids.threshold
+
+
+    pprint("At evaluation:")
     performance_new = ids_retrained.detect_parallel()        
     results_new = performance_new.get_results()
     pprint(results_new)
