@@ -174,10 +174,12 @@ def parse_cli_arguments():
     parser.add_argument('--base-path', '-b', default='/work/user/lz603fxao/Material', help='Base path of the LID-DS')
     parser.add_argument('--config', '-c', choices=['0', '1', '2'], default='0', help='Configuration of the MLP which will be used in this evaluation')
     parser.add_argument('--use-independent-validation', '-u', choices=['True', 'False'], required=False, help='Indicates if the MLP will use the validation dataset for threshold AND stop of training or only for threshold.')
-    parser.add_argument('--learning-rate', '-l', default=0.003, type=float, choices=numpy.arange(0.003, 0.010, 0.001), help='Learning rate of the mlp algorithm of the new IDS')
+    parser.add_argument('--learning-rate', '-l', default=0.003, type=float, choices=numpy.arange(0.001, 0.010, 0.001), help='Learning rate of the mlp algorithm of the new IDS')
+    parser.add_argument('--to-dataset-playing-back', '-t', default = 'training', choices=['training', 'validation'], help='Decides in which dataset the false-positives will be played back.')
+    parser.add_argument('--freeze-on-retraining', '-f', default='True', choices=['True', 'False'], help='After the retraining of the IDS, will you freeze the original threshold or calculate a new one?')
 
     return parser.parse_args()
-
+    
 
 # Startpunkt
 if __name__ == '__main__':
@@ -185,9 +187,12 @@ if __name__ == '__main__':
     args = parse_cli_arguments()
     
     # Check ob die Kombination vorhanden ist.
-    if args.version == 'LID-DS-2019':
-        if args.scenario in ['CWE-89-SQL-injection', 'CVE-2020-23839', 'CVE-2020-9484', 'CVE-2020-13942' , 'Juice-Shop' , 'CVE-2017-12635_6']:
-            sys.exit('This combination of LID-DS Version and Scenario aren\'t available.')
+    if args.version == 'LID-DS-2019' and args.scenario in ['CWE-89-SQL-injection', 'CVE-2020-23839', 'CVE-2020-9484', 'CVE-2020-13942' , 'Juice-Shop' , 'CVE-2017-12635_6']:
+        sys.exit('This combination of LID-DS Version and Scenario aren\'t available.')
+     
+    # Check ob ins Valid-Set gespielt wird, dabei aber Freeze Threshold verlangt wird
+    if args.to_dataset_playing_back == 'validation' and args.freeze_on_retraining == 'True':
+        sys.exit('This combination can\'t be played since we want to play back the examples in the validation set. Therefore we MUST NOT freeze the threshold.')
      
     pprint("Performing Host-based Intrusion Detection with:")
     pprint(f"Version: {args.version}") 
@@ -197,6 +202,8 @@ if __name__ == '__main__':
     pprint(f"Learning-Rate of new IDS: {args.learning_rate}")
     pprint(f"State of independent validation: {args.use_independent_validation}")
     pprint(f"Number of maximal played back false alarms: {args.play_back_count_alarms}")
+    pprint(f"Playing back into {args.to_dataset_playing_back} datatset.")
+    pprint(f"Treshold freezing on seconds IDS: {args.freeze_on_retraining}")
     pprint(f"Results path: {args.results}")
     pprint(f"Base path: {args.base_path}")
     
@@ -474,12 +481,13 @@ if __name__ == '__main__':
     # pprint("All Artifical Recordings:")
     # pprint(all_recordings)
 
-    if independent_validation:
+
+    if args.to_dataset_playing_back == 'training':
+        # Für Retraining
+        dataloader.set_retraining_data(all_recordings) # Fügt die neuen Trainingsbeispiele als zusätzliches Training ein.
+    elif args.to_dataset_playing_back == 'validation' and independent_validation:
         dataloader.set_revalidation_data(all_recordings) # Fügt die neuen Trainingsbeispiele bei den Validierungsdaten ein.
     
-    # Für Retraining
-    # dataloader.set_retraining_data(all_recordings) # Fügt die neuen Trainingsbeispiele als zusätzliches Training ein.
-
 
     ### Rebuilding IDS
 
@@ -678,23 +686,24 @@ if __name__ == '__main__':
         resulting_building_block=decision_engine,
         plot_switch=False,
         create_alarms=True)
+
+    # Unloading datasets and managing thresholds        
+    if args.to_dataset_playing_back == 'training':
+        # Für Retraining
+        dataloader.unload_retraining_data() # Cleaning dataloader for performance issues
+        if args.freeze_on_retraining == 'True':
+            pprint(f"Freezing Threshold on: {ids.threshold}")
+            ids_retrained.threshold = ids.threshold
+        else: 
+            ids_retrained.determine_threshold()
         
-    # Für Retraining
-    # dataloader.unload_retraining_data() # Cleaning dataloader for performance issues
-    
-
-    # Hier wird der Schwellenwert noch neu bestimmt.
-    if independent_validation:
+    elif args.to_dataset_playing_back == 'validation' and independent_validation:   # Hier wird der Schwellenwert noch neu bestimmt.
         ids_retrained.determine_threshold()  
-        dataloader.unload_revalidation_data()  
-    
-    else:
+        dataloader.unload_revalidation_data()
+    else: 
         ids_retrained.threshold = performance.max_anomaly_score_fp # NUR FÜR INDEPENDENT_VALIDATION = FALSE:
+        pprint(f"Threshold now on {ids_retrained.threshold} ")
     
-    # Für Retraining
-    # pprint(f"Freezing Threshold on: {ids.threshold}")
-    # ids_retrained.threshold = ids.threshold
-
 
     pprint("At evaluation:")
     performance_new = ids_retrained.detect_parallel()        

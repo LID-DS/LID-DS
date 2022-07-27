@@ -144,7 +144,7 @@ class MLP(BuildingBlock):
             calculates loss on validation data and stops when no optimization occurs
         """
         print(f"MLP.train_set: {len(self._training_set)}".rjust(27))
-        print(f"Using {self.learning_rate}  as learning rate")
+        print(f"Using {self.learning_rate} as learning rate")
         if self._model is None:
             self._model = Feedforward(
                 input_size=self._input_size,

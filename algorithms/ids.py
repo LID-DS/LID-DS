@@ -119,7 +119,10 @@ class IDS:
                 performance.analyze_syscall(syscall, anomaly_score)
 
         self._data_preprocessor.new_recording()
-        # performance.new_recording(recording)
+        
+        # ending cfa before new recording starts
+        performance._cfp_end_exploits()
+        performance._cfp_end_normal()
 
         # run end alarm once to ensure that last alarm gets saved
         if performance.alarms is not None:
