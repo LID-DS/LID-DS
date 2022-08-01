@@ -53,9 +53,9 @@ class IDS:
         data = self._data_loader.validation_data()
         description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
-            for syscall in recording.syscalls():                
+            for syscall in recording.syscalls():
                 anomaly_score = self._final_bb.get_result(syscall)
-                if anomaly_score != None:                
+                if anomaly_score != None:
                     if anomaly_score > max_score:
                         max_score = deepcopy(anomaly_score)
                         # max_score = anomaly_score
@@ -75,6 +75,7 @@ class IDS:
         """
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
+        self.performance._threshold = self.threshold
 
         for recording in tqdm(data, description, unit=" recording"):
             self.performance.new_recording(recording)

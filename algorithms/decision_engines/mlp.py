@@ -316,6 +316,9 @@ class MLP(BuildingBlock):
                     'bias': self._model[i].bias
                 }
         return weight_dict
+    
+    def new_recording(self):
+        self._result_dict = {}
 
 def seed_worker(worker_id):
     worker_seed = torch.initial_seed() % 2**32

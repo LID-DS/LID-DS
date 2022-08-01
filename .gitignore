@@ -54,3 +54,6 @@ scenarios/EPS_CWE-434/normal/images
 
 # Results
 algorithms/results
+
+# Alarms
+results/*
