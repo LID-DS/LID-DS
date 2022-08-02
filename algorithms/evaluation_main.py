@@ -520,6 +520,8 @@ if __name__ == '__main__':
     ###################
     pprint("At evaluation:")
     ids.determine_threshold()   
+    
+    exit()
     performance = ids.detect_parallel()
     
     # pprint(performance)

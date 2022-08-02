@@ -53,6 +53,7 @@ class IDS:
         data = self._data_loader.validation_data()
         description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
+            # max_score = 0.0
             for syscall in recording.syscalls():
                 anomaly_score = self._final_bb.get_result(syscall)
                 if anomaly_score != None:
