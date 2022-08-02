@@ -1,4 +1,3 @@
-from cgi import FieldStorage
 from multiprocessing import cpu_count
 import os
 import sys
@@ -16,7 +15,6 @@ from time import time
 from algorithms.decision_engines.mlp import MLP
 from algorithms.decision_engines.stide import Stide
 from algorithms.ids import IDS
-from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.select import Select
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
@@ -524,7 +522,7 @@ if __name__ == '__main__':
     ids.determine_threshold()   
     performance = ids.detect_parallel()
     
-    pprint(performance)
+    # pprint(performance)
     results = performance.get_results()
     pprint(results)
     
@@ -825,7 +823,7 @@ if __name__ == '__main__':
 
     pprint("At evaluation:")
     performance_new = ids_retrained.detect_parallel()
-    pprint(performance_new)        
+    # pprint(performance_new)        
     results_new = performance_new.get_results()
     pprint(results_new)
 
