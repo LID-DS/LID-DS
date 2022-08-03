@@ -58,7 +58,7 @@ class DataLoader2019(BaseDataLoader):
 
                 """
         recordings = self._normal_recordings[TRAINING_SIZE + VALIDATION_SIZE:] + self._exploit_recordings
-        random.shuffle(recordings)
+        #random.shuffle(recordings)
 
         return recordings
 

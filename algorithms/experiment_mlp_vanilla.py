@@ -2,7 +2,9 @@ import sys
 import math
 from pprint import pprint
 from algorithms.decision_engines.ae import AE
+from algorithms.decision_engines.mlp import MLP
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.select import Select
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
@@ -32,18 +34,31 @@ if __name__ == '__main__':
     ngram_length = 5
     enc_size = 5
     
-    ### building blocks  
+    ## blocks
     name = SyscallName()
-    inte = IntEmbedding(name)
-    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=20,epochs=5000)    
-    #ohe = OneHotEncoding(inte)
-    ngram = Ngram(feature_list = [w2v],thread_aware = thread_aware,ngram_length = ngram_length)
-    ae = AE(ngram,batch_size=256,max_training_time=120,early_stopping_epochs=1000)
-    stream_window = StreamSum(ae,False,100)
+    inte = IntEmbedding(name)    
+    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=20,epochs=5000)
+
+    ngram = Ngram(
+        feature_list = [w2v],
+        thread_aware = thread_aware,
+        ngram_length = ngram_length + 1)
+
+    input_vector = Select(
+        input_vector = ngram,
+        start = 0,
+        end = ngram_length * enc_size)
+   
+    label = OneHotEncoding(inte)
+    
+    mlp = MLP(input_vector = input_vector, output_label = label, hidden_size = 64, hidden_layers = 3, batch_size = 256,
+    early_stopping_epochs=10000, max_training_time=20)
+
+    window = StreamSum(feature=mlp,thread_aware=False,window_length=100)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=stream_window,
+            resulting_building_block=window,
             create_alarms=False,
             plot_switch=False)
 
@@ -53,7 +68,7 @@ if __name__ == '__main__':
     # detection
     results = ids.detect_parallel().get_results()
 
-    print(ae._cached_results.cache_info())
+    #print(ae._cached_results.cache_info())
 
     pprint(results)
 

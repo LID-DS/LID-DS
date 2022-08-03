@@ -42,6 +42,7 @@ class AENetwork(nn.Module):
     """
     the actual autoencoder as torch module
     """
+
     def __init__(self, input_size):
         super().__init__()        
         self._input_size = input_size
@@ -51,43 +52,60 @@ class AENetwork(nn.Module):
         self.encoder = torch.nn.Sequential(
             torch.nn.Linear(self._input_size, first_hidden_layer_size),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU(),
+            torch.nn.SELU(),
             
             torch.nn.Linear(first_hidden_layer_size, int(first_hidden_layer_size * pow(self._factor,2))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU(),
+            torch.nn.SELU(),
 
             torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,2)), int(first_hidden_layer_size * pow(self._factor,3))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU(),
+            torch.nn.SELU(),
 
             torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,3)), int(first_hidden_layer_size * pow(self._factor,4))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU()
+            torch.nn.SELU()
         )
           
         # Building an decoder
         self.decoder = torch.nn.Sequential(
             torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,4)), int(first_hidden_layer_size * pow(self._factor,3))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU(),
+            torch.nn.SELU(),
 
             torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,3)), int(first_hidden_layer_size * pow(self._factor,2))),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU(),
+            torch.nn.SELU(),
 
             torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,2)), first_hidden_layer_size),
             torch.nn.Dropout(p=0.5),
-            torch.nn.ReLU(),
+            torch.nn.SELU(),
 
             torch.nn.Linear(first_hidden_layer_size, self._input_size),
             torch.nn.Dropout(p=0.5),
             #torch.nn.Sigmoid()
         )
 
-    def forward(self, x):
+        for m in self.encoder:
+            if isinstance(m, nn.Linear):
+                fan_in = m.in_features
+                nn.init.normal(m.weight, 0, math.sqrt(1. / fan_in))
+        for m in self.decoder:
+            if isinstance(m, nn.Linear):
+                fan_in = m.in_features                
+                nn.init.normal(m.weight, 0, math.sqrt(1. / fan_in))                
+
+    def max_norm(self, max_val=2, eps=1e-8):
+        for name, param in self.named_parameters():
+            if 'bias' not in name:
+                norm = param.norm(2, dim=0, keepdim=True)
+                desired = torch.clamp(norm, 0, max_val)
+                param = param * (desired / (eps + norm))
+
+    def forward(self, x):        
         encoded = self.encoder(x)
         decoded = self.decoder(encoded)
+        self.max_norm()
         return decoded
 
 
@@ -105,7 +123,7 @@ class AE(BuildingBlock):
         self._loss_function = torch.nn.MSELoss()        
         self._batch_size = batch_size
         self._training_set = set() 
-        self._validation_set = set()        
+        self._validation_set = set()
         self._max_training_time = max_training_time # time in seconds
         self._early_stopping_num_epochs = early_stopping_epochs
 
@@ -205,7 +223,10 @@ class AE(BuildingBlock):
 
         print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))        
         self._autoencoder.load_state_dict(best_weights)
-        self._autoencoder.eval()        
+        self._autoencoder.eval()
+        self._training_set = set() 
+        self._validation_set = set()
+
 
     @lru_cache(maxsize=1000)
     def _cached_results(self, input_vector):

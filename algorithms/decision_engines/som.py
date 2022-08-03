@@ -88,6 +88,7 @@ class Som(BuildingBlock):
         print(f"som.train_set: {len(self._buffer)} ".rjust(27))
         # print(self._buffer)
         som_size = self._get_or_estimate_som_size()
+        print(f"som.size: {som_size}")
         # vector_size = len(self._buffer[0])
         vector_size = len(next(iter(self._buffer)))
 

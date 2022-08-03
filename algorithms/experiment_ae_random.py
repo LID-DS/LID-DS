@@ -31,22 +31,21 @@ if __name__ == '__main__':
     ### features
     thread_aware = True
     ngram_length = 7
-    enc_size = 10
-    ae_hidden_size = int(math.sqrt(ngram_length * enc_size))
+    enc_size = 10    
 
     ### building blocks  
     name = SyscallName()
     inte = IntEmbedding(name)
     random_numbers = RandomValue(size=enc_size,scale=0.01)
-    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=10,epochs=1000)
+    w2v = W2VEmbedding(word=inte,vector_size=enc_size,window_size=20,epochs=5000)
     sum = Sum([w2v, random_numbers])
     ngram = Ngram(feature_list = [sum],thread_aware = thread_aware,ngram_length = ngram_length)
-    ae = AE(ngram,ae_hidden_size,batch_size=256,max_training_time=120,early_stopping_epochs=1000)
-    stream_window = StreamSum(ae,True,100)
+    ae = AE(ngram, batch_size=256,max_training_time=120,early_stopping_epochs=10000)
+    #stream_window = StreamSum(ae,False,100)
 
     ### the IDS    
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=stream_window,
+            resulting_building_block=ae,
             create_alarms=False,
             plot_switch=False)
 
@@ -57,6 +56,7 @@ if __name__ == '__main__':
     # threshold
     ids.determine_threshold()    
     # detection
-    results = ids.detect().get_results()
+    # results = ids.detect().get_results()
+    results = ids.detect_parallel().get_results()
 
     pprint(results)
