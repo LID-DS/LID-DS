@@ -13,7 +13,7 @@ class SyscallsInTimeWindow(BuildingBlock):
                 window_length_in_s = window length in seconds
         """
         super().__init__()
-        self.window_length = window_length_in_s
+        self.window_length = window_length_in_s * 1e9
         self._count_in_window = 0
         self._syscall_buffer = {}
         self._training_max = 0
@@ -28,7 +28,7 @@ class SyscallsInTimeWindow(BuildingBlock):
             trains the calculateor by finding the biggest count of syscalls
             in time window needed for normalization of feature
         """
-        current_timestamp = syscall.timestamp_datetime()
+        current_timestamp = syscall.timestamp_unix_in_ns()
         thread_id = syscall.thread_id()
         if thread_id not in self._syscall_buffer.keys():
             self._syscall_buffer[thread_id] = []
@@ -39,7 +39,7 @@ class SyscallsInTimeWindow(BuildingBlock):
         while i < len(self._syscall_buffer[thread_id]):
             buffered_syscall = self._syscall_buffer[thread_id][i]
             i += 1
-            difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
+            difference = current_timestamp - buffered_syscall.timestamp_unix_in_ns()
 
             # saving the index of the first element that is in time window
             if difference <= self.window_length:
@@ -66,7 +66,7 @@ class SyscallsInTimeWindow(BuildingBlock):
             returns normalized value based on training data
             or None if the window is not "full"
         """
-        current_timestamp = syscall.timestamp_datetime()
+        current_timestamp = syscall.timestamp_unix_in_ns()
         thread_id = syscall.thread_id()
 
         if thread_id not in self._syscall_buffer.keys():
@@ -75,13 +75,13 @@ class SyscallsInTimeWindow(BuildingBlock):
         self._syscall_buffer[thread_id].append(syscall)
         last_index = 0
 
-        if (current_timestamp - self._syscall_buffer[thread_id][0].timestamp_datetime()).total_seconds() \
+        if current_timestamp - self._syscall_buffer[thread_id][0].timestamp_unix_in_ns() \
                 >= self.window_length:
             i = 0
             while i < len(self._syscall_buffer[thread_id]):
                 buffered_syscall = self._syscall_buffer[thread_id][i]
                 i += 1
-                difference = (current_timestamp - buffered_syscall.timestamp_datetime()).total_seconds()
+                difference = current_timestamp - buffered_syscall.timestamp_unix_in_ns()
 
                 # saving the index of the first element that is in time window
                 if difference <= self.window_length:
