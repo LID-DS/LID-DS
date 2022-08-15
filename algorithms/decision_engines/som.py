@@ -148,5 +148,5 @@ class Som(BuildingBlock):
                 If the topographic error is 0, no error occurred.
                 If 1, the topology was not preserved for any of the samples.
         """
-        self.custom_fields['training_quantization_error'] = self._som.quantization_error(self._buffer)
-        self.custom_fields['training_quantization_error'] = self._som.topographic_error(self._buffer)
+        self.custom_fields['training_quantization_error'] = self._som.quantization_error(list(self._buffer))
+        self.custom_fields['training_topographicn_error'] = self._som.topographic_error(list(self._buffer))
