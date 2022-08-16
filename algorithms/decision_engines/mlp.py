@@ -13,8 +13,7 @@ from torch.utils.data import Dataset
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
-device = torch.device('cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 
 class MLPDataset(Dataset):
     """
@@ -237,8 +236,8 @@ class MLP(BuildingBlock):
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 
-                # with torch.no_grad():
-                mlp_out = self._model(in_tensor)
+                with torch.no_grad():
+                    mlp_out = self._model(in_tensor)
 
                 try: 
                     label_index = label.index(1)  # getting the index of the actual next datapoint
