@@ -1,5 +1,7 @@
 import math
 import torch
+import numpy
+import random
 import collections
 
 import numpy as np
@@ -11,7 +13,8 @@ from torch.utils.data import Dataset
 from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
+device = torch.device('cpu')
 
 class MLPDataset(Dataset):
     """
@@ -154,6 +157,10 @@ class MLP(BuildingBlock):
         best_avg_loss = math.inf
         best_weights = {}
 
+        # Reproducabiliy
+        generator = torch.Generator()
+        generator.manual_seed(0)
+
         # initializing the torch dataloaders for training and validation
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
@@ -230,8 +237,8 @@ class MLP(BuildingBlock):
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 
-                with torch.no_grad():
-                    mlp_out = self._model(in_tensor)
+                # with torch.no_grad():
+                mlp_out = self._model(in_tensor)
 
                 try: 
                     label_index = label.index(1)  # getting the index of the actual next datapoint
@@ -265,8 +272,11 @@ class MLP(BuildingBlock):
                     'bias': self._model[i].bias
                 }
         return weight_dict
-
-
+    
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    numpy.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 class Feedforward:
     """
@@ -316,5 +326,5 @@ class Feedforward:
                ] + hidden_layer_list + [
                    nn.Linear(self.hidden_size, self.output_size),
                    nn.Dropout(p=0.5),
-                   nn.Softmax()
+                   nn.Softmax(dim=0)
                ]

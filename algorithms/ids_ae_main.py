@@ -2,6 +2,8 @@ import os
 import sys
 import math
 
+import torch
+
 from pprint import pprint
 
 from dataloader.direction import Direction
@@ -71,6 +73,9 @@ if __name__ == '__main__':
                                      lid_ds_version[lid_ds_version_number],
                                      scenario_range[scenario_number])
         dataloader = dataloader_factory(scenario_path, direction=Direction.OPEN)
+
+        # Seeding
+        torch.manual_seed(0)
 
         # features
         ###################
