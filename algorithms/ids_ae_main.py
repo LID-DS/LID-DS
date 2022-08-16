@@ -3,16 +3,20 @@ import sys
 import math
 
 from pprint import pprint
-from algorithms.ids import IDS
+
 from dataloader.direction import Direction
+from dataloader.dataloader_factory import dataloader_factory
+
+from algorithms.ids import IDS
+
 from algorithms.decision_engines.ae import AE
 from algorithms.features.impl.ngram import Ngram
-from dataloader.dataloader_factory import dataloader_factory
+from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
 if __name__ == '__main__':
 
-    lid_ds_version_number = 1
+    lid_ds_version_number = 0
     lid_ds_version = [
         "LID-DS-2019",
         "LID-DS-2021"
@@ -70,8 +74,9 @@ if __name__ == '__main__':
 
         # features
         ###################
+        name = SyscallName()
         w2v = W2VEmbedding(epochs=500,
-                           scenario_path=scenario_path,
+                           word=name,
                            vector_size=w2v_size,
                            window_size=w2v_window_size
                            )
@@ -80,8 +85,7 @@ if __name__ == '__main__':
                       ngram_length=ngram_length
                       )
         ae = AE(
-            input_vector=ngram,
-            hidden_size=hidden_size
+            input_vector=ngram
         )
 
         ###################
@@ -95,7 +99,8 @@ if __name__ == '__main__':
         # threshold
         ids.determine_threshold()
         # detection
-        results = ids.detect().get_performance()
+        performance = ids.detect_parallel()
+        results = performance.get_results() 
 
         pprint(results)
 
