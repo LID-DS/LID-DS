@@ -249,7 +249,7 @@ class MLP(BuildingBlock):
 
                 try: 
                     label_index = label.index(1)  # getting the index of the actual next datapoint
-                    anomaly_score = 1 - mlp_out[label_index]
+                    anomaly_score = 1 - mlp_out[label_index].item()
                 except:
                     anomaly_score = 1
 

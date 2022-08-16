@@ -47,7 +47,7 @@ class Alarms:
         """
         if self._alarm_dict is None:
             alarm_dict = {'alarms': []}
-            for alarm in self.alarms:
+            for alarm in self.alarm_list:
                 alarm_dict['alarms'].append(vars(alarm))
             return alarm_dict
         else:

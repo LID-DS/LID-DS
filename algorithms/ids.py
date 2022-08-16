@@ -118,7 +118,10 @@ class IDS:
                 performance.analyze_syscall(syscall, anomaly_score)
 
         self._data_preprocessor.new_recording()
-        performance.new_recording(recording)
+
+        # End alarms because end of recording is reached
+        performance._cfp_end_normal()
+        performance._cfp_end_exploits()
 
         # run end alarm once to ensure that last alarm gets saved
         if performance.alarms is not None:
