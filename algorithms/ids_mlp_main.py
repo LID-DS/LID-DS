@@ -121,7 +121,7 @@ if __name__ == '__main__':
         ids.determine_threshold()
         # detection        
         # print results
-        results = ids.detect_parallel().get_results()
+        results = ids.detect().get_results()
         pprint(results)
 
         # enrich results with configuration and save to disk
