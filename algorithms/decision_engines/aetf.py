@@ -11,27 +11,22 @@ from dataloader.syscall import Syscall
 from algorithms.building_block import BuildingBlock
 
 
-class AEMode(Enum):
-    LOSS = 1
-    HIDDEN = 2
-    LOSS_AND_HIDDEN = 3
-
-class AE_TF(BuildingBlock):
+class AE_TF(BuildingBlock):    
     """
-    the decision engine
+    a simple implementation of the ae using keras/tf
+    does not support AEMode.Hidden or AEMode.LOSS_AND_HIDDEN
+    I used this to check our AE results - its seems booth have similar results
     """
-    def __init__(self, input_vector: BuildingBlock, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600, early_stopping_epochs=50):
+    def __init__(self, input_vector: BuildingBlock, batch_size=256, epochs=1000):
         super().__init__()                
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
-        self._mode = mode 
         self._input_size = 0
         self._autoencoder = None              
         self._batch_size = batch_size
         self._training_set = set() 
         self._validation_set = set()
-        self._max_training_time = max_training_time # time in seconds
-        self._early_stopping_num_epochs = early_stopping_epochs
+        self._epochs = epochs
 
         # model state
         self._model_state = "Training"
@@ -95,7 +90,7 @@ class AE_TF(BuildingBlock):
             kernel_constraint=max_norm(self._max_norm_value)
         )(x)
         model = keras.Model(inputs=input_layer, outputs=output_layer, name="simple_autoencoder")
-        model.summary()        
+        # model.summary()        
         model.compile(loss=self._loss, optimizer=self._optimizer)
         return model
 
@@ -125,7 +120,7 @@ class AE_TF(BuildingBlock):
         #callback_early_stopping = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=10, restore_best_weights=True)        
         #callback_timed_stopping = TimedStopping(seconds=5*60*60,verbose=1) # stop after 5h = 5 * 60 * 60 seconds        
         # self._autoencoder.fit(training_matrix, training_matrix, batch_size=128, epochs=1000, validation_split=0.0, callbacks=[callback_early_stopping, callback_timed_stopping], verbose=2)
-        self._autoencoder.fit(training_matrix, training_matrix, batch_size=128, epochs=10000, validation_split=0.0, verbose=0)
+        self._autoencoder.fit(training_matrix, training_matrix, batch_size=self._batch_size, epochs=self._epochs, validation_split=0.0, verbose=0)
 
         print("switching to detection mode")
         # set state to detection
