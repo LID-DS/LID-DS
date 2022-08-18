@@ -12,51 +12,46 @@ from dataloader.dataloader_factory import dataloader_factory
 from algorithms.ids import IDS
 
 from algorithms.decision_engines.ae import AE
+from algorithms.decision_engines.aetf import AE_TF
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 
 if __name__ == '__main__':
 
-    lid_ds_version_number = 0
-    lid_ds_version = [
-        "LID-DS-2019",
-        "LID-DS-2021"
-    ]
+    # lid_ds_version:
+    #    "LID-DS-2019"
+    #    "LID-DS-2021"
+    # 
 
-    # scenarios ordered by training data size asc
-    # 0 - 14
-    scenario_names = [
-        "CVE-2017-7529",
-        "CVE-2014-0160",
-        "CVE-2012-2122",
-        "Bruteforce_CWE-307",
-        "CVE-2020-23839",
-        "CWE-89-SQL-injection",
-        "PHP_CWE-434",
-        "ZipSlip",
-        "CVE-2018-3760",
-        "CVE-2020-9484",
-        "EPS_CWE-434",
-        "CVE-2019-5418",
-        "Juice-Shop",
-        "CVE-2020-13942",
-        "CVE-2017-12635_6"
-    ]
+    # scenarios ordered by training data size asc    
+    # 
+    #    "CVE-2017-7529",
+    #    "CVE-2014-0160",
+    #    "CVE-2012-2122",
+    #    "Bruteforce_CWE-307",
+    #    "CVE-2020-23839",
+    #    "CWE-89-SQL-injection",
+    #    "PHP_CWE-434",
+    #    "ZipSlip",
+    #    "CVE-2018-3760",
+    #    "CVE-2020-9484",
+    #    "EPS_CWE-434",
+    #    "CVE-2019-5418",
+    #    "Juice-Shop",
+    #    "CVE-2020-13942",
+    #    "CVE-2017-12635_6"
+    
 
     # todo: set config
     ###################
     # feature config:
-    ngram_length = 7
+    ngram_length = 3
     w2v_size = 5
     w2v_window_size = 10
     thread_aware = True
     hidden_size = int(math.sqrt(ngram_length * w2v_size))
 
-
-    # run config
-    scenario_range = scenario_names[0:1]
-    ###################
 
     # getting the LID-DS base path from argument or environment variable
     if len(sys.argv) > 1:
@@ -67,6 +62,8 @@ if __name__ == '__main__':
         except KeyError:
             raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
                              "$LID_DS_BASE")
+
+
 
     for scenario_number in range(0, len(scenario_range)):
         scenario_path = os.path.join(lid_ds_base_path,
@@ -89,7 +86,7 @@ if __name__ == '__main__':
                       thread_aware=thread_aware,
                       ngram_length=ngram_length
                       )
-        ae = AE(
+        ae = AE_TF(
             input_vector=ngram
         )
 
@@ -104,7 +101,8 @@ if __name__ == '__main__':
         # threshold
         ids.determine_threshold()
         # detection
-        performance = ids.detect_parallel()
+        # performance = ids.detect_parallel()
+        performance = ids.detect()
         results = performance.get_results() 
 
         pprint(results)
