@@ -3,6 +3,9 @@ import sys
 
 from pprint import pprint
 
+from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.syscall_name import SyscallName
+
 from algorithms.ids import IDS
 
 from dataloader.direction import Direction
@@ -73,10 +76,14 @@ if __name__ == '__main__':
 
         # features
         ###################
-        w2v = W2VEmbedding(epochs=50,
-                           scenario_path=scenario_path,
+        syscallName = SyscallName()
+        intEmbedding = IntEmbedding(syscallName)
+        
+        w2v = W2VEmbedding(word=intEmbedding,
                            vector_size=w2v_size,
-                           window_size=ngram_length)
+                           window_size=ngram_length,
+                           epochs=50
+                           )
         ngram = Ngram([w2v], thread_aware, ngram_length)
         som = Som(ngram, epochs=som_epochs, size=som_size)
         config_name = f"som_n_{ngram_length}_w_{w2v_size}_e_{som_epochs}_t_{thread_aware}"
@@ -92,7 +99,7 @@ if __name__ == '__main__':
         # threshold
         ids.determine_threshold()
         # detection
-        results = ids.detect().get_performance()
+        results = ids.detect_parallel().get_results()
         pprint(results)
 
         # enrich results with configuration and save to disk

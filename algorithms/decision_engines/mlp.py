@@ -1,5 +1,7 @@
 import math
 import torch
+import numpy
+import random
 import collections
 
 import numpy as np
@@ -154,6 +156,10 @@ class MLP(BuildingBlock):
         best_avg_loss = math.inf
         best_weights = {}
 
+        # Reproducabiliy
+        generator = torch.Generator()
+        generator.manual_seed(0)
+
         # initializing the torch dataloaders for training and validation
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
@@ -265,8 +271,11 @@ class MLP(BuildingBlock):
                     'bias': self._model[i].bias
                 }
         return weight_dict
-
-
+    
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    numpy.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 class Feedforward:
     """
@@ -316,5 +325,5 @@ class Feedforward:
                ] + hidden_layer_list + [
                    nn.Linear(self.hidden_size, self.output_size),
                    nn.Dropout(p=0.5),
-                   nn.Softmax()
+                   nn.Softmax(dim=0)
                ]

@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # threshold
     ids.determine_threshold()
     # detection
-    results = ids.detect().get_performance()
+    results = ids.detect_parallel().get_results()
     pprint(results)
 
     # enrich results with configuration and save to disk

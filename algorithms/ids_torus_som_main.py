@@ -89,7 +89,7 @@ if __name__ == '__main__':
         # threshold
         ids.determine_threshold()
         # detection
-        ids.detect()
+        ids.detect_parallel()
 
         results = ids.performance.get_results()
         pprint(results)
