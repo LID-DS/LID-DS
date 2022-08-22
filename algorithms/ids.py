@@ -14,6 +14,8 @@ from algorithms.score_plot import ScorePlot
 from algorithms.data_preprocessor import DataPreprocessor 
 from algorithms.performance_measurement import Performance
 
+from matplotlib import pyplot as plt
+
 
 class IDS:
     def __init__(self,
@@ -61,6 +63,34 @@ class IDS:
         if self.plot is not None:
             self.plot.threshold = max_score
         print(f"threshold={max_score:.3f}".rjust(27))
+
+
+    def determine_threshold_and_plot(self):
+        """
+        decision engine calculates anomaly scores using validation data,
+        saves biggest score as threshold for detection phase
+        plots the validation scores
+        """
+        max_score = 0.0
+        data = self._data_loader.validation_data()
+        description = 'Threshold calculation'.rjust(27)
+        scores = []
+        for recording in tqdm(data, description, unit=" recording"):
+            for syscall in recording.syscalls():                
+                anomaly_score = self._final_bb.get_result(syscall)
+                if anomaly_score != None:                
+                    scores.append(anomaly_score)
+                    if anomaly_score > max_score:
+                        max_score = anomaly_score
+            self._data_preprocessor.new_recording()            
+        self.threshold = max_score
+        self.performance.set_threshold(max_score)
+        if self.plot is not None:
+            self.plot.threshold = max_score
+        print(f"threshold={max_score:.3f}".rjust(27))
+
+        plt.plot(scores)
+        plt.show()
 
     def detect(self) -> Performance:
         """
