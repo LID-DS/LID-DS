@@ -87,7 +87,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 100
+        self._early_stop_epochs = 1000
 
         self._result_dict = {}
 
@@ -228,11 +228,11 @@ class MLP(BuildingBlock):
             returns: anomaly score
         """
         input_vector = self.input_vector.get_result(syscall)
-        
-        if input_vector is not None:
-            label = self.output_label.get_result(syscall)   
+        label = self.output_label.get_result(syscall) 
+
+        if input_vector is not None:              
             try:
-                label_index = label.index(1)    
+                label_index = label.index(1)    # getting the index of the actual next datapoint
             except ValueError:
                 sys.exit('Please use an OneHotEncoding as Output-Label. We can\'t handle other Encodings there right now.')
                 
@@ -247,7 +247,6 @@ class MLP(BuildingBlock):
                     mlp_out = self._model(in_tensor)
 
                 try: 
-                    label_index = label.index(1)  # getting the index of the actual next datapoint
                     anomaly_score = 1 - mlp_out[label_index].item()
                 except:
                     anomaly_score = 1
