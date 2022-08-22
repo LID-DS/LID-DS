@@ -48,6 +48,7 @@ class Syscall2019(Syscall):
         self._direction = None
         self._params = None
         self.recording_path = recording_path
+        self._warning = False
 
     def timestamp_unix_in_ns(self) -> float:
         """
@@ -59,9 +60,12 @@ class Syscall2019(Syscall):
             timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
-            #self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 10 ** 9
-            self._timestamp_unix = (timestamp_datetime - datetime(1970, 1, 1)).total_seconds() * 10 ** 9
-            #pprint(self._timestamp_unix)
+            # change default year from 1900 to 1970
+            # so time is not negative
+            timestamp_datetime = timestamp_datetime.replace(year=1970)
+            self._timestamp_unix = mktime(timestamp_datetime.timetuple()) * 1e9 \
+                    + timestamp_datetime.microsecond
+
         return self._timestamp_unix
 
     def timestamp_datetime(self) -> datetime:
@@ -74,6 +78,7 @@ class Syscall2019(Syscall):
             self._timestamp_datetime = datetime.strptime(
                 self._line_list[SyscallSplitPart.TIMESTAMP][0:15],
                 '%H:%M:%S.%f')
+            self._timestamp_datetime = self._timestamp_datetime.replace(year=1970)
         return self._timestamp_datetime
 
     def user_id(self) -> int:
@@ -90,6 +95,16 @@ class Syscall2019(Syscall):
         """
             LID-DS 2019 Dataset does not include process ID.
         """
+        if not self._warning:
+            print('''
+                             _   _             
+                            | | (_)            
+              ___ __ _ _   _| |_ _  ___  _ __  
+             / __/ _` | | | | __| |/ _ \| '_ \ 
+            | (_| (_| | |_| | |_| | (_) | | | | Syscall 2019 has no process ID.
+             \___\__,_|\__,_|\__|_|\___/|_| |_|
+            ''')
+            self._warning = True
         return None
 
     def process_name(self) -> str:

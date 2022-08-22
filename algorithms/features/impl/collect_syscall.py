@@ -1,3 +1,5 @@
+from typing import Optional
+
 from dataloader.syscall import Syscall
 from dataloader.direction import Direction
 
@@ -26,7 +28,7 @@ class CollectSyscall(BuildingBlock):
     def depends_on(self):
         return self._dependency_list
 
-    def _calculate(self, syscall: Syscall) -> tuple:
+    def _calculate(self, syscall: Syscall) -> Optional[tuple]:
         """
             Keep buffer for every thread.
             If second syscall with same name in same thread appears it must be closing one.
@@ -44,6 +46,7 @@ class CollectSyscall(BuildingBlock):
             self._buffer[thread_id] = {}
         # if syscall not in thread buffer
         # create new syscall_name buffer
+        print(self._buffer)
         if syscall_name not in self._buffer[thread_id]:
             # if first syscall is closing one, discard it
             if syscall.direction() == Direction.CLOSE:
@@ -61,7 +64,7 @@ class CollectSyscall(BuildingBlock):
             result_list = []
             for feature in self._dependency_list:
                 result_list.append(self._buffer[thread_id][syscall_name][type(feature).__name__])
-            self._buffer[thread_id][syscall_name] = {}
+            del self._buffer[thread_id][syscall_name]
             return tuple(result_list)
         else:
             return None

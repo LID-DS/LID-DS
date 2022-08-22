@@ -2,6 +2,8 @@ import os
 import sys
 from pprint import pprint
 
+import torch
+
 from algorithms.ids import IDS
 
 from dataloader.direction import Direction
@@ -11,7 +13,8 @@ from algorithms.decision_engines.mlp import MLP
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.ngram_minus_one import NgramMinusOne
+from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.select import Select
 from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 
 from dataloader.dataloader_factory import dataloader_factory
@@ -76,28 +79,35 @@ if __name__ == '__main__':
 
         # features
         ###################
-        w2v = W2VEmbedding(epochs=50,
-                           scenario_path=scenario_path,
+        syscallName = SyscallName()
+        intEmbedding = IntEmbedding(syscallName)
+        
+        w2v = W2VEmbedding(word=intEmbedding,
                            vector_size=w2v_size,
-                           window_size=ngram_length)
+                           window_size=ngram_length,
+                           epochs=50          
+                           )
         ngram = Ngram(feature_list=[w2v],
                       thread_aware=thread_aware,
-                      ngram_length=ngram_length
+                      ngram_length=ngram_length + 1
                       )
-        ngram_minus_one = NgramMinusOne(ngram=ngram,
-                                        element_size=w2v_size)
-        inte = IntEmbedding()
+        
+        select = Select(ngram, start = 0, end = ngram_length * w2v_size)
 
-        ohe = OneHotEncoding(inte)
+        ohe = OneHotEncoding(intEmbedding)
 
         mlp = MLP(
-            input_vector=ngram_minus_one,
+            input_vector=select,
             output_label=ohe,
             hidden_size=hidden_size,
             hidden_layers=hidden_layers,
             batch_size=batch_size,
             learning_rate=0.003
         )
+
+
+        # Seeding
+        torch.manual_seed(0)
 
         ###################
         # the IDS
@@ -111,7 +121,7 @@ if __name__ == '__main__':
         ids.determine_threshold()
         # detection        
         # print results
-        results = ids.detect().get_performance()
+        results = ids.detect().get_results()
         pprint(results)
 
         # enrich results with configuration and save to disk

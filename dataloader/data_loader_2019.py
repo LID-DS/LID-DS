@@ -72,10 +72,7 @@ class DataLoader2019(BaseDataLoader):
                     list of test data
 
                 """
-        recordings = self._normal_recordings[TRAINING_SIZE + VALIDATION_SIZE:] + self._exploit_recordings
-        random.shuffle(recordings)
-
-        return recordings
+        return self._normal_recordings[TRAINING_SIZE + VALIDATION_SIZE:] + self._exploit_recordings
 
     def set_retraining_data(self, data):
         """ Adds retraining data to the IDS

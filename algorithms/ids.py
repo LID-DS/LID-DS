@@ -15,13 +15,13 @@ from dataloader.base_data_loader import BaseDataLoader
 from algorithms.score_plot import ScorePlot
 from algorithms.data_preprocessor import DataPreprocessor 
 from algorithms.performance_measurement import Performance
-from pprint import pprint
 
-from sys import platform
+from matplotlib import pyplot as plt
+
 
 class IDS:
     def __init__(self,
-                 data_loader: BaseDataLoader,               
+                 data_loader: BaseDataLoader,
                  resulting_building_block: BuildingBlock,                 
                  plot_switch: bool,
                  create_alarms: bool = False):
@@ -34,6 +34,7 @@ class IDS:
         self._anomaly_scores_no_exploits = []
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
+        self._create_alarms = create_alarms
         self.performance = Performance(create_alarms)
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
@@ -53,15 +54,12 @@ class IDS:
         data = self._data_loader.validation_data()
         description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
-            # max_score = 0.0
-            for syscall in recording.syscalls():
+            for syscall in recording.syscalls():                
                 anomaly_score = self._final_bb.get_result(syscall)
-                if anomaly_score != None:
+                if anomaly_score != None:                
                     if anomaly_score > max_score:
-                        max_score = deepcopy(anomaly_score)
-                        # max_score = anomaly_score
-            self._data_preprocessor.new_recording()
-            # pprint(f"Threshold after this recording: {max_score}")            
+                        max_score = anomaly_score
+            self._data_preprocessor.new_recording()            
         self.threshold = max_score
         self.performance.set_threshold(max_score)
         if self.plot is not None:
@@ -76,7 +74,6 @@ class IDS:
         """
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
-        self.performance._threshold = self.threshold
 
         for recording in tqdm(data, description, unit=" recording"):
             self.performance.new_recording(recording)
@@ -89,13 +86,13 @@ class IDS:
                     self.performance.analyze_syscall(syscall, anomaly_score)
                     if self.plot is not None:
                         self.plot.add_to_plot_data(anomaly_score, syscall, self.performance.get_cfp_indices())
+
             self._data_preprocessor.new_recording()
 
             # run end alarm once to ensure that last alarm gets saved
             if self.performance.alarms is not None:
                 self.performance.alarms.end_alarm()
         return self.performance
-
 
     def detect_on_single_recording(self, recording: Type[BaseRecording]) -> Performance:
         """
@@ -107,7 +104,7 @@ class IDS:
         Returns:
             Performance: performance object
         """
-        performance = Performance(create_alarms=True)
+        performance = Performance(self._create_alarms)
         performance.set_threshold(self.threshold)
 
         # Wenn das eine Exploit-Aufnahme ist, dann schreibe den Zeit-Stempel auf
@@ -121,10 +118,10 @@ class IDS:
                 performance.analyze_syscall(syscall, anomaly_score)
 
         self._data_preprocessor.new_recording()
-        
-        # ending cfa before new recording starts
-        performance._cfp_end_exploits()
+
+        # End alarms because end of recording is reached
         performance._cfp_end_normal()
+        performance._cfp_end_exploits()
 
         # run end alarm once to ensure that last alarm gets saved
         if performance.alarms is not None:
@@ -137,7 +134,6 @@ class IDS:
         if self.plot is not None:
             self.plot.feed_figure()
             self.plot.show_plot(filename)
-
 
     def _calculate(recording_ids_tuple: tuple) -> Performance:
         """
@@ -168,20 +164,17 @@ class IDS:
         ids_and_recordings = [(self, recording) for recording in self._data_loader.test_data()]
 
         # parallel calculation for every recording
-        if platform in ['win32', 'cygwin']:
-            max_workers = 4 # Musste das begrenzen da mir sonst alles abschmierte
-        else:
-            max_workers = min(32, cpu_count() + 4)
-        
         performance_list = process_map(
             IDS._calculate, 
             ids_and_recordings, 
-            chunksize = 20, # Bewirkt im MLP einen enormen Leistungsschub
+            chunksize = 20,
             desc="anomaly detection".rjust(27),
-            max_workers=max_workers, 
             unit=" recordings")
 
         # Sum up performances
-        final_performance = reduce(Performance.add, performance_list)
+        if self._create_alarms:
+            final_performance = reduce(Performance.add_with_alarms, performance_list)
+        else:
+            final_performance = reduce(Performance.add, performance_list)
         
         return final_performance

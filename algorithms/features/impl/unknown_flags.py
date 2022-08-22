@@ -26,9 +26,13 @@ class UnknownFlags(BuildingBlock):
             if unknown -> returns 1 else 0
         """
         if 'flags' in syscall.params().keys():
-            if syscall.param('flags') in self._flag_dict[syscall.name()]:
-                return 0
-            else:
+            try:
+                if syscall.param('flags') in self._flag_dict[syscall.name()]:
+                    return 0
+                else:
+                    return 1
+            except KeyError:
+                # if syscall has not been in training data
                 return 1
         else:
             return 0

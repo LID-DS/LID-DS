@@ -1,6 +1,9 @@
 import math
 from pprint import pprint
 import torch
+import numpy
+import random
+import collections
 
 import numpy as np
 import torch.nn as nn
@@ -13,8 +16,7 @@ from algorithms.building_block import BuildingBlock
 import numpy
 import random
 
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = torch.device('cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
 
 class MLPDataset(Dataset):
     """
@@ -91,7 +93,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 5000
+        self._early_stop_epochs = 100
 
         self._result_dict = {}
         self._train_counter = 0
@@ -144,54 +146,28 @@ class MLP(BuildingBlock):
             calculates loss on validation data and stops when no optimization occurs
         """
         print(f"MLP.train_set: {len(self._training_set)}".rjust(27))
-        print(f"Using {self.learning_rate} as learning rate")
-        if self._model is None:
-            self._model = Feedforward(
-                input_size=self._input_size,
-                hidden_size=self.hidden_size,
-                output_size=self._output_size,
-                hidden_layers=self.hidden_layers
-            ).model.to(device)
+        
+        self._model = Feedforward(
+            input_size=self._input_size,
+            hidden_size=self.hidden_size,
+            output_size=self._output_size,
+            hidden_layers=self.hidden_layers
+        ).model.to(device)
         self._model.train()
 
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
         optimizer = optim.Adam(self._model.parameters(), lr=self.learning_rate)  # using Adam optimizer
 
-
-        
-        if self._use_independent_validation:
-            # building the datasets
-            train_set_length = len(self._training_set)
-            interrupt_counter = round(0.8 * train_set_length) # Aufteilung 80 % Training, 20% Verify
-        
-            # Sets for train-phase
-            final_train_set = set()
-            final_val_set = set()
-        
-            counter = 0
-            for tuple in self._training_set:
-                if counter >= interrupt_counter: 
-                    final_val_set.add(tuple)
-                else: 
-                    final_train_set.add(tuple)
-                counter += 1
-        
-            pprint(f"Train_set_length was {train_set_length}, is now splitted in {len(final_train_set)} parts training and {len(final_val_set)} parts verify.")
-
-            train_data_set = MLPDataset(final_train_set) 
-            val_data_set = MLPDataset(final_val_set)
-        
-        else: 
-            # building the datasets
-            train_data_set = MLPDataset(self._training_set) 
-            val_data_set = MLPDataset(self._validation_set)
+        # building the datasets
+        train_data_set = MLPDataset(self._training_set)
+        val_data_set = MLPDataset(self._validation_set)
 
         # loss preparation for early stop of training
         epochs_since_last_best = 0
         best_avg_loss = math.inf
         best_weights = {}
 
-        # Eliminate randomness
+        # Reproducabiliy
         generator = torch.Generator()
         generator.manual_seed(0)
 
@@ -199,7 +175,7 @@ class MLP(BuildingBlock):
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=False, worker_init_fn=seed_worker, generator=generator)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=False, worker_init_fn=seed_worker, generator=generator)
 
-        max_epochs = 50000
+        max_epochs = 10000
         # iterate through max epochs
         bar = tqdm(range(0, max_epochs), 'training'.rjust(27), unit=" epochs")  # fancy print for training        
         for e in bar:
@@ -221,9 +197,6 @@ class MLP(BuildingBlock):
             # calculate validation loss
             for i, data in enumerate(val_data_loader):
                 inputs, labels = data
-                #pprint(f"Input is: {inputs}, label is: {labels}")
-                #pprint(len(labels[0])) # Irgendwie ist labels immer 183 lang - ungeachtet der BatchSize. Allerdings stimmt die Größe des Labels dann mit der Länge vom OHE ein.
-                #pprint(sum(0 == i for i in labels[0]))
                 outputs = self._model(inputs)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
@@ -243,7 +216,7 @@ class MLP(BuildingBlock):
                 stop_early = True
 
             # refreshs the fancy printing
-            # bar.set_description(f"fit MLP {epochs_since_last_best}|{best_avg_loss:.5f}".rjust(27), refresh=True)
+            bar.set_description(f"fit MLP {epochs_since_last_best}|{best_avg_loss:.5f}".rjust(27), refresh=True)
 
             if stop_early:
                 break
@@ -252,10 +225,6 @@ class MLP(BuildingBlock):
         self._result_dict = {}
         self._model.load_state_dict(best_weights)
         self._model.eval()
-        
-        # for param in self._model.parameters():
-            # param.requires_grad = False
-            # pprint(f"Model_param: {param}")
 
 
     def _calculate(self, syscall: Syscall):
@@ -271,26 +240,23 @@ class MLP(BuildingBlock):
             returns: anomaly score
         """
         input_vector = self.input_vector.get_result(syscall)
-        #pprint(f"Current syscall result: {input_vector}")
         label = self.output_label.get_result(syscall)
         if input_vector is not None:
             if input_vector in self._result_dict:
                 return self._result_dict[input_vector]
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
+                
                 with torch.no_grad():
                     mlp_out = self._model(in_tensor)
-                #pprint(mlp_out)
-                #pprint(sum(mlp_out))
+
                 try: 
-                    label_index = label.index(1)  # getting the index of the actual next datapoint - mithilfe von index sucht man den Systemcall, der mit 1 gelabelt ist. 
-                    anomaly_score = 1 - mlp_out[label_index] # Das Ergebnis ist dann 1 - die Sicherheit des MLPs, dass es genau dieser Systemcall sein sollte.
-                    
+                    label_index = label.index(1)  # getting the index of the actual next datapoint
+                    anomaly_score = 1 - mlp_out[label_index].item()
                 except:
                     anomaly_score = 1
 
                 self._result_dict[input_vector] = anomaly_score
-                #pprint(f"Current Anomaly-Score: {anomaly_score}")
                 return anomaly_score
         else:
             return None
@@ -317,14 +283,10 @@ class MLP(BuildingBlock):
                 }
         return weight_dict
     
-    def new_recording(self):
-        self._result_dict = {}
-
 def seed_worker(worker_id):
     worker_seed = torch.initial_seed() % 2**32
     numpy.random.seed(worker_seed)
     random.seed(worker_seed)
-
 
 class Feedforward:
     """
