@@ -229,10 +229,15 @@ class MLP(BuildingBlock):
             returns: anomaly score
         """
         input_vector = self.input_vector.get_result(syscall)
-        label = self.output_label.get_result(syscall)
+        
         if input_vector is not None:
-            if input_vector in self._result_dict:
-                return self._result_dict[input_vector]
+            label = self.output_label.get_result(syscall)   
+            label_index = label.index(1)
+            concat_input_output = input_vector + tuple([label_index])
+            
+            
+            if concat_input_output in self._result_dict:
+                return self._result_dict[concat_input_output]
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
                 
@@ -245,7 +250,7 @@ class MLP(BuildingBlock):
                 except:
                     anomaly_score = 1
 
-                self._result_dict[input_vector] = anomaly_score
+                self._result_dict[concat_input_output] = anomaly_score
                 return anomaly_score
         else:
             return None
