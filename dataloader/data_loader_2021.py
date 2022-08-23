@@ -8,9 +8,9 @@ from tqdm import tqdm
 
 from enum import Enum
 
-from dataloader.base_data_loader import BaseDataLoader
 from dataloader.direction import Direction
 from dataloader.recording_2021 import Recording2021
+from dataloader.base_data_loader import BaseDataLoader
 
 TRAINING = 'training'
 VALIDATION = 'validation'
