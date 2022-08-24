@@ -56,7 +56,7 @@ def test_sum():
 
     ohe = OneHotEncoding(SyscallName())
     tid = ThreadID()
-    concat = Concat([tid,tid,tid])
+    concat = Concat([tid,tid,tid,tid])
     sum = Sum([ohe,concat])
 
     for sc in train:
@@ -66,11 +66,11 @@ def test_sum():
     for sc in val:
         sum.val_on(sc)
     #                                              OHE  CON
-    assert sum._calculate(syscall_1) == (2,1,1)  # 100  111
-    assert sum._calculate(syscall_2) == (2,3,2)  # 010  222
-    assert sum._calculate(syscall_3) == (3,3,4)  # 001  333
-    assert sum._calculate(syscall_4) == (1,1,2)  # 001  111
-    assert sum._calculate(syscall_5) == (1,1,2)  # 001  111
+    assert sum._calculate(syscall_1) == (2,1,1,1)  # 1000  1111
+    assert sum._calculate(syscall_2) == (2,3,2,2)  # 0100  2222
+    assert sum._calculate(syscall_3) == (3,3,4,3)  # 0010  3333
+    assert sum._calculate(syscall_4) == (1,1,2,1)  # 0010  1111
+    assert sum._calculate(syscall_5) == (1,1,2,1)  # 0010  1111
 
     train = [syscall_6, syscall_7,
              syscall_8, syscall_9,
@@ -82,7 +82,7 @@ def test_sum():
 
     ohe = OneHotEncoding(SyscallName())
     tid = ThreadID()
-    concat = Concat([tid,tid,tid])
+    concat = Concat([tid,tid,tid,tid])
     sum = Sum([ohe,concat])
 
     for sc in train:
@@ -93,7 +93,7 @@ def test_sum():
         sum.val_on(sc)
 
     #                                              OHE CON
-    assert sum._calculate(syscall_7) == (3,2,2)  # 100 222
-    assert sum._calculate(syscall_8) == (3,4,3)  # 010 333 
-    assert sum._calculate(syscall_9) == (4,5,4)  # 010 444 
-    assert sum._calculate(syscall_10) == (5,5,6) # 001 555 
+    assert sum._calculate(syscall_7) == (3,2,2,2)  # 1000 2222
+    assert sum._calculate(syscall_8) == (3,4,3,3)  # 0100 3333 
+    assert sum._calculate(syscall_9) == (4,5,4,4)  # 0100 4444 
+    assert sum._calculate(syscall_10) == (5,5,6,5) # 0010 5555 
