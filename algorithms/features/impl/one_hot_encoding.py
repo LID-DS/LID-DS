@@ -32,8 +32,6 @@ class OneHotEncoding(BuildingBlock):
         calculates the ohe for each seen input in training
         """
         length = len(self._input_to_int_dict) + 1
-        ohe_array = [0] * length
-        # self._int_to_ohe_dict[0] = tuple(ohe_array) # for unknown inputs
         for i in range(0, length):
             ohe_array = [0] * length
             ohe_array[i] = 1
