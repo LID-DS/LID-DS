@@ -228,13 +228,13 @@ class MLP(BuildingBlock):
             returns: anomaly score
         """
         input_vector = self.input_vector.get_result(syscall)
-        label = self.output_label.get_result(syscall) 
-
-        if input_vector is not None:              
+        
+        if input_vector is not None:  
+            label = self.output_label.get_result(syscall)             
             try:
-                label_index = label.index(1)    # getting the index of the actual next datapoint
+                label_index = label.index(1) # getting the index of the actual next datapoint
             except ValueError:
-                sys.exit('Please use an OneHotEncoding as Output-Label. We can\'t handle other Encodings there right now.')
+                sys.exit(f'Unexpected ValueError in Output-Label. Please use an OHE. The label: {label}; Syscall was: {syscall}. Exiting.')
                 
             concat_input_output = input_vector + tuple([label_index])
             
@@ -242,15 +242,10 @@ class MLP(BuildingBlock):
                 return self._result_dict[concat_input_output]
             else:
                 in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
-                
                 with torch.no_grad():
                     mlp_out = self._model(in_tensor)
-
-                try: 
-                    anomaly_score = 1 - mlp_out[label_index].item()
-                except:
-                    anomaly_score = 1
-
+                    
+                anomaly_score = 1 - mlp_out[label_index].item()
                 self._result_dict[concat_input_output] = anomaly_score
                 return anomaly_score
         else:
