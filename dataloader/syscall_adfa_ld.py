@@ -1,8 +1,8 @@
-from syscall import Syscall
+from dataloader.syscall import Syscall
 
 
 class SyscallADFALD(Syscall):
-    def __init__(self, syscall_id: str, mocked_time: int):
+    def __init__(self, syscall_id: str, mocked_time: int, recording_path: str):
         """
             represents one ADFA-LD Syscall as an object
             
@@ -16,8 +16,10 @@ class SyscallADFALD(Syscall):
             @param mocked_time: an integer representing a mocked timestamp
         """
         super().__init__()
+        self.line_id = mocked_time
         self._name = syscall_id
         self._timestamp_unix = mocked_time
+        self.recording_path = recording_path
 
     def name(self) -> str:
         """

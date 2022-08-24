@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 
-from base_data_loader import BaseDataLoader
+from dataloader.base_data_loader import BaseDataLoader
 from dataloader.recording_adfa_ld import RecordingADFALD
 
 TRAINING = 'training'
@@ -18,7 +18,7 @@ class Attacks(Enum):
 
 
 class DataLoaderADFALD(BaseDataLoader):
-    def __init__(self, path: str, attack: Attacks = None, validation_count: int = 200):
+    def __init__(self, path: str, attack: Attacks = None, val_count: int = 200, val_train_add: int = 500):
         """
             Dataloader for the ADFA-LD dataset
             Handles Training, Validation and Test Data
@@ -26,14 +26,16 @@ class DataLoaderADFALD(BaseDataLoader):
 
             @param path: ADFA-LD Base Path
             @param attack: ADFA-LD attack recording that will be loaded
-            @param validation_count: number of validation data files (first x in sorted list), rest will be test data
+            @param val_count: number of validation data files
+            @param val_train_add: number of recordings from validation directory that will be added to training data
         """
         super().__init__(scenario_path=path)
         self._normal_recordings = None
         self._exploit_recordings = None
         self._distinct_syscalls = None
         self._attack = attack
-        self._validation_count = validation_count
+        self._validation_count = val_count
+        self._val_train_add = val_train_add
 
     def training_data(self) -> list:
         """
@@ -76,14 +78,19 @@ class DataLoaderADFALD(BaseDataLoader):
 
         # distinguishing categories
         if category == TRAINING:
-            category_path = os.path.join(self.scenario_path, train_dir)
-            recording_list = self._get_txt_files(category_path)
+            train_path = os.path.join(self.scenario_path, train_dir)
+            training_list = self._get_txt_files(train_path)
+            val_path = os.path.join(self.scenario_path, val_dir)
+            normal_train_recordings = self._get_txt_files(val_path)
+            normal_train_recordings.sort()
+            normal_train_recordings = normal_train_recordings[:self._val_train_add]
+            recording_list = training_list + normal_train_recordings
 
         elif category == VALIDATION:
             category_path = os.path.join(self.scenario_path, val_dir)
             recording_list = self._get_txt_files(category_path)
             recording_list.sort()
-            recording_list = recording_list[:self._validation_count]
+            recording_list = recording_list[self._val_train_add:self._val_train_add + self._validation_count]
 
         elif category == TEST:
             attack_path = os.path.join(self.scenario_path, attack_dir)
@@ -105,7 +112,7 @@ class DataLoaderADFALD(BaseDataLoader):
             val_path = os.path.join(self.scenario_path, val_dir)
             normal_test_recordings = self._get_txt_files(val_path)
             normal_test_recordings.sort()
-            normal_test_recordings = normal_test_recordings[self._validation_count:]
+            normal_test_recordings = normal_test_recordings[self._validation_count + self._val_train_add:]
             recording_list = normal_test_recordings + attack_recordings
         else:
             raise ValueError('unknown data category')

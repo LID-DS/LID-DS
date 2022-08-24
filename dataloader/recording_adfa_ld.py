@@ -1,7 +1,6 @@
-from abc import ABC
 from typing import Generator
-from base_recording import BaseRecording
-from syscall_adfa_ld import SyscallADFALD as Syscall
+from dataloader.base_recording import BaseRecording
+from dataloader.syscall_adfa_ld import SyscallADFALD as Syscall
 
 
 class RecordingADFALD(BaseRecording):
@@ -23,15 +22,14 @@ class RecordingADFALD(BaseRecording):
         @return: System Call Object
         """
         with open(self.path) as recording_file:
-            syscalls = recording_file.read().split(' ')
+            syscalls = recording_file.read().strip().split(' ')
 
             # ADFA-LD has no syscall timestamps -> the get mocked with increasing integers
             mocked_timestamp = 1
             for syscall_id in syscalls:
-                if len(syscall_id) > 0:
-                    syscall_object = Syscall(syscall_id, mocked_timestamp)
-                    mocked_timestamp += 1
-                    yield syscall_object
+                syscall_object = Syscall(syscall_id, mocked_timestamp, self.path)
+                mocked_timestamp += 1
+                yield syscall_object
 
     def metadata(self):
         """
@@ -47,6 +45,7 @@ class RecordingADFALD(BaseRecording):
         """
         if self._contains_attack:
             return {
+                'exploit': True,
                 'time': {
                     'exploit': [
                         {
@@ -57,6 +56,7 @@ class RecordingADFALD(BaseRecording):
             }
         else:
             return {
+                'exploit': False,
                 'time': {
                     'exploit': []
                 }
