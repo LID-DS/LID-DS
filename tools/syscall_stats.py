@@ -119,7 +119,7 @@ def calc_stats_for_recording_type(recording_list: list, description: str) -> dic
         distinct_user_ids = set([])
 
         for syscall in recording.syscalls():
-            syscall_name = syscall.name()
+            syscall_name = syscall.name
             syscall_direction = syscall.direction()
             syscall_thread_id = syscall.thread_id()
             syscall_process_id = syscall.process_id()

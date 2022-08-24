@@ -252,10 +252,10 @@ class DataLoaderRealWorld(BaseDataLoader):
             description = 'Calculating distinct syscalls'.rjust(25)
             for recording in tqdm(self.training_data(), description, unit=' recording'):
                 for syscall in recording.syscalls():
-                    if syscall.name() in syscall_dict:
+                    if syscall.name in syscall_dict:
                         continue
                     else:
-                        syscall_dict[syscall.name()] = True
+                        syscall_dict[syscall.name] = True
             self._distinct_syscalls = len(syscall_dict)
             with open(self.scenario_path + json_path, 'w') as distinct_syscalls:
                 json.dump({'distinct_syscalls': self._distinct_syscalls}, distinct_syscalls)

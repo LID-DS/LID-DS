@@ -2,7 +2,6 @@ import os
 from enum import Enum
 
 from base_data_loader import BaseDataLoader
-from data_loader_2021 import RecordingType
 from dataloader.recording_adfa_ld import RecordingADFALD
 
 TRAINING = 'training'
@@ -20,6 +19,15 @@ class Attacks(Enum):
 
 class DataLoaderADFALD(BaseDataLoader):
     def __init__(self, path: str, attack: Attacks = None, validation_count: int = 200):
+        """
+            Dataloader for the ADFA-LD dataset
+            Handles Training, Validation and Test Data
+            Attacks can be filtered
+
+            @param path: ADFA-LD Base Path
+            @param attack: ADFA-LD attack recording that will be loaded
+            @param validation_count: number of validation data files (first x in sorted list), rest will be test data
+        """
         super().__init__(scenario_path=path)
         self._normal_recordings = None
         self._exploit_recordings = None
@@ -28,26 +36,45 @@ class DataLoaderADFALD(BaseDataLoader):
         self._validation_count = validation_count
 
     def training_data(self) -> list:
+        """
+        creates list of recordings containing training data
+        @return: list of training data recordings
+        """
         recordings = self._extract_recordings(category=TRAINING)
 
         return recordings
 
     def validation_data(self) -> list:
+        """
+        creates list of recordings containing validation data
+        @return: list of validation data recordings
+        """
         recordings = self._extract_recordings(category=VALIDATION)
 
         return recordings
 
     def test_data(self) -> list:
+        """
+        creates list of recordings containing test data (benign + attack data)
+        @return: list of test data recordings
+        """
         recordings = self._extract_recordings(TEST)
 
         return recordings
 
-    def _extract_recordings(self, category) -> list:
+    def _extract_recordings(self, category: str) -> list:
+        """
+        extracts different recordings by data category
+        handles the attack filter
+        @param category: one of the data categories (Training, Validation, Test)
+        @return: list of Recording objects
+        """
         train_dir = 'Training_Data_Master'
         val_dir = 'Validation_Data_Master'
         attack_dir = 'Attack_Data_Master'
         recordings = []
 
+        # distinguishing categories
         if category == TRAINING:
             category_path = os.path.join(self.scenario_path, train_dir)
             recording_list = self._get_txt_files(category_path)
@@ -70,6 +97,7 @@ class DataLoaderADFALD(BaseDataLoader):
                         filtered_attack_dirs.append(dir_name)
                 sub_dirs = filtered_attack_dirs
 
+            # attack files are located in another subdirectory
             attack_recordings = []
             for attack_sub_dir in sub_dirs:
                 attack_recordings += self._get_txt_files(os.path.join(self.scenario_path, attack_dir, attack_sub_dir))
@@ -83,14 +111,18 @@ class DataLoaderADFALD(BaseDataLoader):
             raise ValueError('unknown data category')
 
         for recording_path in recording_list:
+            # check for attack files
             contains_attack = True if attack_dir in recording_path else False
-
-
             recordings.append(RecordingADFALD(recording_path, contains_attack))
         return recordings
 
     @staticmethod
     def _get_txt_files(path):
+        """
+        ectracts all .txt file from a directory
+        @param path: directory path
+        @return: list of text files
+        """
         file_list = []
         for file in os.listdir(path):
             if file.endswith('.txt'):

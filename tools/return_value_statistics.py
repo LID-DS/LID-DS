@@ -34,6 +34,6 @@ if __name__ == '__main__':
                 for syscall in recording.syscalls():
                     return_value_string = syscall.param('res')
                     if return_value_string:
-                        if syscall.name() not in distinct_syscalls.keys():
-                            distinct_syscalls[syscall.name()] = 1
+                        if syscall.name not in distinct_syscalls.keys():
+                            distinct_syscalls[syscall.name] = 1
     print(distinct_syscalls)
