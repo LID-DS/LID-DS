@@ -71,18 +71,18 @@ def calc_return_value_stats(recording_list, description):
                 try:
                     return_value_int = int(return_value_string)
                     if return_value_int > 10 and return_value_int < 10000000000:
-                        if syscall.name in write:
+                        if syscall.name() in write:
                             result_dict[rec]['written'].append(return_value_int)
-                        elif syscall.name in read:
+                        elif syscall.name() in read:
                             result_dict[rec]['read'].append(return_value_int)
-                        elif syscall.name in send_socket:
+                        elif syscall.name() in send_socket:
                             result_dict[rec]['socket_send'].append(return_value_int)
-                        elif syscall.name in recv_socket:
+                        elif syscall.name() in recv_socket:
                             result_dict[rec]['socket_recv'].append(return_value_int)
-                        elif syscall.name in not_interesting:
+                        elif syscall.name() in not_interesting:
                             pass
                         else:
-                            print(syscall.name, return_value_int)
+                            print(syscall.name(), return_value_int)
                 except ValueError:
                     if any(error in return_value_string for error in error_codes):
                         # error code was returned so ValueError is expected
