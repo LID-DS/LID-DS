@@ -20,11 +20,12 @@ if __name__ == '__main__':
             raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
                              "$LID_DS_BASE")
 
-    kwargs = {'val_count': 20, # size of validation data set (recordings)
-              'attack': None, # ADFA-LD Attack
-              'val_train_add': 2000} # number of validation recordings that will be added to training data
+    kwargs = {'val_count': 20,  # size of validation data set (recordings)
+              'attack': None,  # ADFA-LD Attack
+              'val_train_add': 2000}  # number of validation recordings that will be added to training data
 
-    dataloader = dataloader_factory('/home/felix/datasets/ADFA-LD', **kwargs)
+    dataset = 'ADFA-LD'
+    dataloader = dataloader_factory(os.path.join(lid_ds_base_path, dataset), **kwargs)
 
     thread_aware = False
     window_length = 50
