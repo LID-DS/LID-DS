@@ -1,13 +1,14 @@
 from os import listdir, path
 
-from dataloader.dataloader_real_world import DataLoaderRealWorld
+from dataloader.direction import Direction
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_loader_2019 import DataLoader2019
 from dataloader.data_loader_2021 import DataLoader2021
-from dataloader.direction import Direction
+from dataloader.dataloader_adfa_ld import DataLoaderADFALD
+from dataloader.dataloader_real_world import DataLoaderRealWorld
 
 
-def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN) -> BaseDataLoader:
+def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN, **kwargs) -> BaseDataLoader:
     """
     creates DataLoader 2019 or 2021 by detecting the dataset specific file structure
     """
@@ -15,7 +16,6 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     file_list.sort()
 
     _, base_file_extension = path.splitext(file_list[0])
-    # print(base_file_extension)
 
     """
     LID-DS 2019 Dataset has txt files or one csv file in root folder which lead to return of
@@ -34,6 +34,7 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
     elif base_file_extension == '':
         try:
             normal_path = path.join(scenario_path, 'test', 'normal')
+            adfa_path = path.join(scenario_path, 'Attack_Data_Master')
             if path.isdir(normal_path):
                 example_file = listdir(normal_path)[0]
                 _, sub_file_extension = path.splitext(example_file)
@@ -42,6 +43,14 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
                     return DataLoader2021(scenario_path, direction)
                 else:
                     raise_value_error()
+            elif path.isdir(adfa_path):
+                if kwargs:
+                    return DataLoaderADFALD(scenario_path,
+                                            kwargs['attack'],
+                                            kwargs['val_count'],
+                                            kwargs['val_train_add'])
+                else:
+                    return DataLoaderADFALD(scenario_path)
             else:
                 zip_path = path.join(scenario_path, 'test')
                 example_file = listdir(zip_path)[0]

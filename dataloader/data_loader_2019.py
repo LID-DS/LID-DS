@@ -22,7 +22,7 @@ class DataLoader2019(BaseDataLoader):
 
     """
     def __init__(self, scenario_path: str, direction: Direction = Direction.OPEN):
-        super().__init__(scenario_path, direction)
+        super().__init__(scenario_path)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
         self._normal_recordings = None
