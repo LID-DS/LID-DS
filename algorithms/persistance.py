@@ -2,6 +2,9 @@ import pandas as pd
 import os.path
 import json
 
+from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError, OperationFailure
+
 
 def save_to_json(result_dict: dict, path: str):
     """
@@ -74,3 +77,30 @@ def print_as_table(results: list = None, path: str = None):
     performance = pd.DataFrame(performance_list)
     result_list = pd.concat([performance, config], axis=1)
     print(result_list)
+
+
+def save_to_mongo(result_dict: dict):
+    """
+    opens connection to MongoDB Server and inserts current result document
+    """
+    try:
+        mongo_ip = os.environ['LID_DS_MONGO_IP']
+        mongo_user = os.environ['LID_DS_MONGO_USER']
+        mongo_pw = os.environ['LID_DS_MONGO_PW']
+
+        client = MongoClient(mongo_ip,
+                             username=mongo_user,
+                             password=mongo_pw)
+
+        db = client['experiments']
+        collection = db['experiments']
+
+        collection.insert_one(result_dict)
+        print("Persisted results in MongoDB")
+    except ValueError:
+        raise ValueError("Please make sure MongoDB Environment Variables are set")
+    except ServerSelectionTimeoutError:
+        print("Could not connect to Experiment DB")
+    except OperationFailure:
+        print("Could not persist Data, please check User Credentials")
+

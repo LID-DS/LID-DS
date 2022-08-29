@@ -7,6 +7,7 @@ from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
 
 from algorithms.ids import IDS
+from algorithms.persistance import save_to_mongo
 
 from dataloader.direction import Direction
 
@@ -19,7 +20,7 @@ from dataloader.dataloader_factory import dataloader_factory
 
 if __name__ == '__main__':
 
-    lid_ds_version_number = 1
+    lid_ds_version_number = 0
     lid_ds_version = [
         "LID-DS-2019",
         "LID-DS-2021"
@@ -109,6 +110,7 @@ if __name__ == '__main__':
         results['thread_aware'] = thread_aware
         results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
+        results['dataset'] = lid_ds_version[lid_ds_version_number]
         result_path = 'results/results_som.json'
 
-        som.show_distance_plot()
+        save_to_mongo(results)
