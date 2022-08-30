@@ -1,12 +1,10 @@
-from enum import IntEnum
-from datetime import date, datetime
 from time import mktime
+from enum import IntEnum
 from typing import Tuple
+from datetime import datetime
 
-from dataloader.direction import Direction
 from dataloader.syscall import Syscall
-from dataloader.base_recording import BaseRecording
-from pprint import pprint
+from dataloader.direction import Direction
 
 
 class SyscallSplitPart(IntEnum):

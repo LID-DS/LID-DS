@@ -35,6 +35,8 @@ class Alarm:
         """
         if '.zip' in path:
             self.dataset = 'LID-DS-2021'
+        elif 'Data_Master' in path:
+            self.dataset = 'ADFA-LD'
         else:
             self.dataset = 'LID-DS-2019'
 
@@ -47,6 +49,8 @@ class Alarm:
         """
         if self.dataset == 'LID-DS-2019':
             self.scenario = os.path.basename(os.path.dirname(path))
+        elif self.dataset == 'ADFA-LD':
+            self.scenario = 'ADFA-LD'
         else:
             dirname = os.path.basename(os.path.dirname(path))
             if dirname == 'training' or dirname == 'validation':

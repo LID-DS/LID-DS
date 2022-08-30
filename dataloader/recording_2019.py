@@ -1,10 +1,9 @@
-import datetime
 import os
 import time
-from dataloader.base_recording import BaseRecording
-from pprint import pprint
+import datetime
 
 from dataloader.direction import Direction
+from dataloader.base_recording import BaseRecording
 from dataloader.syscall_2019 import Syscall, Syscall2019
 from distutils.util import strtobool
 

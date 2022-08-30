@@ -1,10 +1,10 @@
+from functools import lru_cache
 import math
 from pprint import pprint
 import torch
 import numpy
 import random
-import collections
-
+import sys
 import numpy as np
 import torch.nn as nn
 
@@ -93,7 +93,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 100
+        self._early_stop_epochs = 1000
 
         self._result_dict = {}
         self._train_counter = 0
@@ -226,8 +226,8 @@ class MLP(BuildingBlock):
         self._model.load_state_dict(best_weights)
         self._model.eval()
 
-
-    def _calculate(self, syscall: Syscall):
+    @lru_cache(maxsize=1000)
+    def _cached_results(self, input_vector, output_label):
         """
             calculates the anomaly score for one syscall
             idea: output of the neural network is a softmax layer containing the
@@ -239,28 +239,34 @@ class MLP(BuildingBlock):
 
             returns: anomaly score
         """
+        if input_vector is None:
+            return None
+        
+        try:
+            label_index = output_label.index(1) # getting the index of the actual next datapoint
+        except ValueError:
+            sys.exit(f'Unexpected ValueError in Output-Label. Please use an OHE. The label: {output_label}.Exiting.')
+        
+        in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
+        with torch.no_grad():
+            mlp_out = self._model(in_tensor)
+        result = 1 - mlp_out[label_index].item()
+        
+        return result
+
+    def _calculate(self, syscall: Syscall):
+        """ Forwards the anomaly calculation to the LRU-Cached implementation
+
+        Args:
+            syscall (Syscall): Current Syscall
+
+        Returns:
+            Anomaly-Value for this syscall
+        """
         input_vector = self.input_vector.get_result(syscall)
         label = self.output_label.get_result(syscall)
-        if input_vector is not None:
-            if input_vector in self._result_dict:
-                return self._result_dict[input_vector]
-            else:
-                in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
-                
-                with torch.no_grad():
-                    mlp_out = self._model(in_tensor)
-
-                try: 
-                    label_index = label.index(1)  # getting the index of the actual next datapoint
-                    anomaly_score = 1 - mlp_out[label_index].item()
-                except:
-                    anomaly_score = 1
-
-                self._result_dict[input_vector] = anomaly_score
-                return anomaly_score
-        else:
-            return None
-
+        return self._cached_results(input_vector, label)
+        
     def depends_on(self):
         self.list = self._dependency_list
         return self.list
