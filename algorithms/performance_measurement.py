@@ -124,7 +124,7 @@ class Performance:
         final_performance._tn = left._tn + right._tn
         final_performance._cfp_count_exploits = left._cfp_count_exploits + right._cfp_count_exploits
         final_performance._cfp_count_normal = left._cfp_count_normal + right._cfp_count_normal
-        final_performance.alarms.alarms = left.alarms.alarms + right.alarms.alarms
+        final_performance.alarms.alarm_list = left.alarms.alarm_list + right.alarms.alarm_list
         
         final_performance.max_anomaly_score_fp = max(left.max_anomaly_score_fp, right.max_anomaly_score_fp)
         final_performance.min_anomaly_score_tp = min(left.min_anomaly_score_tp, right.min_anomaly_score_tp)
