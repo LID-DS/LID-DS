@@ -1,46 +1,63 @@
 import os
 import time
 
-scenarios = [
+
+2019_scenarios = [
+    #"Bruteforce_CWE-307/",
+    "CVE-2012-2122/",
+    "CVE-2014-0160/",
+    "CVE-2017-7529/",
+    #"CVE-2018-3760/",
+    #"CVE-2019-5418/",
+    #"SQL_Injection_CWE-89/",
+    #"EPS_CWE-434/",
+    #"PHP_CWE-434/",
+    #"ZipSlip/",
+]
+
+2021_scenarios = [
     "Bruteforce_CWE-307/",
     "CVE-2012-2122/",
     "CVE-2014-0160/",
+    "CVE-2017-12635_6/",
     "CVE-2017-7529/",
     "CVE-2018-3760/",
     "CVE-2019-5418/",
     "CVE-2020-13942/",
+    "CVE-2020-23839/",
     "CVE-2020-9484/",
     "CWE-89-SQL-injection",
     "EPS_CWE-434/",
+    "Juice-Shop/"
     "PHP_CWE-434/",
     "ZipSlip/",
-    "Juice-Shop/"
     # "real_world/"
 ]
-
 epochs = 20
-windows = [500, 800, 1000]
+windows = [300, 500, 700, 1000]
 batch_sizes = [1024]
-embedding_sizes = [7]
-ngram_lengths = [3, 5]# , 7]
+embedding_sizes = [1]
+ngram_lengths = [3, 5, 7]
 thread_aware_list = [True]
 time_deltas = [False]
 thread_change_flags = [False]
 return_values = [False]
 # base_path = '/work/user/te697mily/Data/'
-base_path = '/work/user/te697mily/Data/'
-
+base_path = '/work/user/te697mily/Data/LID-DS-2019/'
+if '2019' in base_path:
+    scenarios = 2019_scenarios
+else:
+    scenarios = scenarios
 script = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'
 
-max_jobs_in_queue = 100
+max_jobs_in_queue = 1000
 num_experiments = 0
 
 
 # counts the number of my jobs in the queue
-def count_queue():
+def count_queue(): 
     user = "te697mily"
     return int(os.popen(f"squeue -u {user} | wc -l").read().strip("\n")) - 1
-
 
 # starts the job given by str
 # if the number of my jobs in the queue is smaller than max_jobs_in_queue

@@ -101,13 +101,13 @@ if __name__ == '__main__':
     ids.determine_threshold()
     # detection
     start = time.time()
-    ids.do_detection()
+    performance = ids.detect_parallel()
     end = time.time()
 
     detection_time = (end - start)/60  # in min
 
     ### print results and plot the anomaly scores
-    results = ids.performance.get_performance()
+    results = performance.get_results()
     pprint(results)
     results['scenario'] = 'real_world' 
     results['ngram'] = ngram_length

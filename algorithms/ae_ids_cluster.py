@@ -12,8 +12,11 @@ from algorithms.decision_engines.som import Som
 from algorithms.decision_engines.stide import Stide
 
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.stream_sum import StreamSum 
+from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
+from algorithms.features.impl.one_hot_encoding import OneHotEncoding 
 
 from algorithms.persistance import save_to_json
 
@@ -69,7 +72,8 @@ if __name__ == '__main__':
     dataloader = dataloader_factory(args.base_path + '/' + scenario, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
-    # embedding = IntEmbedding()
+    # name = SyscallName()
+    # embedding = OneHotEncoding(name)
     # som_epochs = 1000
     embedding = W2VEmbedding(epochs=50,
                        	     scenario_path=scenario,
@@ -82,10 +86,12 @@ if __name__ == '__main__':
     # som = Som(ngram, epochs=som_epochs, size=50)
     de = AE(input_vector=ngram,
 	    hidden_size=hidden_size)
-	    	
+    stream_sum = StreamSum(feature=de,
+                           thread_aware=True,
+                           window_length=window)
     ### the IDS    
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=de,
+              resulting_building_block=stream_sum,
               create_alarms=True,
               plot_switch=False)
 
@@ -94,18 +100,25 @@ if __name__ == '__main__':
     ids.determine_threshold()
     # detection
     start = time.time()
-    ids.do_detection()
+    results = ids.detect_parallel().get_results()
     end = time.time()
 
     detection_time = (end - start)/60  # in min
 
     ### print results and plot the anomaly scores
-    results = ids.performance.get_performance()
+
     pprint(results)
-    results['scenario'] = 'real world' 
+    results['scenario'] = scenario 
+    results['lids_version'] = '2019'
     results['ngram'] = ngram_length
-    results['embedding'] = embedding_size
+    results['embedding'] = 'ohe'
+    results['embedding_size'] = 'ohe'
     results['algorithm'] = 'ae'
+    results['window'] = window
     results['detection_time'] = detection_time
-    result_path = 'persistent_data/real_world.json'
+    results['flag'] = False
+    results['mode'] = False
+    results['process_name'] = False
+    results['threshold_value'] = ids.threshold
+    result_path = 'persistent_data/results.json'
     save_to_json(results, result_path)
