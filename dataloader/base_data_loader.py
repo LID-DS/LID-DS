@@ -15,7 +15,7 @@ class BaseDataLoader:
 
     """
 
-    def __init__(self, scenario_path: str, direction: Direction):
+    def __init__(self, scenario_path: str):
         """
 
             Save path of scenario and create metadata_list.

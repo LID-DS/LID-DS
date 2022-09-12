@@ -1,11 +1,13 @@
 from algorithms.features.impl.flags import Flags
 from algorithms.features.impl.time_delta import TimeDelta
+from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.return_value import ReturnValue
 from algorithms.features.impl.path_evilness import PathEvilness
 from algorithms.features.impl.stream_maximum import StreamMaximum
 from algorithms.features.impl.collect_syscall import CollectSyscall
 
 from dataloader.syscall_2021 import Syscall2021
+from dataloader.syscall_2019 import Syscall2019
 
 
 def test_collect_syscall():
@@ -46,6 +48,25 @@ def test_collect_syscall():
     syscall_17 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              '1631279047761444623 0 30244 Catalina-utilit 31393 read < res=0 ')
 
+    syscall_18 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36587 00:15:56.976976340 6 999 mysqld 1 > write fd=36(<4t>172.17.0.1:37032->172.17.0.13:3306) size=11')
+    syscall_19 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36588 00:15:56.976995212 6 999 mysqld 1 < write res=11 data=......:.... flags=1(O_RDONLY) ')
+    syscall_20 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36589 00:15:56.976998042 6 999 mysqld 1 > setsockopt')
+    syscall_21 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36590 00:15:56.977099081 6 999 mysqld 1 < setsockopt res=0 fd=36(<4t>172.17.0.1:37032->172.17.0.13:3306) level=1(SOL_SOCKET) optname=20(SO_RCVTIMEO) val=28800000000000(28800s) optlen=16')
+    syscall_22 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36591 00:15:56.978001060 6 999 mysqld 2 > read fd=36(<4t>172.17.0.1:37032->172.17.0.13:3306) size=4')
+    syscall_23 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36592 00:15:56.979002483 6 999 mysqld 2 < read res=-11(EAGAIN) data=')
+    syscall_24 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+            '36593 00:15:56.980003699 6 999 mysqld 2 > fcntl fd=36(<4t>172.17.0.1:37032->172.17.0.13:3306) cmd=5(F_SETFL)')
+    syscall_25 = Syscall2019('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+            '36594 00:15:56.981004485 6 999 mysqld 2 < fcntl res=0(<f>/dev/null) flags=1(O_RDONLY)')
+    syscall_26 = Syscall2019('CVE-2017-7529/acidic_bhaskara_7006.zip',
+        '36595 00:15:56.982005435 6 999 mysqld 2 > read fd=36(<4t>172.17.0.1:37032->172.17.0.13:3306) size=4')
+
     training_syscalls = [syscall_1, syscall_2,
                          syscall_3, syscall_4,
                          syscall_5, syscall_6,
@@ -78,12 +99,10 @@ def test_collect_syscall():
     str_max = StreamMaximum(feature=time_delta,
                             thread_aware=True, window_length=2)
 
-    print('start training')
     for syscall in training_syscalls:
         pe.train_on(syscall)
         rv.train_on(syscall)
         time_delta.train_on(syscall)
-    print('end training')
     pe.fit()
     time_delta.fit()
 
@@ -97,3 +116,18 @@ def test_collect_syscall():
     assert col._calculate(syscall_15) == (1.0, 0, '1(O_RDONLY)', 10.000000219991005)
     assert col._calculate(syscall_16) is None
     assert col._calculate(syscall_17) == (0, 0.0, '0', 10.000000219991005)
+
+
+    training_syscalls = [syscall_18, syscall_19,
+                         syscall_20, syscall_21]
+
+    flag = Flags()
+    name = SyscallName()
+
+    col = CollectSyscall(feature_list=[flag, name])
+
+    assert col.get_result(syscall_22) is None 
+    assert col.get_result(syscall_23) == ('0', 'read')
+    assert col.get_result(syscall_24) is None 
+    assert col.get_result(syscall_25) == ('1(O_RDONLY)', 'fcntl')
+    assert col.get_result(syscall_26) is None 

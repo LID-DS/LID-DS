@@ -74,9 +74,9 @@ if __name__ == '__main__':
                 # threshold
                 ids.determine_threshold()
                 # detection
-                ids.detect()
+                ids.detect_parallel()
                 # print results
-                results = ids.performance.get_performance()
+                results = ids.performance.get_results()
                 pprint(results)
                 
                 # enrich results with configuration and save to disk
@@ -89,7 +89,7 @@ if __name__ == '__main__':
                 result_path = 'results/results_stide_LID-DS-2021.json'
                 save_to_json(results, result_path)
 
-                # alarms
+                # alarms - you need an exisiting "algorithms/results" directory for this to work. 
                 if generate_and_write_alarms:
                     with open(f"results/alarms_{config_name}_{lid_ds_version[select_lid_ds_version_number]}_{scenario_names[select_scenario_number]}.json", 'w') as jsonfile:
                         json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)

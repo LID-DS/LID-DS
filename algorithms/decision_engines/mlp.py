@@ -1,7 +1,9 @@
+from functools import lru_cache
 import math
 import torch
-import collections
-
+import numpy
+import random
+import sys
 import numpy as np
 import torch.nn as nn
 
@@ -86,7 +88,7 @@ class MLP(BuildingBlock):
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 100
+        self._early_stop_epochs = 1000
 
         self._result_dict = {}
 
@@ -154,6 +156,10 @@ class MLP(BuildingBlock):
         best_avg_loss = math.inf
         best_weights = {}
 
+        # Reproducabiliy
+        generator = torch.Generator()
+        generator.manual_seed(0)
+
         # initializing the torch dataloaders for training and validation
         train_data_loader = torch.utils.data.DataLoader(train_data_set, batch_size=self.batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(val_data_set, batch_size=self.batch_size, shuffle=True)
@@ -209,8 +215,8 @@ class MLP(BuildingBlock):
         self._model.load_state_dict(best_weights)
         self._model.eval()
 
-
-    def _calculate(self, syscall: Syscall):
+    @lru_cache(maxsize=1000)
+    def _cached_results(self, input_vector, output_label):
         """
             calculates the anomaly score for one syscall
             idea: output of the neural network is a softmax layer containing the
@@ -222,26 +228,34 @@ class MLP(BuildingBlock):
 
             returns: anomaly score
         """
+        if input_vector is None:
+            return None
+        
+        try:
+            label_index = output_label.index(1) # getting the index of the actual next datapoint
+        except ValueError:
+            sys.exit(f'Unexpected ValueError in Output-Label. Please use an OHE. The label: {output_label}.Exiting.')
+        
+        in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
+        with torch.no_grad():
+            mlp_out = self._model(in_tensor)
+        result = 1 - mlp_out[label_index].item()
+        
+        return result
+
+    def _calculate(self, syscall: Syscall):
+        """ Forwards the anomaly calculation to the LRU-Cached implementation
+
+        Args:
+            syscall (Syscall): Current Syscall
+
+        Returns:
+            Anomaly-Value for this syscall
+        """
         input_vector = self.input_vector.get_result(syscall)
         label = self.output_label.get_result(syscall)
-        if input_vector is not None:
-            if input_vector in self._result_dict:
-                return self._result_dict[input_vector]
-            else:
-                in_tensor = torch.tensor(input_vector, dtype=torch.float32, device=device)
-                mlp_out = self._model(in_tensor)
-
-                try: 
-                    label_index = label.index(1)  # getting the index of the actual next datapoint
-                    anomaly_score = 1 - mlp_out[label_index]
-                except:
-                    anomaly_score = 1
-
-                self._result_dict[input_vector] = anomaly_score
-                return anomaly_score
-        else:
-            return None
-
+        return self._cached_results(input_vector, label)
+        
     def depends_on(self):
         self.list = self._dependency_list
         return self.list
@@ -263,8 +277,11 @@ class MLP(BuildingBlock):
                     'bias': self._model[i].bias
                 }
         return weight_dict
-
-
+    
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    numpy.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 class Feedforward:
     """
@@ -314,5 +331,5 @@ class Feedforward:
                ] + hidden_layer_list + [
                    nn.Linear(self.hidden_size, self.output_size),
                    nn.Dropout(p=0.5),
-                   nn.Softmax()
+                   nn.Softmax(dim=0)
                ]

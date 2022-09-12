@@ -1,34 +1,24 @@
 import os
 import sys
-import json
-
 from pprint import pprint
 
-from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.syscall_name import SyscallName
-
-from algorithms.ids import IDS
-
-from dataloader.direction import Direction
-
-from algorithms.persistance import save_to_json
-
-from algorithms.decision_engines.som import Som
-
+from algorithms.decision_engines.torus_som import TorusSom
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.w2v_embedding import W2VEmbedding
-
+from algorithms.ids import IDS
 from dataloader.dataloader_factory import dataloader_factory
+from dataloader.direction import Direction
 
 if __name__ == '__main__':
 
-    lid_ds_version_number = 1
+    lid_ds_version_number = 0
     lid_ds_version = [
         "LID-DS-2019",
         "LID-DS-2021"
     ]
 
-    # scenarios orderd by training data size asc
+    # scenarios ordered by training data size asc
     # 0 - 14    
     scenario_names = [
         "CVE-2017-7529",
@@ -53,12 +43,13 @@ if __name__ == '__main__':
     # feature config:
     ngram_length = 7
     w2v_size = 5
-    som_epochs = 100
+    som_tfac = 100
+    som_tscale = 10
+    som_size = 98
     thread_aware = True
 
     # run config
-    generate_and_write_alarms = True
-    scenario_range = scenario_names[0:15]
+    scenario_range = scenario_names[0:1]
     ###################
 
     # getting the LID-DS base path from argument or environment variable
@@ -79,46 +70,35 @@ if __name__ == '__main__':
 
         # features
         ###################
-        syscallName = SyscallName()
-        intEmbedding = IntEmbedding(syscallName)
-        w2v = W2VEmbedding(word=intEmbedding,           
+        name = SyscallName()
+        w2v = W2VEmbedding(word=name,
+                           epochs=500,
                            vector_size=w2v_size,
-                           window_size=ngram_length,
-                           epochs=50
-                           )
+                           window_size=ngram_length)
         ngram = Ngram([w2v], thread_aware, ngram_length)
-        som = Som(ngram, epochs=som_epochs)
-        config_name = f"som_n_{ngram_length}_w_{w2v_size}_e_{som_epochs}_t_{thread_aware}"
+        torus_som = TorusSom(ngram, tfac=som_tfac, tscale=som_tscale, size=som_size)
 
         ###################
         # the IDS
         ids = IDS(data_loader=dataloader,
-                  resulting_building_block=som,
-                  create_alarms=generate_and_write_alarms,
-                  plot_switch=False)
+                  resulting_building_block=torus_som,
+                  create_alarms=False,
+                  plot_switch=True)
 
         print("at evaluation:")
         # threshold
         ids.determine_threshold()
         # detection
         ids.detect_parallel()
-        # print results
+
         results = ids.performance.get_results()
         pprint(results)
 
         # enrich results with configuration and save to disk
-        results['algorithm'] = "SOM"
+        results['algorithm'] = "TorusSOM"
         results['ngram_length'] = ngram_length
         results['w2v_size'] = w2v_size
         results['thread_aware'] = thread_aware
         results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
         result_path = 'results/results_som.json'
-        save_to_json(results, result_path)
-
-        # alarms - you need the directory "algorithms/results" existing for this to work.
-        if generate_and_write_alarms:
-            with open(
-                    f"results/alarms_{config_name}_{scenario_range[scenario_number]}.json",
-                    'w') as jsonfile:
-                json.dump(ids.performance.alarms.get_alarms_as_dict(), jsonfile, default=str, indent=2)

@@ -1,15 +1,14 @@
-import datetime
 import os
 import time
-from dataloader.base_recording import BaseRecording
-
-from dataloader.direction import Direction
-from dataloader.syscall_2019 import Syscall, Syscall2019
-from distutils.util import strtobool
+import datetime
 
 from enum import IntEnum
-
 from typing import Generator
+
+from distutils.util import strtobool
+from dataloader.direction import Direction
+from dataloader.base_recording import BaseRecording
+from dataloader.syscall_2019 import Syscall, Syscall2019
 
 
 class RecordingDataParts(IntEnum):

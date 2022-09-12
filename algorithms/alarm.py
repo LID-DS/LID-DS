@@ -42,6 +42,8 @@ class Alarm:
                     self.dataset = 'LID-DS-2021'
                 else:
                     self.dataset = 'Real World'
+        elif 'Data_Master' in path:
+            self.dataset = 'ADFA-LD'
         else:
             self.dataset = 'LID-DS-2019'
 
@@ -56,6 +58,8 @@ class Alarm:
             self.scenario = os.path.basename(os.path.dirname(path))
         elif self.dataset == 'Real World':
             self.scenario = 'real_world'
+        elif self.dataset == 'ADFA-LD':
+            self.scenario = 'ADFA-LD'
         else:
             dirname = os.path.basename(os.path.dirname(path))
             if dirname == 'training' or dirname == 'validation':
