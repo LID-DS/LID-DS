@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # feature config:
     ngram_length = 7
     w2v_size = 5
-    som_epochs = 1000
+    som_epochs = 100
     som_size = 50
     thread_aware = True
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         results['ngram_length'] = ngram_length
         results['w2v_size'] = w2v_size
         results['thread_aware'] = thread_aware
-        results['config'] = ids.get_config()
+        # results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
         results['dataset'] = lid_ds_version[lid_ds_version_number]
         result_path = 'results/results_som.json'
