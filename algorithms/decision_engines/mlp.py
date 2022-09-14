@@ -1,4 +1,5 @@
 from functools import lru_cache
+from decimal import Decimal
 import math
 import torch
 import numpy
@@ -240,8 +241,7 @@ class MLP(BuildingBlock):
         with torch.no_grad():
             mlp_out = self._model(in_tensor)
         result = 1 - mlp_out[label_index].item()
-        
-        return result
+        return Decimal(f'{result}')
 
     def _calculate(self, syscall: Syscall):
         """ Forwards the anomaly calculation to the LRU-Cached implementation
