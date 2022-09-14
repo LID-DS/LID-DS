@@ -49,10 +49,10 @@ if __name__ == '__main__':
     # todo: set config
     ###################
     # feature config:
-    ngram_length = 7
-    w2v_size = 5
-    som_epochs = 1000
-    som_size = 50
+    ngram_length = 1
+    w2v_size = 1
+    som_epochs = 1
+    som_size = 1
     thread_aware = True
 
     # run config
@@ -96,6 +96,9 @@ if __name__ == '__main__':
                   create_alarms=False,
                   plot_switch=False)
 
+        print(ids.get_config_as_json())
+
+        """
         print("at evaluation:")
         # threshold
         ids.determine_threshold()
@@ -108,9 +111,10 @@ if __name__ == '__main__':
         results['ngram_length'] = ngram_length
         results['w2v_size'] = w2v_size
         results['thread_aware'] = thread_aware
-        results['config'] = ids.get_config()
+        results['config'] = ids.get_config_as_json()
         results['scenario'] = scenario_range[scenario_number]
         results['dataset'] = lid_ds_version[lid_ds_version_number]
         result_path = 'results/results_som.json'
 
-        save_to_mongo(results)
+        # save_to_mongo(results)
+        """

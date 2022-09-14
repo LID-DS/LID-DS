@@ -1,3 +1,8 @@
+import json
+
+import networkx as nx
+from networkx.readwrite import json_graph
+
 from tqdm import tqdm
 from typing import Type
 
@@ -16,6 +21,11 @@ from algorithms.performance_measurement import Performance
 
 from matplotlib import pyplot as plt
 
+def dumper(obj):
+    try:
+        return obj.__dict__
+    except:
+        return None
 
 class IDS:
     def __init__(self,
@@ -41,6 +51,11 @@ class IDS:
 
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
+
+    def get_config_as_json(self):
+        # graph = nx.nx_pydot.from_pydot(self._data_preprocessor.get_building_block_manager().to_dot())
+        graph_dict = json.dumps(json_graph.node_link_data(self._data_preprocessor.get_building_block_manager().get_dependency_graph()), default=dumper)
+        return(graph_dict)
 
     def determine_threshold(self):
         """
@@ -204,3 +219,4 @@ class IDS:
             final_performance = reduce(Performance.add, performance_list)
         
         return final_performance
+
