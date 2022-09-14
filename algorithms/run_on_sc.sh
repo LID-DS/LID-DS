@@ -3,25 +3,12 @@
 #SBATCH --time=10:00:00
 #SBATCH --mem=64G
 
-# source /scratch/ws/1/tikl664d-master/master/bin/activate
-# module load Python
-# module load Python/3.7.4-GCCcore-8.3.0
-# module load PyTorch/1.9.0-fosscuda-2020b
-# module load PyTorch/1.7.1-fosscuda-2019b-Python-3.7.4
-# module load CUDA/11.3.1
-# module load CUDA/10.1.243
-# module load CUDA/10.1.243-GCC-8.3.0
-# module load CUDA/10.1.243-iccifort-2019.5.281
-# module load Python/3.9.5-GCCcore-10.3.0
-module load PyTorch/1.8.1-fosscuda-2020b
-# module load PyTorch/1.7.1-fosscuda-2019b-Python-3.7.4             
 # module load PyTorch/1.8.1-fosscuda-2020b
-# module load PyTorch/1.8.1-fosscuda-2019b-Python-3.7.4             
-# PyTorch/1.9.0-fosscuda-2020b
 
 module load matplotlib
 pip install --upgrade pip
 pip install --user -e ../
+pip install --user -r ../requirements.txt
 pip install --user tqdm
 pip install --user minisom
 

@@ -8,8 +8,6 @@ from pprint import pprint
 from algorithms.ids import IDS
 
 from algorithms.decision_engines.ae import AE
-from algorithms.decision_engines.som import Som
-from algorithms.decision_engines.stide import Stide
 
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.stream_sum import StreamSum 
@@ -72,23 +70,20 @@ if __name__ == '__main__':
     dataloader = dataloader_factory(args.base_path + '/' + scenario, direction=Direction.OPEN)
     ### building blocks    
     # first: map each systemcall to an integer
-    # name = SyscallName()
+    name = SyscallName()
     # embedding = OneHotEncoding(name)
     # som_epochs = 1000
     embedding = W2VEmbedding(epochs=50,
-                       	     scenario_path=scenario,
+                       	     word=name,
                        	     vector_size=embedding_size,
                        	     window_size=ngram_length)
     # # now build ngrams from these integers
     ngram = Ngram([embedding], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
-    # de = Stide(ngram, window_length=window_length)
-    # som = Som(ngram, epochs=som_epochs, size=50)
-    de = AE(input_vector=ngram,
-	    hidden_size=hidden_size)
+    de = AE(input_vector=ngram)
     stream_sum = StreamSum(feature=de,
                            thread_aware=True,
-                           window_length=window)
+                           window_length=window_length)
     ### the IDS    
     ids = IDS(data_loader=dataloader,
               resulting_building_block=stream_sum,
@@ -100,8 +95,8 @@ if __name__ == '__main__':
     ids.determine_threshold()
     # detection
     start = time.time()
-    results = ids.detect_parallel().get_results()
-    end = time.time()
+    results = ids.detect().get_results()
+    end = time.tim()
 
     detection_time = (end - start)/60  # in min
 
@@ -111,14 +106,14 @@ if __name__ == '__main__':
     results['scenario'] = scenario 
     results['lids_version'] = '2019'
     results['ngram'] = ngram_length
-    results['embedding'] = 'ohe'
-    results['embedding_size'] = 'ohe'
+    results['embedding'] = 'w2v'
+    results['embedding_size'] = embedding_size 
     results['algorithm'] = 'ae'
-    results['window'] = window
+    results['window'] = window_length
     results['detection_time'] = detection_time
     results['flag'] = False
     results['mode'] = False
     results['process_name'] = False
     results['threshold_value'] = ids.threshold
-    result_path = 'persistent_data/results.json'
+    result_path = 'persistent_data/ae.json'
     save_to_json(results, result_path)

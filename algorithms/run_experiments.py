@@ -1,21 +1,20 @@
 import os
 import time
 
-
-2019_scenarios = [
-    #"Bruteforce_CWE-307/",
+scenario_2019 = [
+    "Bruteforce_CWE-307/",
     "CVE-2012-2122/",
     "CVE-2014-0160/",
-    "CVE-2017-7529/",
-    #"CVE-2018-3760/",
-    #"CVE-2019-5418/",
-    #"SQL_Injection_CWE-89/",
-    #"EPS_CWE-434/",
-    #"PHP_CWE-434/",
-    #"ZipSlip/",
+    "CVE-2017-7529/"
+    "CVE-2018-3760/",
+    "CVE-2019-5418/",
+    "SQL_Injection_CWE-89/",
+    "EPS_CWE-434/",
+    "PHP_CWE-434/",
+    "ZipSlip/",
 ]
 
-2021_scenarios = [
+scenario_2021 = [
     "Bruteforce_CWE-307/",
     "CVE-2012-2122/",
     "CVE-2014-0160/",
@@ -45,9 +44,9 @@ return_values = [False]
 # base_path = '/work/user/te697mily/Data/'
 base_path = '/work/user/te697mily/Data/LID-DS-2019/'
 if '2019' in base_path:
-    scenarios = 2019_scenarios
+    scenarios = scenario_2019 
 else:
-    scenarios = scenarios
+    scenarios = scenario_2021 
 script = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'
 
 max_jobs_in_queue = 1000
