@@ -84,9 +84,9 @@ def save_to_mongo(result_dict: dict):
     opens connection to MongoDB Server and inserts current result document
     """
     try:
-        mongo_ip = os.environ['LID_DS_MONGO_IP']
-        mongo_user = os.environ['LID_DS_MONGO_USER']
-        mongo_pw = os.environ['LID_DS_MONGO_PW']
+        mongo_ip = '172.26.44.41'  #os.environ['LID_DS_MONGO_IP']
+        mongo_user = 'experiment'  #os.environ['LID_DS_MONGO_USER']
+        mongo_pw = 'evD8g8g2DUz'  #os.environ['LID_DS_MONGO_PW']
 
         client = MongoClient(mongo_ip,
                              username=mongo_user,

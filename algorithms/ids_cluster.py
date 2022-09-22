@@ -20,7 +20,7 @@ from algorithms.features.impl.int_embedding import IntEmbedding
 
 from algorithms.decision_engines.stide import Stide
 
-from algorithms.persistance import save_to_json
+from algorithms.persistance import save_to_mongo 
 
 
 
@@ -107,15 +107,14 @@ if __name__ == '__main__':
         results['lids_version'] = '2019'
         results['scenario'] = scenario
         results['ngram'] = ngram_length
-        results['embedding'] = 'int'
-        results['algorithm'] = 'stide'
-        results['window'] = window_length 
+        results['embedding'] = 'INT'
+        results['algorithm'] = 'STIDE'
+        results['stream_sum'] = window_length 
         results['detection_time'] = detection_time
-        results['flag'] = False
-        results['mode'] = False
-        results['process_name'] = False
-        result_path = 'persistent_data/results.json'
-        save_to_json(results, result_path)
+        # results['flag'] = False
+        # results['mode'] = False
+        # results['process_name'] = False
+        save_to_mongo(results)
     except Exception as e:
         print(traceback.format_exc())
         print('Experiment failed')
