@@ -78,9 +78,10 @@ for entry in doc:
     stream_sum = entry['_id']['stream_sum']
     embedding = entry['_id']['embedding']
     dr = entry['avg_DR']
-    avg_fa = entry['avg_DR']
+    avg_fa = entry['avg_FA']
+    sum_fa = entry['sum_FA']
 
-    table_list.append([dataset, algorithm, ngram_length, stream_sum, embedding, dr, avg_fa])
+    table_list.append([dataset, algorithm, ngram_length, stream_sum, embedding, dr, avg_fa, sum_fa])
 
 print(tabulate(table_list,
       headers=['Dataset',
@@ -89,4 +90,5 @@ print(tabulate(table_list,
                'Stream Sum',
                'Embedding',
                'DR',
-               'avg CFA'], tablefmt='orgtbl'))
+               'avg CFA',
+               'sum CFA'], tablefmt='github'))
