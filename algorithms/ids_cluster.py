@@ -12,7 +12,7 @@ from dataloader.direction import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
 from algorithms.features.impl.mode import Mode
-from algorithms.features.impl.flags import Flags
+from algorithms.features.impl.flags import Flags 
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.concat import Concat
 from algorithms.features.impl.process_name import ProcessName
@@ -69,8 +69,9 @@ if __name__ == '__main__':
         ngram_length = args.ngram_length
         embedding_size = args.embedding_size
         hidden_size = int(math.sqrt(ngram_length * embedding_size))
+        direction = Direction.BOTH
 
-        dataloader = dataloader_factory(args.base_path + scenario, direction=Direction.OPEN)
+        dataloader = dataloader_factory(args.base_path + scenario, direction=direction)
         ### building blocks    
         # first: map each systemcall to an integer
         syscall_embedding = IntEmbedding()
@@ -104,15 +105,23 @@ if __name__ == '__main__':
         ### print results and plot the anomaly scores
         results = performance.get_results()
         pprint(results)
-        results['lids_version'] = '2019'
+        if direction == Direction.BOTH:
+            direction = 'BOTH'
+        elif direction == Direction.OPEN:
+            direction = 'OPEN'
+        else: 
+            direction = 'CLOSE'
+        results['dataset'] = 'LID-DS-2021'
         results['scenario'] = scenario
-        results['ngram'] = ngram_length
+        results['ngram_length'] = ngram_length
         results['embedding'] = 'INT'
         results['algorithm'] = 'STIDE'
+        results['direction'] = direction 
         results['stream_sum'] = window_length 
         results['detection_time'] = detection_time
-        # results['flag'] = False
-        # results['mode'] = False
+        results['config'] = ids.get_config()
+        results['flag'] = False
+        results['mode'] = False
         # results['process_name'] = False
         save_to_mongo(results)
     except Exception as e:
