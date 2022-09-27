@@ -102,6 +102,7 @@ if __name__ == '__main__':
         results['stream_sum'] = window_length
         results['detection_time'] = detection_time
         results['config'] = ids.get_config()
+        results['thread_aware'] = thread_aware
         results['flag'] = False
         results['mode'] = False
         results['cluster'] = True
