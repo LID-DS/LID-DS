@@ -91,7 +91,6 @@ for thread_aware in THREAD_AWARE_LIST:
                                f"{ngram_length} " + \
                                f"{window} " + \
                                f"{thread_aware}"
-                    print(command)
                     start_job(command)
 
 print(f"NUM_EXPERIMENTS = {NUM_EXPERIMENTS}")
