@@ -40,16 +40,14 @@ WINDOWS = [1000]
 BATCH_SIZES = [1024]
 EMBEDDING_SIZES = [1]
 NGRAM_LENGTHS = [5]
-THREAD_AWARE_LIST = [True]
+THREAD_AWARE_LIST = ['True']
 
-# base_path = '/work/user/te697mily/Data/'
-# base_path = '/work/user/te697mily/Data/LID-DS-2019/'
-BASE_PATH = '../../Data/LID-DS-2019/'
+BASE_PATH = os.environ['BASE_PATH'] + 'LID-DS-2019/'
 if '2019' in BASE_PATH:
-    scenarios = scenario_2019
+    SCENARIOS = scenario_2019
 else:
-    scenarios = scenario_2021
-SCRIPT = '/home/sc.uni-leipzig.de/te697mily/LID-DS/algorithms/run_on_sc.sh'
+    SCENARIOS = scenario_2021
+SCRIPT = 'run_on_sc.sh'
 
 MAX_JOBS_IN_QUEUE = 1000
 NUM_EXPERIMENTS= 0
@@ -83,14 +81,16 @@ for thread_aware in THREAD_AWARE_LIST:
     for embedding_size in EMBEDDING_SIZES:
         for ngram_length in NGRAM_LENGTHS:
             for window in WINDOWS:
-                for scenario in scenarios:
+                for scenario in SCENARIOS:
                     NUM_EXPERIMENTS += 1
-                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}" + \
-                               "{script}" + \
-                               "{base_path}" + \
-                               "{scenario}" + \
-                               "{ngram_length}" + \
-                               "{window}"
+                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05} " + \
+                               f"{SCRIPT} " + \
+                               f"{BASE_PATH} " + \
+                               f"{scenario} " + \
+                               f"{ngram_length} " + \
+                               f"{window} " + \
+                               f"{embedding_size} " + \
+                               f"{thread_aware}"
                     print(command)
                     start_job(command)
 

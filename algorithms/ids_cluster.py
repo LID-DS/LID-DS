@@ -9,7 +9,6 @@ import traceback
 
 from pprint import pprint
 
-
 from dataloader.direction import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
@@ -41,7 +40,7 @@ if __name__ == '__main__':
                             help='window length')
         parser.add_argument('-e', dest='embedding_size', action='store', type=int, required=True,
                             help='embedding size')
-        parser.add_argument('-ta', dest='thread_aware', action='store_true',
+        parser.add_argument('-t', dest='thread_aware', action='store', type=bool, required=True,
                             help='Set ngram to thread aware')
 
         args = parser.parse_args()
@@ -54,7 +53,6 @@ if __name__ == '__main__':
         embedding_size = args.embedding_size
         hidden_size = int(math.sqrt(ngram_length * embedding_size))
         direction = Direction.BOTH
-
         dataloader = dataloader_factory(args.base_path + scenario, direction=direction)
         ### building blocks
         # first: map each systemcall to an integer
@@ -80,7 +78,7 @@ if __name__ == '__main__':
         ids.determine_threshold()
         # detection
         start = time.time()
-        performance = ids.detect()
+        performance = ids.detect_parallel()
         end = time.time()
 
         detection_time = (end - start)/60  # in min
