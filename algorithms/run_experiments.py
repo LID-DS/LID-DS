@@ -87,9 +87,9 @@ for thread_aware in THREAD_AWARE_LIST:
                                f"{SCRIPT} " + \
                                f"{BASE_PATH} " + \
                                f"{scenario} " + \
+                               f"{embedding_size} " + \
                                f"{ngram_length} " + \
                                f"{window} " + \
-                               f"{embedding_size} " + \
                                f"{thread_aware}"
                     print(command)
                     start_job(command)
