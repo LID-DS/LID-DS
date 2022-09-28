@@ -9,8 +9,8 @@ from dataloader.dataloader_factory import dataloader_factory
 
 from dataloader.direction import Direction
 
+from algorithms.features.impl.stream_average import StreamAverage
 from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
 from algorithms.ids import IDS
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     ### features (for more information see Paper:
     # https://dbs.uni-leipzig.de/file/EISA2021_Improving%20Host-based%20Intrusion%20Detection%20Using%20Thread%20Information.pdf
     THREAD_AWARE = True
-    WINDOW_LENGTH = 700
-    NGRAM_LENGTH = 3
+    WINDOW_LENGTH = 1000
+    NGRAM_LENGTH = 5
 
     ### building blocks
     # first: map each systemcall to an integer
@@ -53,10 +53,10 @@ if __name__ == '__main__':
     # finally calculate the STIDE algorithm using these ngrams
     stide = Stide(ngram)
     # build stream sum of stide results
-    stream_sum = StreamSum(stide, False, WINDOW_LENGTH)
+    stream_avg = StreamAverage(stide, False, WINDOW_LENGTH)
     ### the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=stream_sum,
+              resulting_building_block=stream_avg,
               create_alarms=True,
               plot_switch=False)
 
