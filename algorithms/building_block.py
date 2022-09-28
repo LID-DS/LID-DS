@@ -1,6 +1,7 @@
+from collections.abc import Iterable
+
 from algorithms.building_block_id_manager import BuildingBlockIDManager
 from dataloader.syscall import Syscall
-from collections.abc import Iterable
 
 
 class BuildingBlock:
@@ -10,14 +11,14 @@ class BuildingBlock:
 
     def __init__(self):
         self.__config = BuildingBlock.__arguments()
-        self.__instance_id = None        
+        self.__instance_id = None
         self.__last_result = None
         self.__last_syscall_id = None
 
     def train_on(self, syscall: Syscall):
         """
         takes one system call to train this bb
-        """        
+        """
 
     def val_on(self, syscall: Syscall):
         """
@@ -61,14 +62,23 @@ class BuildingBlock:
         """
         gives a more or less human readable str representation of this object
         returns: "Name_of_class(memory_address)"
-        """        
-        result = ""
+        """
         if len(self.__config) > 0:
-            config = str(self.__config)            
-            result = f"{self.__class__.__name__}({hex(id(self))}, {config})"
+            config = self.__config
+            result = str(
+                {
+                    'name': self.__class__.__name__,
+                    'id': hex(id(self)),
+                    'config': config
+                }
+            )
         else:
-            result = f"{self.__class__.__name__}({hex(id(self))})"
-        #print(result)
+            result = str(
+                {
+                    'name': self.__class__.__name__,
+                    'id': hex(id(self)),
+                }
+            )
         return result
 
     def __repr__(self):
@@ -86,29 +96,29 @@ class BuildingBlock:
         return self.__instance_id
 
     def __arguments():
-            """Returns tuple containing dictionary of calling function's
-            named arguments and a list of calling function's unnamed
-            positional arguments.
-            from: http://kbyanc.blogspot.com/2007/07/python-aggregating-function-arguments.html
-            """
-            from inspect import getargvalues, stack
-            try:
-                _ , kwname, args = getargvalues(stack()[2][0])[-3:] # modified the first index to get the correct arguments
-                args.update(args.pop(kwname, []))
-                del args['self']
-                del args['__class__']
-                final_args = {}
-                for k,v in args.items():
-                    #print(f"at {k}")
-                    if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):                        
-                        final_args[k] = v                    
-                    if isinstance(v, Iterable) and not isinstance(v, str):
-                        final_iter = []
-                        for item in v:
-                            if not isinstance(item, BuildingBlock):
-                                final_iter.append(item)
-                        if len(final_iter) > 0:
-                            final_args[k] = final_iter                            
-                return final_args
-            except KeyError:
-                return {}
+        """Returns tuple containing dictionary of calling function's
+        named arguments and a list of calling function's unnamed
+        positional arguments.
+        from: http://kbyanc.blogspot.com/2007/07/python-aggregating-function-arguments.html
+        """
+        from inspect import getargvalues, stack
+        try:
+            _, kwname, args = getargvalues(stack()[2][0])[-3:]  # modified the first index to get the correct arguments
+            args.update(args.pop(kwname, []))
+            del args['self']
+            del args['__class__']
+            final_args = {}
+            for k, v in args.items():
+                # print(f"at {k}")
+                if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):
+                    final_args[k] = v
+                if isinstance(v, Iterable) and not isinstance(v, str):
+                    final_iter = []
+                    for item in v:
+                        if not isinstance(item, BuildingBlock):
+                            final_iter.append(item)
+                    if len(final_iter) > 0:
+                        final_args[k] = final_iter
+            return final_args
+        except KeyError:
+            return {}
