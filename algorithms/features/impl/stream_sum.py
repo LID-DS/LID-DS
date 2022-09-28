@@ -12,7 +12,11 @@ class StreamSum(BuildingBlock):
     gives the sum value from a stream of system call features
     """
 
-    def __init__(self, feature: BuildingBlock, thread_aware: bool, window_length: int):
+    def __init__(self,
+                 feature: BuildingBlock,
+                 thread_aware: bool,
+                 window_length: int,
+                 wait_until_full:bool = True):
         """
         feature: the sum should be calculated on feature
         thread_aware: True or False
@@ -24,6 +28,7 @@ class StreamSum(BuildingBlock):
         self._feature = feature
         self._thread_aware = thread_aware
         self._window_length = window_length
+        self._wait_until_window_full = wait_until_full
 
         self._dependency_list = []
         self._dependency_list.append(feature)
@@ -52,7 +57,12 @@ class StreamSum(BuildingBlock):
                 dropout_value = self._window_buffer[thread_id][0]
             self._window_buffer[thread_id].append(new_value)
             self._sum_values[thread_id] += new_value - dropout_value
-            return self._sum_values[thread_id]
+            if self._wait_until_window_full:
+                if len(self._window_buffer[thread_id]) == self._window_length:
+                    return self._sum_values[thread_id]
+                return None
+            else:
+                return self._sum_values[thread_id]
         return None
 
     def new_recording(self):
