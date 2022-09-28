@@ -52,9 +52,7 @@ class StreamSum(BuildingBlock):
                 dropout_value = self._window_buffer[thread_id][0]
             self._window_buffer[thread_id].append(new_value)
             self._sum_values[thread_id] += new_value - dropout_value
-            if len(self._window_buffer[thread_id]) == self._window_length:
-                return self._sum_values[thread_id]
-            return None
+            return self._sum_values[thread_id]
         return None
 
     def new_recording(self):
