@@ -41,12 +41,12 @@ class IDS:
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
 
-    def get_config_tree_links(self) -> list:
+    def get_config_tree_links(self) -> dict:
         """
-            gives the dependency graph as list of links between building blocks
-            each building block contains its config
+            gives the dependency graph as list of links between ids of building blocks
+            each building block contains its config in another list called node
 
-            returns: list of links
+            returns: dictionary with nodes and links of config graph
         """
 
         # getting the dependency tree
@@ -56,8 +56,8 @@ class IDS:
         # workaround to fix bad json serialization for building blocks
         # casting list to json string and serializing it back to list
         # this prevents treating the subdictionaries as objects
-        links = graph_dict['links']
-        string_graph = str(links)
+        graph = graph_dict
+        string_graph = str(graph)
 
         # json needs double quotes around all strings
         json_string = string_graph.replace("'", "\"") \
@@ -66,14 +66,39 @@ class IDS:
             .replace("None", "\"None\"")
 
         json_loaded = json.loads(json_string)
-        renamed_links = []
-        for link in json_loaded:
-            renamed_links.append({
-                link['source']['name']: {'type': 'source', **link['source']},
-                link['target']['name']: {'type': 'source', **link['target']},
+
+        """
+            reforming dictionary to fit:
+            {
+                nodes: [
+                    {node1},
+                    {node2},
+                    ....                
+                ]
+                links: [
+                    {
+                        'source': node1['id'],
+                        'target': node2['id]                
+                ]
+            }
+        """
+
+        short_links = []
+        for link in json_loaded['links']:
+            short_links.append({
+                'source': link['source']['id'],
+                'target': link['target']['id'],
             })
 
-        return renamed_links
+        nodes = []
+        for node in json_loaded['nodes']:
+            nodes.append(node['id'])
+
+        result = {
+            'nodes': nodes,
+            'links': short_links
+        }
+        return result
 
     def determine_threshold(self):
         """
