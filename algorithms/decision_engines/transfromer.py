@@ -75,10 +75,11 @@ class Transformer(BuildingBlock):
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
 
-        self.transformer.train()
-        train_loss = 0
         for epoch in tqdm(range(1, self._epochs + 1)):
             # Training
+            self.transformer.train()
+            train_loss = 0
+
             for batch in train_dataloader:
                 # FIXME: target is next ngram, probably not an ideal implementation
                 X = batch[:-1]
