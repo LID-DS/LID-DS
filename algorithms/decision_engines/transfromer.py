@@ -27,11 +27,11 @@ class Transformer(BuildingBlock):
         self._validation_set = []
 
         # placeholder for start of sentence and end of sentence
-        self._sos, self._eos = distinct_syscalls + 1, distinct_syscalls + 2
+        self._sos = distinct_syscalls + 1
 
         NUM_HEAD = 2
         # distinct syscalls plus sos, eos and  plus 1 for unknown syscalls
-        NUM_TOKENS = distinct_syscalls + 3
+        NUM_TOKENS = distinct_syscalls + 2
         NUM_DECODER_LAYERS = 3
         NUM_ENCODER_LAYERS = 3
         DIM_MODEL = 8  # embedding_size
