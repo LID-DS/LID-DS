@@ -2,7 +2,7 @@ import os
 import sys
 from pprint import pprint
 
-from algorithms.decision_engines.transfromer import Transformer
+from algorithms.decision_engines.transfromer import Transformer, AnomalyScore
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
@@ -16,6 +16,7 @@ if __name__ == '__main__':
     scenario_number = 2
     retrain = False
     ngram_length = 11
+    anomaly_score = AnomalyScore.MEAN
 
     batch_size = 256 * 2
     epochs = 10
@@ -92,6 +93,7 @@ if __name__ == '__main__':
         retrain=retrain,
         epochs=epochs,
         batch_size=batch_size,
+        anomaly_scoring=anomaly_score
     )
 
     # define the used features and train
@@ -112,6 +114,7 @@ if __name__ == '__main__':
     if stats is None:
         stats = {}
     stats['scenario'] = scenario_names[scenario_number]
+    stats['anomaly_score'] = anomaly_score.name
     stats['ngram'] = ngram_length
     stats['batch_size'] = batch_size
     stats['epochs'] = epochs

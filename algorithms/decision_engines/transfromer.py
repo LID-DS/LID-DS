@@ -1,5 +1,7 @@
 import math
 import os
+from enum import IntEnum
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -13,6 +15,12 @@ from dataloader.syscall import Syscall
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
+class AnomalyScore(IntEnum):
+    PRODUCT = 0
+    MEAN = 1
+    LAST = 2
+
+
 class Transformer(BuildingBlock):
     """ Decision engine based on the Transformer architecture."""
 
@@ -23,6 +31,7 @@ class Transformer(BuildingBlock):
             model_path: str,
             epochs=10,
             batch_size=256,
+            anomaly_scoring: AnomalyScore = AnomalyScore.LAST,
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
@@ -30,6 +39,7 @@ class Transformer(BuildingBlock):
         self._distinct_syscalls = distinct_syscalls
         self._epochs = epochs
         self._batch_size = batch_size
+        self._anomaly_scoring = anomaly_scoring
 
         self._training_set = {
             'x': [],
@@ -42,9 +52,8 @@ class Transformer(BuildingBlock):
 
         # placeholder for start of sentence and end of sentence
         self._sos = distinct_syscalls + 1
-
         NUM_HEAD = 2
-        # distinct syscalls plus sos, eos and  plus 1 for unknown syscalls
+        # distinct syscalls plus sos, plus 1 for unknown syscalls
         NUM_TOKENS = distinct_syscalls + 2
         NUM_DECODER_LAYERS = 3
         NUM_ENCODER_LAYERS = 3
@@ -155,7 +164,30 @@ class Transformer(BuildingBlock):
         torch.save(self.transformer.state_dict(), self._model_path)
 
     def _calculate(self, syscall: Syscall):
-        pass
+        input_vector = self._input_vector.get_result(syscall)
+        return self._cached_results(input_vector)
+
+    @lru_cache(maxsize=1000)
+    def _cached_results(self, input_vector):
+        if input_vector is None:
+            return None
+        x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
+        y_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
+
+        tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(DEVICE)
+        pred = self.transformer(x_input, y_input, tgt_mask)
+        predicted_probs = nn.Softmax(dim=2)(pred).squeeze(1)
+
+        if self._anomaly_scoring == AnomalyScore.PRODUCT:
+            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector].prod()
+        elif self._anomaly_scoring == AnomalyScore.MEAN:
+            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector].mean()
+        elif self._anomaly_scoring == AnomalyScore.LAST:
+            conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
+        else:
+            raise NotImplemented(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
+
+        return 1 - float(conditional_prob)
 
     def depends_on(self) -> list:
         return self._dependency_list
