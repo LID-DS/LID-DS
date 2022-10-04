@@ -23,8 +23,14 @@ class Transformer(BuildingBlock):
         self._epochs = epochs
         self._batch_size = batch_size
 
-        self._training_set = []
-        self._validation_set = []
+        self._training_set = {
+            'x': [],
+            'y': []
+        }
+        self._validation_set = {
+            'x': [],
+            'y': []
+        }
 
         # placeholder for start of sentence and end of sentence
         self._sos = distinct_syscalls + 1
@@ -48,14 +54,18 @@ class Transformer(BuildingBlock):
     def train_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            x = np.array([self._sos] + list(input_vector))
-            self._training_set.append(x)
+            x = np.array([self._sos] + list(input_vector[:-1]))
+            y = np.array([self._sos] + list(input_vector[1:]))
+            self._training_set['x'].append(x)
+            self._training_set['y'].append(y)
 
     def val_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            x = np.array([self._sos] + list(input_vector))
-            self._validation_set.append(x)
+            x = np.array([self._sos] + list(input_vector[:-1]))
+            y = np.array([self._sos] + list(input_vector[1:]))
+            self._validation_set['x'].append(x)
+            self._validation_set['y'].append(y)
 
     def fit(self):
         loss_fn = nn.CrossEntropyLoss()
@@ -68,10 +78,9 @@ class Transformer(BuildingBlock):
             eps=1e-9
         )
 
-        t_dataset = TransformerDataset(self._training_set)
-        t_dataset_val = TransformerDataset(self._validation_set)
+        t_dataset = TransformerDataset(self._training_set['x'], self._training_set['y'])
+        t_dataset_val = TransformerDataset(self._validation_set['x'], self._validation_set['y'])
 
-        # TODO: shuffel
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
 
@@ -81,9 +90,7 @@ class Transformer(BuildingBlock):
             train_loss = 0
 
             for batch in train_dataloader:
-                # FIXME: target is next ngram, probably not an ideal implementation
-                X = batch[:-1]
-                Y = batch[1:]
+                X, Y = batch
 
                 y_input = Y[:, :-1]
                 y_expected = Y[:, 1:]
@@ -97,8 +104,6 @@ class Transformer(BuildingBlock):
                 # Permute pred to have batch size first again
                 pred = pred.permute(1, 2, 0)
                 # prediction probability for every possible syscall
-                # print(pred)
-                # print(y_expected)
                 loss = loss_fn(pred, y_expected)
 
                 optimizer.zero_grad()
@@ -113,9 +118,7 @@ class Transformer(BuildingBlock):
             val_loss = 0
             with torch.no_grad():
                 for batch in val_dataloader:
-                    X = batch[:-1]
-                    Y = batch[1:]
-
+                    X, Y = batch
                     y_input = Y[:, :-1]
                     y_expected = Y[:, 1:]
 
@@ -143,14 +146,15 @@ class Transformer(BuildingBlock):
 
 class TransformerDataset(Dataset):
 
-    def __init__(self, X):
+    def __init__(self, X, Y):
         self.X = torch.tensor(X, dtype=torch.long, device=DEVICE)
+        self.Y = torch.tensor(Y, dtype=torch.long, device=DEVICE)
 
     def __len__(self):
         return len(self.X)
 
     def __getitem__(self, index):
-        return self.X[index]
+        return self.X[index], self.Y[index]
 
 
 class TransformerModel(nn.Module):
