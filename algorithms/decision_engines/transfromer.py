@@ -1,4 +1,5 @@
 import math
+import os
 
 import numpy as np
 import torch
@@ -15,7 +16,14 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 class Transformer(BuildingBlock):
     """ Decision engine based on the Transformer architecture."""
 
-    def __init__(self, input_vector: BuildingBlock, distinct_syscalls: int, epochs=6, batch_size=256 * 2):
+    def __init__(
+            self,
+            input_vector: BuildingBlock,
+            distinct_syscalls: int,
+            model_path: str,
+            epochs=10,
+            batch_size=256,
+            retrain=False):
         super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
@@ -50,6 +58,13 @@ class Transformer(BuildingBlock):
             NUM_DECODER_LAYERS,
             DROPOUT
         ).to(DEVICE)
+        self._model_path = model_path
+        if not retrain and os.path.isfile(self._model_path):
+            self.transformer.load_state_dict(torch.load(self._model_path))
+            self.transformer.eval()
+            self.skip_training = True
+        else:
+            self.skip_training = False
 
     def train_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
@@ -68,6 +83,8 @@ class Transformer(BuildingBlock):
             self._validation_set['y'].append(y)
 
     def fit(self):
+        if self.skip_training:
+            return
         loss_fn = nn.CrossEntropyLoss()
 
         learning_rate = 0.001
@@ -84,7 +101,7 @@ class Transformer(BuildingBlock):
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
 
-        for epoch in tqdm(range(1, self._epochs + 1)):
+        for _ in tqdm(range(1, self._epochs + 1)):
             # Training
             self.transformer.train()
             train_loss = 0
@@ -135,7 +152,7 @@ class Transformer(BuildingBlock):
                     val_loss += loss.detach().item()
             val_loss /= len(val_dataloader)
             print(f"Validation loss: {val_loss:.4f}")
-        pass
+        torch.save(self.transformer.state_dict(), self._model_path)
 
     def _calculate(self, syscall: Syscall):
         pass

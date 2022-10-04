@@ -1,21 +1,72 @@
+import os
+import sys
+from pprint import pprint
+
 from algorithms.decision_engines.transfromer import Transformer
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.w2v_embedding import W2VEmbedding
 from algorithms.ids import IDS
+from algorithms.persistance import save_to_json, print_as_table
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
 if __name__ == '__main__':
-    """
-    this is an example script to show the usage uf our classes
-    """
-    ngram_length = 10
-    w2v_size = 5
-    w2v_window_size = 5
+    lid_ds_version_number = 1
+    scenario_number = 2
+    retrain = False
+    ngram_length = 11
+
+    batch_size = 256 * 2
+    epochs = 10
     thread_aware = True
-    scenario_path = f"/home/tini/informatik/ma/LID-DS/Datasets/LID-DS-2021/CVE-2014-0160"
+
+    lid_ds_version = [
+        "LID-DS-2019",
+        "LID-DS-2021"
+    ]
+    scenario_names = [
+        "CVE-2017-7529",
+        "CVE-2014-0160",
+        "CVE-2012-2122",
+        "Bruteforce_CWE-307",
+        "CVE-2020-23839",
+
+        "CWE-89-SQL-injection",
+        "PHP_CWE-434",
+        "ZipSlip",
+        "CVE-2018-3760",
+        "CVE-2020-9484",
+
+        "EPS_CWE-434",
+        "CVE-2019-5418",
+        "Juice-Shop",
+        "CVE-2020-13942",
+        "CVE-2017-12635_6"
+    ]
+    # getting the LID-DS base path from argument or environment variable
+    if len(sys.argv) > 1:
+        lid_ds_base_path = sys.argv[1]
+    else:
+        try:
+            lid_ds_base_path = os.environ['LID_DS_BASE']
+        except KeyError:
+            raise ValueError(
+                "No LID-DS Base Path given. Please specify as argument or set Environment Variable "
+                "$LID_DS_BASE"
+            )
+
+    scenario_path = f"{lid_ds_base_path}/{lid_ds_version[lid_ds_version_number]}/{scenario_names[scenario_number]}"
+
+    model_path = f'Models/{lid_ds_version[lid_ds_version_number]}/{scenario_names[scenario_number]}/transformer/' \
+                 f'ng{ngram_length}' \
+                 f'_ta{thread_aware}' \
+                 f'_epochs{epochs}' \
+                 '.model'
+
+    model_dir = os.path.split(model_path)[0]
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
 
     # data loader for scenario
     dataloader = dataloader_factory(scenario_path, direction=Direction.OPEN)
@@ -37,6 +88,10 @@ if __name__ == '__main__':
     transformer = Transformer(
         input_vector=ngram,
         distinct_syscalls=distinct_syscalls,
+        model_path=model_path,
+        retrain=retrain,
+        epochs=epochs,
+        batch_size=batch_size,
     )
 
     # define the used features and train
@@ -48,9 +103,20 @@ if __name__ == '__main__':
 
     # threshold
     ids.determine_threshold()
-    # detection
-    # ids.do_detection()
-    # pprint(ids.performance.get_performance())
 
-    # ids.plot.feed_figure()
-    # ids.plot.show_plot()
+    performance = ids.detect()
+    stats = performance.get_results()
+
+    ids.draw_plot()
+
+    if stats is None:
+        stats = {}
+    stats['scenario'] = scenario_names[scenario_number]
+    stats['ngram'] = ngram_length
+    stats['batch_size'] = batch_size
+    stats['epochs'] = epochs
+
+    pprint(stats)
+    result_path = 'persistent_data/transformer.json'
+    save_to_json(stats, result_path)
+    print_as_table(path=result_path)
