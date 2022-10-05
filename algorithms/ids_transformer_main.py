@@ -2,7 +2,7 @@ import os
 import sys
 from pprint import pprint
 
-from algorithms.decision_engines.transfromer import Transformer, AnomalyScore
+from algorithms.decision_engines.transformer import Transformer, AnomalyScore
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName

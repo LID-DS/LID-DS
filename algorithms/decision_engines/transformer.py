@@ -172,16 +172,16 @@ class Transformer(BuildingBlock):
         if input_vector is None:
             return None
         x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
-        y_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
+        y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=DEVICE)
 
         tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(DEVICE)
         pred = self.transformer(x_input, y_input, tgt_mask)
         predicted_probs = nn.Softmax(dim=2)(pred).squeeze(1)
 
         if self._anomaly_scoring == AnomalyScore.PRODUCT:
-            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector].prod()
+            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].prod()
         elif self._anomaly_scoring == AnomalyScore.MEAN:
-            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector].mean()
+            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].mean()
         elif self._anomaly_scoring == AnomalyScore.LAST:
             conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
         else:
