@@ -14,5 +14,5 @@ pip install --user -r ../requirements.txt
 # 3: -e embedding_size
 # 4: -n ngram_length
 # 5: -w window
-# 6: -ta thread_aware 
+# 6: -t thread_aware 
 python ids_cluster.py -d $1 -s $2 -e $3 -n $4 -w $5 -t $6
