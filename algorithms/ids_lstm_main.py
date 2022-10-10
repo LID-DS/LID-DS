@@ -1,6 +1,13 @@
+"""
+example script for running LSTM
+"""
 import os
 import sys
 import time
+from pprint import pprint
+
+from dataloader.direction import Direction
+from dataloader.dataloader_factory import dataloader_factory
 
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.concat import Concat
@@ -16,15 +23,9 @@ from algorithms.persistance import save_to_json, print_as_table
 from algorithms.ids import IDS
 from algorithms.decision_engines.lstm import LSTM
 
-from dataloader.direction import Direction
-from dataloader.dataloader_factory import dataloader_factory
-
 
 if __name__ == '__main__':
-    """
-    this is an example script to show the usage uf our classes
-    """
-    lid_ds_version_number = 1
+    LID_DS_VERSION_NUMBER = 0
     lid_ds_version = [
         "LID-DS-2019",
         "LID-DS-2021"
@@ -55,38 +56,31 @@ if __name__ == '__main__':
     else:
         try:
             lid_ds_base_path = os.environ['LID_DS_BASE']
-        except KeyError:
-            raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
-                             "$LID_DS_BASE")
+        except KeyError as exc:
+            raise ValueError("No LID-DS Base Path given. Please specify "
+                             "as argument or set Environment Variable "
+                             "$LID_DS_BASE") from exc
 
     # config
     hidden_dim = 64
     hidden_layers = 1
-    ngram_length = 6
-    embedding_size = 8
+    ngram_length = 3
+    embedding_size = 4
     thread_aware = True
-    return_value = False
-    thread_change_flag = False
-    time_delta = False
     batch_size = 1024
-    use_thread_change_flag = True
-    use_return_value = True
-    use_time_delta = True
-    scenario_path = f"{lid_ds_base_path}/{lid_ds_version[lid_ds_version_number]}/{scenario_names[scenario_number]}"
+    use_thread_change_flag = False
+    use_return_value = False
+    use_time_delta = False
+    scenario_path = f"{lid_ds_base_path}/{lid_ds_version[LID_DS_VERSION_NUMBER]}/{scenario_names[scenario_number]}"
     # data loader for scenario
     dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
     element_size = embedding_size + use_return_value + use_time_delta
     # embedding
-    w2v = W2VEmbedding(
-        vector_size=embedding_size,
-        window_size=ngram_length,
-        epochs=5000,
-        scenario_path=scenario_path,
-        path=f'Models/{scenario_names[scenario_number]}/W2V/',
-        force_train=False,
-        distinct=True,
-        thread_aware=True
-    )
+    int_embedding = IntEmbedding()
+    w2v = W2VEmbedding(word=int_embedding,
+                       vector_size=embedding_size,
+                       window_size=ngram_length,
+                       epochs=5000)
     feature_list = [w2v]
     if use_return_value:
         rv = ReturnValue()
@@ -103,7 +97,6 @@ if __name__ == '__main__':
         ngram=ngram,
         element_size=element_size
     )
-    int_embedding = IntEmbedding()
     final_features = [int_embedding, ngram_minus_one]
     if use_thread_change_flag:
         tcf = ThreadChangeFlag(ngram_minus_one)
@@ -129,7 +122,7 @@ if __name__ == '__main__':
                 hidden_layers=hidden_layers,
                 hidden_dim=hidden_dim,
                 batch_size=batch_size,
-                force_train=False,
+                force_train=True,
                 model_path=model_path)
     # define the used features
     print(type(lstm))
@@ -141,7 +134,7 @@ if __name__ == '__main__':
     ids.determine_threshold()
     start = time.time()
     # detection
-    stats = ids.detect().get_performance()
+    stats = ids.detect().get_results()
     end = time.time()
     detection_time = (end - start)/60  # in min
 
@@ -156,5 +149,6 @@ if __name__ == '__main__':
     stats['time_delta'] = use_time_delta
     stats['detection_time'] = detection_time
     result_path = 'persistent_data/lstm.json'
-    save_to_json(stats, result_path)
-    print_as_table(path=result_path)
+    pprint(stats)
+    #save_to_json(stats, result_path)
+    #print_as_table(path=result_path)
