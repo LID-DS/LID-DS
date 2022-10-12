@@ -1,5 +1,4 @@
 import math
-import os
 from enum import IntEnum
 from functools import lru_cache
 
@@ -10,6 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
+from algorithms.persistance import ModelCheckPoint
 from dataloader.syscall import Syscall
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -20,6 +20,9 @@ class AnomalyScore(IntEnum):
     MEAN = 1
     LAST = 2
 
+    def __str__(self):
+        return str(self.name)
+
 
 class Transformer(BuildingBlock):
     """ Decision engine based on the Transformer architecture."""
@@ -28,10 +31,10 @@ class Transformer(BuildingBlock):
             self,
             input_vector: BuildingBlock,
             distinct_syscalls: int,
-            model_path: str,
             epochs=10,
             batch_size=256,
             anomaly_scoring: AnomalyScore = AnomalyScore.LAST,
+            checkpoint: ModelCheckPoint = None,
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
@@ -40,6 +43,8 @@ class Transformer(BuildingBlock):
         self._epochs = epochs
         self._batch_size = batch_size
         self._anomaly_scoring = anomaly_scoring
+        self._checkpoint = checkpoint
+        self._retrain = retrain
 
         self._training_set = {
             'x': [],
@@ -67,13 +72,6 @@ class Transformer(BuildingBlock):
             NUM_DECODER_LAYERS,
             DROPOUT
         ).to(DEVICE)
-        self._model_path = model_path
-        if not retrain and os.path.isfile(self._model_path):
-            self.transformer.load_state_dict(torch.load(self._model_path))
-            self.transformer.eval()
-            self.skip_training = True
-        else:
-            self.skip_training = False
 
     def train_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
@@ -92,8 +90,6 @@ class Transformer(BuildingBlock):
             self._validation_set['y'].append(y)
 
     def fit(self):
-        if self.skip_training:
-            return
         loss_fn = nn.CrossEntropyLoss()
 
         learning_rate = 0.001
@@ -109,15 +105,18 @@ class Transformer(BuildingBlock):
 
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
+        last_epoch = 0
+        train_losses = {}
+        val_losses = {}
+        if not self._retrain:
+            last_epoch, train_losses, val_losses = self._checkpoint.load(self.transformer, optimizer, self._epochs)
 
-        for _ in tqdm(range(1, self._epochs + 1)):
+        for epoch in tqdm(range(last_epoch + 1, self._epochs + 1)):
             # Training
             self.transformer.train()
             train_loss = 0
-
             for batch in train_dataloader:
                 X, Y = batch
-
                 y_input = Y[:, :-1]
                 y_expected = Y[:, 1:]
 
@@ -137,8 +136,7 @@ class Transformer(BuildingBlock):
                 optimizer.step()
 
                 train_loss += loss.detach().item()
-            train_loss = train_loss / len(train_dataloader)
-            print(f"Training Loss: {train_loss:.4f}")
+            train_losses[epoch] = train_loss / len(train_dataloader)
 
             self.transformer.eval()
             val_loss = 0
@@ -159,9 +157,9 @@ class Transformer(BuildingBlock):
                     pred = pred.permute(1, 2, 0)
                     loss = loss_fn(pred, y_expected)
                     val_loss += loss.detach().item()
-            val_loss /= len(val_dataloader)
-            print(f"Validation loss: {val_loss:.4f}")
-        torch.save(self.transformer.state_dict(), self._model_path)
+                val_losses[epoch] = val_loss / len(val_dataloader)
+            self._checkpoint.save(self.transformer, optimizer, epoch, train_losses, val_losses)
+        self.transformer.eval()
 
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
@@ -185,7 +183,7 @@ class Transformer(BuildingBlock):
         elif self._anomaly_scoring == AnomalyScore.LAST:
             conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
         else:
-            raise NotImplemented(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
+            raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
 
         return 1 - float(conditional_prob)
 
@@ -212,7 +210,6 @@ class TransformerModel(nn.Module):
     Daniel Melchor: https://medium.com/@danielmelchor/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
     """
 
-    # Constructor
     def __init__(
             self,
             num_tokens,

@@ -7,11 +7,12 @@ from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.ids import IDS
-from algorithms.persistance import save_to_json, print_as_table
+from algorithms.persistance import save_to_json, print_as_table, ModelCheckPoint
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
-if __name__ == '__main__':
+
+def main():
     lid_ds_version_number = 1
     scenario_number = 2
     retrain = False
@@ -59,16 +60,18 @@ if __name__ == '__main__':
 
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version[lid_ds_version_number]}/{scenario_names[scenario_number]}"
 
-    model_path = f'Models/{lid_ds_version[lid_ds_version_number]}/{scenario_names[scenario_number]}/transformer/' \
-                 f'ng{ngram_length}' \
-                 f'_ta{thread_aware}' \
-                 f'_epochs{epochs}' \
-                 '.model'
-
-    model_dir = os.path.split(model_path)[0]
-    if not os.path.exists(model_dir):
-        os.makedirs(model_dir)
-
+    checkpoint = ModelCheckPoint(
+        scenario_names[scenario_number],
+        lid_ds_version[lid_ds_version_number],
+        "transformer",
+        algo_config={
+            "ngram_length": ngram_length,
+            "thread_aware": thread_aware,
+            "anomaly_score": AnomalyScore.MEAN,
+            "batch_size": batch_size,
+        },
+        models_dir="Models"
+    )
     # data loader for scenario
     dataloader = dataloader_factory(scenario_path, direction=Direction.OPEN)
 
@@ -89,11 +92,11 @@ if __name__ == '__main__':
     transformer = Transformer(
         input_vector=ngram,
         distinct_syscalls=distinct_syscalls,
-        model_path=model_path,
         retrain=retrain,
         epochs=epochs,
         batch_size=batch_size,
-        anomaly_scoring=anomaly_score
+        anomaly_scoring=anomaly_score,
+        checkpoint=checkpoint
     )
 
     # define the used features and train
@@ -113,6 +116,7 @@ if __name__ == '__main__':
 
     if stats is None:
         stats = {}
+    stats['lid_ds_version'] = lid_ds_version[lid_ds_version_number]
     stats['scenario'] = scenario_names[scenario_number]
     stats['anomaly_score'] = anomaly_score.name
     stats['ngram'] = ngram_length
@@ -123,3 +127,7 @@ if __name__ == '__main__':
     result_path = 'persistent_data/transformer.json'
     save_to_json(stats, result_path)
     print_as_table(path=result_path)
+
+
+if __name__ == '__main__':
+    main()
