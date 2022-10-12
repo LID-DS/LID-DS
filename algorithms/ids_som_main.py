@@ -3,6 +3,8 @@ import sys
 
 from pprint import pprint
 
+from pandas import datetime
+
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
 
@@ -49,10 +51,10 @@ if __name__ == '__main__':
     # todo: set config
     ###################
     # feature config:
-    ngram_length = 1
-    w2v_size = 1
-    som_epochs = 1
-    som_size = 1
+    ngram_length = 7
+    w2v_size = 5
+    som_epochs = 100
+    som_size = 50
     thread_aware = True
 
     # run config
@@ -105,10 +107,12 @@ if __name__ == '__main__':
         results = ids.detect_parallel().get_results()
         pprint(results)
 
-        # enrich results with configuration and save to disk
+        # enrich results with configuration and save to mongoDB
         results['config'] = ids.get_config_tree_links()
         results['scenario'] = scenario_range[scenario_number]
         results['dataset'] = lid_ds_version[lid_ds_version_number]
+        results['direction'] = dataloader.get_direction_string()
+        results['date'] = str(datetime.datetime.now().date())
         result_path = 'results/results_som.json'
 
         save_to_mongo(results)

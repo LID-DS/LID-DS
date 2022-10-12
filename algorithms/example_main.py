@@ -2,10 +2,13 @@ from pprint import pprint
 import sys
 import os
 
+import datetime
+
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
 from algorithms.ids import IDS
+from algorithms.persistance import save_to_mongo
 
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
@@ -29,7 +32,7 @@ if __name__ == '__main__':
     #scenario_name = "CVE-2012-2122"
 
     scenario_path = f"{lid_ds_base_path}/{lid_ds_version}/{scenario_name}"
-    dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE) # just load < closing system calls for this example
+    dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH) # just load < closing system calls for this example
 
     ### features (for more information see Paper: "Improving Host-based Intrusion Detection Using Thread Information", International Symposium on Emerging Information Security and Applications (EISA), 2021)
     thread_aware = False
@@ -67,3 +70,12 @@ if __name__ == '__main__':
 
     ### print results
     pprint(results)
+
+    # enrich results with configuration and save to mongoDB
+    results['config'] = ids.get_config_tree_links()
+    results['scenario'] = scenario_name
+    results['dataset'] = lid_ds_version
+    results['direction'] = dataloader.get_direction_string()
+    results['date'] = str(datetime.datetime.now().date())
+
+    save_to_mongo(results)
