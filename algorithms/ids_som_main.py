@@ -3,6 +3,8 @@ import sys
 
 from pprint import pprint
 
+from pandas import datetime
+
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
 
@@ -96,6 +98,8 @@ if __name__ == '__main__':
                   create_alarms=False,
                   plot_switch=False)
 
+        print(ids.get_config_tree_links())
+
         print("at evaluation:")
         # threshold
         ids.determine_threshold()
@@ -103,14 +107,16 @@ if __name__ == '__main__':
         results = ids.detect_parallel().get_results()
         pprint(results)
 
-        # enrich results with configuration and save to disk
+        # enrich results with configuration and save to mongoDB
         results['algorithm'] = "SOM"
         results['ngram_length'] = ngram_length
         results['w2v_size'] = w2v_size
         results['thread_aware'] = thread_aware
-        # results['config'] = ids.get_config()
+        results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
         results['dataset'] = lid_ds_version[lid_ds_version_number]
+        results['direction'] = dataloader.get_direction_string()
+        results['date'] = str(datetime.datetime.now().date())
         result_path = 'results/results_som.json'
 
         save_to_mongo(results)

@@ -1,26 +1,25 @@
-from tqdm import tqdm
+import json
+from copy import deepcopy
+from functools import reduce
 from typing import Type
 
-from copy import deepcopy
+from matplotlib import pyplot as plt
+from networkx.readwrite import json_graph
+from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
-from functools import reduce
 
 from algorithms.building_block import BuildingBlock
-
-from dataloader.base_recording import BaseRecording
-from dataloader.base_data_loader import BaseDataLoader
-
-from algorithms.score_plot import ScorePlot
-from algorithms.data_preprocessor import DataPreprocessor 
+from algorithms.data_preprocessor import DataPreprocessor
 from algorithms.performance_measurement import Performance
-
-from matplotlib import pyplot as plt
+from algorithms.score_plot import ScorePlot
+from dataloader.base_data_loader import BaseDataLoader
+from dataloader.base_recording import BaseRecording
 
 
 class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
-                 resulting_building_block: BuildingBlock,                 
+                 resulting_building_block: BuildingBlock,
                  plot_switch: bool,
                  create_alarms: bool = False):
         self._data_loader = data_loader
@@ -42,6 +41,65 @@ class IDS:
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
 
+    def get_config_tree_links(self) -> dict:
+        """
+            gives the dependency graph as list of links between ids of building blocks
+            each building block contains its config in another list called node
+
+            returns: dictionary with nodes and links of config graph
+        """
+
+        # getting the dependency tree
+        graph_dict = json_graph.node_link_data(
+            self._data_preprocessor.get_building_block_manager().get_dependency_graph()
+        )
+        # workaround to fix bad json serialization for building blocks
+        # casting list to json string and serializing it back to list
+        # this prevents treating the subdictionaries as objects
+        graph = graph_dict
+        string_graph = str(graph)
+
+        # json needs double quotes around all strings
+        json_string = string_graph.replace("'", "\"") \
+            .replace("True", "\"True\"") \
+            .replace("False", "\"False\"") \
+            .replace("None", "\"None\"")
+
+        json_loaded = json.loads(json_string)
+
+        """
+            reforming dictionary to fit:
+            {
+                nodes: [
+                    {node1},
+                    {node2},
+                    ....                
+                ]
+                links: [
+                    {
+                        'source': node1['id'],
+                        'target': node2['id]                
+                ]
+            }
+        """
+
+        short_links = []
+        for link in json_loaded['links']:
+            short_links.append({
+                'source': link['source']['id'],
+                'target': link['target']['id'],
+            })
+
+        nodes = []
+        for node in json_loaded['nodes']:
+            nodes.append(node['id'])
+
+        result = {
+            'nodes': nodes,
+            'links': short_links
+        }
+        return result
+
     def determine_threshold(self):
         """
         decision engine calculates anomaly scores using validation data,
@@ -52,18 +110,17 @@ class IDS:
         data = self._data_loader.validation_data()
         description = 'Threshold calculation'.rjust(27)
         for recording in tqdm(data, description, unit=" recording"):
-            for syscall in recording.syscalls():                
+            for syscall in recording.syscalls():
                 anomaly_score = self._final_bb.get_result(syscall)
-                if anomaly_score != None:                
+                if anomaly_score != None:
                     if anomaly_score > max_score:
                         max_score = anomaly_score
-            self._data_preprocessor.new_recording()            
+            self._data_preprocessor.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
         if self.plot is not None:
             self.plot.threshold = max_score
         print(f"threshold={max_score:.3f}".rjust(27))
-
 
     def determine_threshold_and_plot(self):
         """
@@ -76,13 +133,13 @@ class IDS:
         description = 'Threshold calculation'.rjust(27)
         scores = []
         for recording in tqdm(data, description, unit=" recording"):
-            for syscall in recording.syscalls():                
+            for syscall in recording.syscalls():
                 anomaly_score = self._final_bb.get_result(syscall)
-                if anomaly_score != None:                
+                if anomaly_score != None:
                     scores.append(anomaly_score)
                     if anomaly_score > max_score:
                         max_score = anomaly_score
-            self._data_preprocessor.new_recording()            
+            self._data_preprocessor.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
         if self.plot is not None:
@@ -191,9 +248,9 @@ class IDS:
 
         # parallel calculation for every recording
         performance_list = process_map(
-            IDS._calculate, 
-            ids_and_recordings, 
-            chunksize = 20,
+            IDS._calculate,
+            ids_and_recordings,
+            chunksize=20,
             desc="anomaly detection".rjust(27),
             unit=" recordings")
 
@@ -202,5 +259,5 @@ class IDS:
             final_performance = reduce(Performance.add_with_alarms, performance_list)
         else:
             final_performance = reduce(Performance.add, performance_list)
-        
+
         return final_performance
