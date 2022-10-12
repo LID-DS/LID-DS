@@ -1,20 +1,23 @@
-from collections import deque
-
-from algorithms.building_block import BuildingBlock
+"""
+Building Block implementing the STIDE algorithm
+"""
 from dataloader.syscall import Syscall
 
-class Stide(BuildingBlock):
+from algorithms.building_block import BuildingBlock
 
-    def __init__(self, input: BuildingBlock, window_length=100):
+
+class Stide(BuildingBlock):
+    """
+    Training: save seen Building Blocks into normal "database"
+    Inference: check if current input is in normalbase return 0 if that is the case
+    """
+    def __init__(self, input: BuildingBlock):
         super().__init__()
         # parameter
-        self._window_length = window_length
         self._input = input
 
         # internal data
         self._normal_database = set()
-        self._sliding_window = deque(maxlen=self._window_length)
-        self._mismatch_count = 0
 
         # dependency list
         self._dependency_list = []
@@ -28,10 +31,10 @@ class Stide(BuildingBlock):
         creates a set for distinct ngrams from training data
         """
         ngram = self._input.get_result(syscall)
-        if ngram != None:            
+        if ngram is not None:
             if ngram not in self._normal_database:
                 self._normal_database.add(ngram)
-    
+
     def fit(self):
         print(f"stide.train_set: {len(self._normal_database)}".rjust(27))
 
@@ -42,17 +45,6 @@ class Stide(BuildingBlock):
         ngram = self._input.get_result(syscall)
         if ngram is not None:
             if ngram in self._normal_database:
-                mismatch = 0
-            else:
-                mismatch = 1
-            if len(self._sliding_window) == self._window_length:
-                self._mismatch_count -= self._sliding_window[0]
-            self._mismatch_count += mismatch
-            self._sliding_window.append(mismatch)
-            return self._mismatch_count / self._window_length
-        else:
-            return None
-
-    def new_recording(self):
-        self._sliding_window.clear()
-        self._mismatch_count = 0
+                return 0
+            return 1
+        return None

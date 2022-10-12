@@ -108,7 +108,11 @@ if __name__ == '__main__':
         pprint(results)
 
         # enrich results with configuration and save to mongoDB
-        results['config'] = ids.get_config_tree_links()
+        results['algorithm'] = "SOM"
+        results['ngram_length'] = ngram_length
+        results['w2v_size'] = w2v_size
+        results['thread_aware'] = thread_aware
+        results['config'] = ids.get_config()
         results['scenario'] = scenario_range[scenario_number]
         results['dataset'] = lid_ds_version[lid_ds_version_number]
         results['direction'] = dataloader.get_direction_string()

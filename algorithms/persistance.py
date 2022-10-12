@@ -1,7 +1,7 @@
-import pandas as pd
-import os.path
 import json
+import os.path
 
+import pandas as pd
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError, OperationFailure
 
@@ -102,5 +102,4 @@ def save_to_mongo(result_dict: dict):
     except ServerSelectionTimeoutError:
         print("Could not connect to Experiment DB")
     except OperationFailure:
-        print("Could not persist Data, please check User Credentials")
-
+        print("Could not persist Data, please check User Credentials. If Credentials are correct please check if your data contains the fields 'config', 'dataset' and 'scenario'")
