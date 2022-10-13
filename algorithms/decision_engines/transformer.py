@@ -43,8 +43,8 @@ class Transformer(BuildingBlock):
             layers: int,
             model_dim: int,
             dropout: float,
-            retrain=False,
-    ):
+            feedforward_dim: int,
+            retrain=False):
         super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
@@ -77,7 +77,8 @@ class Transformer(BuildingBlock):
             num_heads,
             layers,
             layers,
-            dropout
+            dropout,
+            feedforward_dim
         ).to(DEVICE)
 
     def train_on(self, syscall: Syscall):
@@ -228,7 +229,7 @@ class TransformerModel(nn.Module):
             num_encoder_layers,
             num_decoder_layers,
             dropout,
-    ):
+            feedforward_dim):
         super().__init__()
 
         # INFO
@@ -243,7 +244,8 @@ class TransformerModel(nn.Module):
             nhead=num_heads,
             num_encoder_layers=num_encoder_layers,
             num_decoder_layers=num_decoder_layers,
-            dropout=dropout
+            dropout=dropout,
+            dim_feedforward=feedforward_dim,
         )
 
         self.out = nn.Linear(dim_model, num_tokens)

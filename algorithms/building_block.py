@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
 from algorithms.building_block_id_manager import BuildingBlockIDManager
+from algorithms.persistance import ModelCheckPoint
 from dataloader.syscall import Syscall
 
 
@@ -110,6 +111,8 @@ class BuildingBlock:
             final_args = {}
             for k, v in args.items():
                 # print(f"at {k}")
+                if isinstance(v, ModelCheckPoint):
+                    continue
                 if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):
                     final_args[k] = v
                 if isinstance(v, Iterable) and not isinstance(v, str):
