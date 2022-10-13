@@ -23,6 +23,9 @@ class AnomalyScore(IntEnum):
     def __str__(self):
         return str(self.name)
 
+    def __repr__(self):
+        return self.__str__()
+
 
 class Transformer(BuildingBlock):
     """ Decision engine based on the Transformer architecture."""
@@ -45,6 +48,9 @@ class Transformer(BuildingBlock):
         self._anomaly_scoring = anomaly_scoring
         self._checkpoint = checkpoint
         self._retrain = retrain
+
+        self.train_losses = {}
+        self.val_losses = {}
 
         self._training_set = {
             'x': [],
@@ -106,10 +112,10 @@ class Transformer(BuildingBlock):
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
         last_epoch = 0
-        train_losses = {}
-        val_losses = {}
+        # train_losses = {}
+        # val_losses = {}
         if not self._retrain:
-            last_epoch, train_losses, val_losses = self._checkpoint.load(self.transformer, optimizer, self._epochs)
+            last_epoch, self.train_losses, self.val_losses = self._checkpoint.load(self.transformer, optimizer, self._epochs)
 
         for epoch in tqdm(range(last_epoch + 1, self._epochs + 1)):
             # Training
@@ -136,29 +142,30 @@ class Transformer(BuildingBlock):
                 optimizer.step()
 
                 train_loss += loss.detach().item()
-            train_losses[epoch] = train_loss / len(train_dataloader)
+            self.train_losses[epoch] = train_loss / len(train_dataloader)
 
-            self.transformer.eval()
-            val_loss = 0
-            with torch.no_grad():
-                for batch in val_dataloader:
-                    X, Y = batch
-                    y_input = Y[:, :-1]
-                    y_expected = Y[:, 1:]
+            if epoch % 5 == 0:
+                self.transformer.eval()
+                val_loss = 0
+                with torch.no_grad():
+                    for batch in val_dataloader:
+                        X, Y = batch
+                        y_input = Y[:, :-1]
+                        y_expected = Y[:, 1:]
 
-                    # Get mask to mask out the next words
-                    sequence_length = y_input.size(1)
-                    tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(DEVICE)
+                        # Get mask to mask out the next words
+                        sequence_length = y_input.size(1)
+                        tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(DEVICE)
 
-                    # Standard training except we pass in y_input and src_mask
-                    pred = self.transformer(X, y_input, tgt_mask)
+                        # Standard training except we pass in y_input and src_mask
+                        pred = self.transformer(X, y_input, tgt_mask)
 
-                    # Permute pred to have batch size first again
-                    pred = pred.permute(1, 2, 0)
-                    loss = loss_fn(pred, y_expected)
-                    val_loss += loss.detach().item()
-                val_losses[epoch] = val_loss / len(val_dataloader)
-            self._checkpoint.save(self.transformer, optimizer, epoch, train_losses, val_losses)
+                        # Permute pred to have batch size first again
+                        pred = pred.permute(1, 2, 0)
+                        loss = loss_fn(pred, y_expected)
+                        val_loss += loss.detach().item()
+                self.val_losses[epoch] = val_loss / len(val_dataloader)
+            self._checkpoint.save(self.transformer, optimizer, epoch, self.train_losses, self.val_losses)
         self.transformer.eval()
 
     def _calculate(self, syscall: Syscall):

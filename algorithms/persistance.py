@@ -1,6 +1,7 @@
 import json
 import os
 import os.path
+import re
 
 import pandas as pd
 import torch
@@ -110,26 +111,30 @@ def save_to_mongo(result_dict: dict):
 
 
 class ModelCheckPoint:
-    """ Helper class to save and load intermediary model states
+    """ Helper class to save and load intermediary model states.
 
         Can be used to save :class:`torch.nn.Module` models with their optimizer :class:`torch.optim.Optimizer` for a given epoch. This is helpful if you intend to
         resume the training process starting from a previous epoch.
-        It saves the `model_state_dict` and `optimizer_state_dict` to a directory in the form::
+        It saves the model with `model_state_dict`, `optimizer_state_dict`, train and validation losses
+        to a directory in the form::
             Models
             └── LID-DS-2019
                 ├── CVE-2014-0160
                 │    └── transformer
-                │        ├── checkpoint.json
                 │        └── ngram_length11_thread_awareTrue_anomaly_scoreMEAN_batch_size512
                 │            ├── epochs1.model
                 │            └── epochs2.model
                 └── CVE-2017-7529
                      └── transformer
-                         ├── checkpoint.json
                          └── ngram_length11_thread_awareTrue_anomaly_scoreMEAN_batch_size512
                              ├── epochs2.model
                              └── epochs6.model
-        `checkpoint.json` contains information about the previous epochs.
+
+        Note:
+            If run on a cluster, you might want to run all epochs on one node. Let's say node1 runs only until
+            epoch 5 and node2 runs until epoch 10. Even thought it is possible to share the Models folder,
+            node2 can not use the checkpoint at epoch 5 of node1 since node1 has not finished yet (if they are started
+            at the same time).
 
     """
 
@@ -147,15 +152,11 @@ class ModelCheckPoint:
             models_dir (str): base dir to save models.
         """
         self.model_path_base = os.path.join(models_dir, lid_ds_version_name, scenario_name, algorithm)
-        self.checkpoints_config = os.path.join(self.model_path_base, 'checkpoint.json')
         self.model_name = '_'.join(''.join((key, str(val))) for (key, val) in algo_config.items())
         self.epochs_dir = os.path.join(self.model_path_base, self.model_name)
 
         if not os.path.exists(self.epochs_dir):
             os.makedirs(self.epochs_dir)
-        if not os.path.exists(self.checkpoints_config):
-            with open(self.checkpoints_config, "w") as file:
-                json.dump({}, file, indent=2)
 
     def load(
             self,
@@ -165,7 +166,7 @@ class ModelCheckPoint:
     ) -> tuple[int, dict[int, float], dict[int, float]]:
         """ Load the recent checkpoint states to the given model and optimizer from a checkpoint
 
-        If there exists a checkpoint with specified epoch ti will be loaded. Else, the checkpoint with the highest epoch
+        If there exists a checkpoint with specified epoch it will be loaded. Else, the checkpoint with the highest epoch
         will be loaded and the epoch number will be returned. If there are no previous checkpoints nothing will be
         loaded and the returned epoch number is 0.
 
@@ -179,26 +180,22 @@ class ModelCheckPoint:
             last_epoch: same as `epoch` if checkpoint found, else the highest available epoch number
             losses: dictionaries of form {epoch: loss}
         """
-        last_epoch = 0
         train_losses = {}
         val_losses = {}
 
-        with open(self.checkpoints_config, "r") as file:
-            checkpoints: dict = json.load(file)
-        config = checkpoints.get(self.model_name, None)
+        saved_epochs = [f for f in os.listdir(self.epochs_dir) if f.endswith(".model")]
+        saved_epochs = [int(re.findall(r'\d+', saved_epoch)[0]) for saved_epoch in saved_epochs]
+        last_epoch = max(saved_epochs, default=0)
 
-        if config is not None:
-            # json does not support integer keys
-            train_losses = {int(k): v for k, v in config["train_losses"].items()}
-            val_losses = {int(k): v for k, v in config["val_losses"].items()}
-            last_epoch = max(config["epochs"], default=0)
-            if last_epoch > epoch:
-                last_epoch = max(e for e in config["epochs"] if e <= epoch)
-            if last_epoch > 0:
-                epoch_path = os.path.join(self.epochs_dir, f"epochs{last_epoch}.model")
-                checkpoint = torch.load(epoch_path)
-                model.load_state_dict(checkpoint['model_state_dict'])
-                optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        if last_epoch > epoch:
+            last_epoch = max(e for e in saved_epochs if e <= epoch)
+        if last_epoch > 0:
+            epoch_path = os.path.join(self.epochs_dir, f"epochs{last_epoch}.model")
+            checkpoint = torch.load(epoch_path)
+            train_losses = checkpoint["train_losses"]
+            val_losses = checkpoint["val_losses"]
+            model.load_state_dict(checkpoint["model_state_dict"])
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
         return last_epoch, train_losses, val_losses
 
@@ -219,33 +216,13 @@ class ModelCheckPoint:
             val_losses: list of validation losses up to this epoch
         """
         epoch_path = os.path.join(self.epochs_dir, f"epochs{epoch}.model")
-        # json does not support integer keys
-        train_losses = {str(k): v for k, v in train_losses.items()}
-        val_losses = {str(k): v for k, v in val_losses.items()}
-
-        with open(self.checkpoints_config, "r") as file:
-            config: dict = json.load(file)
-
-        checkpoint_config = config.get(
-            self.model_name, {
-                "epochs": [],
-                "train_losses": {},
-                "val_losses": {},
-            }
-        )
-        checkpoint_config["epochs"].append(epoch)
-        checkpoint_config["train_losses"] |= train_losses
-        checkpoint_config["val_losses"] |= val_losses
-        config[self.model_name] = checkpoint_config
-
-        with open(self.checkpoints_config, "w") as file:
-            json.dump(config, file, indent=2)
-
         torch.save(
             {
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "train_losses": train_losses,
+                "val_losses": val_losses
             },
             epoch_path
         )

@@ -122,6 +122,8 @@ def main():
     stats['ngram'] = ngram_length
     stats['batch_size'] = batch_size
     stats['epochs'] = epochs
+    stats['train_losses'] = transformer.train_losses
+    stats['val_losses'] = transformer.val_losses
 
     pprint(stats)
     result_path = 'persistent_data/transformer.json'
