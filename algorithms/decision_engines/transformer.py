@@ -29,16 +29,22 @@ class AnomalyScore(IntEnum):
 
 class Transformer(BuildingBlock):
     """ Decision engine based on the Transformer architecture."""
+    VERSION = "00.10"
 
     def __init__(
             self,
             input_vector: BuildingBlock,
             distinct_syscalls: int,
-            epochs=10,
-            batch_size=256,
-            anomaly_scoring: AnomalyScore = AnomalyScore.LAST,
-            checkpoint: ModelCheckPoint = None,
-            retrain=False):
+            epochs: int,
+            batch_size: int,
+            anomaly_scoring: AnomalyScore,
+            checkpoint: ModelCheckPoint,
+            num_heads: int,
+            layers: int,
+            model_dim: int,
+            dropout: float,
+            retrain=False,
+    ):
         super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
@@ -63,20 +69,15 @@ class Transformer(BuildingBlock):
 
         # placeholder for start of sentence and end of sentence
         self._sos = distinct_syscalls + 1
-        NUM_HEAD = 2
         # distinct syscalls plus sos, plus 1 for unknown syscalls
-        NUM_TOKENS = distinct_syscalls + 2
-        NUM_DECODER_LAYERS = 3
-        NUM_ENCODER_LAYERS = 3
-        DIM_MODEL = 8  # embedding_size
-        DROPOUT = 0.1
+        num_tokens = distinct_syscalls + 2
         self.transformer = TransformerModel(
-            NUM_TOKENS,
-            DIM_MODEL,
-            NUM_HEAD,
-            NUM_ENCODER_LAYERS,
-            NUM_DECODER_LAYERS,
-            DROPOUT
+            num_tokens,
+            model_dim,
+            num_heads,
+            layers,
+            layers,
+            dropout
         ).to(DEVICE)
 
     def train_on(self, syscall: Syscall):
@@ -112,10 +113,12 @@ class Transformer(BuildingBlock):
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
         last_epoch = 0
-        # train_losses = {}
-        # val_losses = {}
         if not self._retrain:
-            last_epoch, self.train_losses, self.val_losses = self._checkpoint.load(self.transformer, optimizer, self._epochs)
+            last_epoch, self.train_losses, self.val_losses = self._checkpoint.load(
+                self.transformer,
+                optimizer,
+                self._epochs
+            )
 
         for epoch in tqdm(range(last_epoch + 1, self._epochs + 1)):
             # Training
@@ -224,7 +227,7 @@ class TransformerModel(nn.Module):
             num_heads,
             num_encoder_layers,
             num_decoder_layers,
-            dropout_p,
+            dropout,
     ):
         super().__init__()
 
@@ -233,16 +236,14 @@ class TransformerModel(nn.Module):
         self.dim_model = dim_model
 
         # LAYERS
-        self.positional_encoder = PositionalEncoding(
-            dim_model=dim_model, dropout_p=dropout_p, max_len=5000
-        )
+        self.positional_encoder = PositionalEncoding(dim_model=dim_model, dropout_p=dropout, max_len=5000)
         self.embedding = nn.Embedding(num_tokens, dim_model)
         self.transformer = nn.Transformer(
             d_model=dim_model,
             nhead=num_heads,
             num_encoder_layers=num_encoder_layers,
             num_decoder_layers=num_decoder_layers,
-            dropout=dropout_p
+            dropout=dropout
         )
 
         self.out = nn.Linear(dim_model, num_tokens)

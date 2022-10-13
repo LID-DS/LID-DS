@@ -19,8 +19,12 @@ def main():
     ngram_length = 11
     anomaly_score = AnomalyScore.MEAN
 
+    layers = 6
     batch_size = 256 * 2
+    model_dim = 20
+    num_heads = 2
     epochs = 10
+    dropout = 0.1
     thread_aware = True
 
     lid_ds_version = [
@@ -67,8 +71,9 @@ def main():
         algo_config={
             "ngram_length": ngram_length,
             "thread_aware": thread_aware,
-            "anomaly_score": AnomalyScore.MEAN,
             "batch_size": batch_size,
+            "layers": layers,
+            "model_dim": model_dim,
         },
         models_dir="Models"
     )
@@ -96,7 +101,11 @@ def main():
         epochs=epochs,
         batch_size=batch_size,
         anomaly_scoring=anomaly_score,
-        checkpoint=checkpoint
+        checkpoint=checkpoint,
+        layers=layers,
+        model_dim=model_dim,
+        num_heads=num_heads,
+        dropout=dropout,
     )
 
     # define the used features and train
@@ -122,6 +131,11 @@ def main():
     stats['ngram'] = ngram_length
     stats['batch_size'] = batch_size
     stats['epochs'] = epochs
+    stats['model_dim'] = model_dim
+    stats['num_heads'] = num_heads
+    stats['layers'] = layers
+    stats['dropout'] = dropout
+    stats['thread_aware'] = thread_aware
     stats['train_losses'] = transformer.train_losses
     stats['val_losses'] = transformer.val_losses
 
