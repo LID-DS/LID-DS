@@ -9,11 +9,14 @@ from dataloader.dataloader_factory import dataloader_factory
 
 from dataloader.direction import Direction
 
+import datetime
+
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
 from algorithms.ids import IDS
+from algorithms.persistance import save_to_mongo
 
 
 if __name__ == '__main__':
@@ -75,3 +78,12 @@ if __name__ == '__main__':
 
     ### print results
     pprint(results)
+
+    # enrich results with configuration and save to mongoDB
+    results['config'] = ids.get_config_tree_links()
+    results['scenario'] = scenario_name
+    results['dataset'] = lid_ds_version
+    results['direction'] = dataloader.get_direction_string()
+    results['date'] = str(datetime.datetime.now().date())
+
+    save_to_mongo(results)

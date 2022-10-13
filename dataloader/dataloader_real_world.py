@@ -107,7 +107,7 @@ class DataLoaderRealWorld(BaseDataLoader):
             scenario_path (str): path of assosiated folder
 
         """
-        super().__init__(scenario_path, direction)
+        super().__init__(scenario_path)
         convert_all_scap(scenario_path)
         if os.path.isdir(scenario_path):
             self.scenario_path = scenario_path

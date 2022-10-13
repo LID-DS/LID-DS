@@ -41,6 +41,9 @@ class DataPreprocessor:
 
         self._prepare_and_fit_building_blocks()
 
+    def get_building_block_manager(self):
+        return self._building_block_manager
+
     def get_graph_dot(self):
         return self._graph_dot
 

@@ -37,3 +37,6 @@ class BuildingBlockManager:
         # print graph in dot format for graphviz visualization
         dot = nx.drawing.nx_pydot.to_pydot(self._dependency_graph)
         return dot
+
+    def get_dependency_graph(self):
+        return self._dependency_graph
