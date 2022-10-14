@@ -1,17 +1,18 @@
 #!/bin/bash
 #SBATCH --partition=paula
-#SBATCH --time=8:00:00
-#SBATCH --mem=8G
+#SBATCH --time=4:00:00
 #SBATCH --cpus-per-tasks=4
 #SBATCH --mem-per-gpu=6GB
 #SBATCH --gres=gpu:a30
 #SBATCH --mail-type=FAIL
+#SBATCH -o logs/job_%A_%a.log
 
 export IDS_ON_CLUSTER=1
 
 module load matplotlib
 pip install --upgrade pip
 pip install --user -e ../
+pip install --user torch --extra-index-url https://download.pytorch.org/whl/cu116
 pip install --user -r ../requirements.txt
 
 # parameters:

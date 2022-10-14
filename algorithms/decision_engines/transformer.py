@@ -2,7 +2,6 @@ import math
 from enum import IntEnum
 from functools import lru_cache
 
-import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
@@ -84,16 +83,16 @@ class Transformer(BuildingBlock):
     def train_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            x = np.array([self._sos] + list(input_vector[:-1]))
-            y = np.array([self._sos] + list(input_vector[1:]))
+            x = [self._sos] + list(input_vector[:-1])
+            y = [self._sos] + list(input_vector[1:])
             self._training_set['x'].append(x)
             self._training_set['y'].append(y)
 
     def val_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            x = np.array([self._sos] + list(input_vector[:-1]))
-            y = np.array([self._sos] + list(input_vector[1:]))
+            x = [self._sos] + list(input_vector[:-1])
+            y = [self._sos] + list(input_vector[1:])
             self._validation_set['x'].append(x)
             self._validation_set['y'].append(y)
 

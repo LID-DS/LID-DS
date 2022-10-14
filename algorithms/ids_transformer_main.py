@@ -1,10 +1,9 @@
 import argparse
+import datetime
 import os
 import sys
 import time
 from pprint import pprint
-
-from pandas import datetime
 
 from algorithms.decision_engines.transformer import Transformer, AnomalyScore
 from algorithms.features.impl.int_embedding import IntEmbedding
@@ -115,7 +114,7 @@ def main():
         layers = args.layers
         model_dim = args.model_dim
         feedforward_dim = args.feedforward_dim
-        num_heads = model_dim / 4
+        num_heads = int(model_dim / 4)
     else:
         # getting the LID-DS base path from argument or environment variable
         if len(sys.argv) > 1:
@@ -136,8 +135,8 @@ def main():
     dataloader = dataloader_factory(scenario_path, direction=Direction.OPEN)
 
     checkpoint = ModelCheckPoint(
-        scenario_names[scenario_number],
-        lid_ds_versions[lid_ds_version_number],
+        scenario,
+        lid_ds_version,
         "transformer",
         algo_config={
             "ngram_length": ngram_length,
@@ -213,7 +212,7 @@ def main():
         stats['thread_aware'] = thread_aware
         stats['train_losses'] = transformer.train_losses
         stats['val_losses'] = transformer.val_losses
-        stats['config'] = ids.get_config()
+        # stats['config'] = ids.get_config_tree_links()
         stats['direction'] = dataloader.get_direction_string()
         stats['date'] = str(datetime.datetime.now().date())
         stats['duration'] = str(end - start)
