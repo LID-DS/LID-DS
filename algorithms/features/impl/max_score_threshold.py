@@ -8,7 +8,7 @@ from algorithms.building_block import BuildingBlock
 
 class MaxScoreThreshold(BuildingBlock):
     """
-        Saves maximum value of training data as threshold.
+        Saves maximum anomaly score of validation data as threshold.
     """
 
     def __init__(self,

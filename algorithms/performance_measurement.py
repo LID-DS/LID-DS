@@ -9,7 +9,7 @@ from algorithms.alarms import Alarms
 class Performance:
     """
         Evaluate performance of IDS.
-        Gets syscall and information if decider classified as anomaly.
+        Gets syscall and information wether decider classified syscall as anomaly.
 
         If create_alarms is set, save list of alarms.
     """
