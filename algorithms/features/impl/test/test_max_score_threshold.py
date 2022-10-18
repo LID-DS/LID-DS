@@ -118,17 +118,18 @@ def test_max_score_threshold():
     for syscall in val_syscalls:
         decider.val_on(syscall)
     stream_sum.new_recording()
-    print(decider._threshold)
-    print(stide._normal_database)
+    ngram.new_recording()
+    stide.new_recording()
 
     # normal database is
-    # {('close', 'close'), ('mmap', 'open'), ('close', 'mmap'), ('select', 'mmap'), ('open', 'select'), ('open', 'close')}
+    # {('close', 'close'), ('mmap', 'open'), ('close', 'mmap'),
+    #  ('select', 'mmap'), ('open', 'select'), ('open', 'close')}
 
     # threshold is 1
 
     #                                         TID
     assert decider.get_result(test_syscalls[0]) == 0  # None -> 0 -> keine Anomaly
-    assert decider.get_result(test_syscalls[1]) == 1  # (close, open) -> unknown ngram other uninitilized (x,_)-> 1 + 0 = 1 !>1 -> keine Anomaly
+    assert decider.get_result(test_syscalls[1]) == 0  # (close, open) -> unknown ngram other uninitilized (x,_)-> 1 + 0 = 1 !>1 -> keine Anomaly
     assert decider.get_result(test_syscalls[2]) == 1  # (open, open) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
     assert decider.get_result(test_syscalls[3]) == 1  # (open, read) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
     assert decider.get_result(test_syscalls[4]) == 1  # (read, read) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
