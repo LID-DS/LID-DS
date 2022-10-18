@@ -13,6 +13,7 @@ from dataloader.direction import Direction
 
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.and_decider import AndDecider
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
@@ -56,13 +57,16 @@ if __name__ == '__main__':
     ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
     # finally calculate the STIDE algorithm using these ngrams
     stide = Stide(ngram)
+    stide_2 = Stide(ngram)
     # build stream sum of stide results
     stream_sum = StreamSum(stide, False, WINDOW_LENGTH, False)
     # decider threshold
-    decider = MaxScoreThreshold(stream_sum)
+    decider_1 = MaxScoreThreshold(stream_sum)
+    decider_2 = MaxScoreThreshold(stide_2)
+    combination_decider = AndDecider([decider_1, decider_2])
     ### the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=decider,
+              resulting_building_block=combination_decider,
               create_alarms=True,
               plot_switch=False)
 
