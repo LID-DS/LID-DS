@@ -7,7 +7,12 @@ from algorithms.alarms import Alarms
 
 
 class Performance:
+    """
+        Evaluate performance of IDS.
+        Gets syscall and information if decider classified as anomaly.
 
+        If create_alarms is set, save list of alarms.
+    """
     def __init__(self, create_alarms: bool = False):
         self._threshold = 0.0
         self._performance_values = {}
@@ -48,7 +53,7 @@ class Performance:
     def set_exploit_time(self, exploit_time):
         self._current_exploit_time = exploit_time
 
-    def analyze_syscall(self, syscall: Syscall, anomaly_score: float):
+    def analyze_syscall(self, syscall: Syscall, is_anomaly: bool):
         """
         counts performance values with syscall and anomaly score as input,
         differentiates between normal and exploit files
@@ -59,7 +64,7 @@ class Performance:
         # files with exploit
         if self._current_exploit_time is not None:
             self._exploit_anomaly_score_count += 1
-            if anomaly_score > self._threshold:
+            if is_anomaly:
                 if self._current_exploit_time > syscall_time:
                     self._fp += 1
                     self._current_cfp_stream_exploits += 1
@@ -77,7 +82,7 @@ class Performance:
                     elif self._alarm is True:
                         self._tp += 1
 
-            elif anomaly_score <= self._threshold:
+            else:
                 if self.create_alarms:
                     self.alarms.end_alarm()
                 self._cfp_end_exploits()
@@ -89,13 +94,13 @@ class Performance:
         # files without exploit
         elif self._current_exploit_time is None:
             self._normal_score_count += 1
-            if anomaly_score > self._threshold:
+            if is_anomaly:
                 self._fp += 1
                 self._current_cfp_stream_normal += 1
                 self._cfp_start_normal()
                 if self.create_alarms:
                     self.alarms.add_or_update_alarm(syscall, False)
-            if anomaly_score <= self._threshold:
+            else:
                 if self.create_alarms:
                     self.alarms.end_alarm()
                 self._cfp_end_normal()
