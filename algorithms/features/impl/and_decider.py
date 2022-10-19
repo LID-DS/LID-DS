@@ -30,10 +30,13 @@ class AndDecider(BuildingBlock):
         Return 1 if both deciders return 1
         Otherwise return 0.
         """
+        return_decision = True
         for decider in self._dependency_list:
-            if decider.get_result(syscall) == 0:
-                return 0
-        return 1
+            decision = decider.get_result(syscall)
+            print(f"{decider}: {decision}")
+            if decision is False:
+                return_decision = False
+        return return_decision
 
     def is_decider(self):
         return True
