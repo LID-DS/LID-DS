@@ -32,7 +32,7 @@ class MaxScoreThreshold(BuildingBlock):
             if anomaly_score > self._threshold:
                 self._threshold = anomaly_score
 
-    def _calculate(self, syscall: Syscall):
+    def _calculate(self, syscall: Syscall) -> bool:
         """
         Return 0 if anomaly_score is below threshold.
         Otherwise return 1.
@@ -40,8 +40,8 @@ class MaxScoreThreshold(BuildingBlock):
         anomaly_score = self._feature.get_result(syscall)
         if isinstance(anomaly_score, (int, float)):
             if anomaly_score > self._threshold:
-                return 1
-        return 0
+                return True
+        return False
 
     def is_decider(self):
         return True
