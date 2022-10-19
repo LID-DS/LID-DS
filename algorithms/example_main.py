@@ -10,15 +10,20 @@ from dataloader.dataloader_factory import dataloader_factory
 
 from dataloader.direction import Direction
 
+from algorithms.ids import IDS
 
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
+from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.and_decider import AndDecider
 from algorithms.features.impl.stream_sum import StreamSum
-from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
+
+from algorithms.decision_engines.stide import Stide
+from algorithms.decision_engines.ae import AE
+
 from algorithms.persistance import save_to_mongo
-from algorithms.ids import IDS
 
 
 if __name__ == '__main__':
@@ -52,21 +57,24 @@ if __name__ == '__main__':
 
     ### building blocks
     # first: map each systemcall to an integer
-    int_embedding = IntEmbedding()
+    syscall_name = SyscallName()
+    # int_embedding = IntEmbedding(syscall_name)
+    one_hot_encoding = OneHotEncoding(syscall_name)
     # now build ngrams from these integers
-    ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
+    # ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
+    ngram_ae = Ngram([one_hot_encoding], THREAD_AWARE, NGRAM_LENGTH)
     # finally calculate the STIDE algorithm using these ngrams
-    stide = Stide(ngram)
-    stide_2 = Stide(ngram)
+    # stide = Stide(ngram)
+    ae = AE(ngram_ae)
     # build stream sum of stide results
-    stream_sum = StreamSum(stide, False, WINDOW_LENGTH, False)
+    # stream_sum = StreamSum(ae, False, 1, False)
     # decider threshold
-    decider_1 = MaxScoreThreshold(stream_sum)
-    decider_2 = MaxScoreThreshold(stide_2)
-    combination_decider = AndDecider([decider_1, decider_2])
+    decider_1 = MaxScoreThreshold(ae)
+    # decider_2 = MaxScoreThreshold(stream_sum)
+    # combination_decider = AndDecider([decider_1, decider_2])
     ### the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=combination_decider,
+              resulting_building_block=decider_1,
               create_alarms=True,
               plot_switch=False)
 
@@ -75,7 +83,7 @@ if __name__ == '__main__':
     # normal / seriell
     # results = ids.detect().get_results()
     # parallel / map-reduce
-    results = ids.detect_parallel().get_results()
+    results = ids.detect().get_results()
 
     # to get alarms:
     # print(performance.alarms.alarm_list)
