@@ -1,3 +1,6 @@
+from dataloader.syscall import Syscall
+from typing import Generator
+
 class BaseRecording:
     """
         Base class for a single recordings
@@ -6,7 +9,7 @@ class BaseRecording:
     def __init__(self):
         pass
 
-    def syscalls(self) -> str:
+    def syscalls(self) -> Generator[Syscall, None, None]:
         """
             yields single lines of syscalls
         """
