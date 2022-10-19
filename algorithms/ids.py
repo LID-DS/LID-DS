@@ -74,7 +74,9 @@ class IDS:
         json_string = string_graph.replace("'", "\"") \
             .replace("True", "\"True\"") \
             .replace("False", "\"False\"") \
-            .replace("None", "\"None\"")
+            .replace("None", "\"None\"") \
+            .replace("<", "\"") \
+            .replace(">", "\"")
 
         json_loaded = json.loads(json_string)
 
