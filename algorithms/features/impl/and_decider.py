@@ -33,7 +33,6 @@ class AndDecider(BuildingBlock):
         return_decision = True
         for decider in self._dependency_list:
             decision = decider.get_result(syscall)
-            print(f"{decider}: {decision}")
             if decision is False:
                 return_decision = False
         return return_decision
