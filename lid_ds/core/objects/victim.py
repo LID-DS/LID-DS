@@ -1,6 +1,7 @@
 import os
 import signal
 from contextlib import contextmanager
+from enum import Enum
 from threading import Thread
 
 import pexpect
@@ -12,7 +13,7 @@ from lid_ds.core.objects.environment import ScenarioEnvironment
 from lid_ds.helpers import wait_until
 from lid_ds.sim.dockerize import run_image
 from lid_ds.utils import log
-from lid_ds.utils.docker_utils import get_ip_address
+from lid_ds.utils.docker_utils import get_ip_address, get_pid_namespace
 from lid_ds.utils.docker_utils import ResourceLoggingThread
 
 
@@ -26,6 +27,10 @@ def kill_child(child):
             break
     if child.isalive():
         os.kill(pid, signal.SIGINT)
+
+class RecordingModes(Enum):
+    Sysdig = 1
+    LTTng = 2
 
 
 class ScenarioVictim(ScenarioContainerBase):
@@ -55,12 +60,24 @@ class ScenarioVictim(ScenarioContainerBase):
         self.container.stop()
 
     @contextmanager
-    def record_container(self, buffer_size=1600):
-        sysdig = self._sysdig(buffer_size)
-        tcpdump = self._tcpdump()
-        yield sysdig, tcpdump, self._resource_thread
-        kill_child(sysdig)
-        tcpdump.kill()
+    def record_container(self, buffer_size=1600, mode=RecordingModes.Sysdig):
+        if mode == RecordingModes.Sysdig:
+            sysdig = self._sysdig(buffer_size)
+            tcpdump = self._tcpdump()
+            yield sysdig, tcpdump, self._resource_thread
+            kill_child(sysdig)
+            tcpdump.kill()
+        elif mode == RecordingModes.LTTng:
+            lttng = self._lttng()
+            tcpdump = self._tcpdump()
+            yield lttng, tcpdump, self._resource_thread
+
+            # stop recording
+            os.system(f'lttng destroy {self.env.recording_name}')
+            tcpdump.kill()
+
+
+
 
     def _sysdig(self, buffer_size):
         sysdig_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}.scap')
@@ -68,6 +85,18 @@ class ScenarioVictim(ScenarioContainerBase):
         return pexpect.spawn(
             'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size,
                                                                        self.env.victim_hostname))
+
+    def _lttng(self):
+        lttng_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}')
+        self.logger.info(f'Saving with LTTng to {lttng_out_path}')
+        pid_ns = get_pid_namespace(self.container)
+        return os.system(
+            f'lttng create {self.env.recording_name} --output={lttng_out_path} && ' +
+            f'lttng add-context -k -t procname -t pid -t vpid -t tid -t vtid -t pid_ns && ' +
+            f'lttng enable-event -k --syscall -a --filter="\\$ctx.pid_ns == {pid_ns}" && ' +
+            f'lttng start'
+        )
+
 
     def _tcpdump(self):
         container = run_image("itsthenetwork/alpine-tcpdump",

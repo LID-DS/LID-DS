@@ -5,24 +5,23 @@ create new scenarios and implementing needed functions.
 """
 import datetime
 import random
-import sys
 from abc import ABCMeta, abstractmethod
 from threading import Thread
 from time import sleep, time
 from typing import List
 
 import docker
+from docker.errors import NotFound
 
 from lid_ds.core.collector.collector import Collector, CollectorStorageService
+from lid_ds.core.objects.victim import ScenarioVictim, RecordingModes
+from lid_ds.utils import log
 from .image import ChainImage
+from .objects.attacker import ScenarioAttacker
 from .objects.environment import ScenarioEnvironment
 from .objects.meta import ScenarioMeta
-from .objects.attacker import ScenarioAttacker
 from .objects.normal import ScenarioNormal
-from lid_ds.core.objects.victim import ScenarioVictim
-from lid_ds.utils import log
 from ..postprocessing import postprocessing
-from docker.errors import NotFound
 
 
 class Scenario(metaclass=ABCMeta):
@@ -57,7 +56,8 @@ class Scenario(metaclass=ABCMeta):
             recording_time=300,
             exploit_start_time=0,
             exploit_name='default',
-            storage_services: List[CollectorStorageService] = None
+            storage_services: List[CollectorStorageService] = None,
+            recording_mode=RecordingModes.Sysdig
     ):
         """
         initialize all time sequences needed for the recording process
@@ -78,6 +78,8 @@ class Scenario(metaclass=ABCMeta):
         self.exploit = ScenarioAttacker(exploit)
 
         self.auto_stop_recording = True if recording_time == -1 else False
+
+        self._recording_mode = recording_mode
 
         if exploit_start_time == 0 and self.auto_stop_recording:
             raise ValueError("Autostop of recording is only possible with active exploit")
@@ -114,7 +116,7 @@ class Scenario(metaclass=ABCMeta):
 
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
-        with self.victim.record_container() as (sysdig, tcpdump, resource):
+        with self.victim.record_container(mode=self._recording_mode) as (sysdig, tcpdump, resource):
             if self.auto_stop_recording:
                 self.start_time = datetime.datetime.now()
                 exploit_container_id = self.exploit.container.attrs['Id']

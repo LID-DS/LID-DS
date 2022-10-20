@@ -1,5 +1,6 @@
 import csv
 import os
+import subprocess
 from datetime import datetime
 from threading import Thread
 
@@ -14,6 +15,13 @@ def get_host_port(container, port, protocol="tcp"):
 def get_ip_address(container):
     container.reload()
     return container.attrs['NetworkSettings']['Networks'][ScenarioEnvironment().network.name]['IPAddress']
+
+
+def get_pid_namespace(container):
+    container.reload()
+    pid = container.attrs["State"]["Pid"]
+    pid_ns = os.popen(f"lsns -n -t pid -o NS -p {pid}").read()
+    return pid_ns
 
 
 def format_command(command):
