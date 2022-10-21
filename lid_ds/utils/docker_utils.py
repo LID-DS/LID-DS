@@ -20,7 +20,7 @@ def get_ip_address(container):
 def get_pid_namespace(container):
     container.reload()
     pid = container.attrs["State"]["Pid"]
-    pid_ns = os.popen(f"lsns -n -t pid -o NS -p {pid}").read()
+    pid_ns = os.popen(f"lsns -n -t pid -o NS -p {pid}").read().strip()
     return pid_ns
 
 
