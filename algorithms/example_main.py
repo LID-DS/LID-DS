@@ -33,7 +33,7 @@ if __name__ == '__main__':
                              "Please specify as argument or set Environment Variable "
                              "$LID_DS_BASE") from exc
 
-    LID_DS_VERSION = "LID-DS-2019"
+    LID_DS_VERSION = "LID-DS-2021"
     SCENARIO_NAME = "CVE-2017-7529"
     #scenario_name = "CVE-2014-0160"
     #scenario_name = "Bruteforce_CWE-307"

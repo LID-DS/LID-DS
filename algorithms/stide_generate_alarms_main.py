@@ -53,7 +53,7 @@ if __name__ == '__main__':
         for thread_aware in [False, True]:
             for ngram_length in [3, 5, 7]:
                 scenario_path = f"{lid_ds_base_path}/{lid_ds_version[select_lid_ds_version_number]}/{scenario_names[select_scenario_number]}"        
-                dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE)
+                dataloader = dataloader_factory(scenario_path, direction=Direction.CLOSE)
 
                 # features
                 ###################
