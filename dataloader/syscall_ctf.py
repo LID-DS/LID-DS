@@ -1,20 +1,16 @@
-from dataloader.base_data_loader import BaseDataLoader
+from dataloader.syscall import Syscall
 
 
-class DataloaderCTF(BaseDataLoader):
-    def __init__(self, scenario_path: str):
-        super().__init__(scenario_path)
-        self.scenario_path = scenario_path
-
-    def training_data(self) -> list:
-        pass
-
-    def validation_data(self) -> list:
-        pass
-
-    def test_data(self) -> list:
-        pass
-
-    def extract_recordings(self, category: str) -> list:
-        pass
-
+class SyscallCTF(Syscall):
+    def __init__(self):
+        super().__init__()
+        self._timestamp_unix = None
+        self._timestamp_datetime = None
+        self._user_id = None
+        self._process_id = None
+        self._process_name = None
+        self._thread_id = None
+        self._name = None
+        self._direction = None
+        self._params = None
+        self.recording_path = recording_path
