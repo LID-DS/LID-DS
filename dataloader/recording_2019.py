@@ -55,8 +55,8 @@ class Recording2019(BaseRecording):
                 if self._direction != Direction.BOTH:
                     if syscall_object.direction() == self._direction and syscall_object.name() != 'switch':
                         yield syscall_object
-                elif syscall_object.name() != 'switch':
-                    yield Syscall2019(self.path, syscall, line_id=line_id)
+                ##elif syscall_object.name() != 'switch':
+                yield Syscall2019(self.path, syscall, line_id=line_id)
 
     def _collect_metadata(self):
         """
