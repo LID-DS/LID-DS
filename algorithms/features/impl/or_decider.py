@@ -1,14 +1,14 @@
 """
-Building Block for and combination of a list of threshold BBs
+Building Block for or combination of a list of threshold BBs
 """
 from dataloader.syscall import Syscall
 
 from algorithms.building_block import BuildingBlock
 
 
-class AndDecider(BuildingBlock):
+class OrDecider(BuildingBlock):
     """
-        Returns 1 if both deciders return 1.
+        Returns 0 if all deciders return 0.
     """
 
     def __init__(self,
@@ -27,15 +27,14 @@ class AndDecider(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-        Return 1 if all deciders return 1
+        Return 1 if one of deciders returns 1
         Otherwise return 0.
-        Attention: need to iterate through hole dependency list otherwise not all ngrams are being fed. 
         """
-        final_decision = True
+        final_decision = False
         for decider in self._dependency_list:
             decision = decider.get_result(syscall)
-            if decision is False:
-                final_decision = False 
+            if decision is True:
+                final_decision = True
         return final_decision
 
     def is_decider(self):

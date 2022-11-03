@@ -1,5 +1,5 @@
 """
-    test function of and decider 
+    test function of or decider 
 """
 import pytest
 from dataloader.syscall_2021 import Syscall2021
@@ -7,14 +7,14 @@ from dataloader.syscall_2019 import Syscall2019
 
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.and_decider import AndDecider
+from algorithms.features.impl.or_decider import OrDecider
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
 
 
-def test_and_decider():
-    # legit
+def test_or_decider():
+    # legit 
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047761484608 0 1 apache2 0 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
 
@@ -116,7 +116,7 @@ def test_and_decider():
     stream_sum_2 = StreamSum(stide_2, False, 2, False)
     decider = MaxScoreThreshold(stream_sum)
     decider_2 = MaxScoreThreshold(stream_sum_2)
-    and_decider = AndDecider([decider, decider_2])
+    or_decider = OrDecider([decider, decider_2])
 
     for syscall in train_syscalls:
         ngram.train_on(syscall)
@@ -141,45 +141,46 @@ def test_and_decider():
 
     # normal database of stide_2 is
     # {('close', 'mmap', 'open'), ('open', 'select', 'mmap'), ('open', 'close', 'close'), ('close', 'close', 'mmap'), ('select', 'mmap', 'open'), ('mmap', 'open', 'select')}
-    # threshold is 1
+    # threshold 1: 0
+    # threshold 2: 1
 
     # Stide1: None -> 0 -> keine Anomaly
     # Stide2: None -> 0 -> keine Anomaly
     # 0 AND 0 -> 0
-    assert and_decider.get_result(test_syscalls[0]) is False
-    # Stide1: (close, open) -> unknown ngram other uninitilized (x,_)-> 1 + 0 = 1 !>1 -> keine Anomaly
+    assert or_decider.get_result(test_syscalls[0]) is False
+    # Stide1: (close, open) -> unknown ngram other uninitilized (x,_)-> 1 + 0 = 1 !>0 -> keine Anomaly
     # Stide2: None (_,_) 0 -> 0
     # 0 AND 0 -> 0
-    assert and_decider.get_result(test_syscalls[1]) is False
-    # Stide1: (open, open) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
-    # Stide2: (close, open, open) -> (x) -> 1+0 = 1 !> 1 -> keine Anomaly
+    assert or_decider.get_result(test_syscalls[1]) is True
+    # Stide1: (open, open) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
+    # Stide2: (close, open, open) -> (_,x) -> 1+0 = 1 !> 1 -> keine Anomaly
     # 1 AND 0 -> 0
-    assert and_decider.get_result(test_syscalls[2]) is False
+    assert or_decider.get_result(test_syscalls[2]) is True
     # Stide1: (open, read) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
     # Stide2: (open, open, read) -> (x) -> 1 = 1 !> 1 -> Anomaly
     # 1 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[3]) is True
-    # Stide1: (read, read) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
+    assert or_decider.get_result(test_syscalls[3]) is True
+    # Stide1: (read, read) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
     # Stide2: (open, read, read) -> (x) -> 1+1 = 1 !> 1 -> Anomaly
     # 1 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[4]) is True
-    # Stide1: (read, fcntl) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
+    assert or_decider.get_result(test_syscalls[4]) is True
+    # Stide1: (read, fcntl) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
     # Stide2: (read, read, fcntl) -> (x) -> 1+1 = 1 !> 1 -> Anomaly
     # 1 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[5]) is True
-    # Stide1: (fcntl, fcntl) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
+    assert or_decider.get_result(test_syscalls[5]) is True
+    # Stide1: (fcntl, fcntl) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
     # Stide2: (read, fcntl, fcntl) -> (x) -> 1+1 = 1 !> 1 -> Anomaly
     # 1 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[6]) is True
-    # Stide1: (fcntl, futex) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
+    assert or_decider.get_result(test_syscalls[6]) is True
+    # Stide1: (fcntl, futex) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
     # Stide2: (fcntl, fcntl, futex) -> (x) -> 1+1 = 1 !> 1 -> Anomaly
     # 1 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[7]) is True
-    # Stide1: (futex, close) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
+    assert or_decider.get_result(test_syscalls[7]) is True
+    # Stide1: (futex, close) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
     # Stide2: (fcntl, futex, close) -> (x) -> 1+1 = 1 !> 1 -> Anomaly
     # 1 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[8]) is True
-    # Stide1: (close, mmap) -> (x,x) -> 1+1 = 2 > 1 -> Anomaly
+    assert or_decider.get_result(test_syscalls[8]) is True
+    # Stide1: (close, mmap) -> (x,x) -> 1+1 = 2 > 0 -> Anomaly
     # Stide2: (futex, close, mmap) -> (x) -> 1+1 = 1 !> 1 -> Anomaly
     # 0 AND 1 -> 1
-    assert and_decider.get_result(test_syscalls[9]) is True
+    assert or_decider.get_result(test_syscalls[9]) is True
