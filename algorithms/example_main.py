@@ -17,6 +17,7 @@ from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.and_decider import AndDecider
+from algorithms.features.impl.or_decider import OrDecider
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
 
@@ -58,23 +59,23 @@ if __name__ == '__main__':
     ### building blocks
     # first: map each systemcall to an integer
     syscall_name = SyscallName()
-    # int_embedding = IntEmbedding(syscall_name)
+    int_embedding = IntEmbedding(syscall_name)
     one_hot_encoding = OneHotEncoding(syscall_name)
     # now build ngrams from these integers
-    # ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
+    ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
     ngram_ae = Ngram([one_hot_encoding], THREAD_AWARE, NGRAM_LENGTH)
     # finally calculate the STIDE algorithm using these ngrams
-    # stide = Stide(ngram)
+    stide = Stide(ngram)
     ae = AE(ngram_ae)
     # build stream sum of stide results
-    # stream_sum = StreamSum(ae, False, 1, False)
+    stream_sum = StreamSum(stide, False, 500, False)
     # decider threshold
     decider_1 = MaxScoreThreshold(ae)
-    # decider_2 = MaxScoreThreshold(stream_sum)
-    # combination_decider = AndDecider([decider_1, decider_2])
+    decider_2 = MaxScoreThreshold(stream_sum)
+    combination_decider = AndDecider([decider_1, decider_2])
     ### the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=decider_1,
+              resulting_building_block=combination_decider,
               create_alarms=True,
               plot_switch=False)
 
@@ -98,4 +99,4 @@ if __name__ == '__main__':
     results['direction'] = dataloader.get_direction_string()
     results['date'] = str(datetime.datetime.now().date())
 
-    save_to_mongo(results)
+    # save_to_mongo(results)
