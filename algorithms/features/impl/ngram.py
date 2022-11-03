@@ -63,9 +63,10 @@ class Ngram(BuildingBlock):
             thread_id = syscall.thread_id() if self._thread_aware else 0
             if thread_id not in self._ngram_buffer:                
                 self._ngram_buffer[thread_id] = deque(maxlen=self._deque_length)
-
+            
             # append the current dependencies to the ngram
             self._ngram_buffer[thread_id].extend(dependencies)
+
             # return the ngram if its complete
             if len(self._ngram_buffer[thread_id]) == self._deque_length:                
                 return tuple(self._ngram_buffer[thread_id])
