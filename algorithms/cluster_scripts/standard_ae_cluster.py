@@ -20,10 +20,11 @@ from dataloader.dataloader_factory import dataloader_factory
 from algorithms.ids import IDS
 
 from algorithms.features.impl.ngram import Ngram
-from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 
-from algorithms.decision_engines.stide import Stide
+from algorithms.decision_engines.ae import AE
 
 from algorithms.persistance import save_to_mongo
 
@@ -51,7 +52,6 @@ if __name__ == '__main__':
 
         scenario = args.scenario
         thread_aware = args.thread_aware
-        window_length = args.window_length
         ngram_length = args.ngram_length
         embedding_size = args.embedding_size
         hidden_size = int(math.sqrt(ngram_length * embedding_size))
@@ -60,15 +60,16 @@ if __name__ == '__main__':
         dataloader = dataloader_factory(args.base_path + scenario, direction=direction)
         ### building blocks
         # first: map each systemcall to an integer
-        syscall_embedding = IntEmbedding()
+        syscall_name = SyscallName()
+        syscall_embedding = OneHotEncoding(syscall_name)
         # # now build ngrams from these integers
         ngram = Ngram([syscall_embedding], thread_aware, ngram_length)
         # finally calculate the STIDE algorithm using these ngrams
-        de = Stide(ngram)
-        max_score_threshold = MaxScoreThreshold(window_length)
+        de = AE(ngram)
+        max_score_threshold = MaxScoreThreshold(de)
         ### the IDS
         ids = IDS(data_loader=dataloader,
-                  resulting_building_block=de,
+                  resulting_building_block=max_score_threshold,
                   create_alarms=False,
                   plot_switch=False)
 
@@ -102,8 +103,7 @@ if __name__ == '__main__':
     except KeyError as e:
         print(traceback.format_exc())
         print('Experiment failed')
-        logging.error('Failed for algorithm: %s scenario: %s ngram: %d window: %d',
-                      'STIDE',
+        logging.error('Failed for algorithm: %s scenario: %s ngram: %d',
+                      'AE',
                       scenario,
-                      ngram_length,
-                      window_length)
+                      ngram_length)

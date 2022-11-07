@@ -52,11 +52,8 @@ if __name__ == '__main__':
     ### building blocks
     # first: map each systemcall to an integer
     int_embedding = IntEmbedding()
-    flags = Flags()
-    mode = Mode()
-    concat = Concat([int_embedding, flags, mode])
     # now build ngrams from these integers
-    ngram = Ngram([concat], thread_aware, ngram_length)
+    ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
     # finally calculate the STIDE algorithm using these ngrams
     stide = Stide(ngram)
     # build stream sum of stide results
@@ -74,12 +71,7 @@ if __name__ == '__main__':
     # normal / seriell
     # results = ids.detect().get_results()
     # parallel / map-reduce
-    start = time.time()
-    performance = ids.detect_parallel()
-    results = performance.get_results()
-    # detection
-    end = time.time()
-    detection_time = (end - start)/60  # in min
+    results = ids.detect_parallel().get_results()
 
     # to get alarms:
     # print(performance.alarms.alarm_list)
@@ -87,8 +79,6 @@ if __name__ == '__main__':
     ### print results
     pprint(results)
 
-    if results is None:
-        results = {}
     # enrich results with configuration and save to mongoDB
     results['config'] = ids.get_config_tree_links()
     results['scenario'] = SCENARIO_NAME

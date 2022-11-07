@@ -20,6 +20,7 @@ from dataloader.dataloader_factory import dataloader_factory
 from algorithms.ids import IDS
 
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 
@@ -65,10 +66,11 @@ if __name__ == '__main__':
         ngram = Ngram([syscall_embedding], thread_aware, ngram_length)
         # finally calculate the STIDE algorithm using these ngrams
         de = Stide(ngram)
-        max_score_threshold = MaxScoreThreshold(window_length)
+        stream_sum = StreamSum(de, False, window_length, False)
+        max_score_threshold = MaxScoreThreshold(stream_sum)
         ### the IDS
         ids = IDS(data_loader=dataloader,
-                  resulting_building_block=de,
+                  resulting_building_block=max_score_threshold,
                   create_alarms=False,
                   plot_switch=False)
 
