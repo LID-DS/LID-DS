@@ -1,51 +1,55 @@
-import time
-from pprint import pprint
-import sys
+"""
+Example execution of LIDS Framework
+"""
 import os
+import sys
+import datetime
+from pprint import pprint
 
-from dataloader.direction import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
-from algorithms.ids import IDS
+from dataloader.direction import Direction
 
-from algorithms.features.impl.mode import Mode
-from algorithms.features.impl.flags import Flags
-from algorithms.features.impl.ngram import Ngram
-from algorithms.features.impl.concat import Concat
+
+from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.int_embedding import IntEmbedding
-
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.decision_engines.stide import Stide
-
-from algorithms.persistance import save_to_json, print_as_table
+from algorithms.features.impl.ngram import Ngram
+from algorithms.persistance import save_to_mongo
+from algorithms.ids import IDS
 
 
 if __name__ == '__main__':
 
     # getting the LID-DS base path from argument or environment variable
     if len(sys.argv) > 1:
-        lid_ds_base_path = sys.argv[1]
+        LID_DS_BASE_PATH = sys.argv[1]
     else:
         try:
-            lid_ds_base_path = os.environ['LID_DS_BASE']
-        except KeyError:
-            raise ValueError("No LID-DS Base Path given. Please specify as argument or set Environment Variable "
-                             "$LID_DS_BASE")
+            LID_DS_BASE_PATH = os.environ['LID_DS_BASE']
+        except KeyError as exc:
+            raise ValueError("No LID-DS Base Path given."
+                             "Please specify as argument or set Environment Variable "
+                             "$LID_DS_BASE") from exc
 
-    lid_ds_version = "LID-DS-2019"
-    scenario_name = "CVE-2017-7529"
+    LID_DS_VERSION = "LID-DS-2019"
+    SCENARIO_NAME = "CVE-2017-7529"
     #scenario_name = "CVE-2014-0160"
     #scenario_name = "Bruteforce_CWE-307"
     #scenario_name = "CVE-2012-2122"
 
-    scenario_path = f"{lid_ds_base_path}/{lid_ds_version}/{scenario_name}"
-    dataloader = dataloader_factory(scenario_path,direction=Direction.CLOSE) # just load < closing system calls for this example
+    scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{SCENARIO_NAME}"
+    # just load < closing system calls for this example
+    dataloader = dataloader_factory(scenario_path,direction=Direction.BOTH)
 
-    ### features (for more information see Paper: "Improving Host-based Intrusion Detection Using Thread Information", International Symposium on Emerging Information Security and Applications (EISA), 2021)
-    thread_aware = True
-    window_length = 100
-    ngram_length = 7
+    ### features (for more information see Paper:
+    # https://dbs.uni-leipzig.de/file/EISA2021_Improving%20Host-based%20Intrusion%20Detection%20Using%20Thread%20Information.pdf
+    THREAD_AWARE = True
+    WINDOW_LENGTH = 1000
+    NGRAM_LENGTH = 5
 
-    ### building blocks    
+    ### building blocks
     # first: map each systemcall to an integer
     int_embedding = IntEmbedding()
     flags = Flags()
@@ -54,22 +58,21 @@ if __name__ == '__main__':
     # now build ngrams from these integers
     ngram = Ngram([concat], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
-    stide = Stide(ngram, window_length)
-
+    stide = Stide(ngram)
+    # build stream sum of stide results
+    stream_sum = StreamSum(stide, False, WINDOW_LENGTH, False)
+    # decider threshold
+    decider = MaxScoreThreshold(stream_sum)
     ### the IDS
     ids = IDS(data_loader=dataloader,
-            resulting_building_block=stide,
-            create_alarms=True,
-            plot_switch=False)
+              resulting_building_block=decider,
+              create_alarms=True,
+              plot_switch=False)
 
     print("at evaluation:")
-    # threshold
-    ids.determine_threshold()
-
     # detection
     # normal / seriell
     # results = ids.detect().get_results()
-
     # parallel / map-reduce
     start = time.time()
     performance = ids.detect_parallel()
@@ -86,11 +89,11 @@ if __name__ == '__main__':
 
     if results is None:
         results = {}
-    results['scenario'] = scenario_name
-    results['ngram'] = ngram_length
-    results['window'] = window_length
-    results['detection_time'] = detection_time
-    now = datetime.now()  # datetime object containing current date and time    
-    result_path = 'persistent_data/stide_flag_mode.json'
-    save_to_json(results, result_path)
-    print_as_table(path=result_path)
+    # enrich results with configuration and save to mongoDB
+    results['config'] = ids.get_config_tree_links()
+    results['scenario'] = SCENARIO_NAME
+    results['dataset'] = LID_DS_VERSION
+    results['direction'] = dataloader.get_direction_string()
+    results['date'] = str(datetime.datetime.now().date())
+
+    save_to_mongo(results)

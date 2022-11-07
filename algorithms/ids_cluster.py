@@ -1,3 +1,6 @@
+'''
+    example script for IDS on cluster
+'''
 import time
 import math
 import logging
@@ -6,16 +9,16 @@ import traceback
 
 from pprint import pprint
 
-from algorithms.ids import IDS
-
 from dataloader.direction import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
-from algorithms.features.impl.mode import Mode
-from algorithms.features.impl.flags import Flags 
+from algorithms.ids import IDS
+
+# from algorithms.features.impl.mode import Mode
+# from algorithms.features.impl.flags import Flags
 from algorithms.features.impl.ngram import Ngram
-from algorithms.features.impl.concat import Concat
-from algorithms.features.impl.process_name import ProcessName
+# from algorithms.features.impl.concat import Concat
+# from algorithms.features.impl.process_name import ProcessName
 from algorithms.features.impl.int_embedding import IntEmbedding
 
 from algorithms.decision_engines.stide import Stide
@@ -47,18 +50,8 @@ if __name__ == '__main__':
                             help='window length')
         parser.add_argument('-e', dest='embedding_size', action='store', type=int, required=True,
                             help='embedding size')
-        parser.add_argument('-b', dest='batch_size', action='store', type=int, required=True,
-                            help='Set batch size of IDS input')
-        parser.add_argument('-ep', dest='epochs', action='store', type=int, required=True,
-                            help='Set epochs of lstm to train')
-        parser.add_argument('-ta', dest='thread_aware', action='store_true',
+        parser.add_argument('-t', dest='thread_aware', action='store', type=bool, required=True,
                             help='Set ngram to thread aware')
-        parser.add_argument('-rv', dest='return_value', action='store_true',
-                            help='Set IDS to use return value of syscall')
-        parser.add_argument('-td', dest='time_delta', action='store_true',
-                            help='Set IDS to use time_delta between syscalls')
-        parser.add_argument('-tcf', dest='thread_change_flag', action='store_true',
-                            help='Set IDS to use thread change flag of ngrams')
 
         args = parser.parse_args()
         print(f"Start with scenario {args.scenario}")
@@ -84,8 +77,7 @@ if __name__ == '__main__':
         ngram = Ngram([syscall_embedding], thread_aware, ngram_length)
         # finally calculate the STIDE algorithm using these ngrams
         de = Stide(ngram, window_length=window_length)
-                    
-        ### the IDS    
+        ### the IDS
         ids = IDS(data_loader=dataloader,
                   resulting_building_block=de,
                   create_alarms=True,
@@ -106,25 +98,31 @@ if __name__ == '__main__':
         results = performance.get_results()
         pprint(results)
         if direction == Direction.BOTH:
-            direction = 'BOTH'
+            DIRECTION = 'BOTH'
         elif direction == Direction.OPEN:
-            direction = 'OPEN'
-        else: 
-            direction = 'CLOSE'
-        results['dataset'] = 'LID-DS-2021'
+            DIRECTION = 'OPEN'
+        else:
+            DIRECTION = 'CLOSE'
+        results['dataset'] = 'LID-DS-2019'
         results['scenario'] = scenario
         results['ngram_length'] = ngram_length
         results['embedding'] = 'INT'
         results['algorithm'] = 'STIDE'
-        results['direction'] = direction 
-        results['stream_sum'] = window_length 
+        results['direction'] = DIRECTION
+        results['stream_sum'] = window_length
         results['detection_time'] = detection_time
         results['config'] = ids.get_config()
+        results['thread_aware'] = thread_aware
         results['flag'] = False
         results['mode'] = False
-        # results['process_name'] = False
+        results['cluster'] = True
+        results['parallel'] = False
+        results['process_name'] = False
         save_to_mongo(results)
-    except Exception as e:
+    except KeyError as e:
         print(traceback.format_exc())
         print('Experiment failed')
-        logging.error(f'Failed for scenario: {scenario} ngram: {ngram_length} window: {window_length}')
+        logging.error('Failed for scenario: %s ngram: %d window: %d',
+                      scenario,
+                      ngram_length,
+                      window_length)

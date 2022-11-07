@@ -1,6 +1,5 @@
-from algorithms.building_block import BuildingBlock
 from algorithms.features.impl.stream_sum import StreamSum
-from algorithms.features.impl.threadID import ThreadID
+from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
 
@@ -35,4 +34,3 @@ class StreamAverage(BuildingBlock):
             return input / self._window_length            
         else:
             return None
-

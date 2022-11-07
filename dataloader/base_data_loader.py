@@ -93,3 +93,13 @@ class BaseDataLoader:
 
         """
         pass
+
+    def get_direction_string(self):
+        """
+            parses Direction of system calls to string if attribute is present
+        @return: direction string
+        """
+        if hasattr(self, '_direction'):
+            return str(self._direction).split('.')[1].lower()
+        else:
+            return "None"
