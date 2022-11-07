@@ -40,9 +40,8 @@ WINDOWS = [1000]
 BATCH_SIZES = [1024]
 EMBEDDING_SIZES = [1]
 NGRAM_LENGTHS = [5]
-THREAD_AWARE_LIST = ['True']
 
-BASE_PATH = os.environ['BASE_PATH'] + 'LID-DS-2019/'
+BASE_PATH = os.environ['BASE_PATH'] + 'LID-DS-2021/'
 if '2019' in BASE_PATH:
     SCENARIOS = scenario_2019
 else:
@@ -77,20 +76,18 @@ def start_job(job_str):
 
 
 # start jobs for specific configuration
-for thread_aware in THREAD_AWARE_LIST:
-    for embedding_size in EMBEDDING_SIZES:
-        for ngram_length in NGRAM_LENGTHS:
-            for window in WINDOWS:
-                for scenario in SCENARIOS:
-                    NUM_EXPERIMENTS += 1
-                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05} " + \
-                               f"{SCRIPT} " + \
-                               f"{BASE_PATH} " + \
-                               f"{scenario} " + \
-                               f"{embedding_size} " + \
-                               f"{ngram_length} " + \
-                               f"{window} " + \
-                               f"{thread_aware}"
-                    start_job(command)
+for embedding_size in EMBEDDING_SIZES:
+    for ngram_length in NGRAM_LENGTHS:
+        for window in WINDOWS:
+            for scenario in SCENARIOS:
+                NUM_EXPERIMENTS += 1
+                command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05} " + \
+                           f"{SCRIPT} " + \
+                           f"{BASE_PATH} " + \
+                           f"{scenario} " + \
+                           f"{embedding_size} " + \
+                           f"{ngram_length} " + \
+                           f"{window} "
+                start_job(command)
 
 print(f"NUM_EXPERIMENTS = {NUM_EXPERIMENTS}")
