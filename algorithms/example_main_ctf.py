@@ -11,7 +11,6 @@ from dataloader.dataloader_factory import dataloader_factory
 
 from dataloader.direction import Direction
 
-
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.stream_sum import StreamSum
@@ -19,7 +18,6 @@ from algorithms.decision_engines.stide import Stide
 from algorithms.features.impl.ngram import Ngram
 from algorithms.persistance import save_to_mongo
 from algorithms.ids import IDS
-
 
 if __name__ == '__main__':
 
@@ -34,18 +32,13 @@ if __name__ == '__main__':
                              "Please specify as argument or set Environment Variable "
                              "$LID_DS_BASE") from exc
 
-    #scenario_name = "CVE-2014-0160"
-    #scenario_name = "Bruteforce_CWE-307"
-    #scenario_name = "CVE-2012-2122"
-
     scenario_path = f"{LID_DS_BASE_PATH}/CVE-2017-7529_LTTng_CTF_sample"
-    # just load < closing system calls for this example
     dataloader = DataLoaderCTF(scenario_path, direction=Direction.BOTH)
 
     ### features (for more information see Paper:
     # https://dbs.uni-leipzig.de/file/EISA2021_Improving%20Host-based%20Intrusion%20Detection%20Using%20Thread%20Information.pdf
     THREAD_AWARE = True
-    WINDOW_LENGTH = 1000
+    WINDOW_LENGTH = 100
     NGRAM_LENGTH = 5
 
     ### building blocks

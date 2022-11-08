@@ -30,7 +30,7 @@ class SyscallCTF(Syscall):
         """
             @return: syscall thread id
         """
-        return self.thread_id
+        return self._thread_id
 
     def process_id(self) -> int:
         """

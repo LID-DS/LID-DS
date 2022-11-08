@@ -11,6 +11,14 @@ from dataloader.syscall_ctf import SyscallCTF
 
 
 class RecordingCTF(BaseRecording):
+    """
+        represents one recording of an LID-DS file in CTF Format
+
+        Parameters:
+            name: the name of the recording
+            path: the recording path
+            direction: filter on direction
+    """
     def __init__(self, name, path, direction=Direction.BOTH):
         super().__init__()
         self.path = path
@@ -19,6 +27,9 @@ class RecordingCTF(BaseRecording):
         self.message_iterator = bt2.TraceCollectionMessageIterator(path)
 
     def syscalls(self) -> Generator[Syscall, None, None]:
+        """
+            Generator that yields one syscall object at a time
+        """
         line_id = 1
         for msg in self.message_iterator:
             if type(msg) is bt2._EventMessageConst:
@@ -54,20 +65,10 @@ class RecordingCTF(BaseRecording):
                 else:
                     yield syscall
 
-    def _collect_metadata(self):
-        pass
-
     def metadata(self) -> dict:
+        """
+            parses the metadata json file to dictionary
+        """
         with open(f'{self.path}.json') as json_file:
             metadata = json.load(json_file)
         return metadata
-
-
-
-if __name__ == '__main__':
-    recording = RecordingCTF("/home/felix/datasets/CVE-2017-7529_LTTng_CTF_sample/test/normal_and_attack/defeated_chandrasekhar_3584")
-
-    for syscall in recording.syscalls():
-        print(vars(syscall))
-
-

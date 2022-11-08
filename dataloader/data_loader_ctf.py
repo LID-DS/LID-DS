@@ -9,75 +9,14 @@ import nest_asyncio
 from tqdm import tqdm
 
 from dataloader.base_data_loader import BaseDataLoader
+from dataloader.data_loader_2021 import get_file_name, get_type_of_recording, RecordingType, TRAINING, VALIDATION, TEST
 from dataloader.direction import Direction
 from dataloader.recording_ctf import RecordingCTF
-
-TRAINING = 'training'
-VALIDATION = 'validation'
-TEST = 'test'
-
-
-class RecordingType(Enum):
-    NORMAL = 1
-    NORMAL_AND_ATTACK = 2
-    ATTACK = 3
-    IDLE = 4
-
-
-def get_file_name(path: str) -> str:
-    """
-        Return file name without path and extension
-
-        Parameter:
-        path (str): path of file
-
-        Returns:
-        str: file name
-
-    """
-    return os.path.splitext(os.path.basename(path))[0]
-
-
-def get_type_of_recording(json_dict: dict) -> RecordingType:
-    """
-
-        Receives json dict and determines the recording type.
-
-        Parameter:
-        json_dict (dict): json including metadata
-
-        Returns:
-        RecordingType: Enumeration describing type
-
-    """
-    data = json_dict
-
-    normal_behavior = False
-    exploit = False
-
-    # check for normal behaviour:
-    for container in data["container"]:
-        if container["role"] == "normal":
-            normal_behavior = True
-            break
-    # check for exploit
-    if data["exploit"]:
-        exploit = True
-
-    if normal_behavior is False and exploit is False:
-        return RecordingType.IDLE
-    if normal_behavior is False and exploit is True:
-        return RecordingType.ATTACK
-    if normal_behavior is True and exploit is False:
-        return RecordingType.NORMAL
-    if normal_behavior is True and exploit is True:
-        return RecordingType.NORMAL_AND_ATTACK
-
 
 class DataLoaderCTF(BaseDataLoader):
     """
 
-        Recieves path of scenario.
+        Receives path of scenario.
 
         Args:
         scenario_path (str): path of scenario folder
@@ -94,7 +33,8 @@ class DataLoaderCTF(BaseDataLoader):
             Save path of scenario and create metadata_list.
 
             Parameter:
-            scenario_path (str): path of assosiated folder
+            scenario_path (str): path of associated folder
+            direction (str): filter on syscall direction
 
         """
         super().__init__(scenario_path)
@@ -110,9 +50,6 @@ class DataLoaderCTF(BaseDataLoader):
                 os.strerror(errno.ENONET),
                 scenario_path
             )
-
-        # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
-        nest_asyncio.apply()
 
     def training_data(self, recording_type: RecordingType = None) -> list:
         """
@@ -174,7 +111,7 @@ class DataLoaderCTF(BaseDataLoader):
         """
 
             Go through list of all files in specified category.
-            Instanciate new Recording object and append to recordings list.
+            Instantiate new Recording object and append to recordings list.
             If all files have been seen return list of Recordings.
 
             Parameter:
@@ -219,30 +156,30 @@ class DataLoaderCTF(BaseDataLoader):
             'validation': {},
             'test': {}
         }
+        # find json files in all subdirs
         training_files = glob.glob(self.scenario_path + f'/{TRAINING}/*.json')
         val_files = glob.glob(self.scenario_path + f'/{VALIDATION}/*.json')
         test_files = glob.glob(self.scenario_path + f'/{TEST}/*/*.json')
-        # create list of all files
+        # create list of all json files
         all_files = training_files + val_files + test_files
 
         for file in all_files:
-            if file.endswith('.json'):
-                with open(file) as json_file:
-                    json_read_data = json.load(json_file)
-                    recording_type = get_type_of_recording(json_read_data)
-                    temp_dict = {
-                        'recording_type': recording_type,
-                        'path': os.path.splitext(file)[0]
-                    }
+            with open(file) as json_file:
+                json_read_data = json.load(json_file)
+                recording_type = get_type_of_recording(json_read_data)
+                temp_dict = {
+                    'recording_type': recording_type,
+                    'path': os.path.splitext(file)[0]
+                }
 
-                    if TRAINING in os.path.dirname(file):
-                        metadata_dict[TRAINING][get_file_name(file)] = temp_dict
-                    elif VALIDATION in os.path.dirname(file):
-                        metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
-                    elif TEST in os.path.dirname(file):
-                        metadata_dict[TEST][get_file_name(file)] = temp_dict
-                    else:
-                        raise TypeError()
+                if TRAINING in os.path.dirname(file):
+                    metadata_dict[TRAINING][get_file_name(file)] = temp_dict
+                elif VALIDATION in os.path.dirname(file):
+                    metadata_dict[VALIDATION][get_file_name(file)] = temp_dict
+                elif TEST in os.path.dirname(file):
+                    metadata_dict[TEST][get_file_name(file)] = temp_dict
+                else:
+                    raise TypeError()
 
         return metadata_dict
 
