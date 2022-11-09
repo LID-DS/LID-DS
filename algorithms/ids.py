@@ -72,9 +72,9 @@ class IDS:
 
         # json needs double quotes around all strings
         json_string = string_graph.replace("'", "\"") \
-            .replace("True", "\"True\"") \
-            .replace("False", "\"False\"") \
-            .replace("None", "\"None\"") \
+            .replace(" True", " \"True\"") \
+            .replace(" False", " \"False\"") \
+            .replace(" None", " \"None\"") \
             .replace("<", "\"") \
             .replace(">", "\"")
 
