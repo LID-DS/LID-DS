@@ -44,11 +44,13 @@ function get_config_value(nodes, links, algorithm, group_by_config, config_alias
         let previous_target_id = source_id
         let found_target = null
         let found_target_id = null
-        for (let link of links) {
+        for (let i = 0; i < links.length; i++) {
+            let link = links[i]
             if (link.source.name === source_name && link.source.id === previous_target_id) {
                 found_target = link.target.name
                 found_target_id = link.target.id
                 if (found_target === target_name) {
+                    links.splice(i, 1)
                     return link.target
                 }
             }

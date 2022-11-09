@@ -145,8 +145,8 @@ def _get_config_aliases(config_groups: list[dict]) -> list[tuple[str, str]]:
     leaves = []
 
     for config_group in config_groups:
-        for conig in config_group.values():
-            for key, alias in conig.items():
+        for config in config_group.values():
+            for key, alias in config.items():
                 if _is_leaf(alias):
                     leaves.append((key, alias))
                 else:
@@ -157,19 +157,45 @@ def _get_config_aliases(config_groups: list[dict]) -> list[tuple[str, str]]:
 def main():
     """ Usage example """
     features = {
-        "Som": ["Som", "Ngram", "IntEmbedding"],
+        "Som": ["Som", "Concat", "Ngram", "IntEmbedding"],
         "LSTM": ["LSTM", "Ngram", "W2VEmbedding"]
     }
     group_by_config = {
         "Som": {
             "Som": {
-                "epochs": "epochs",
+                "epochs": "som_epochs",
                 "sigma": "sigma",
                 "size": "som_size",
                 "input": [
                     {
-                        "Ngram": {
-                            "ngram_length": "ngram_length",
+                        "Concat": {
+                            "input": [
+                                {
+                                    "Ngram": {
+                                        "ngram_length": "concat_1_ngram_length",
+
+                                    }
+                                },
+                                {
+                                    "Ngram": {
+                                        "ngram_length": "concat_2_ngram_length",
+                                        "input": [
+                                            {
+                                                "W2VEmbedding":
+                                                    {
+                                                        "vector_size": "concat_2_w2v_size",
+
+                                                    }
+                                            },
+                                            {
+                                                "ReturnValue": {
+                                                    "min_max_scaling": "return_value_min_max_scaling"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
                         }
                     }
                 ],
