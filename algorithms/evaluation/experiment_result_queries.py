@@ -144,13 +144,14 @@ def _get_config_aliases(config_groups: list[dict]) -> list[tuple[str, str]]:
         return []
     leaves = []
 
-    for config_group in config_groups:
-        for config in config_group.values():
-            for key, alias in config.items():
-                if _is_leaf(alias):
-                    leaves.append((key, alias))
-                else:
-                    leaves += _get_config_aliases(alias)
+    for config in config_groups:
+        for key, alias in config.items():
+            if key == 'name':
+                continue
+            if _is_leaf(alias):
+                leaves.append((key, alias))
+            else:
+                leaves += _get_config_aliases(alias)
     return leaves
 
 
@@ -162,50 +163,43 @@ def main():
     }
     group_by_config = {
         "Som": {
-            "Som": {
-                "epochs": "som_epochs",
-                "sigma": "sigma",
-                "size": "som_size",
-                "input": [
-                    {
-                        "Concat": {
+            "name": "Som",
+            "epochs": "som_epochs",
+            "sigma": "sigma",
+            "size": "som_size",
+            "input": [
+                {
+                    "name": "Concat",
+                    "input": [
+                        {
+                            "name": "Ngram",
+                            "ngram_length": "concat_1_ngram_length",
+
+                        },
+                        {
+                            "name": "Ngram",
+                            "ngram_length": "concat_2_ngram_length",
                             "input": [
                                 {
-                                    "Ngram": {
-                                        "ngram_length": "concat_1_ngram_length",
+                                    "name": "W2VEmbedding",
+                                    "vector_size": "concat_2_w2v_size",
 
-                                    }
                                 },
                                 {
-                                    "Ngram": {
-                                        "ngram_length": "concat_2_ngram_length",
-                                        "input": [
-                                            {
-                                                "W2VEmbedding":
-                                                    {
-                                                        "vector_size": "concat_2_w2v_size",
+                                    "name": "ReturnValue",
+                                    "min_max_scaling": "return_value_min_max_scaling"
 
-                                                    }
-                                            },
-                                            {
-                                                "ReturnValue": {
-                                                    "min_max_scaling": "return_value_min_max_scaling"
-                                                }
-                                            }
-                                        ]
-                                    }
                                 }
                             ]
                         }
-                    }
-                ],
-            }
+                    ]
+                }
+            ],
         },
         "LSTM": {
-            "LSTM": {
-                "batch_size": "lstm_batch_size",
-                "epochs": "epochs",
-            }
+            "name": "LSTM",
+            "batch_size": "lstm_batch_size",
+            "epochs": "epochs",
         }
     }
     results = ResultQuery(collection_name="experiments3").get_results(

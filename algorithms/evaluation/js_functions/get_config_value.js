@@ -19,8 +19,8 @@ function get_config_value(nodes, links, algorithm, group_by_config, config_alias
     return get_config(links, [group_by_config], current_config, algorithm_id, config_alias, true)
 
     function get_config(links, config_group_list, current_config, current_id, config_alias, first) {
-        for (let config_group of config_group_list) {
-            let target_name = Object.keys(config_group)[0]
+        for (let config of config_group_list) {
+            let target_name = config.name
             let target = get_target(links, current_config.name, target_name, current_id)
 
             if (first) {
@@ -28,7 +28,7 @@ function get_config_value(nodes, links, algorithm, group_by_config, config_alias
             }
 
             if (!target) return
-            let config = config_group[target_name]
+
             for (let key in config) {
                 if (Array.isArray(config[key])) {
                     return get_config(links, config[key], target, target.id, config_alias)
