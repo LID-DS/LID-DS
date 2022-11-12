@@ -11,7 +11,7 @@ from torch.nn import Module, LayerNorm, MultiheadAttention, Linear, Dropout, Mod
 from torch.nn.init import xavier_uniform_
 
 
-class Transformer(Module):
+class CustomTransformer(Module):
     r"""A transformer model. User is able to modify the attributes as needed. The architecture
     is based on the paper "Attention Is All You Need". Ashish Vaswani, Noam Shazeer,
     Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Lukasz Kaiser, and
@@ -34,7 +34,7 @@ class Transformer(Module):
             as (batch, seq, feature). Default: ``False`` (seq, batch, feature).
 
     Examples::
-        >>> transformer_model = nn.Transformer(nhead=16, num_encoder_layers=12)
+        >>> transformer_model = CustomTransformer(nhead=16, num_encoder_layers=12)
         >>> src = torch.rand((10, 32, 512))
         >>> tgt = torch.rand((20, 32, 512))
         >>> out = transformer_model(src, tgt)
@@ -43,10 +43,11 @@ class Transformer(Module):
     def __init__(self, d_model: int = 512, nhead: int = 8, num_encoder_layers: int = 6,
                  num_decoder_layers: int = 6, dim_feedforward: int = 2048, dropout: float = 0.1,
                  activation: str = "relu", custom_encoder: Optional[Any] = None, custom_decoder: Optional[Any] = None,
-                 layer_norm_eps: float = 1e-5, batch_first: bool = False,
+                 layer_norm_eps: float = 1e-5, pre_layer_norm: bool = False, batch_first: bool = False,
                  device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
-        super(Transformer, self).__init__()
+        super(CustomTransformer, self).__init__()
+        self._pre_layer_norm = pre_layer_norm
 
         if custom_encoder is not None:
             self.encoder = custom_encoder
@@ -296,10 +297,11 @@ class TransformerEncoderLayer(Module):
     __constants__ = ['batch_first']
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu",
-                 layer_norm_eps=1e-5, batch_first=False,
+                 layer_norm_eps=1e-5, pre_layer_norm=False, batch_first=False,
                  device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(TransformerEncoderLayer, self).__init__()
+        self._pre_layer_norm = pre_layer_norm
         self.self_attn = MultiheadAttention(
             d_model, nhead, dropout=dropout, batch_first=batch_first,
             **factory_kwargs
@@ -335,15 +337,27 @@ class TransformerEncoderLayer(Module):
         Shape:
             see the docs in Transformer class.
         """
-        src2 = self.self_attn(
-            src, src, src, attn_mask=src_mask,
-            key_padding_mask=src_key_padding_mask
-        )[0]
-        src = src + self.dropout1(src2)
-        src = self.norm1(src)
-        src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
-        src = src + self.dropout2(src2)
-        src = self.norm2(src)
+        if self._pre_layer_norm:
+            src = self.norm1(src)
+            src2 = self.self_attn(
+                src, src, src, attn_mask=src_mask,
+                key_padding_mask=src_key_padding_mask
+            )[0]
+            src = src + self.dropout1(src2)
+
+            src = self.norm2(src)
+            src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))  # FFN
+            src = src + self.dropout2(src2)
+        else:
+            src2 = self.self_attn(
+                src, src, src, attn_mask=src_mask,
+                key_padding_mask=src_key_padding_mask
+            )[0]
+            src = src + self.dropout1(src2)
+            src = self.norm1(src)
+            src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))  # FFN
+            src = src + self.dropout2(src2)
+            src = self.norm2(src)
         return src
 
 
@@ -380,9 +394,10 @@ class TransformerDecoderLayer(Module):
     __constants__ = ['batch_first']
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu",
-                 layer_norm_eps=1e-5, batch_first=False, device=None, dtype=None) -> None:
+                 layer_norm_eps=1e-5, pre_layer_norm=False, batch_first=False, device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(TransformerDecoderLayer, self).__init__()
+        self._pre_layer_norm = pre_layer_norm
         self.self_attn = MultiheadAttention(
             d_model, nhead, dropout=dropout, batch_first=batch_first,
             **factory_kwargs
@@ -430,21 +445,42 @@ class TransformerDecoderLayer(Module):
         Shape:
             see the docs in Transformer class.
         """
-        tgt2 = self.self_attn(
-            tgt, tgt, tgt, attn_mask=tgt_mask,
-            key_padding_mask=tgt_key_padding_mask
-        )[0]
-        tgt = tgt + self.dropout1(tgt2)
-        tgt = self.norm1(tgt)
-        tgt2 = self.multihead_attn(
-            tgt, memory, memory, attn_mask=memory_mask,
-            key_padding_mask=memory_key_padding_mask
-        )[0]
-        tgt = tgt + self.dropout2(tgt2)
-        tgt = self.norm2(tgt)
-        tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt))))
-        tgt = tgt + self.dropout3(tgt2)
-        tgt = self.norm3(tgt)
+        if self._pre_layer_norm:
+            tgt = self.norm1(tgt)
+            tgt2 = self.self_attn(
+                tgt, tgt, tgt, attn_mask=tgt_mask,
+                key_padding_mask=tgt_key_padding_mask
+            )[0]
+            tgt = tgt + self.dropout1(tgt2)
+
+            tgt = self.norm2(tgt)
+            tgt2 = self.multihead_attn(
+                tgt, memory, memory, attn_mask=memory_mask,
+                key_padding_mask=memory_key_padding_mask
+            )[0]
+            tgt = tgt + self.dropout2(tgt2)
+
+            tgt = self.norm3(tgt)
+            tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt))))  # FFN
+            tgt = tgt + self.dropout3(tgt2)
+        else:
+            tgt2 = self.self_attn(
+                tgt, tgt, tgt, attn_mask=tgt_mask,
+                key_padding_mask=tgt_key_padding_mask
+            )[0]
+            tgt = tgt + self.dropout1(tgt2)
+            tgt = self.norm1(tgt)
+
+            tgt2 = self.multihead_attn(
+                tgt, memory, memory, attn_mask=memory_mask,
+                key_padding_mask=memory_key_padding_mask
+            )[0]
+            tgt = tgt + self.dropout2(tgt2)
+            tgt = self.norm2(tgt)
+
+            tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt))))  # FFN
+            tgt = tgt + self.dropout3(tgt2)
+            tgt = self.norm3(tgt)
         return tgt
 
 

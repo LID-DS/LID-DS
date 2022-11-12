@@ -70,7 +70,7 @@ def _parse_args():
 
     parser.add_argument(
         '-f', dest='feedforward_dim', action='store', type=int, required=True,
-        help='Thread aware ngrams'
+        help='Feedforward dimension'
     )
     parser.add_argument(
         '-l', dest='layers', action='store', type=int, required=True,
@@ -95,6 +95,7 @@ def main():
     anomaly_score = AnomalyScore.MEAN
     layers = 6
     model_dim = 8
+    pre_layer_norm = False
 
     feedforward_dim = 1024
     batch_size = 256 * 2
@@ -145,7 +146,8 @@ def main():
             "layers": layers,
             "model_dim": model_dim,
             "feedforward_dim": feedforward_dim,
-            "direction": dataloader.get_direction_string()
+            "pre_layer_norm": pre_layer_norm,
+            "direction": dataloader.get_direction_string(),
         },
         models_dir=checkpoint_dir
     )
@@ -179,6 +181,7 @@ def main():
             num_heads=num_heads,
             dropout=dropout,
             feedforward_dim=feedforward_dim,
+            pre_layer_norm=pre_layer_norm
         )
 
         # define the used features and train

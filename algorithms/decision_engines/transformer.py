@@ -8,6 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
+from algorithms.decision_engines.nn.transformer import CustomTransformer
 from algorithms.persistance import ModelCheckPoint
 from dataloader.syscall import Syscall
 
@@ -28,7 +29,7 @@ class AnomalyScore(IntEnum):
 
 class Transformer(BuildingBlock):
     """ Decision engine based on the Transformer architecture."""
-    VERSION = "00.10"
+    VERSION = "00.20"
 
     def __init__(
             self,
@@ -43,6 +44,7 @@ class Transformer(BuildingBlock):
             model_dim: int,
             dropout: float,
             feedforward_dim: int,
+            pre_layer_norm: bool,
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
@@ -77,7 +79,8 @@ class Transformer(BuildingBlock):
             layers,
             layers,
             dropout,
-            feedforward_dim
+            feedforward_dim,
+            pre_layer_norm=pre_layer_norm
         ).to(DEVICE)
 
     def train_on(self, syscall: Syscall):
@@ -228,7 +231,8 @@ class TransformerModel(nn.Module):
             num_encoder_layers,
             num_decoder_layers,
             dropout,
-            feedforward_dim):
+            feedforward_dim,
+            pre_layer_norm):
         super().__init__()
 
         # INFO
@@ -238,13 +242,14 @@ class TransformerModel(nn.Module):
         # LAYERS
         self.positional_encoder = PositionalEncoding(dim_model=dim_model, dropout_p=dropout, max_len=5000)
         self.embedding = nn.Embedding(num_tokens, dim_model)
-        self.transformer = nn.Transformer(
+        self.transformer = CustomTransformer(
             d_model=dim_model,
             nhead=num_heads,
             num_encoder_layers=num_encoder_layers,
             num_decoder_layers=num_decoder_layers,
             dropout=dropout,
             dim_feedforward=feedforward_dim,
+            pre_layer_norm=pre_layer_norm,
         )
 
         self.out = nn.Linear(dim_model, num_tokens)
