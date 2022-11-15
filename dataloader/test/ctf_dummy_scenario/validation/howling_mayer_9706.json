@@ -1,0 +1,41 @@
+{
+    "container": [
+        {
+            "ip": "192.168.144.2",
+            "name": "75d2de3602033907",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.144.3",
+            "name": "3df3fad64d0f407c",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.144.4",
+            "name": "488ccaf8704becab",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.144.5",
+            "name": "84edc9e9e0a68375",
+            "role": "victim"
+        }
+    ],
+    "exploit": false,
+    "exploit_name": "default",
+    "image": "victim_overflow",
+    "recording_time": 45,
+    "time": {
+        "container_ready": {
+            "absolute": 1666346622.5728784,
+            "relative": -3.003197431564331,
+            "source": "CONTROL_SCRIPT"
+        },
+        "exploit": [],
+        "warmup_end": {
+            "absolute": 1666346625.5760758,
+            "relative": 0,
+            "source": "CONTROL_SCRIPT"
+        }
+    }
+}
