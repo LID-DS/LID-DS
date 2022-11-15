@@ -1,23 +1,21 @@
 """
     IDS class definition
 """
-from functools import reduce
 from copy import deepcopy
+from functools import reduce
 from typing import Type
-import json
 
-from tqdm.contrib.concurrent import process_map
-from networkx.readwrite import json_graph
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+from tqdm.contrib.concurrent import process_map
 
+from algorithms.building_block import BuildingBlock
+from algorithms.data_preprocessor import DataPreprocessor
+from algorithms.performance_measurement import Performance
+from algorithms.score_plot import ScorePlot
+from algorithms.util.dependency_graph_encoding import dependency_graph_to_config_tree
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.base_recording import BaseRecording
-
-from algorithms.performance_measurement import Performance
-from algorithms.data_preprocessor import DataPreprocessor
-from algorithms.building_block import BuildingBlock
-from algorithms.score_plot import ScorePlot
 
 
 class IDS:
@@ -57,61 +55,12 @@ class IDS:
             gives the dependency graph as list of links between ids of building blocks
             each building block contains its config in another list called node
 
-            returns: dictionary with nodes and links of config graph
+            returns: dictionary with nodes and links of the config graph
         """
 
-        # getting the dependency tree
-        graph_dict = json_graph.node_link_data(
+        return dependency_graph_to_config_tree(
             self._data_preprocessor.get_building_block_manager().get_dependency_graph()
         )
-        # workaround to fix bad json serialization for building blocks
-        # casting list to json string and serializing it back to list
-        # this prevents treating the subdictionaries as objects
-        graph = graph_dict
-        string_graph = str(graph)
-
-        # json needs double quotes around all strings
-        json_string = string_graph.replace("'", "\"") \
-            .replace(" True", " \"True\"") \
-            .replace(" False", " \"False\"") \
-            .replace(" None", " \"None\"") \
-            .replace("<", "\"") \
-            .replace(">", "\"")
-
-        json_loaded = json.loads(json_string)
-
-        """
-            reforming dictionary to fit:
-            {
-                nodes: [
-                    {node1},
-                    {node2},
-                    ....
-                ]
-                links: [
-                    {
-                        'source': node1['id'],
-                        'target': node2['id]
-                ]
-            }
-        """
-
-        short_links = []
-        for link in json_loaded['links']:
-            short_links.append({
-                'source': link['source']['id'],
-                'target': link['target']['id'],
-            })
-
-        nodes = []
-        for node in json_loaded['nodes']:
-            nodes.append(node['id'])
-
-        result = {
-            'nodes': nodes,
-            'links': short_links
-        }
-        return result
 
     def determine_threshold(self):
         """
