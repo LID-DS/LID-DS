@@ -7,7 +7,6 @@ import datetime
 from pprint import pprint
 
 from dataloader.dataloader_factory import dataloader_factory
-
 from dataloader.direction import Direction
 
 from algorithms.ids import IDS
@@ -42,7 +41,7 @@ if __name__ == '__main__':
 
     LID_DS_VERSION = "LID-DS-2019"
     SCENARIO_NAME = "CVE-2017-7529"
-    #scenario_name = "CVE-2014-0160"
+    # SCENARIO_NAME = "CVE-2014-0160"
     #scenario_name = "Bruteforce_CWE-307"
     #scenario_name = "CVE-2012-2122"
 
@@ -60,24 +59,24 @@ if __name__ == '__main__':
     # first: map each systemcall to an integer
     syscall_name = SyscallName()
     int_embedding = IntEmbedding(syscall_name)
-    one_hot_encoding = OneHotEncoding(syscall_name)
+    # one_hot_encoding = OneHotEncoding(syscall_name)
     # now build ngrams from these integers
     ngram = Ngram([int_embedding], THREAD_AWARE, NGRAM_LENGTH)
-    ngram_ae = Ngram([one_hot_encoding], THREAD_AWARE, NGRAM_LENGTH)
+    # ngram_ae = Ngram([one_hot_encoding], THREAD_AWARE, NGRAM_LENGTH)
     # finally calculate the STIDE algorithm using these ngrams
     stide = Stide(ngram)
-    ae = AE(ngram_ae)
+    # ae = AE(ngram_ae)
     # build stream sum of stide results
     stream_sum = StreamSum(stide, False, 500, False)
     # decider threshold
-    decider_1 = MaxScoreThreshold(ae)
+    # decider_1 = MaxScoreThreshold(ae)
     decider_2 = MaxScoreThreshold(stream_sum)
-    combination_decider = AndDecider([decider_1, decider_2])
+    # combination_decider = AndDecider([decider_1, decider_2])
     ### the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=combination_decider,
+              resulting_building_block=decider_2,
               create_alarms=True,
-              plot_switch=False)
+              plot_switch=True)
 
     print("at evaluation:")
     # detection
@@ -92,6 +91,8 @@ if __name__ == '__main__':
     ### print results
     pprint(results)
 
+    ### show plot
+    ids.draw_plot()
     # enrich results with configuration and save to mongoDB
     results['config'] = ids.get_config_tree_links()
     results['scenario'] = SCENARIO_NAME

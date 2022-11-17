@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from typing import Type
 
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
@@ -11,9 +12,9 @@ plt.rcParams.update({"font.size": 26,
 
 class ScorePlot:
 
-    def __init__(self, scenario_path):
+    def __init__(self, scenario_path=None):
 
-        self._scenario_path = scenario_path
+        # self._scenario_path = scenario_path
         self._figure = None
         self._anomaly_scores_exploits = []
         self._anomaly_scores_no_exploits = []
@@ -28,7 +29,7 @@ class ScorePlot:
         self._first_syscall_of_cfp_list_normal = []
         self._last_syscall_of_cfp_list_normal = []
 
-    def new_recording(self, recording: BaseRecording):
+    def new_recording(self, recording: Type[BaseRecording]):
         """
         called in ids at beginning of each new recording:
             sets exploit time,
@@ -132,7 +133,7 @@ class ScorePlot:
 
         ax1.set_title("normal activity")
         ax2.set_title("exploits")
-        self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
+        # self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
 
     def show_plot(self, filename=None):
 

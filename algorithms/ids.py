@@ -45,9 +45,8 @@ class IDS:
         self._create_alarms = create_alarms
         self.performance = Performance(create_alarms)
         if plot_switch is True:
-            self.plot = ScorePlot(data_loader.scenario_path)
-        else:
-            self.plot = None
+            self._final_bb.plot_init()
+            self.plot = True
 
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
@@ -131,8 +130,8 @@ class IDS:
             self._data_preprocessor.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
-        if self.plot is not None:
-            self.plot.threshold = max_score
+        if self.plot:
+            self._final_bb.plot.threshold = max_score
         print(f"threshold={max_score:.3f}".rjust(27))
 
     def determine_threshold_and_plot(self):
@@ -155,8 +154,8 @@ class IDS:
             self._data_preprocessor.new_recording()
         self.threshold = max_score
         self.performance.set_threshold(max_score)
-        if self.plot is not None:
-            self.plot.threshold = max_score
+        if self.plot:
+            self._final_bb.plot.threshold = max_score
         print(f"threshold={max_score:.3f}".rjust(27))
 
         plt.plot(scores)
@@ -171,18 +170,20 @@ class IDS:
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
 
+        if self.plot:
+            self._final_bb.plot.threshold = self._final_bb._threshold
         for recording in tqdm(data, description, unit=" recording"):
             self.performance.new_recording(recording)
-            if self.plot is not None:
-                self.plot.new_recording(recording)
+            if self.plot:
+                self._final_bb.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
                 is_anomaly = self._final_bb.get_result(syscall)
                 self.performance.analyze_syscall(syscall, is_anomaly)
-                if self.plot is not None:
-                    self.plot.add_to_plot_data(anomaly_score,
-                                               syscall,
-                                               self.performance.get_cfp_indices())
+                if self.plot:
+                    self._final_bb.add_to_plot_data(
+                            syscall,
+                            self.performance.get_cfp_indices())
 
             self._data_preprocessor.new_recording()
 
@@ -227,9 +228,9 @@ class IDS:
 
     def draw_plot(self, filename=None):
         # plot data if wanted
-        if self.plot is not None:
-            self.plot.feed_figure()
-            self.plot.show_plot(filename)
+        if self.plot:
+            self._final_bb.plot.feed_figure()
+            self._final_bb.plot.show_plot(filename)
 
     def _calculate(recording_ids_tuple: tuple) -> Performance:
         """
