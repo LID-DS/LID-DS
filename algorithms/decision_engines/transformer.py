@@ -45,6 +45,7 @@ class Transformer(BuildingBlock):
             dropout: float,
             feedforward_dim: int,
             pre_layer_norm: bool,
+            language_model: bool,
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
@@ -55,6 +56,7 @@ class Transformer(BuildingBlock):
         self._anomaly_scoring = anomaly_scoring
         self._checkpoint = checkpoint
         self._retrain = retrain
+        self._language_model = language_model
 
         self.train_losses = {}
         self.val_losses = {}
@@ -80,24 +82,25 @@ class Transformer(BuildingBlock):
             layers,
             dropout,
             feedforward_dim,
-            pre_layer_norm=pre_layer_norm
+            pre_layer_norm=pre_layer_norm,
+            language_model=language_model
         ).to(DEVICE)
 
     def train_on(self, syscall: Syscall):
-        input_vector = self._input_vector.get_result(syscall)
-        if input_vector is not None:
-            x = [self._sos] + list(input_vector[:-1])
-            y = [self._sos] + list(input_vector[1:])
-            self._training_set['x'].append(x)
-            self._training_set['y'].append(y)
+        self._append_call_split_to_set(syscall, self._training_set)
 
     def val_on(self, syscall: Syscall):
+        self._append_call_split_to_set(syscall, self._validation_set)
+
+    def _append_call_split_to_set(self, syscall: Syscall, container: dict):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            x = [self._sos] + list(input_vector[:-1])
+            x = list(input_vector[:-1])
             y = [self._sos] + list(input_vector[1:])
-            self._validation_set['x'].append(x)
-            self._validation_set['y'].append(y)
+            if not self._language_model:
+                x = [self._sos] + list(input_vector[:-1])
+            container['x'].append(x)
+            container['y'].append(y)
 
     def fit(self):
         loss_fn = nn.CrossEntropyLoss()
@@ -122,7 +125,6 @@ class Transformer(BuildingBlock):
                 optimizer,
                 self._epochs
             )
-
         for epoch in tqdm(range(last_epoch + 1, self._epochs + 1)):
             # Training
             self.transformer.train()
@@ -132,7 +134,6 @@ class Transformer(BuildingBlock):
                 y_input = Y[:, :-1]
                 y_expected = Y[:, 1:]
 
-                # FIXME:  move up
                 sequence_length = y_input.size(1)
                 tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(DEVICE)
 
@@ -184,6 +185,8 @@ class Transformer(BuildingBlock):
             return None
         x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
         y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=DEVICE)
+        if self._language_model:
+            x_input = x_input[:, 1:]
 
         tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(DEVICE)
         pred = self.transformer(x_input, y_input, tgt_mask)
@@ -232,12 +235,14 @@ class TransformerModel(nn.Module):
             num_decoder_layers,
             dropout,
             feedforward_dim,
+            language_model,
             pre_layer_norm):
         super().__init__()
 
         # INFO
         self.model_type = "Transformer"
         self.dim_model = dim_model
+        self.language_model = language_model
 
         # LAYERS
         self.positional_encoder = PositionalEncoding(dim_model=dim_model, dropout_p=dropout, max_len=5000)
@@ -250,6 +255,7 @@ class TransformerModel(nn.Module):
             dropout=dropout,
             dim_feedforward=feedforward_dim,
             pre_layer_norm=pre_layer_norm,
+            language_model=language_model
         )
 
         self.out = nn.Linear(dim_model, num_tokens)

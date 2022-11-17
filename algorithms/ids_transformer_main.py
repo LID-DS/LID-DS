@@ -81,6 +81,16 @@ def _parse_args():
         help='TF model dimension (aka. emb size)'
     )
 
+    parser.add_argument(
+        '-l', dest='language_model', action='store', type=bool, required=True,
+        help='Use Language model architecture'
+    )
+
+    parser.add_argument(
+        '-p', dest='pre_layer_norm', action='store', type=bool, required=True,
+        help='Pre layer normalization'
+    )
+
     return parser.parse_args()
 
 
@@ -91,6 +101,7 @@ def main():
     retrain = False
     ngram_length = 11
     thread_aware = True
+    language_model = True
 
     anomaly_score = AnomalyScore.MEAN
     layers = 6
@@ -98,7 +109,7 @@ def main():
     pre_layer_norm = False
 
     feedforward_dim = 1024
-    batch_size = 256 * 2
+    batch_size = 256
     num_heads = 2
     epochs = 20
     dropout = 0.1
@@ -148,6 +159,7 @@ def main():
             "feedforward_dim": feedforward_dim,
             "pre_layer_norm": pre_layer_norm,
             "direction": dataloader.get_direction_string(),
+            "language_model": language_model
         },
         models_dir=checkpoint_dir
     )
@@ -181,7 +193,8 @@ def main():
             num_heads=num_heads,
             dropout=dropout,
             feedforward_dim=feedforward_dim,
-            pre_layer_norm=pre_layer_norm
+            pre_layer_norm=pre_layer_norm,
+            language_model=language_model
         )
 
         # define the used features and train

@@ -42,27 +42,22 @@ class CustomTransformer(Module):
 
     def __init__(self, d_model: int = 512, nhead: int = 8, num_encoder_layers: int = 6,
                  num_decoder_layers: int = 6, dim_feedforward: int = 2048, dropout: float = 0.1,
-                 activation: str = "relu", custom_encoder: Optional[Any] = None, custom_decoder: Optional[Any] = None,
-                 layer_norm_eps: float = 1e-5, pre_layer_norm: bool = False, batch_first: bool = False,
-                 device=None, dtype=None) -> None:
+                 activation: str = "relu", layer_norm_eps: float = 1e-5, pre_layer_norm: bool = False,
+                 batch_first: bool = False, device=None, dtype=None, language_model=False) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(CustomTransformer, self).__init__()
         self._pre_layer_norm = pre_layer_norm
+        self.language_model = language_model
 
-        if custom_encoder is not None:
-            self.encoder = custom_encoder
-        else:
-            encoder_layer = TransformerEncoderLayer(
-                d_model, nhead, dim_feedforward, dropout,
-                activation, layer_norm_eps, batch_first,
-                **factory_kwargs
-            )
-            encoder_norm = LayerNorm(d_model, eps=layer_norm_eps, **factory_kwargs)
-            self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
+        encoder_layer = TransformerEncoderLayer(
+            d_model, nhead, dim_feedforward, dropout,
+            activation, layer_norm_eps, batch_first,
+            **factory_kwargs
+        )
+        encoder_norm = LayerNorm(d_model, eps=layer_norm_eps, **factory_kwargs)
+        self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
-        if custom_decoder is not None:
-            self.decoder = custom_decoder
-        else:
+        if not self.language_model:
             decoder_layer = TransformerDecoderLayer(
                 d_model, nhead, dim_feedforward, dropout,
                 activation, layer_norm_eps, batch_first,
@@ -140,12 +135,17 @@ class CustomTransformer(Module):
         if src.size(2) != self.d_model or tgt.size(2) != self.d_model:
             raise RuntimeError("the feature number of src and tgt must be equal to d_model")
 
-        memory = self.encoder(src, mask=src_mask, src_key_padding_mask=src_key_padding_mask)
-        output = self.decoder(
-            tgt, memory, tgt_mask=tgt_mask, memory_mask=memory_mask,
-            tgt_key_padding_mask=tgt_key_padding_mask,
-            memory_key_padding_mask=memory_key_padding_mask
-        )
+        if self.language_model:
+            src_mask = tgt_mask
+
+        output = self.encoder(src, mask=src_mask, src_key_padding_mask=src_key_padding_mask)
+
+        if not self.language_model:
+            output = self.decoder(
+                tgt, output, tgt_mask=tgt_mask, memory_mask=memory_mask,
+                tgt_key_padding_mask=tgt_key_padding_mask,
+                memory_key_padding_mask=memory_key_padding_mask
+            )
         return output
 
     def generate_square_subsequent_mask(self, sz: int) -> Tensor:
@@ -339,26 +339,30 @@ class TransformerEncoderLayer(Module):
         """
         if self._pre_layer_norm:
             src = self.norm1(src)
-            src2 = self.self_attn(
+            att_out = self.self_attn(
                 src, src, src, attn_mask=src_mask,
                 key_padding_mask=src_key_padding_mask
             )[0]
-            src = src + self.dropout1(src2)
+            src = src + self.dropout1(att_out)
 
             src = self.norm2(src)
-            src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))  # FFN
-            src = src + self.dropout2(src2)
+            ffn_out = self._ffn(src)
+            src = src + self.dropout2(ffn_out)
         else:
-            src2 = self.self_attn(
+            att_out = self.self_attn(
                 src, src, src, attn_mask=src_mask,
                 key_padding_mask=src_key_padding_mask
             )[0]
-            src = src + self.dropout1(src2)
+            src = src + self.dropout1(att_out)
             src = self.norm1(src)
-            src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))  # FFN
-            src = src + self.dropout2(src2)
+            ffn_out = self._ffn(src)
+            src = src + self.dropout2(ffn_out)
             src = self.norm2(src)
         return src
+
+    def _ffn(self, src):
+        """ Position-wise Feedforward network.  """
+        return self.linear2(self.dropout(self.activation(self.linear1(src))))
 
 
 class TransformerDecoderLayer(Module):
