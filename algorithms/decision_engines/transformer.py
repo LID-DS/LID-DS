@@ -179,7 +179,7 @@ class Transformer(BuildingBlock):
         input_vector = self._input_vector.get_result(syscall)
         return self._cached_results(input_vector)
 
-    @lru_cache(maxsize=1000)
+    @lru_cache(maxsize=5000)
     def _cached_results(self, input_vector):
         if input_vector is None:
             return None
@@ -247,6 +247,7 @@ class TransformerModel(nn.Module):
         # LAYERS
         self.positional_encoder = PositionalEncoding(dim_model=dim_model, dropout_p=dropout, max_len=5000)
         self.embedding = nn.Embedding(num_tokens, dim_model)
+
         self.transformer = CustomTransformer(
             d_model=dim_model,
             nhead=num_heads,

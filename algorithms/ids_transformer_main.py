@@ -76,13 +76,19 @@ def _parse_args():
         '-l', dest='layers', action='store', type=int, required=True,
         help='Number of encoder and decoder layers'
     )
+
+    parser.add_argument(
+        '-h', dest='num_heads', action='store', type=int, required=True,
+        help='Number of model heads'
+    )
+
     parser.add_argument(
         '-m', dest='model_dim', action='store', type=int, required=True,
         help='TF model dimension (aka. emb size)'
     )
 
     parser.add_argument(
-        '-l', dest='language_model', action='store', type=bool, required=True,
+        '-lm', dest='language_model', action='store', type=bool, required=True,
         help='Use Language model architecture'
     )
 
@@ -103,10 +109,10 @@ def main():
     thread_aware = True
     language_model = True
 
-    anomaly_score = AnomalyScore.MEAN
+    anomaly_score = AnomalyScore.LAST
     layers = 6
     model_dim = 8
-    pre_layer_norm = False
+    pre_layer_norm = True
 
     feedforward_dim = 1024
     batch_size = 256
@@ -126,7 +132,7 @@ def main():
         layers = args.layers
         model_dim = args.model_dim
         feedforward_dim = args.feedforward_dim
-        num_heads = int(model_dim / 4)
+        num_heads = args.num_heads
     else:
         # getting the LID-DS base path from argument or environment variable
         if len(sys.argv) > 1:
@@ -194,7 +200,7 @@ def main():
             dropout=dropout,
             feedforward_dim=feedforward_dim,
             pre_layer_norm=pre_layer_norm,
-            language_model=language_model
+            language_model=language_model,
         )
 
         # define the used features and train
