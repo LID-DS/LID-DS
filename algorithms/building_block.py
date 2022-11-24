@@ -61,25 +61,25 @@ class BuildingBlock:
 
     def __str__(self) -> str:
         """
-        gives a more or less human readable str representation of this object
-        returns: "Name_of_class(memory_address)"
+        gives a more or less human-readable str representation of this object containing the name and configurations
+        """
+        return str(self.to_dict_repr())
+
+    def to_dict_repr(self):
+        """
+        distilled dictionary representation containing the configurations.
         """
         if len(self.__config) > 0:
-            config = self.__config
-            result = str(
-                {
-                    'name': self.__class__.__name__,
-                    'id': hex(id(self)),
-                    'config': config
-                }
-            )
+            result = {
+                'name': self.__class__.__name__,
+                'id': hex(id(self)),
+                'config': self.__config,
+            }
         else:
-            result = str(
-                {
-                    'name': self.__class__.__name__,
-                    'id': hex(id(self)),
-                }
-            )
+            result = {
+                'name': self.__class__.__name__,
+                'id': hex(id(self)),
+            }
         return result
 
     def __repr__(self):
@@ -96,6 +96,7 @@ class BuildingBlock:
             self.__instance_id = BuildingBlockIDManager().get_id(self)
         return self.__instance_id
 
+    @staticmethod
     def __arguments():
         """Returns tuple containing dictionary of calling function's
         named arguments and a list of calling function's unnamed
@@ -125,3 +126,9 @@ class BuildingBlock:
             return final_args
         except KeyError:
             return {}
+
+    def is_decider(self):
+        """
+            If BuildingBlock is a decider (e.g. max score threshold) return True
+        """
+        return False

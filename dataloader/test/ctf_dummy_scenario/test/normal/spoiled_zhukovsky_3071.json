@@ -1,0 +1,51 @@
+{
+    "container": [
+        {
+            "ip": "172.24.0.2",
+            "name": "8bdfefcfbc80b1b6",
+            "role": "normal"
+        },
+        {
+            "ip": "172.24.0.3",
+            "name": "dcf45f69096bc860",
+            "role": "normal"
+        },
+        {
+            "ip": "172.24.0.4",
+            "name": "6dd5b29033cafbf7",
+            "role": "normal"
+        },
+        {
+            "ip": "172.24.0.5",
+            "name": "d4e459d84d28f0d1",
+            "role": "normal"
+        },
+        {
+            "ip": "172.24.0.6",
+            "name": "d0bf7fd10085af07",
+            "role": "normal"
+        },
+        {
+            "ip": "172.24.0.7",
+            "name": "080889ba5c635e92",
+            "role": "victim"
+        }
+    ],
+    "exploit": false,
+    "exploit_name": "default",
+    "image": "victim_overflow",
+    "recording_time": 45,
+    "time": {
+        "container_ready": {
+            "absolute": 1666345392.2666607,
+            "relative": -3.001366138458252,
+            "source": "CONTROL_SCRIPT"
+        },
+        "exploit": [],
+        "warmup_end": {
+            "absolute": 1666345395.2680268,
+            "relative": 0,
+            "source": "CONTROL_SCRIPT"
+        }
+    }
+}

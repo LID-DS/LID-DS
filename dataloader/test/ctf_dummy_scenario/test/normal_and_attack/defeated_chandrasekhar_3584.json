@@ -1,0 +1,63 @@
+{
+    "container": [
+        {
+            "ip": "192.168.192.2",
+            "name": "16149d5ffedda122",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.192.3",
+            "name": "d3f9051d181721bb",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.192.4",
+            "name": "ef90756efe8911a9",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.192.5",
+            "name": "20a6b74ac13d11e7",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.192.6",
+            "name": "9e1d18b4d12efa24",
+            "role": "normal"
+        },
+        {
+            "ip": "192.168.192.7",
+            "name": "9c2d6a755da7b298",
+            "role": "attacker"
+        },
+        {
+            "ip": "192.168.192.8",
+            "name": "4450e431d781b609",
+            "role": "victim"
+        }
+    ],
+    "exploit": true,
+    "exploit_name": "default",
+    "image": "victim_overflow",
+    "recording_time": 45,
+    "time": {
+        "container_ready": {
+            "absolute": 1666346770.222677,
+            "relative": -3.0014142990112305,
+            "source": "CONTROL_SCRIPT"
+        },
+        "exploit": [
+            {
+                "absolute": 1666346786.690099,
+                "name": "attack",
+                "relative": 13.466007709503174,
+                "source": "TCPDUMP"
+            }
+        ],
+        "warmup_end": {
+            "absolute": 1666346773.2240913,
+            "relative": 0,
+            "source": "CONTROL_SCRIPT"
+        }
+    }
+}
