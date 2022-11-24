@@ -1,14 +1,18 @@
+from pprint import pprint
+from datetime import datetime
+
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 
 from algorithms.ids import IDS
-from algorithms.persistance import save_to_json
+from algorithms.persistance import save_to_mongo 
 from algorithms.decision_engines.stide import Stide
 
 from dataloader.direction import Direction
 from dataloader.dataloader_factory import dataloader_factory
 
-from pprint import pprint
 
 
 if __name__ == '__main__':
@@ -35,26 +39,29 @@ if __name__ == '__main__':
                   ngram_length=ngram_length)
 
     # decision engine (DE)
-    de = Stide(ngram,
-               window_length=window_length)
+    de = Stide(ngram)
+
+    stream_sum = StreamSum(
+            de,
+            thread_aware=False,
+            window_length=window_length,
+            wait_until_full=False)
+
+    decider = MaxScoreThreshold(stream_sum)
 
     # define the used features
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=de,
+              resulting_building_block=decider,
               plot_switch=False)
 
-    # threshold
-    ids.determine_threshold()
     # detection
     results = ids.detect_parallel().get_results()
     pprint(results)
 
     # enrich results with configuration and save to disk
-    results['algorithm'] = "STIDE"
-    results['ngram_length'] = ngram_length
-    results['window_length'] = window_length
-    results['thread_aware'] = thread_aware
-    results['scenario'] = 'real_world'
-    result_path = 'results/results_real_world.json'
+    results['config'] = ids.get_config_tree_links()
+    results['scenario'] = 'real_world' 
+    results['direction'] = dataloader.get_direction_string()
+    results['date'] = str(datetime.now().date())
 
-    save_to_json(result_dict=results, path=result_path)
+    save_to_mongo(results)

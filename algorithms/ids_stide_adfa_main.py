@@ -5,8 +5,12 @@ from pprint import pprint
 from algorithms.ids import IDS
 from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.stide import Stide
+from algorithms.features.impl.stream_sum import StreamSum
 from dataloader.dataloader_factory import dataloader_factory
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
+
+from algorithms.persistance import save_to_mongo
 
 if __name__ == '__main__':
 
@@ -37,21 +41,19 @@ if __name__ == '__main__':
     # now build ngrams from these integers
     ngram = Ngram([int_embedding], thread_aware, ngram_length)
     # finally calculate the STIDE algorithm using these ngrams
-    stide = Stide(ngram, window_length)
+    stide = Stide(ngram)
+    stream_sum = StreamSum(stide, False, window_length, False)
+    decider = MaxScoreThreshold(stream_sum)
 
     ### the IDS
     ids = IDS(data_loader=dataloader,
-              resulting_building_block=stide,
+              resulting_building_block=decider,
               create_alarms=True,
               plot_switch=False)
 
-    print("at evaluation:")
-    # threshold
-    ids.determine_threshold()
-
     # detection
     # normal / seriell
-    results = ids.detect().get_results()
+    results = ids.detect_parallel().get_results()
 
     # parallel / map-reduce
 
@@ -60,3 +62,5 @@ if __name__ == '__main__':
 
     ### print results
     pprint(results)
+
+    save_to_mongo(results)
