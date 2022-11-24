@@ -1,5 +1,5 @@
 import argparse
-import datetime
+from datetime import datetime
 import os
 import sys
 import time
@@ -7,6 +7,7 @@ from pprint import pprint
 
 from algorithms.decision_engines.transformer import Transformer, AnomalyScore
 from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.ids import IDS
@@ -162,6 +163,7 @@ def main():
             "batch_size": batch_size,
             "layers": layers,
             "model_dim": model_dim,
+            "num_heads": num_heads,
             "feedforward_dim": feedforward_dim,
             "pre_layer_norm": pre_layer_norm,
             "direction": dataloader.get_direction_string(),
@@ -173,7 +175,7 @@ def main():
     # embedding
     name = SyscallName()
 
-    int_embedding = IntEmbedding()
+    int_embedding = IntEmbedding(name)
 
     ngram = Ngram(
         feature_list=[int_embedding],
@@ -203,23 +205,19 @@ def main():
             language_model=language_model,
         )
 
-        # define the used features and train
+        decider = MaxScoreThreshold(transformer)
+
         ids = IDS(
             data_loader=dataloader,
-            resulting_building_block=transformer,
+            resulting_building_block=decider,
             plot_switch=False
         )
-
-        # threshold
-        ids.determine_threshold()
 
         performance = ids.detect()
         end = time.time()
 
         stats = performance.get_results()
 
-        if stats is None:
-            stats = {}
         stats['dataset'] = lid_ds_version
         stats['scenario'] = scenario
         stats['anomaly_score'] = anomaly_score.name
@@ -232,12 +230,13 @@ def main():
         stats['dropout'] = dropout
         stats['feedforward_dim'] = feedforward_dim
         stats['thread_aware'] = thread_aware
+        stats['threshold'] = decider._threshold
         stats['train_losses'] = transformer.train_losses
         stats['val_losses'] = transformer.val_losses
-        # stats['config'] = ids.get_config_tree_links()
+        stats['config'] = ids.get_config_tree_links()
         stats['direction'] = dataloader.get_direction_string()
-        stats['date'] = str(datetime.datetime.now().date())
-        stats['duration'] = str(end - start)
+        stats['date'] = str(datetime.now().date())
+        stats['detection_time'] = str(end - start)
 
         pprint(stats)
         result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}.json'

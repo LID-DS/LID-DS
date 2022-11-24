@@ -237,8 +237,7 @@ class Performance:
                               "recall": detection_rate,
                               "precision_with_cfa": precision_cfa,
                               "precision_with_syscalls": precision_sys,
-                              "f1_cfa": f1_cfa,
-                              "threshold": self._threshold
+                              "f1_cfa": f1_cfa
                               }
         self.result = performance_values
 
