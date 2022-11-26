@@ -163,43 +163,60 @@ def main():
     }
     group_by_config = {
         "Som": {
-            "name": "Som",
-            "epochs": "som_epochs",
-            "sigma": "sigma",
-            "size": "som_size",
+            "name": "MaxScoreThreshold",
             "input": [
                 {
-                    "name": "Concat",
+                    "name": "Som",
+                    "epochs": "som_epochs",
+                    "sigma": "sigma",
+                    "size": "som_size",
                     "input": [
                         {
-                            "name": "Ngram",
-                            "ngram_length": "concat_1_ngram_length",
-
-                        },
-                        {
-                            "name": "Ngram",
-                            "ngram_length": "concat_2_ngram_length",
+                            "name": "Concat",
                             "input": [
                                 {
-                                    "name": "W2VEmbedding",
-                                    "vector_size": "concat_2_w2v_size",
+                                    "name": "Ngram",
+                                    "thread_aware": "thread_aware",
+                                    "ngram_length": "concat_1_ng_len",
 
                                 },
                                 {
-                                    "name": "ReturnValue",
-                                    "min_max_scaling": "return_value_min_max_scaling"
+                                    "name": "Ngram",
+                                    "ngram_length": "concat_2_ng_len",
+                                    "input": [
+                                        {
+                                            "name": "W2VEmbedding",
+                                            "vector_size": "concat_2_w2v_size",
 
+                                        },
+                                        {
+                                            "name": "ReturnValue",
+                                            "min_max_scaling": "rv_minmax"
+
+                                        }
+                                    ]
                                 }
                             ]
                         }
-                    ]
+                    ],
                 }
             ],
         },
         "LSTM": {
-            "name": "LSTM",
-            "batch_size": "lstm_batch_size",
-            "epochs": "epochs",
+            "name": "MaxScoreThreshold",
+            "input": [
+                {
+                    "name": "LSTM",
+                    "batch_size": "lstm_batch_size",
+                    "epochs": "epochs",
+                    "input": [
+                        {
+                            "name": "Ngram",
+                            "thread_aware": "thread_aware",
+                        }
+                    ],
+                },
+            ],
         }
     }
     results = ResultQuery(collection_name="experiments3").get_results(

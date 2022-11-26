@@ -7,16 +7,16 @@
  * @param {Array} links dependency graph links
  * @param {string} algorithm base algorithm
  * @param {Object} group_by_config dictionary of config aliases per algorithm
- * @param {boolean} config_alias the alias of the config value to search
+ * @param {string} config_alias the alias of the config value to search
  * @returns {any} the config value for the config alias if a path to the config value exists else undefined
  */
 function get_config_value(nodes, links, algorithm, group_by_config, config_alias) {
     if (!(algorithm in group_by_config)) return
 
     group_by_config = group_by_config[algorithm]
-    let algorithm_id = nodes[0].id
+    let initial_id = nodes[0].id
     let current_config = nodes[0]
-    return get_config(links, [group_by_config], current_config, algorithm_id, config_alias, true)
+    return get_config(links, [group_by_config], current_config, initial_id, config_alias, true)
 
     function get_config(links, config_group_list, current_config, current_id, config_alias, first) {
         for (let config of config_group_list) {
