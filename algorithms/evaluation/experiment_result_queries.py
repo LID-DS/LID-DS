@@ -26,7 +26,7 @@ class ResultQuery:
 
     def find_best_algorithm(
             self,
-            algorithms,
+            algorithms: list[str],
             scenarios: list[str] = None,
             datasets: list[str] = None,
             directions: list[Direction] = None,
