@@ -40,7 +40,7 @@ if __name__ == '__main__':
                             help='window length')
         parser.add_argument('-e', dest='embedding_size', action='store', type=int, required=True,
                             help='embedding size')
-        parser.add_argument('-t', dest='thread_aware', action='store', type=bool, required=True,
+        parser.add_argument('-t', dest='thread_aware', type=lambda x: (str(x).lower() == 'true'), required=True,
                             help='Set ngram to thread aware')
 
         args = parser.parse_args()
