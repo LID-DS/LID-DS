@@ -13,6 +13,7 @@
 function get_config_value(nodes, links, algorithm, group_by_config, config_alias) {
     if (!(algorithm in group_by_config)) return
 
+    const nodes_map = Object.fromEntries(nodes.map((node) => [node.id, node]))
     group_by_config = group_by_config[algorithm]
     let initial_id = nodes[0].id
     let current_config = nodes[0]
@@ -46,12 +47,14 @@ function get_config_value(nodes, links, algorithm, group_by_config, config_alias
         let found_target_id = null
         for (let i = 0; i < links.length; i++) {
             let link = links[i]
-            if (link.source.name === source_name && link.source.id === previous_target_id) {
-                found_target = link.target.name
-                found_target_id = link.target.id
+            let source_node = nodes_map[link.source]
+            if (source_node.name === source_name && link.source === previous_target_id) {
+                let target = nodes_map[link.target]
+                found_target = target.name
+                found_target_id = link.target
                 if (found_target === target_name) {
                     links.splice(i, 1)
-                    return link.target
+                    return target
                 }
             }
         }

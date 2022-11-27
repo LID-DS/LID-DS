@@ -11,6 +11,7 @@
  */
 function has_features(nodes, links, algorithm, algo_features, exact) {
     const features = algo_features[algorithm]
+    const nodes_map = Object.fromEntries(nodes.map((node) => [node.id, node]))
     let previous_target_id = nodes[0].id
     let unmatched_nodes = false
     let matched = 0;
@@ -18,12 +19,13 @@ function has_features(nodes, links, algorithm, algo_features, exact) {
         const source = features[i]
 
         const target = features[i + 1]
-        let found_target = null
-        let found_target_id = null
+        let found_target
+        let found_target_id
         for (let link of links) {
-            if (link.source.name === source && link.source.id === previous_target_id) {
-                found_target = link.target.name
-                found_target_id = link.target.id
+            let source_node = nodes_map[link.source]
+            if (source_node.name === source && link.source === previous_target_id) {
+                found_target = nodes_map[link.target].name
+                found_target_id = link.target
                 if (found_target === target) {
                     previous_target_id = found_target_id
                     break
