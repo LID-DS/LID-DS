@@ -30,7 +30,7 @@ function has_features(nodes, links, algorithm, algo_features, exact) {
                 }
             }
         }
-        if (!found_target) {
+        if (!found_target || found_target !== target) {
             unmatched_nodes = true
             break
         }
@@ -40,6 +40,5 @@ function has_features(nodes, links, algorithm, algo_features, exact) {
     if (exact) {
         unmatched_nodes = unmatched_nodes || matched < nodes.length
     }
-
     return !unmatched_nodes
 }
