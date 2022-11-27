@@ -22,7 +22,7 @@ function get_config_value(nodes, links, algorithm, group_by_config, config_alias
     function get_config(links, config_group_list, current_config, current_id, config_alias, first) {
         for (let config of config_group_list) {
             let target_name = config.name
-            let target = get_target(links, current_config.name, target_name, current_id)
+            let target = get_target_and_remove_link(links, current_config.name, target_name, current_id)
 
             if (first) {
                 target = current_config
@@ -41,18 +41,13 @@ function get_config_value(nodes, links, algorithm, group_by_config, config_alias
         }
     }
 
-    function get_target(links, source_name, target_name, source_id) {
-        let previous_target_id = source_id
-        let found_target = null
-        let found_target_id = null
+    function get_target_and_remove_link(links, source_name, target_name, source_id) {
         for (let i = 0; i < links.length; i++) {
             let link = links[i]
             let source_node = nodes_map[link.source]
-            if (source_node.name === source_name && link.source === previous_target_id) {
+            if (source_node.name === source_name && link.source === source_id) {
                 let target = nodes_map[link.target]
-                found_target = target.name
-                found_target_id = link.target
-                if (found_target === target_name) {
+                if (target.name === target_name) {
                     links.splice(i, 1)
                     return target
                 }
