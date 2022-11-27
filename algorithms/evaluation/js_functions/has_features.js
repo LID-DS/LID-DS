@@ -14,7 +14,7 @@ function has_features(nodes, links, algorithm, algo_features, exact) {
     let previous_target_id = nodes[0].id
     let unmatched_nodes = false
     let matched = 0;
-    for (let i = 0; i < features.length; i++) {
+    for (let i = 0; i < features.length - 1; i++) {
         const source = features[i]
 
         const target = features[i + 1]
