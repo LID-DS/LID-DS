@@ -8,7 +8,9 @@ from dataloader.direction import Direction
 
 features = {
     "Som": ["MaxScoreThreshold", "Som", "Concat", "Ngram", "IntEmbedding"],
-    "LSTM": ["MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding"]
+    "LSTM": ["MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding"],
+    "AE": [],
+    "Stide": []  # TODO: do not fail is key is missing
 }
 
 group_by_config = {
@@ -105,9 +107,27 @@ def algorithm_wise_best_average_configuration():
         print(tabulate(r, headers="keys", tablefmt="github"))
 
 
+def scenario_wise_best_average_configuration():
+    """
+    Scenario wise best average configuration
+    """
+    results = ResultQuery(collection_name="experiments_test").scenario_wise_best_configuration(
+        algorithms=["Som", "LSTM", "AE", "Stide"],
+        directions=[Direction.BOTH],
+        features=features,
+        group_by_config=group_by_config,
+        firstK_in_group=6
+    )
+    results = [r.pop("_id") | r for result in results for r in result['results']]
+    print(tabulate(results, headers="keys", tablefmt="github"))
+
+
 if __name__ == '__main__':
     print("########## best algorithm ##########")
     find_best_algorithm()
 
     print("########## algo wise best configuration ##########")
     algorithm_wise_best_average_configuration()
+
+    print("########## scenario wise best configuration ##########")
+    scenario_wise_best_average_configuration()

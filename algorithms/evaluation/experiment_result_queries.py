@@ -174,8 +174,96 @@ class ResultQuery:
         result = list(self._experiments.aggregate(pipeline))
         return result
 
+    def scenario_wise_best_configuration(
+            self,
+            algorithms: list[str] = None,
+            scenarios: list[str] = None,
+            datasets: list[str] = None,
+            directions: list[Direction] = None,
+            features: dict[str, list[str]] = None,
+            features_exact_match: bool = False,
+            group_by: list[str] = None,
+            group_by_config: dict = None,
+            firstK_in_group: int = None,
+    ):
+        """
+            For each scenario, find the k best algorithms
+        """
+        match = self.construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios)
+        addFields, config_aliases = self.construct_addFields_stage(group_by_config)
+
+        # grouping phase
+        if group_by is None:
+            group_by = {
+                'dataset': '$dataset',
+                'scenario': '$scenario',
+                'algorithm': '$algorithm',
+            }
+
+        group_by |= {alias: f"${alias}" for _, alias in config_aliases}
+
+        group = {
+            "_id": group_by,
+            "avg_DR": {
+                "$avg": "$detection_rate"
+            },
+            "avg_FA": {
+                "$avg": {
+                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
+                }
+            },
+            "sum_FA": {
+                "$sum": {
+                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
+                }
+            },
+            "count": {
+                "$sum": 1
+            }
+        }
+
+        group2 = {
+            "_id": {
+                "dataset": "$_id.dataset",
+                "scenario": "$_id.scenario",
+            },
+            "results": {
+                "$push": "$$ROOT"
+            }
+        }
+
+        sort_scenario_wise = {
+            "_id": "$_id",
+            "results": {
+                "$slice": [
+                    {
+                        "$sortArray": {
+                            "input": "$results",
+                            "sortBy": {
+                                "avg_DR": -1,
+                                "avg_FA": 1
+                            }
+                        }
+                    },
+                    0,
+                    firstK_in_group
+                ]
+            }
+        }
+
+        # final pipeline
+        pipeline = [
+            {"$match": match},
+            {"$addFields": addFields},
+            {"$group": group},
+            {"$group": group2},
+            {"$project": sort_scenario_wise}
+        ]
+        result = list(self._experiments.aggregate(pipeline))
+        return result
+
     @staticmethod
-    def construct_addFields_stage(group_by_config):
+    def construct_addFields_stage(group_by_config) -> tuple[dict, list[tuple]]:
         """ addFields phase to extract config values """
         config_aliases = [_get_config_aliases([config]) for config in group_by_config.values()]
         config_aliases = list(itertools.chain.from_iterable(config_aliases))
@@ -193,7 +281,9 @@ class ResultQuery:
     @staticmethod
     def construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios):
         """ Match phase for filtering results """
-        match = {"algorithm": {"$in": algorithms}}
+        match = {}
+        if algorithms is not None:
+            match |= {"algorithm": {"$in": algorithms}}
         if scenarios is not None:
             match |= {"scenario": {"$in": scenarios}}
         if datasets is not None:
