@@ -6,6 +6,51 @@ from tabulate import tabulate
 from algorithms.evaluation.experiment_result_queries import ResultQuery
 from dataloader.direction import Direction
 
+
+def find_results_with_specific_config():
+    """ Find all results matching the specified algorithm, dataset and configurations """
+
+    config_aliases = {
+        "LSTM": {
+            "name": "MaxScoreThreshold",
+            "input": [
+                {
+                    "name": "LSTM",
+                    "hidden_layers": "hidden_layers",
+                    "input": [
+                        {
+                            "name": "Ngram",
+                            "thread_aware": "thread_aware",
+                        }
+                    ],
+                },
+            ],
+        },
+    }
+    features = {
+        "LSTM": ["MaxScoreThreshold", "LSTM", "Ngram", "IntEmbedding"],
+    }
+
+    where = {
+        "thread_aware": True,
+        "$and": [
+            {"false_positives": {"$lt": 50}},
+            {"false_positives": {"$gt": 5}}
+        ]
+    }
+
+    results = ResultQuery(collection_name="experiments_test").find_results(
+        algorithms=["LSTM"],
+        scenarios=["CVE-2017-7529", "CVE-2014-0160"],
+        directions=[Direction.BOTH],
+        features=features,
+        config_aliases=config_aliases,
+        where=where
+    )
+
+    print(tabulate(results, headers="keys", tablefmt="github"))
+
+
 features = {
     "Som": ["MaxScoreThreshold", "Som", "Concat", "Ngram", "IntEmbedding"],
     "LSTM": ["MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding"],
@@ -66,7 +111,7 @@ group_by_config = {
                 ],
             },
         ],
-    }
+    },
 }
 
 
@@ -123,6 +168,9 @@ def scenario_wise_best_average_configuration():
 
 
 if __name__ == '__main__':
+    print("########## find results with specific configuration ##########")
+    find_results_with_specific_config()
+
     print("########## best algorithm ##########")
     find_best_algorithm()
 

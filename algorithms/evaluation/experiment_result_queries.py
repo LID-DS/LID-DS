@@ -24,6 +24,30 @@ class ResultQuery:
 
         self._experiments: Collection = client[collection_name][collection_name]
 
+    def find_results(
+            self,
+            algorithms: list[str],
+            scenarios: list[str] = None,
+            datasets: list[str] = None,
+            directions: list[Direction] = None,
+            features: dict[str, list[str]] = None,
+            features_exact_match: bool = False,
+            config_aliases: dict[str, dict] = None,
+            where: dict = None,
+    ):
+        """ Find all results matching the specified algorithm, dataset and configurations """
+        match = self.construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios)
+        addFields, all_config_aliases = self.construct_addFields_stage(config_aliases)
+
+        # final pipeline
+        pipeline = [
+            {"$match": match},
+            {"$addFields": addFields},
+            {"$match": where},
+            {"$project": {"config": 0, "_id": 0}}
+        ]
+        return list(self._experiments.aggregate(pipeline))
+
     def find_best_algorithm(
             self,
             algorithms: list[str],
@@ -89,7 +113,7 @@ class ResultQuery:
 
     def algorithm_wise_best_average(
             self,
-            algorithms,
+            algorithms: list[str],
             scenarios: list[str] = None,
             datasets: list[str] = None,
             directions: list[Direction] = None,
