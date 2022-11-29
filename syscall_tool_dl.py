@@ -44,6 +44,27 @@ for entry in alert_dict['alarms']:
                            'files': [],
                            'ip': []}
 
+    alert_to_json_dict = {"scenarioPath": None,
+                          "timeWindow": None,
+                          "userID": None,
+                          "processes": []
+                          }
+
+    process_dict = {"processID": 666,
+                    "processName": "apache",
+                    "network": [],
+                    "files": []
+                    }
+
+    network_dict = {"clientIP": None,
+                    "clientPort": None,
+                    "serverIP": None,
+                    "serverPort": None
+                    }
+
+    file_dict = {"path": None,
+                 "action": None}
+
     for recording in dataloader.test_data():
         if recording.name == recording_alert:
             for syscall in recording.syscalls():
