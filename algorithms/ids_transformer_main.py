@@ -1,8 +1,8 @@
 import argparse
-from datetime import datetime
 import os
 import sys
 import time
+from datetime import datetime
 from pprint import pprint
 
 from algorithms.decision_engines.transformer import Transformer, AnomalyScore
@@ -11,7 +11,7 @@ from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.ids import IDS
-from algorithms.persistance import save_to_json, print_as_table, ModelCheckPoint
+from algorithms.persistance import save_to_json, ModelCheckPoint
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
@@ -65,7 +65,7 @@ def _parse_args():
         help='Ngram length'
     )
     parser.add_argument(
-        '-t', dest='thread_aware', action='store', type=bool, required=True,
+        '-t', dest='thread_aware', type=lambda x: (str(x).lower() == 'true'), required=True,
         help='Thread aware ngrams'
     )
 
@@ -79,7 +79,7 @@ def _parse_args():
     )
 
     parser.add_argument(
-        '-h', dest='num_heads', action='store', type=int, required=True,
+        '-nh', dest='num_heads', action='store', type=int, required=True,
         help='Number of model heads'
     )
 
@@ -89,13 +89,24 @@ def _parse_args():
     )
 
     parser.add_argument(
-        '-lm', dest='language_model', action='store', type=bool, required=True,
+        '-lm', dest='language_model', type=lambda x: (str(x).lower() == 'true'), required=True,
         help='Use Language model architecture'
     )
 
     parser.add_argument(
-        '-p', dest='pre_layer_norm', action='store', type=bool, required=True,
-        help='Pre layer normalization'
+        '-b', dest='batch_size', action='store', type=int, required=True,
+        help='Training batch size'
+    )
+
+    parser.add_argument(
+        '-dup', dest='dedup_train_set', type=lambda x: (str(x).lower() == 'true'), required=True,
+        help='Deduplicate training set'
+    )
+
+    parser.add_argument(
+        '-as', dest='anomaly_score', action='store', type=AnomalyScore.argparse,
+        required=True,
+        help='Anomaly scoring strategy'
     )
 
     return parser.parse_args()
@@ -109,6 +120,7 @@ def main():
     ngram_length = 11
     thread_aware = True
     language_model = True
+    dedup_train_set = True
 
     anomaly_score = AnomalyScore.LAST
     layers = 6
@@ -134,6 +146,10 @@ def main():
         model_dim = args.model_dim
         feedforward_dim = args.feedforward_dim
         num_heads = args.num_heads
+        language_model = args.language_model
+        dedup_train_set = args.dedup_train_set
+        batch_size = args.batch_size
+        anomaly_score = args.anomaly_score
     else:
         # getting the LID-DS base path from argument or environment variable
         if len(sys.argv) > 1:
@@ -168,6 +184,7 @@ def main():
             "pre_layer_norm": pre_layer_norm,
             "direction": dataloader.get_direction_string(),
             "language_model": language_model
+            "dedup_train_set": dedup_train_set
         },
         models_dir=checkpoint_dir
     )
@@ -203,6 +220,7 @@ def main():
             feedforward_dim=feedforward_dim,
             pre_layer_norm=pre_layer_norm,
             language_model=language_model,
+            dedup_train_set=dedup_train_set
         )
 
         decider = MaxScoreThreshold(transformer)
@@ -241,7 +259,6 @@ def main():
         pprint(stats)
         result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}.json'
         save_to_json(stats, result_path)
-        print_as_table(path=result_path)
 
 
 if __name__ == '__main__':

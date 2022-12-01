@@ -3,14 +3,13 @@ from enum import IntEnum
 from functools import lru_cache
 
 import torch
-from torch import nn
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
-
 from algorithms.building_block import BuildingBlock
 from algorithms.decision_engines.nn.transformer import CustomTransformer
 from algorithms.persistance import ModelCheckPoint
 from dataloader.syscall import Syscall
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -25,6 +24,13 @@ class AnomalyScore(IntEnum):
 
     def __repr__(self):
         return self.__str__()
+
+    @staticmethod
+    def argparse(s):
+        try:
+            return AnomalyScore[s.upper()]
+        except KeyError:
+            return s
 
 
 class Transformer(BuildingBlock):
@@ -46,6 +52,7 @@ class Transformer(BuildingBlock):
             feedforward_dim: int,
             pre_layer_norm: bool,
             language_model: bool,
+            dedup_train_set: bool,
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
@@ -57,18 +64,12 @@ class Transformer(BuildingBlock):
         self._checkpoint = checkpoint
         self._retrain = retrain
         self._language_model = language_model
+        self._dedup_train_set = dedup_train_set
 
         self.train_losses = {}
         self.val_losses = {}
-
-        self._training_set = {
-            'x': [],
-            'y': []
-        }
-        self._validation_set = {
-            'x': [],
-            'y': []
-        }
+        self._training_set = []
+        self._validation_set = []
 
         # placeholder for start of sentence and end of sentence
         self._sos = distinct_syscalls + 1
@@ -87,20 +88,14 @@ class Transformer(BuildingBlock):
         ).to(DEVICE)
 
     def train_on(self, syscall: Syscall):
-        self._append_call_split_to_set(syscall, self._training_set)
+        input_vector: tuple = self._input_vector.get_result(syscall)
+        if input_vector is not None:
+            self._training_set.append((self._sos,) + input_vector)
 
     def val_on(self, syscall: Syscall):
-        self._append_call_split_to_set(syscall, self._validation_set)
-
-    def _append_call_split_to_set(self, syscall: Syscall, container: dict):
-        input_vector = self._input_vector.get_result(syscall)
+        input_vector: tuple = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            x = list(input_vector[:-1])
-            y = [self._sos] + list(input_vector[1:])
-            if not self._language_model:
-                x = [self._sos] + list(input_vector[:-1])
-            container['x'].append(x)
-            container['y'].append(y)
+            self._validation_set.append((self._sos,) + input_vector)
 
     def fit(self):
         loss_fn = nn.CrossEntropyLoss()
@@ -113,8 +108,8 @@ class Transformer(BuildingBlock):
             eps=1e-9
         )
 
-        t_dataset = TransformerDataset(self._training_set['x'], self._training_set['y'])
-        t_dataset_val = TransformerDataset(self._validation_set['x'], self._validation_set['y'])
+        t_dataset = TransformerDataset(self._training_set, self._language_model, self._dedup_train_set)
+        t_dataset_val = TransformerDataset(self._validation_set, self._language_model, self._dedup_train_set)
 
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
@@ -209,9 +204,15 @@ class Transformer(BuildingBlock):
 
 class TransformerDataset(Dataset):
 
-    def __init__(self, X, Y):
-        self.X = torch.tensor(X, dtype=torch.long, device=DEVICE)
-        self.Y = torch.tensor(Y, dtype=torch.long, device=DEVICE)
+    def __init__(self, X, language_model, dedup_train_set):
+        if dedup_train_set:
+            X = list(set(X))
+        X = torch.tensor(X, dtype=torch.long, device=DEVICE)
+        if language_model:
+            self.X = X[:, 1:-1]  # no need for <sos>
+        else:
+            self.X = X[:, :-1]
+        self.Y = torch.cat((X[:, 0:1], X[:, 2:]), 1)  # drop first token after <sos>
 
     def __len__(self):
         return len(self.X)

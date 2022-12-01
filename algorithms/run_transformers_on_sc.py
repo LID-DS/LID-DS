@@ -43,8 +43,11 @@ THREAD_AWARE_LIST = ['True']
 LANGUAGE_MODEL = ['True', 'False']
 LAYERS = [2, 4, 6]
 FEEDFORWARD_DIMS = [1024, 2048]
-MODEL_DIMS = [8, 16]
+MODEL_DIMS = [8, 16, 32]
 NUM_HEADS = [1, 2, 4, 6]
+BATCH_SIZES = [64, 128, 256]
+DEDUP = True
+ANOMALY_SCORINGS = ['MEAN']
 
 BASE_PATH = f"/work/users/{USER}/datasets/{DATASET}/"
 if '2019' in BASE_PATH:
@@ -88,22 +91,25 @@ for scenario in SCENARIOS:
                 for layers in LAYERS:
                     for model_dim in MODEL_DIMS:
                         for language_model in LANGUAGE_MODEL:
-                            ff_dim = model_dim * 4 # for now use recommended dimensions
-                            NUM_EXPERIMENTS += 1
-                            command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length} " + \
-                                      f"{SCRIPT} " + \
-                                      f"{BASE_PATH} " + \
-                                      f"{DATASET} " + \
-                                      f"{scenario} " + \
-                                      f"{CHECKPOINT_DIR} " + \
-                                      f"{ngram_length} " + \
-                                      f"{thread_aware} " + \
-                                      f"{ff_dim} " + \
-                                      f"{layers} " + \
-                                      f"{model_dim} " + \
-                                      f"{num_heads} " + \
-                                      f"{language_model} "
+                            for batch_size in BATCH_SIZES:
+                                for anomaly_score in ANOMALY_SCORINGS:
+                                    ff_dim = model_dim * 4  # for now use recommended dimensions
+                                    NUM_EXPERIMENTS += 1
+                                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length} " + \
+                                              f"{SCRIPT} " + \
+                                              f"{BASE_PATH} " + \
+                                              f"{DATASET} " + \
+                                              f"{scenario} " + \
+                                              f"{CHECKPOINT_DIR} " + \
+                                              f"{ngram_length} " + \
+                                              f"{thread_aware} " + \
+                                              f"{ff_dim} " + \
+                                              f"{layers} " + \
+                                              f"{model_dim} " + \
+                                              f"{num_heads} " + \
+                                              f"{language_model} " + \
+                                              f"{batch_size} " + \
+                                              f"{DEDUP} " + \
+                                              f"{anomaly_score} "
 
-                            start_job(command)
-
-print(f"NUM_EXPERIMENTS = {NUM_EXPERIMENTS}")
+                                    start_job(command)

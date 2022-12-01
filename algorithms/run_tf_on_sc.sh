@@ -32,6 +32,9 @@ pip install --user -r ../requirements.txt
 # 7: -f feedforward_dim
 # 8: -l layers
 # 9: -m model_dim
-# 10: -h num_heads
+# 10: -nh num_heads
 # 11: -lm language_model
-python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -h "${10}" -lm "${11}"
+# 12: -b batch_size
+# 13: -dup dedup_train_set
+# 14: -as anomaly_score
+python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}"
