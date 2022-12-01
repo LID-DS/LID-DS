@@ -1,26 +1,26 @@
 #!/bin/bash
 #SBATCH --partition=paula
-#SBATCH --time=24:00:00
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=50GB
+#SBATCH --time=2-00:00:00
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=30GB
 #SBATCH --gres=gpu:a30
 #SBATCH --mail-type=FAIL
 #SBATCH -o logs/job_%A_%a.log
 
 export IDS_ON_CLUSTER=1
-
-module load matplotlib
+module load matplotlib/3.4.3-foss-2021b
 module load CUDA/11.3.1
+module load Python/3.9.6-GCCcore-11.2.0
+module load SciPy-bundle/2021.10-foss-2021b
 
 pip install --upgrade pip
 python -c "import algorithms"
 module_missing=$?
-if [$module_missing]
-then
-       pip install --user -e ../
+if [ $module_missing -ne 0 ]; then
+  pip install --user -e ../
 fi
 pip install --user torch --extra-index-url https://download.pytorch.org/whl/cu116
-pip install --user -r ../requirements.txt
+pip install --user -r "$(grep -ivE 'torch' ../requirements.txt)"
 
 # parameters:
 # 1: -d base_path

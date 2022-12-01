@@ -56,7 +56,7 @@ else:
     SCENARIOS = scenario_2021
 SCRIPT = 'run_tf_on_sc.sh'
 
-MAX_JOBS_IN_QUEUE = 1000
+MAX_JOBS_IN_QUEUE = 500
 NUM_EXPERIMENTS = 0
 
 
@@ -76,10 +76,10 @@ def start_job(job_str):
         time.sleep(0.5)
         # get the number of jobs in the queue
         count = count_queue()
-        print(f"there are {count} jobs in queue")
         if count < MAX_JOBS_IN_QUEUE:
             print(job_str)
             os.system(job_str)
+            print(f"there are {count} jobs in queue")
             break
 
 
