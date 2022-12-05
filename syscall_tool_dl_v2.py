@@ -9,6 +9,20 @@ port_pattern = re.compile(r"(?::)([0-9]+)")                     #not bulletproof
 file_path_pattern = re.compile(r"(\/.*?\.[\w:]+)")
 
 
+def extract_arg(arg_name: str):
+
+    """extracts value from systemcall parameter dict given arguments name,
+        returns argument string"""
+
+    try:
+        arg_str = syscall.params()[arg_name]
+    except KeyError:
+        # print(f"Argument {arg_name} not in system call.")
+        return
+
+    return arg_str
+
+
 class Alert:
     def __init__(self, ds_path, time_window, syscall_count):
         self.alert_id = None
@@ -25,24 +39,32 @@ class Alert:
             self.network_list = []
             self.files_list = []
 
-def append_file(files_list: list, process_entry: dict, syscall):
-    for file in files_list:
-        file_dict = {'path': file,
-                     'action': syscall.name()}
+        def arg_match_and_append(self, arg_str: str):
 
-    if file_dict not in process_entry['files_list']:
-        process_entry['files_list'].append(file_dict)  #what about new_process_inst?
+            """takes argument string, matches patterns and appends process information
+            if not included already"""
 
-def append_connection(ip_list: list, port_list: list, process_entry: dict, syscall):
-    for connection in ip_list:
-        network_dict = {'clientIP': ip_list[0],
-                        'clientPort': port_list[0],
-                        'serverIP': ip_list[1],
-                        'serverPort': port_list[1]
-                        }
+            ip_matches = re.findall(ip_pattern, arg_str)
+            port_matches = re.findall(port_pattern, arg_str)
+            file_matches = re.findall(file_path_pattern, arg_str)
 
-    if file_dict not in process_entry['files_list']:
-        process_entry['files_list'].append(file_dict)  #what about new_process_inst?
+            if ip_matches and port_matches:
+                for ip in ip_matches:
+                    network_dict = {'clientIP': ip_matches[0],
+                                    'clientPort': port_matches[0],
+                                    'serverIP': ip_matches[1],
+                                    'serverPort': port_matches[1]
+                                    }
+                    if network_dict not in self.network_list:
+                        self.network_list.apend(network_dict)
+
+            if file_matches:
+                for file in file_matches:
+                    file_dict = {'path': file,
+                                 'action': syscall.name()
+                                 }
+                    if file_dict not in self.files_list:
+                        self.files_list.append(file_dict)
 
 
 if __name__ == '__main__':
@@ -75,8 +97,6 @@ if __name__ == '__main__':
                 for syscall in recording.syscalls():
                     if syscall.line_id in range(first_line_id, last_line_id + 1):
 
-                        existing_process = False
-
                         # creating new process entry in alarm dict if not existing
                         if alert.process_list:
                             for process in alert.process_list:
@@ -93,6 +113,8 @@ if __name__ == '__main__':
                                                              syscall.process_name())
                             alert.process_list.append(vars(new_process_inst))
 
+
+    ??????????????
                         # extracting argument information from current syscall
                         if 'fd' in syscall.params() or 'out_fd' in syscall.params():
                             try:
