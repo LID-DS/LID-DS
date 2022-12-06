@@ -140,6 +140,7 @@ class BuildingBlock:
             If BuildingBlock is a decider it is possible to plot anomaly scores.
         """
         if not self.is_decider():
+            # Warning
             return None
         self.plot = ScorePlot()
         return 0

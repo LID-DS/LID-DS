@@ -228,7 +228,9 @@ class IDS:
         return performance
 
     def draw_plot(self, filename=None):
-        # plot data if wanted
+        """
+            plot data if wanted, if name is image is saved at execution
+        """
         if self.plot:
             self._final_bb.plot.feed_figure()
             self._final_bb.plot.show_plot(filename)
