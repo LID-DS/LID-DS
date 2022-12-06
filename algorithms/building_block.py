@@ -18,6 +18,8 @@ class BuildingBlock:
         self.__instance_id = None
         self.__last_result = None
         self.__last_syscall_id = None
+        self._last_anomaly_score = None
+        self.plot = plot
 
     def train_on(self, syscall: Syscall):
         """
@@ -138,9 +140,9 @@ class BuildingBlock:
             If BuildingBlock is a decider it is possible to plot anomaly scores.
         """
         if not self.is_decider():
-            return None 
+            return None
         self.plot = ScorePlot()
-        self._last_anomaly_score = 0
+        return 0
 
     def add_to_plot_data(self, syscall: Syscall, cfp_indices: tuple):
         """

@@ -171,7 +171,8 @@ class IDS:
         description = 'anomaly detection'.rjust(27)
 
         if self.plot:
-            self._final_bb.plot.threshold = self._final_bb._threshold
+            if not self._final_bb.plot.threshold :
+                self._final_bb.plot.threshold = self._final_bb._threshold
         for recording in tqdm(data, description, unit=" recording"):
             self.performance.new_recording(recording)
             if self.plot:

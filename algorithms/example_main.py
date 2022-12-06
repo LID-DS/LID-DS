@@ -92,7 +92,7 @@ if __name__ == '__main__':
     pprint(results)
 
     ### show plot
-    ids.draw_plot()
+    ids.draw_plot(filename='test.jpg')
     # enrich results with configuration and save to mongoDB
     results['config'] = ids.get_config_tree_links()
     results['scenario'] = SCENARIO_NAME
