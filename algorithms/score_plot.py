@@ -13,9 +13,10 @@ plt.rcParams.update({"font.size": 26,
 
 class ScorePlot:
 
-    def __init__(self, scenario_path=None):
+    def __init__(self, building_block_list : list, scenario_path : str):
 
-        # self._scenario_path = scenario_path
+        self._scenario_path = scenario_path
+        self._building_block_list = building_block_list
         self._figure = None
         self._anomaly_scores_exploits = []
         self._anomaly_scores_no_exploits = []

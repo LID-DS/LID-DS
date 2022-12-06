@@ -12,18 +12,18 @@ from dataloader.direction import Direction
 from algorithms.ids import IDS
 
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
-from algorithms.features.impl.one_hot_encoding import OneHotEncoding
+# from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.and_decider import AndDecider
-from algorithms.features.impl.or_decider import OrDecider
+# from algorithms.features.impl.and_decider import AndDecider
+# from algorithms.features.impl.or_decider import OrDecider
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
 
 from algorithms.decision_engines.stide import Stide
-from algorithms.decision_engines.ae import AE
+# from algorithms.decision_engines.ae import AE
 
-from algorithms.persistance import save_to_mongo
+# from algorithms.persistance import save_to_mongo
 
 
 if __name__ == '__main__':
@@ -72,6 +72,7 @@ if __name__ == '__main__':
     # decider_1 = MaxScoreThreshold(ae)
     decider_2 = MaxScoreThreshold(stream_sum)
     # combination_decider = AndDecider([decider_1, decider_2])
+    plot = ScorePlot([], SCENARIO_NAME)
     ### the IDS
     ids = IDS(data_loader=dataloader,
               resulting_building_block=decider_2,
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     pprint(results)
 
     ### show plot
-    ids.draw_plot(filename='test.jpg')
+    ## ids.draw_plot(list_of_bbs, filename='test.jpg')
     # enrich results with configuration and save to mongoDB
     results['config'] = ids.get_config_tree_links()
     results['scenario'] = SCENARIO_NAME
