@@ -12,19 +12,23 @@ from dataloader.direction import Direction
 from algorithms.ids import IDS
 
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
-from algorithms.features.impl.one_hot_encoding import OneHotEncoding
+# from algorithms.features.impl.one_hot_encoding import OneHotEncoding
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.syscall_name import SyscallName
-from algorithms.features.impl.and_decider import AndDecider
-from algorithms.features.impl.or_decider import OrDecider
+# from algorithms.features.impl.and_decider import AndDecider
+# from algorithms.features.impl.or_decider import OrDecider
 from algorithms.features.impl.stream_sum import StreamSum
 from algorithms.features.impl.ngram import Ngram
 
 from algorithms.decision_engines.stide import Stide
+<<<<<<< HEAD
 from algorithms.decision_engines.ae import AE
 from algorithms.score_plot import ScorePlot
+=======
+# from algorithms.decision_engines.ae import AE
+>>>>>>> 8e31546ed4334bcc87e3db2f21bf279c7b9640da
 
-from algorithms.persistance import save_to_mongo
+# from algorithms.persistance import save_to_mongo
 
 
 if __name__ == '__main__':
@@ -96,6 +100,11 @@ if __name__ == '__main__':
     ### print results
     pprint(results)
 
+<<<<<<< HEAD
+=======
+    ### show plot
+    ## ids.draw_plot(list_of_bbs, filename='test.jpg')
+>>>>>>> 8e31546ed4334bcc87e3db2f21bf279c7b9640da
     # enrich results with configuration and save to mongoDB
     results['config'] = ids.get_config_tree_links()
     results['scenario'] = SCENARIO_NAME

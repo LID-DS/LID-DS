@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from typing import Type, Optional
 
+import matplotlib.pyplot as plt
+
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
 
