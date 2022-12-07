@@ -2,22 +2,23 @@
     IDS class definition
 """
 from functools import reduce
+from typing import Optional
 from copy import deepcopy
 from typing import Type
 import json
 
 from tqdm.contrib.concurrent import process_map
 from networkx.readwrite import json_graph
-from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.base_recording import BaseRecording
 
+from algorithms.score_plot import ScorePlot
+
 from algorithms.performance_measurement import Performance
 from algorithms.data_preprocessor import DataPreprocessor
 from algorithms.building_block import BuildingBlock
-from algorithms.score_plot import ScorePlot
 
 
 class IDS:
@@ -29,7 +30,7 @@ class IDS:
     def __init__(self,
                  data_loader: BaseDataLoader,
                  resulting_building_block: BuildingBlock,
-                 plot_switch: bool,
+                 plot: Optional[ScorePlot] = None,
                  create_alarms: bool = False):
         self._data_loader = data_loader
         self._final_bb = resulting_building_block
@@ -44,9 +45,7 @@ class IDS:
         self._last_syscall_of_recording_list = []
         self._create_alarms = create_alarms
         self.performance = Performance(create_alarms)
-        if plot_switch is True:
-            self._final_bb.plot_init()
-            self.plot = True
+        self.plot = plot
 
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
@@ -112,55 +111,6 @@ class IDS:
         }
         return result
 
-    def determine_threshold(self):
-        """
-        decision engine calculates anomaly scores using validation data,
-        saves biggest score as threshold for detection phase
-
-        """
-        max_score = 0.0
-        data = self._data_loader.validation_data()
-        description = 'Threshold calculation'.rjust(27)
-        for recording in tqdm(data, description, unit=" recording"):
-            for syscall in recording.syscalls():
-                anomaly_score = self._final_bb.get_result(syscall)
-                if anomaly_score is not None:
-                    if anomaly_score > max_score:
-                        max_score = anomaly_score
-            self._data_preprocessor.new_recording()
-        self.threshold = max_score
-        self.performance.set_threshold(max_score)
-        if self.plot:
-            self._final_bb.plot.threshold = max_score
-        print(f"threshold={max_score:.3f}".rjust(27))
-
-    def determine_threshold_and_plot(self):
-        """
-        decision engine calculates anomaly scores using validation data,
-        saves biggest score as threshold for detection phase
-        plots the validation scores
-        """
-        max_score = 0.0
-        data = self._data_loader.validation_data()
-        description = 'Threshold calculation'.rjust(27)
-        scores = []
-        for recording in tqdm(data, description, unit=" recording"):
-            for syscall in recording.syscalls():
-                anomaly_score = self._final_bb.get_result(syscall)
-                if anomaly_score is not None:
-                    scores.append(anomaly_score)
-                    if anomaly_score > max_score:
-                        max_score = anomaly_score
-            self._data_preprocessor.new_recording()
-        self.threshold = max_score
-        self.performance.set_threshold(max_score)
-        if self.plot:
-            self._final_bb.plot.threshold = max_score
-        print(f"threshold={max_score:.3f}".rjust(27))
-
-        plt.plot(scores)
-        plt.show()
-
     def detect(self) -> Performance:
         """
         detecting performance values using the test data,
@@ -171,17 +121,17 @@ class IDS:
         description = 'anomaly detection'.rjust(27)
 
         if self.plot:
-            self._final_bb.plot.threshold = self._final_bb._threshold
+            self.plot.set_threshold()
         for recording in tqdm(data, description, unit=" recording"):
             self.performance.new_recording(recording)
             if self.plot:
-                self._final_bb.plot.new_recording(recording)
+                self.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
                 is_anomaly = self._final_bb.get_result(syscall)
                 self.performance.analyze_syscall(syscall, is_anomaly)
                 if self.plot:
-                    self._final_bb.add_to_plot_data(
+                    self.plot.add_to_plot_data(
                             syscall,
                             self.performance.get_cfp_indices())
 
@@ -190,6 +140,8 @@ class IDS:
             # run end alarm once to ensure that last alarm gets saved
             if self.performance.alarms is not None:
                 self.performance.alarms.end_alarm()
+        if self.plot:
+            self.draw_plot()
         return self.performance
 
     def detect_on_single_recording(self, recording: Type[BaseRecording]) -> Performance:
@@ -229,8 +181,8 @@ class IDS:
     def draw_plot(self, filename=None):
         # plot data if wanted
         if self.plot:
-            self._final_bb.plot.feed_figure()
-            self._final_bb.plot.show_plot(filename)
+            self.plot.feed_figure()
+            self.plot.show_plot()
 
     def _calculate(recording_ids_tuple: tuple) -> Performance:
         """

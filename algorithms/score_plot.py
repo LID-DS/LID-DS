@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from typing import Type
+from typing import Type, Optional
 
 from dataloader.base_recording import BaseRecording
 from dataloader.syscall import Syscall
@@ -9,25 +9,46 @@ plt.rcParams.update({"font.size": 26,
                      "figure.figsize": (55, 40),
                      "agg.path.chunksize": 10000})
 
+THRESHOLD_COLOR_LIST = ["black", "purple", "darkolivegreen", "darkblue", "maroon"]
+PLOT_COLOR_LIST = ["lightgrey",  "mediumorchid", "olivedrab", "cornflowerblue", "tomato"]
 
 class ScorePlot:
 
-    def __init__(self, scenario_path=None):
-
-        # self._scenario_path = scenario_path
+    def __init__(self,
+                 building_blocks: list,
+                 scenario_path: str,
+                 filename: Optional[str] = None):
+        self._scenario_path = scenario_path
+        self._bb_list = building_blocks
         self._figure = None
+        self._filename = filename
         self._anomaly_scores_exploits = []
+        self._anomaly_scores_exploits_dict = {}
         self._anomaly_scores_no_exploits = []
+        self._anomaly_scores_no_exploits_dict = {}
         self._first_syscall_of_exploit_recording_index_list = []
         self._first_syscall_of_normal_recording_index_list = []
         self._first_syscall_after_exploit_index_list = []
         self._exploit_time = None
         self._first_sys_after_exploit = False
-        self.threshold = 0.0
+        self._thresholds = {}
         self._first_syscall_of_cfp_list_exploit = []
         self._last_syscall_of_cfp_list_exploit = []
         self._first_syscall_of_cfp_list_normal = []
         self._last_syscall_of_cfp_list_normal = []
+
+    def set_threshold(self):
+        """
+        get threshold value from all building blocks
+        """
+
+        for bb in self._bb_list:
+            try:
+                self._thresholds[id(bb)] = bb._threshold
+                print(f'{id(bb)}: {bb._threshold}')
+            except AttributeError:
+                print("AttributeError")
+                print(f'{bb.__class__.__name__} has no threshold value')
 
     def new_recording(self, recording: Type[BaseRecording]):
         """
@@ -37,14 +58,22 @@ class ScorePlot:
 
         """
         if recording.metadata()["exploit"] is True:
-            self._first_syscall_of_exploit_recording_index_list.append(len(self._anomaly_scores_exploits))
+            if self._anomaly_scores_exploits_dict:
+                self._first_syscall_of_exploit_recording_index_list.append(
+                        len(list(self._anomaly_scores_exploits_dict.values())[0]))
+            else:
+                self._first_syscall_of_normal_recording_index_list.append(0)
             self._exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
             self._first_sys_after_exploit = False
         else:
-            self._first_syscall_of_normal_recording_index_list.append(len(self._anomaly_scores_no_exploits))
+            if self._anomaly_scores_no_exploits_dict:
+                self._first_syscall_of_normal_recording_index_list.append(
+                        len(list(self._anomaly_scores_no_exploits_dict.values())[0]))
+            else:
+                self._first_syscall_of_normal_recording_index_list.append(0)
             self._exploit_time = None
 
-    def add_to_plot_data(self, score: float, syscall: Syscall, cfa_indices: tuple):
+    def add_to_plot_data(self, syscall: Syscall, cfa_indices: tuple):
         """
         called in ids for every syscall:
             appends lists of anomaly scores,
@@ -52,17 +81,37 @@ class ScorePlot:
             saves cfa indices given in argument in member lists
 
         """
+        score = 0
         # saving scores separately for plotting
         if self._exploit_time is not None:
+            for bb in self._bb_list:
+                try:
+                    self._anomaly_scores_exploits_dict[id(bb)].append(
+                            bb._last_anomaly_score)
+                except KeyError:
+                    self._anomaly_scores_exploits_dict[id(bb)] = []
+                    self._anomaly_scores_exploits_dict[id(bb)].append(
+                            bb._last_anomaly_score)
             self._anomaly_scores_exploits.append(score)
             syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
 
             # getting index of first syscall after exploit of each recording for plotting
             if syscall_time >= self._exploit_time and self._first_sys_after_exploit is False:
-                self._first_syscall_after_exploit_index_list.append(len(self._anomaly_scores_exploits))
+                self._first_syscall_after_exploit_index_list.append(
+                        len(
+                            list(self._anomaly_scores_exploits_dict.values())[0]))
                 self._first_sys_after_exploit = True
 
         if self._exploit_time is None:
+            self._anomaly_scores_no_exploits.append(score)
+            for bb in self._bb_list:
+                try:
+                    self._anomaly_scores_no_exploits_dict[id(bb)].append(
+                            bb._last_anomaly_score)
+                except KeyError:
+                    self._anomaly_scores_no_exploits_dict[id(bb)] = []
+                    self._anomaly_scores_no_exploits_dict[id(bb)].append(
+                            bb._last_anomaly_score)
             self._anomaly_scores_no_exploits.append(score)
 
         self._first_syscall_of_cfp_list_exploit = cfa_indices[0]
@@ -90,8 +139,14 @@ class ScorePlot:
         ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
 
         # first subplot for normal activity
-        ax1.plot(self._anomaly_scores_no_exploits)
-        ax1.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
+        for i, bb in enumerate(self._bb_list):
+            ax1.plot(self._anomaly_scores_no_exploits_dict[id(bb)],
+                     PLOT_COLOR_LIST[i],
+                     label=f'{bb.__class__.__name__}{i}')
+            ax1.axhline(y=self._thresholds[id(bb)],
+                        color=THRESHOLD_COLOR_LIST[i],
+                        label=f'{bb.__class__.__name__}{i}',
+                        linewidth=2)
         ax1.legend()
 
         # cfp windows for normal subplot
@@ -100,8 +155,14 @@ class ScorePlot:
                 ax1.axvspan(i-1, j-1, color="mediumaquamarine", alpha=0.5)
 
         # second subplot for exploits
-        ax2.plot(self._anomaly_scores_exploits)
-        ax2.axhline(y=self.threshold, color="g", label="threshold", linewidth=2)
+        for i, bb in enumerate(self._bb_list):
+            ax2.plot(self._anomaly_scores_exploits_dict[id(bb)],
+                     PLOT_COLOR_LIST[i],
+                     label=f'{bb.__class__.__name__}{i}')
+            ax2.axhline(y=self._thresholds[id(bb)],
+                        color=THRESHOLD_COLOR_LIST[i],
+                        label=f'{bb.__class__.__name__}{i}',
+                        linewidth=2)
         ax2.legend()
 
         # exploit windows for exploit subplot
@@ -135,16 +196,16 @@ class ScorePlot:
         ax2.set_title("exploits")
         # self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
 
-    def show_plot(self, filename=None):
+    def show_plot(self):
 
         """
         shows plot if there is one
         """
         if self._figure is not None:
-            if filename is None:
+            if self._filename is None:
                 plt.show()
             else:
-                plt.savefig(filename,dpi=300)
+                plt.savefig(self._filename, dpi=300)
         else:
             "There is no plot to show."
 
