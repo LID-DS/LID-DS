@@ -69,12 +69,15 @@ class Alert:
                         if not self.network_list:
                             self.network_list.append(network_dict)
                         else:
-                            for network_entry in self.network_list:
-                                if network_dict['clientIP'] == network_entry['clientIP'] \
-                                   and network_dict['serverIP'] == network_entry['serverIP'] \
-                                   and network_dict['serverPort'] == network_entry['serverPort']\
-                                   and network_dict['clientPort'] != network_entry['clientPort']:
+                            if network_dict not in self.network_list:
+                                duplicate = False
+                                for entry in self.network_list:
+                                    if entry['clientIP'] == network_dict['clientIP'] and entry['serverIP'] == network_dict['serverIP'] and entry['serverPort'] == network_dict['serverPort'] and entry['clientPort'] != network_dict['clientPort']:
+                                        duplicate = True
+                                        continue
+                                if not duplicate:
                                     self.network_list.append(network_dict)
+
 
                 if file_matches:
                     for file in file_matches:
@@ -91,10 +94,10 @@ class Alert:
 if __name__ == '__main__':
     # loading data
     # data_base = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021'
-    # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
+    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
     dataloader = dataloader_factory(scenario_path)
     alert_file = open(alert_file_path)
@@ -115,6 +118,13 @@ if __name__ == '__main__':
 
         alert = Alert(scenario_path, time_window_seconds, syscalls_in_alert)
 
+        # saving files touched in training
+        for recording in dataloader.training_data():
+            for syscall in recording.syscalls():
+                pass
+
+
+        # accessing syscall batch from alert
         for recording in dataloader.test_data():
             if recording.name == recording_alert:
                 for syscall in recording.syscalls():
