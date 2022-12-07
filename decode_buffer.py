@@ -24,7 +24,7 @@ scenario_names = [
     "CVE-2020-13942",
     "CVE-2017-12635_6"
 ]
-param_names = []
+syscall_names = []
 
 for select_scenario_number in range(0, len(scenario_names)):
     scenario_path = f"{lid_ds_base_path}/{scenario_names[select_scenario_number]}"
@@ -32,12 +32,6 @@ for select_scenario_number in range(0, len(scenario_names)):
 
     for recording in dataloader.test_data():
         for syscall in recording.syscalls():
-            for key in syscall.params().keys():
-                if key not in param_names:
-                    param_names.append(key)
-
-    print(param_names)
-
-print(param_names)
-
+            if syscall.name() == 'wait' or syscall.name() == 'exec':
+                print(syscall.syscall_line)
 
