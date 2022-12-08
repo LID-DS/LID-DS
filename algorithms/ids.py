@@ -3,10 +3,9 @@
 """
 from copy import deepcopy
 from functools import reduce
-from typing import Type
+from typing import Type, Optional
 
 from tqdm import tqdm
-from networkx.readwrite import json_graph
 from tqdm.contrib.concurrent import process_map
 
 from algorithms.building_block import BuildingBlock
@@ -29,6 +28,7 @@ class IDS:
                  resulting_building_block: BuildingBlock,
                  plot: Optional[ScorePlot] = None,
                  create_alarms: bool = False):
+        self.plot = plot
         self._data_loader = data_loader
         self._final_bb = resulting_building_block
         if not self._final_bb.is_decider():
@@ -42,7 +42,6 @@ class IDS:
         self._last_syscall_of_recording_list = []
         self._create_alarms = create_alarms
         self.performance = Performance(create_alarms)
-        self.plot = plot
 
     def get_config(self) -> str:
         return self._data_preprocessor.get_graph_dot()
@@ -67,7 +66,6 @@ class IDS:
         """
         data = self._data_loader.test_data()
         description = 'anomaly detection'.rjust(27)
-
         if self.plot:
             self.plot.set_threshold()
         for recording in tqdm(data, description, unit=" recording"):
@@ -77,7 +75,8 @@ class IDS:
 
             for syscall in recording.syscalls():
                 is_anomaly = self._final_bb.get_result(syscall)
-                self.performance.analyze_syscall(syscall, is_anomaly)
+                if type(is_anomaly) is bool:
+                    self.performance.analyze_syscall(syscall, is_anomaly)
                 if self.plot:
                     self.plot.add_to_plot_data(
                             syscall,
@@ -112,7 +111,8 @@ class IDS:
 
         for syscall in recording.syscalls():
             is_anomaly = self._final_bb.get_result(syscall)
-            performance.analyze_syscall(syscall, is_anomaly)
+            if type(is_anomaly) is bool:
+                performance.analyze_syscall(syscall, is_anomaly)
 
         self._data_preprocessor.new_recording()
 
@@ -126,9 +126,9 @@ class IDS:
 
         return performance
 
-    def draw_plot(self, filename=None):
+    def draw_plot(self):
         """
-            plot data if wanted, if name is image is saved at execution
+            plot data if plot was provided
         """
         if self.plot:
             self.plot.feed_figure()
@@ -169,6 +169,7 @@ class IDS:
             chunksize=20,
             desc="anomaly detection".rjust(27),
             unit=" recordings")
+        print(performance_list)
 
         # Sum up performances
         if self._create_alarms:
