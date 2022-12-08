@@ -78,11 +78,16 @@ class Alert:
                                 if not duplicate:
                                     self.network_list.append(network_dict)
 
-
                 if file_matches:
                     for file in file_matches:
+                        if file in known_files:
+                            known = True
+                        else:
+                            known = False
+
                         file_dict = {'path': file,
-                                     'action': syscall.name()
+                                     'action': syscall.name(),
+                                     'known': known
                                      }
                         if file_dict not in self.files_list:
                             self.files_list.append(file_dict)
@@ -94,16 +99,27 @@ class Alert:
 if __name__ == '__main__':
     # loading data
     # data_base = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021'
-    alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
+    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
     dataloader = dataloader_factory(scenario_path)
     alert_file = open(alert_file_path)
     alert_dict = json.load(alert_file)
 
     args_analyzed = ['fd', 'out_fd', 'in_fd']
+    known_files = []
+
+    # saving files touched in training
+    for recording in dataloader.training_data():
+        for syscall in recording.syscalls():
+            if 'fd' in syscall.params().keys():
+                matched_files = re.findall(file_path_pattern, syscall.params()['fd'])
+                if matched_files:
+                    for file in matched_files:
+                        if file not in known_files:
+                            known_files.append(file)
 
     # looping over every entry in input alert file
     for entry in alert_dict['alarms']:
@@ -117,12 +133,6 @@ if __name__ == '__main__':
         syscalls_in_alert = last_line_id - first_line_id
 
         alert = Alert(scenario_path, time_window_seconds, syscalls_in_alert)
-
-        # saving files touched in training
-        for recording in dataloader.training_data():
-            for syscall in recording.syscalls():
-                pass
-
 
         # accessing syscall batch from alert
         for recording in dataloader.test_data():
