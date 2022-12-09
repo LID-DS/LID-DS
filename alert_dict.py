@@ -23,6 +23,22 @@ def extract_arg(arg_name: str):
     return arg_str
 
 
+def filter_known(list: list):
+    """
+    returns new list that only includes items not known form training
+
+    """
+    try:
+        filtered_list = {item for item in list if item['known'] == False}
+        return filtered_list
+    except:
+        try:
+            filtered_list = {item for item in list if item['dest_ip_known'] == False} # shit doesnt work here
+            return filtered_list
+        except KeyError:
+            print("List entries do not have 'known' attribute.")
+
+
 class Alert:
     def __init__(self, ds_path, time_window, syscall_count):
         self.alert_id = None
@@ -38,6 +54,21 @@ class Alert:
             self.process_list.append(entry_dict)
 
         return self.process_list
+
+    def show(self, show_known: bool):
+        """
+        print alert as dict, show_known flag for view that excludes known files and destination ips
+        """
+        if show_known:
+            pprint.pprint(vars(self))
+            return vars(self)
+
+        else:
+            filter_dict = vars(self)
+            for process in filter_dict['process_list']:
+                process['files_list'] = filter_known(process['files_list'])
+                process['network_list'] = filter_known(process['network_list'])
+            return filter_dict
 
     class Process:
         def __init__(self, process_id, user_id, process_name):
@@ -61,10 +92,16 @@ class Alert:
 
                 if ip_matches and port_matches:
                     for ip in ip_matches:
+                        if ip in known_ips:
+                            known = True
+                        else:
+                            known = False
+
                         network_dict = {'clientIP': ip_matches[0],
                                         'clientPort': port_matches[0],
                                         'serverIP': ip_matches[1],
-                                        'serverPort': port_matches[1]
+                                        'serverPort': port_matches[1],
+                                        'dest_ip_known': known
                                         }
                         if not self.network_list:
                             self.network_list.append(network_dict)
@@ -72,7 +109,10 @@ class Alert:
                             if network_dict not in self.network_list:
                                 duplicate = False
                                 for entry in self.network_list:
-                                    if entry['clientIP'] == network_dict['clientIP'] and entry['serverIP'] == network_dict['serverIP'] and entry['serverPort'] == network_dict['serverPort'] and entry['clientPort'] != network_dict['clientPort']:
+                                    if entry['clientIP'] == network_dict['clientIP'] and entry['serverIP'] == \
+                                            network_dict['serverIP'] and entry['serverPort'] == network_dict[
+                                        'serverPort'] and entry['dest_ip_known'] == network_dict[
+                                        'dest_ip_known'] and entry['clientPort'] != network_dict['clientPort']:
                                         duplicate = True
                                         continue
                                 if not duplicate:
@@ -99,10 +139,10 @@ class Alert:
 if __name__ == '__main__':
     # loading data
     # data_base = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021'
-    # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
+    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
     dataloader = dataloader_factory(scenario_path)
     alert_file = open(alert_file_path)
@@ -110,16 +150,24 @@ if __name__ == '__main__':
 
     args_analyzed = ['fd', 'out_fd', 'in_fd']
     known_files = []
+    known_ips = []
 
     # saving files touched in training
     for recording in dataloader.training_data():
         for syscall in recording.syscalls():
             if 'fd' in syscall.params().keys():
                 matched_files = re.findall(file_path_pattern, syscall.params()['fd'])
+                ip_matches = re.findall(ip_pattern, syscall.params()['fd'])
+
                 if matched_files:
                     for file in matched_files:
                         if file not in known_files:
                             known_files.append(file)
+
+                if ip_matches:
+                    for ip in ip_matches:
+                        if ip not in known_ips:
+                            known_ips.append(ip)
 
     # looping over every entry in input alert file
     for entry in alert_dict['alarms']:
@@ -160,4 +208,4 @@ if __name__ == '__main__':
                             current_process.arg_match_and_append(extract_arg(arg))
 
         alert.dictify_processes()
-        pprint.pprint(vars(alert))
+        alert.show(show_known=True)
