@@ -9,8 +9,6 @@ class AABB(BuildingBlock):
     def __init__(self,
                  feature: BuildingBlock):
         super().__init__()
-        self._threshold = 0
-
         self._feature = feature
         self._dependency_list = []
         self._dependency_list.append(self._feature)
