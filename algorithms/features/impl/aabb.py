@@ -1,5 +1,5 @@
-from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
+from algorithms.building_block import BuildingBlock
 
 MIN = 0
 MAX = 1
