@@ -29,14 +29,20 @@ def filter_known(list: list):
 
     """
     try:
-        filtered_list = {item for item in list if item['known'] == False}
+        filtered_list = [item for item in list if item['known'] is False]
         return filtered_list
-    except:
+    except KeyError:
         try:
-            filtered_list = {item for item in list if item['dest_ip_known'] == False} # shit doesnt work here
+            filtered_list = [item for item in list if item['dest_ip_known'] is False]  # shit doesnt work here
             return filtered_list
         except KeyError:
             print("List entries do not have 'known' attribute.")
+
+
+def save_to_file(alert_dict: dict):
+    with open('alerts.txt', 'a' ) as alert_output_file:
+        json.dump(alert_dict, alert_output_file)
+        print("saved to file")
 
 
 class Alert:
@@ -68,6 +74,7 @@ class Alert:
             for process in filter_dict['process_list']:
                 process['files_list'] = filter_known(process['files_list'])
                 process['network_list'] = filter_known(process['network_list'])
+            pprint.pprint(filter_dict)
             return filter_dict
 
     class Process:
@@ -111,8 +118,8 @@ class Alert:
                                 for entry in self.network_list:
                                     if entry['clientIP'] == network_dict['clientIP'] and entry['serverIP'] == \
                                             network_dict['serverIP'] and entry['serverPort'] == network_dict[
-                                        'serverPort'] and entry['dest_ip_known'] == network_dict[
-                                        'dest_ip_known'] and entry['clientPort'] != network_dict['clientPort']:
+                                            'serverPort'] and entry['dest_ip_known'] == network_dict[
+                                            'dest_ip_known'] and entry['clientPort'] != network_dict['clientPort']:
                                         duplicate = True
                                         continue
                                 if not duplicate:
@@ -139,10 +146,10 @@ class Alert:
 if __name__ == '__main__':
     # loading data
     # data_base = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021'
-    alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
+    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
     dataloader = dataloader_factory(scenario_path)
     alert_file = open(alert_file_path)
@@ -208,4 +215,5 @@ if __name__ == '__main__':
                             current_process.arg_match_and_append(extract_arg(arg))
 
         alert.dictify_processes()
-        alert.show(show_known=True)
+        output = alert.show(show_known=False)
+        save_to_file(output)

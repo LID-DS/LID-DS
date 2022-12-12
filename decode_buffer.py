@@ -32,6 +32,9 @@ for select_scenario_number in range(0, len(scenario_names)):
 
     for recording in dataloader.test_data():
         for syscall in recording.syscalls():
-            if syscall.process_id() == 1286020:
+            if syscall.process_name() == 'wget':
+                """if 'exe' in syscall.params().keys():
+                    print(syscall.param('exe'), syscall.param('pid'), syscall.param('ptid'))"""
                 print(syscall.syscall_line)
+
 
