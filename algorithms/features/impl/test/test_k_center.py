@@ -1,11 +1,12 @@
 from algorithms.features.impl.aabb import AABB
+from algorithms.features.impl.k_center import KCenter
 from dataloader.syscall_2021 import Syscall2021
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.features.impl.int_embedding import IntEmbedding
 
 
-def test_aabb():
+def test_k_center():
     # legit
     syscall_1 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047761484608 0 1 apache2 0 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
@@ -90,7 +91,7 @@ def test_aabb():
     inte = IntEmbedding(name)
     ngram = Ngram([inte], thread_aware=False, ngram_length=3)
 
-    aabb = AABB(ngram)
+    k_center = KCenter(ngram, 2)
 
     val_syscalls = [
         syscall_1, syscall_2, syscall_3, syscall_4,
@@ -108,24 +109,32 @@ def test_aabb():
         inte.train_on(syscall)
 
     for syscall in val_syscalls[0:2]:
-        print(ngram.get_result(syscall))
+        ngram.get_result(syscall)
     for syscall in val_syscalls[3:]:
-        aabb.val_on(syscall)
-        print(ngram._ngram_buffer)
+        k_center.val_on(syscall)
 
-    # min max values are now [[1, 4], [1, 4], [1, 4]]
+    k_center.fit()
 
-    assert aabb.get_result(syscall_9) is False   # [3,1,2]
-    assert aabb.get_result(syscall_10) is False  # [1,2,2]
-    assert aabb.get_result(syscall_11) is False  # [2,2,2]
-    assert aabb.get_result(syscall_12) is False  # [2,2,3]
-    assert aabb.get_result(syscall_13) is False  # [2,3,2]
-    assert aabb.get_result(syscall_14) is False  # [3,2,1]
-    assert aabb.get_result(syscall_15) is False  # [2,1,1]
-    assert aabb.get_result(syscall_16) is True   # [1,1,5]
-    assert aabb.get_result(syscall_17) is True   # [1,5,5]
-    assert aabb.get_result(syscall_18) is True   # [5,5,6]
-    assert aabb.get_result(syscall_19) is True   # [5,6,6]
-    assert aabb.get_result(syscall_20) is True   # [6,6,7]
-    assert aabb.get_result(syscall_21) is True   # [6,7,2]
-    assert aabb.get_result(syscall_22) is True   # [7,2,3]
+    # centers are [[1, 2, 3], [4, 3, 1]]
+    # max radius = 2.449489742783178
+
+                                                     # point   distance to nearest center
+                                                     # ----------------------------------
+    assert k_center.get_result(syscall_9) is False   # [3,1,2] 2.449489742783178
+    assert k_center.get_result(syscall_10) is False  # [1,2,2] 1.0
+    assert k_center.get_result(syscall_11) is False  # [2,2,2] 1.4142135623730951
+    assert k_center.get_result(syscall_12) is False  # [2,2,3] 1.0
+    assert k_center.get_result(syscall_13) is False  # [2,3,2] 1.7320508075688772
+    assert k_center.get_result(syscall_14) is False  # [3,2,1] 1.4142135623730951
+    assert k_center.get_result(syscall_15) is False  # [2,1,1] 2.449489742783178
+    assert k_center.get_result(syscall_16) is False  # [1,1,5] 2.23606797749979
+    assert k_center.get_result(syscall_17) is True   # [1,5,5] 3.6055512754639896
+    assert k_center.get_result(syscall_18) is True   # [5,5,6] 5.47722557505166
+    assert k_center.get_result(syscall_19) is True   # [5,6,6] 5.916079783099616
+    assert k_center.get_result(syscall_20) is True   # [6,6,7] 7.0
+    assert k_center.get_result(syscall_21) is True   # [6,7,2] 4.58257569495584
+    assert k_center.get_result(syscall_22) is True   # [7,2,3] 3.741657386773941
+
+
+if __name__ == '__main__':
+    test_k_center()

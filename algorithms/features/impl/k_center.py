@@ -14,7 +14,7 @@ class KCenter(BuildingBlock):
         find the maximum radius r of datapoints in validation data to that centers
 
         if the euclidian distance of a new datapoint is > r the datapoint is considered an anomaly
-        if it is < r it is considered benign
+        if the euclidian distance is < r the datapoint is considered benign
         @param feature: the input feature building block
         @param k: the number of centers to be found in the validation data
         """
@@ -28,7 +28,7 @@ class KCenter(BuildingBlock):
         self._distance_matrix = []
 
         self._centers = []
-
+        self._center_indices = []
         self._max_radius = 0.0
 
     def is_decider(self):
@@ -86,7 +86,9 @@ class KCenter(BuildingBlock):
 
         max_index = 0
         for i in range(self._k):
-            self._centers.append(max_index)
+            # add point to center indices list and center list
+            self._center_indices.append(max_index)
+            self._centers.append(self._datapoints[max_index])
             for j in range(n):
                 # updating the distance
                 # of the center to their
@@ -116,22 +118,14 @@ class KCenter(BuildingBlock):
         """
         finds the maximum radius over all datapoints to their nearest centers
         """
-        for point in self._datapoints:
+        for point_index, point in enumerate(self._datapoints):
             nearest_center_distance = 10 ** 9
-            # finding the nearest center for datapoint
-            for center in self._centers:
-                current_distance = math.dist(point, center)
+            # finding the nearest center for datapoint by lookup in distance matrix
+            for center_index in self._center_indices:
+                current_distance = self._distance_matrix[point_index][center_index]
                 if current_distance < nearest_center_distance:
                     nearest_center_distance = current_distance
 
-            # the maximum of the minimum distance over for all centers over all points is the max radius r
+            # the maximum of the minimum distance for all centers over all points is the max radius r
             if nearest_center_distance > self._max_radius:
                 self._max_radius = nearest_center_distance
-
-
-
-
-
-
-
-
