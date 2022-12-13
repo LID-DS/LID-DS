@@ -7,7 +7,6 @@ ip_pattern = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 port_pattern = re.compile(r"(?::)([0-9]+)")  # not bulletproof
 file_path_pattern = re.compile(r"(\/.*?\.[\w:]+)")
 
-
 def extract_arg(arg_name: str):
     """
     extracts value from systemcall parameter dict given arguments name,
@@ -17,7 +16,7 @@ def extract_arg(arg_name: str):
     try:
         arg_str = syscall.params()[arg_name]
     except KeyError:
-        # print(f"Argument {arg_name} not in system call.")
+        #print(f"Argument {arg_name} not in system call.")
         return None
 
     return arg_str
@@ -33,16 +32,16 @@ def filter_known(list: list):
         return filtered_list
     except KeyError:
         try:
-            filtered_list = [item for item in list if item['dest_ip_known'] is False]  # shit doesnt work here
+            filtered_list = [item for item in list if item['dest_ip_known'] is False]
             return filtered_list
         except KeyError:
             print("List entries do not have 'known' attribute.")
 
 
 def save_to_file(alert_dict: dict):
-    with open('alerts.txt', 'a' ) as alert_output_file:
-        json.dump(alert_dict, alert_output_file)
-        print("saved to file")
+    with open('alerts.json', 'a' ) as alert_output_file:
+        json.dump(alert_dict, alert_output_file, indent=2)
+        print("--> Output saved to json.")
 
 
 class Alert:
@@ -84,6 +83,7 @@ class Alert:
             self.process_name = process_name
             self.network_list = []
             self.files_list = []
+            self.parent_thread = None
 
         def arg_match_and_append(self, arg_str: str):
 
@@ -104,10 +104,10 @@ class Alert:
                         else:
                             known = False
 
-                        network_dict = {'clientIP': ip_matches[0],
-                                        'clientPort': port_matches[0],
-                                        'serverIP': ip_matches[1],
-                                        'serverPort': port_matches[1],
+                        network_dict = {'client_ip': ip_matches[0],
+                                        'client_port': port_matches[0],
+                                        'server_ip': ip_matches[1],
+                                        'server_port': port_matches[1],
                                         'dest_ip_known': known
                                         }
                         if not self.network_list:
@@ -116,10 +116,10 @@ class Alert:
                             if network_dict not in self.network_list:
                                 duplicate = False
                                 for entry in self.network_list:
-                                    if entry['clientIP'] == network_dict['clientIP'] and entry['serverIP'] == \
-                                            network_dict['serverIP'] and entry['serverPort'] == network_dict[
-                                            'serverPort'] and entry['dest_ip_known'] == network_dict[
-                                            'dest_ip_known'] and entry['clientPort'] != network_dict['clientPort']:
+                                    if entry['client_port'] == network_dict['client_port'] and entry['server_ip'] == \
+                                            network_dict['server_ip'] and entry['server_port'] == network_dict[
+                                            'server_port'] and entry['dest_ip_known'] == network_dict[
+                                            'dest_ip_known'] and entry['client_port'] != network_dict['client_port']:
                                         duplicate = True
                                         continue
                                 if not duplicate:
@@ -144,16 +144,22 @@ class Alert:
 
 
 if __name__ == '__main__':
-    # loading data
+
     # data_base = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021'
     # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    #scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+
+    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
+
 
     dataloader = dataloader_factory(scenario_path)
     alert_file = open(alert_file_path)
     alert_dict = json.load(alert_file)
+
+    output = {'alerts': []}
 
     args_analyzed = ['fd', 'out_fd', 'in_fd']
     known_files = []
@@ -187,6 +193,7 @@ if __name__ == '__main__':
         time_window_seconds = (last_timestamp - first_timestamp) * pow(10, -9)
         syscalls_in_alert = last_line_id - first_line_id
 
+
         alert = Alert(scenario_path, time_window_seconds, syscalls_in_alert)
 
         # accessing syscall batch from alert
@@ -214,6 +221,21 @@ if __name__ == '__main__':
                         for arg in args_analyzed:
                             current_process.arg_match_and_append(extract_arg(arg))
 
+                        if syscall.name() == 'clone':
+                            try:
+                                current_process.parent_thread = (syscall.param('ptid'), syscall.name())
+                            except:
+                                pass
+
+                        if syscall.name() == 'execve':
+                            try:
+                                current_process.parent_thread = (syscall.param('ptid'), syscall.name())
+                            except:
+                                pass
+
+
         alert.dictify_processes()
-        output = alert.show(show_known=False)
-        save_to_file(output)
+        single_alert = alert.show(show_known=True)
+        output['alerts'].append(single_alert)
+
+    save_to_file(output)
