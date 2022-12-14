@@ -31,7 +31,7 @@ if __name__ == '__main__':
                              "$LID_DS_BASE") from exc
 
     LID_DS_VERSION = "LID-DS-2019"
-    SCENARIO_NAME = "CVE-2014-0160"
+    SCENARIO_NAME = "CVE-2017-7529"
 
 
     scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{SCENARIO_NAME}"
