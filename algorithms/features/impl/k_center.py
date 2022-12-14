@@ -35,8 +35,13 @@ class KCenter(BuildingBlock):
         return True
 
     def val_on(self, syscall: Syscall):
-        feature_input = self._feature.get_result(syscall)
-        self._datapoints.append(list(feature_input))
+        """
+        adds validation datapoints to distinct datapoint list
+        @param syscall: the current validation system call
+        """
+        feature_input = list(self._feature.get_result(syscall))
+        if feature_input not in self._datapoints:
+            self._datapoints.append(feature_input)
 
     def fit(self):
         """
