@@ -1,5 +1,7 @@
 import math
 
+from tqdm import tqdm
+
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
@@ -26,17 +28,28 @@ class NearestNeighbour(BuildingBlock):
 
         self._nearest_neighbour_distances = []
 
+        self._cache = {}
+
     def is_decider(self):
         return True
+
+    def depends_on(self):
+        return self._dependency_list
 
     def val_on(self, syscall: Syscall):
         """
         adds validation datapoints to distinct datapoint list
         @param syscall: the current validation system call
         """
-        feature_input = list(self._feature.get_result(syscall))
-        if feature_input not in self._datapoints:
-            self._datapoints.append(feature_input)
+        feature_input = self._feature.get_result(syscall)
+
+        # cast int to list
+        if type(feature_input) == int:
+            feature_input = [feature_input]
+
+        if feature_input is not None:
+            if list(feature_input) not in self._datapoints:
+                self._datapoints.append(list(feature_input))
 
     def fit(self):
         """
@@ -45,7 +58,7 @@ class NearestNeighbour(BuildingBlock):
         """
 
         # calculate distance matrix
-        for point_a in self._datapoints:
+        for point_a in tqdm(self._datapoints, desc="Calc distance matrix".rjust(27)):
             distances = []
             for point_b in self._datapoints:
                 # calculate euclidian distance
@@ -54,15 +67,14 @@ class NearestNeighbour(BuildingBlock):
             self._distance_matrix.append(distances)
 
         # find distance of nearest neighbour for every datapoint and save it in list
-        for distances in self._distance_matrix:
+        for distances in tqdm(self._distance_matrix, desc="Calc all nearest neighbours".rjust(27)):
             min_distance = 10 ** 9
             for distance in distances:
-                # the point has distance 0.0 to itself but is not its neighbour
+                # the point has distance 0.0 to itself but is not its own neighbour -> filtering it
                 if 0.0 < distance < min_distance:
                     min_distance = distance
 
             self._nearest_neighbour_distances.append(min_distance)
-
 
     def _calculate(self, syscall: Syscall) -> bool:
         """
@@ -74,23 +86,35 @@ class NearestNeighbour(BuildingBlock):
         @param syscall: System Call to be evaluated by this building block
         @return: boolean decision if point is an anomaly or not
         """
-        feature_input = list(self._feature.get_result(syscall))
+        feature_input = self._feature.get_result(syscall)
 
-        # find the nearest neighbour of input datapoint
-        min_distance = 10 ** 9
-        min_index = 0
-        for point_index, datapoint in enumerate(self._datapoints):
-            current_distance = math.dist(feature_input, datapoint)
-            if current_distance < min_distance:
-                min_distance = current_distance
-                min_index = point_index
+        # cast int to list
+        if type(feature_input) == int:
+            feature_input = [feature_input]
 
-        # retrieve the distance of nearest neighbour to its nearest neighbour by looking up its index
-        nearest_neighbour_nn_distance = self._nearest_neighbour_distances[min_index]
+        if feature_input is not None:
+            feature_input = list(feature_input)
+            # caching the result
+            if tuple(feature_input) in self._cache.keys():
+                return self._cache[tuple(feature_input)]
+            else:
+                # find the nearest neighbour of input datapoint
+                min_distance = 10 ** 9
+                min_index = 0
+                for point_index, datapoint in enumerate(self._datapoints):
+                    current_distance = math.dist(feature_input, datapoint)
+                    if current_distance < min_distance:
+                        min_distance = current_distance
+                        min_index = point_index
 
-        # check if distance of datapoint to nearest neighbour is higher than
-        # the distance of the nearest neighbour to its nearest neighbour
-        if min_distance > nearest_neighbour_nn_distance:
-            return True
-        else:
-            return False
+                # retrieve the distance of nearest neighbour to its nearest neighbour by looking up its index
+                nearest_neighbour_nn_distance = self._nearest_neighbour_distances[min_index]
+
+                # check if distance of datapoint to nearest neighbour is higher than
+                # the distance of the nearest neighbour to its nearest neighbour
+                if min_distance > nearest_neighbour_nn_distance:
+                    self._cache[tuple(feature_input)] = True
+                    return True
+                else:
+                    self._cache[tuple(feature_input)] = False
+                    return False

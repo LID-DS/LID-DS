@@ -1,5 +1,7 @@
 import math
 
+from tqdm import tqdm
+
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
@@ -31,6 +33,11 @@ class KCenter(BuildingBlock):
         self._center_indices = []
         self._max_radius = 0.0
 
+        self._cache = {}
+
+    def depends_on(self):
+        return self._dependency_list
+
     def is_decider(self):
         return True
 
@@ -39,9 +46,15 @@ class KCenter(BuildingBlock):
         adds validation datapoints to distinct datapoint list
         @param syscall: the current validation system call
         """
-        feature_input = list(self._feature.get_result(syscall))
-        if feature_input not in self._datapoints:
-            self._datapoints.append(feature_input)
+        feature_input = self._feature.get_result(syscall)
+
+        # cast int to list
+        if type(feature_input) == int:
+            feature_input = [feature_input]
+
+        if feature_input is not None:
+            if list(feature_input) not in self._datapoints:
+                self._datapoints.append(list(feature_input))
 
     def fit(self):
         """
@@ -49,7 +62,7 @@ class KCenter(BuildingBlock):
         calls method to find centers in data
         calls method to determine the maximum radius r
         """
-        for point_a in self._datapoints:
+        for point_a in tqdm(self._datapoints, desc="Calculating distance matrix".rjust(27)):
             distances = []
             for point_b in self._datapoints:
                 # calculate euclidian distance
@@ -68,17 +81,30 @@ class KCenter(BuildingBlock):
         """
         feature_input = self._feature.get_result(syscall)
 
-        # find the nearest center
-        min_distance = 10 ** 9
-        for center in self._centers:
-            current_distance = math.dist(list(feature_input), center)
-            if current_distance < min_distance:
-                min_distance = current_distance
+        # cast int to list
+        if type(feature_input) == int:
+            feature_input = [feature_input]
 
-        if min_distance > self._max_radius:
-            return True
+        if feature_input is not None:
+            # caching the result
+            if tuple(feature_input) in self._cache.keys():
+                return self._cache[tuple(feature_input)]
+            else:
+                # find the nearest center
+                min_distance = 10 ** 9
+                for center in self._centers:
+                    current_distance = math.dist(list(feature_input), center)
+                    if current_distance < min_distance:
+                        min_distance = current_distance
+
+                if min_distance > self._max_radius:
+                    self._cache[tuple(feature_input)] = True
+                    return True
+                else:
+                    self._cache[tuple(feature_input)] = False
+                    return False
         else:
-            return False
+            return None
 
     def _find_k_centers(self):
         """
@@ -90,7 +116,7 @@ class KCenter(BuildingBlock):
             dist[i] = 10 ** 9
 
         max_index = 0
-        for i in range(self._k):
+        for i in tqdm(range(self._k), desc="Calculating centers".rjust(27)):
             # add point to center indices list and center list
             self._center_indices.append(max_index)
             self._centers.append(self._datapoints[max_index])
@@ -123,7 +149,7 @@ class KCenter(BuildingBlock):
         """
         finds the maximum radius over all datapoints to their nearest centers
         """
-        for point_index, point in enumerate(self._datapoints):
+        for point_index, point in enumerate(tqdm(self._datapoints, desc="Calculating radius".rjust(27))):
             nearest_center_distance = 10 ** 9
             # finding the nearest center for datapoint by lookup in distance matrix
             for center_index in self._center_indices:
