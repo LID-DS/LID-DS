@@ -64,7 +64,7 @@ def find_empty_recordings(recording_list: list, description: str):
             syscall = next(generator)
         except:
             # calculates index based on position of LID-DS directory in file path
-            path_parts = recording.path.split('/')
+            path_parts = recording.path_to_syscalls.split('/')
             index = len(path_parts) - path_parts.index('LID-DS-2021') - 1
 
             empty_recording_list.append(os.path.join(*path_parts[-index:]))

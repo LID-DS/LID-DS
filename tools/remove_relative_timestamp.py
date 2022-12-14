@@ -40,8 +40,8 @@ if __name__ == '__main__':
         dataloader = DataLoader(os.path.join(dataset_base_path, scenario))
         for category in tqdm(categories):
             for recording in dataloader.extract_recordings(category):
-                recording_path = recording.path
-                sub_path = recording.path.replace(dataset_base_path, '')
+                recording_path = recording.path_to_syscalls
+                sub_path = recording.path_to_syscalls.replace(dataset_base_path, '')
                 src_zip = recording_path
                 dst_zip = os.path.join(target_dir, sub_path)
                 recording_name = os.path.splitext(os.path.basename(os.path.normpath(recording_path)))[0]

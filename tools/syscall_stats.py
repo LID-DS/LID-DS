@@ -144,7 +144,7 @@ def calc_stats_for_recording_type(recording_list: list, description: str) -> dic
 
         # adds recording paths to list if recording is empty
         if len(distinct_user_ids) == 0:
-            append_to_textile(args.output_path, recording.path)
+            append_to_textile(args.output_path, recording.path_to_syscalls)
 
         """
         appending length of distinct sets to overview lists, represents the number of distinct users,
