@@ -15,7 +15,6 @@ class BuildingBlock:
         self.__instance_id = None
         self.__last_result = None
         self.__last_syscall_id = None
-        self._last_anomaly_score = None
 
     def train_on(self, syscall: Syscall):
         """
