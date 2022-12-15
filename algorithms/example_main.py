@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # ae = AE(ngram_ae)
     # build stream sum of stide results
     stream_sum = StreamSum(stide, False, 500, False)
-    stream_sum_2 = StreamSum(stide, False, 100, False)
+    stream_sum_2 = StreamSum(stide, False, 2, False)
     # decider threshold
     decider_1 = MaxScoreThreshold(stream_sum)
     decider_2 = MaxScoreThreshold(stream_sum_2)
@@ -75,7 +75,6 @@ if __name__ == '__main__':
     filename = None
     plot = ScorePlot(building_blocks=[decider_1, decider_2],
                      scenario_path=SCENARIO_NAME,
-                     validation=True,
                      filename=filename)
     """ the IDS """
     ids = IDS(data_loader=dataloader,

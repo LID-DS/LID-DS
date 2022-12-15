@@ -1,15 +1,11 @@
 from collections.abc import Iterable
-from typing import Type
 
 from algorithms.building_block_id_manager import BuildingBlockIDManager
-from algorithms.score_plot import ScorePlot
 
 from dataloader.syscall import Syscall
-from dataloader.base_recording import BaseRecording
 
 
-class BuildingBlock:
-    """
+class BuildingBlock: """
     base class for features and other algorithms
     """
 
@@ -116,7 +112,6 @@ class BuildingBlock:
             del args['__class__']
             final_args = {}
             for k, v in args.items():
-                # print(f"at {k}")
                 if not isinstance(v, BuildingBlock) and (isinstance(v, str) or not isinstance(v, Iterable)):
                     final_args[k] = v
                 if isinstance(v, Iterable) and not isinstance(v, str):
@@ -135,19 +130,3 @@ class BuildingBlock:
             If BuildingBlock is a decider (e.g. max score threshold) return True
         """
         return False
-
-    def plot_init(self):
-        """
-            If BuildingBlock is a decider it is possible to plot anomaly scores.
-        """
-        if not self.is_decider():
-            # Warning
-            return None
-        self.plot = ScorePlot()
-        return 0
-
-    def add_to_plot_data(self, syscall: Syscall, cfp_indices: tuple):
-        """
-            Helper function because anomaly score is not available in ids.py
-        """
-        self.plot.add_to_plot_data(self._last_anomaly_score, syscall, cfp_indices)

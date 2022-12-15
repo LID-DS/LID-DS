@@ -4,27 +4,36 @@ from typing import Type, Optional
 from dataloader.syscall import Syscall
 from dataloader.base_recording import BaseRecording
 
+
 # adjusting plot parameters
-plt.rcParams.update({"font.size": 26,
+plt.rcParams.update({"font.size": 20,
                      "figure.figsize": (55, 40),
-                     "agg.path.chunksize": 10000})
+                     "agg.path.chunksize": 10000,
+                     "legend.fontsize": 10,
+                     "axes.titlesize": 15,
+                     "axes.labelsize": 12,
+                     "xtick.labelsize": 10,
+                     "ytick.labelsize": 10},)
+
 
 THRESHOLD_COLOR_LIST = ["teal",
                         "purple",
                         "darkolivegreen",
                         "darkblue",
                         "maroon"]
+
 PLOT_COLOR_LIST = ["cadetblue",
                    "mediumorchid",
                    "olivedrab",
                    "cornflowerblue",
                    "tomato"]
+
 EXPLOIT_COLOR = "lightgray"
 
 
 class ScorePlot:
     """
-    Plot anomaly scores either while validation or testing.
+    Plot anomaly scores while testing.
     Needs to be initialized in main handed over as parameter to IDS.
     Args:
     building_blocks(list): list of bbs of which threshold and anomaly scores
@@ -38,9 +47,7 @@ class ScorePlot:
     def __init__(self,
                  building_blocks: list,
                  scenario_path: str,
-                 validation: bool = False,
                  filename: Optional[str] = None):
-        self.validation = validation
         self._scenario_path = scenario_path
         self._bb_list = building_blocks
         self._figure = None
@@ -66,7 +73,6 @@ class ScorePlot:
         for bb in self._bb_list:
             try:
                 self._thresholds[id(bb)] = bb._threshold
-                print(f'{id(bb)}: {bb._threshold}')
             except AttributeError:
                 print("AttributeError")
                 print(f'{bb.__class__.__name__} has no threshold value')
@@ -213,7 +219,7 @@ class ScorePlot:
 
         ax1.set_title("normal activity")
         ax2.set_title("exploits")
-        self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], fontsize=50, weight="bold")
+        self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], weight="bold")
 
     def show_plot(self) -> None:
 
