@@ -5,17 +5,17 @@ from algorithms.building_block_id_manager import BuildingBlockIDManager
 from dataloader.syscall import Syscall
 
 
-class BuildingBlock: """
+class BuildingBlock:
+    """
     base class for features and other algorithms
     """
 
-    def __init__(self, plot=False):
+    def __init__(self):
         self.__config = BuildingBlock.__arguments()
         self.__instance_id = None
         self.__last_result = None
         self.__last_syscall_id = None
         self._last_anomaly_score = None
-        self.plot = plot
 
     def train_on(self, syscall: Syscall):
         """
