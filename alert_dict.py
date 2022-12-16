@@ -13,11 +13,21 @@ def save_basic_info(alarm_entry):
     saves information from alarm entry,
     returns dict
     """
+    if alarm_entry['first_line_id'] == alarm_entry['last_line_id']:
+        syscall_count = 1
+    else:
+        syscall_count = alarm_entry['last_line_id'] - alarm_entry['first_line_id']
+
+    if alarm_entry['last_timestamp'] == alarm_entry['first_timestamp']:
+        time_window_seconds = "single syscall"
+    else:
+        time_window_seconds = (alarm_entry['last_timestamp'] - alarm_entry['first_timestamp']) * pow(10, -9)
+
 
     basic_alarm_info = {'scenario_path': alarm_entry['filepath'],
                         'alert_recording': alarm_entry['filepath'].strip("/'").split('/')[3].strip(".zip"),
-                        'time_window_seconds': (alarm_entry['last_timestamp'] - alarm_entry['first_timestamp']) * pow(10, -9),
-                        'syscall_count': alarm_entry['last_line_id'] - alarm_entry['first_line_id'],
+                        'time_window_seconds': time_window_seconds,
+                        'syscall_count': syscall_count,
                         'first_line_id': alarm_entry['first_line_id'],
                         'last_line_id': alarm_entry['last_line_id']}
 
@@ -181,7 +191,7 @@ def save_to_file(alert_dict: dict):
 
 
 class Alert:
-    def __init__(self, **basic_info):
+    def __init__(self, basic_info):
         self.alert_id = None
         self.path_to_syscalls = basic_info['scenario_path']
         self.recording_name = basic_info['alert_recording']
@@ -190,6 +200,9 @@ class Alert:
         self.time_window = basic_info['time_window_seconds']
         self.syscall_count = basic_info['syscall_count']
         self.process_list = []
+
+    def set_id(self):
+       pass
 
     def dictify_processes(self):
         for entry in self.process_list:
@@ -272,13 +285,13 @@ class Alert:
 
 if __name__ == '__main__':
 
-    # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
+    alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
     # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
-    alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
+    #alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
+    #scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
     dataloader = dataloader_factory(scenario_path)
 
     output = {'alerts': []}  # dict for json output
@@ -295,15 +308,21 @@ if __name__ == '__main__':
         for entry in alert_dict['alarms']:
             alarm_info = save_basic_info(entry)
 
-            alert = Alert(alarm_info)  # kwargs not working yet
+            alert = Alert(alarm_info)
 
             alert_list.append(alert)
 
     for recording in dataloader.test_data():
-        # current_alert = [alert for alert in alert_list if alert.recording_name == recording.name]
+        """current_alert = None
         for alert in alert_list:
+            print(recording.name, alert.recording_name)
             if alert.recording_name == recording.name:
                 current_alert = alert
+                break"""
+        current_alert = next((alert for alert in alert_list if alert.recording_name == recording.name), None)
+
+        if current_alert is None:
+            continue
 
         for syscall in recording.syscalls():
             if syscall.line_id in range(current_alert.first_line_id, current_alert.last_line_id + 1):
@@ -317,7 +336,7 @@ if __name__ == '__main__':
                 trace_parent(syscall, current_process)  # saving ptid for clone and execve syscalls
 
         current_alert.dictify_processes()
-        single_alert = current_alert.show(show_known=True)  # pprint alert as dict
+        single_alert = current_alert.show(show_known=False)  # pprint alert as dict
         single_alert_shortened = hide_irrelevant(single_alert)  # hide path and recording information for analysis
         output['alerts'].append(single_alert_shortened)
 
