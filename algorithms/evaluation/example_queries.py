@@ -125,7 +125,7 @@ def find_best_algorithm():
         scenarios=["CVE-2017-7529", "CVE-2014-0160"],
         directions=[Direction.BOTH],
         features=features,
-        group_by_config=group_by_config,
+        config_aliases=group_by_config,
     )
 
     print(tabulate(results, headers="keys", tablefmt="github"))
@@ -140,7 +140,7 @@ def algorithm_wise_best_average_configuration():
         scenarios=["CVE-2017-7529", "CVE-2014-0160"],
         directions=[Direction.BOTH],
         features=features,
-        group_by_config=group_by_config,
+        config_aliases=group_by_config,
         firstK_in_group=3
     )
 
@@ -160,7 +160,7 @@ def scenario_wise_best_average_configuration():
         algorithms=["Som", "LSTM", "AE", "Stide"],
         directions=[Direction.BOTH],
         features=features,
-        group_by_config=group_by_config,
+        config_aliases=group_by_config,
         firstK_in_group=6
     )
     results = [r.pop("_id") | r for result in results for r in result['results']]

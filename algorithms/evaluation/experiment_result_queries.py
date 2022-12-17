@@ -37,7 +37,7 @@ class ResultQuery:
     ):
         """ Find all results matching the specified algorithm, dataset and configurations """
         match = self.construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios)
-        addFields, all_config_aliases = self.construct_addFields_stage(config_aliases)
+        addFields, config_aliases_keys = self.construct_addFields_stage(config_aliases)
 
         # final pipeline
         pipeline = [
@@ -57,43 +57,25 @@ class ResultQuery:
             features: dict[str, list[str]] = None,
             features_exact_match: bool = False,
             group_by: list[str] = None,
-            group_by_config: dict = None,
+            config_aliases: dict = None,
     ):
-        """ Get all results matching the specified arguments. """
+        """ Get all results matching the specified arguments.
+        TODO:
+        Args:
+            algorithms:
+            scenarios:
+            datasets:
+            directions:
+            features:
+            features_exact_match:
+            group_by:
+            config_aliases:
+        """
 
         match = self.construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios)
-        addFields, config_aliases = self.construct_addFields_stage(group_by_config)
+        addFields, config_aliases_keys = self.construct_addFields_stage(config_aliases)
 
-        # grouping phase
-        if group_by is None:
-            group_by = {
-                "dataset": "$dataset",
-                "algorithm": "$algorithm",
-            }
-
-        group_by |= {alias: f"${alias}" for _, alias in config_aliases}
-
-        # FIXME: make configurable
-        group = {
-            "_id": group_by,
-            "avg_DR": {
-                "$avg": "$detection_rate"
-            },
-            "avg_FA": {
-                "$avg": {
-                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
-                }
-            },
-            "sum_FA": {
-                "$sum": {
-                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
-                }
-            },
-            "count": {
-                "$sum": 1
-            }
-        }
-
+        group = ResultQuery.aggregate_metrics(group_by, config_aliases_keys)
         # sorting phase
         sort = {
             "avg_DR": -1,
@@ -120,45 +102,30 @@ class ResultQuery:
             features: dict[str, list[str]] = None,
             features_exact_match: bool = False,
             group_by: list[str] = None,
-            group_by_config: dict = None,
+            config_aliases: dict = None,
             firstK_in_group: int = None,
+            where: dict = None,
     ):
         """
             For each algorithm, find the k best configurations
+        TODO:
+        Args:
+            algorithms:
+            scenarios:
+            datasets:
+            directions:
+            features:
+            features_exact_match:
+            group_by:
+            config_aliases:
+            firstK_in_group:
+            where:
         """
         match = self.construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios)
-        addFields, config_aliases = self.construct_addFields_stage(group_by_config)
+        addFields, config_aliases_keys = self.construct_addFields_stage(config_aliases)
+        group = ResultQuery.aggregate_metrics(group_by, config_aliases_keys)
 
-        # grouping phase
-        if group_by is None:
-            group_by = {
-                'dataset': '$dataset',
-                'algorithm': '$algorithm',
-            }
-
-        group_by |= {alias: f"${alias}" for _, alias in config_aliases}
-
-        group = {
-            "_id": group_by,
-            "avg_DR": {
-                "$avg": "$detection_rate"
-            },
-            "avg_FA": {
-                "$avg": {
-                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
-                }
-            },
-            "sum_FA": {
-                "$sum": {
-                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
-                }
-            },
-            "count": {
-                "$sum": 1
-            }
-        }
-
-        group2 = {
+        push_groups_to_root = {
             "_id": {
                 "dataset": "$_id.dataset",
                 "algorithm": "$_id.algorithm"
@@ -176,6 +143,7 @@ class ResultQuery:
                         "$sortArray": {
                             "input": "$results",
                             "sortBy": {
+                                "avg_F1": -1,
                                 "avg_DR": -1,
                                 "avg_FA": 1
                             }
@@ -191,9 +159,10 @@ class ResultQuery:
         pipeline = [
             {"$match": match},
             {"$addFields": addFields},
+            {"$match": where or {}},
             {"$group": group},
-            {"$group": group2},
-            {"$project": sort_algo_wise}
+            {"$group": push_groups_to_root},
+            {"$project": sort_algo_wise},
         ]
         result = list(self._experiments.aggregate(pipeline))
         return result
@@ -207,46 +176,33 @@ class ResultQuery:
             features: dict[str, list[str]] = None,
             features_exact_match: bool = False,
             group_by: list[str] = None,
-            group_by_config: dict = None,
-            firstK_in_group: int = None,
+            config_aliases: dict = None,
+            firstK_in_group: int = 3,
+            where: dict = None,
     ):
         """
             For each scenario, find the k best algorithms
+        TODO:
+        Args:
+            algorithms:
+            scenarios:
+            datasets:
+            directions:
+            features:
+            features_exact_match:
+            group_by:
+            config_aliases:
+            firstK_in_group:
+            where:
         """
         match = self.construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios)
-        addFields, config_aliases = self.construct_addFields_stage(group_by_config)
-
-        # grouping phase
+        addFields, config_aliases_keys = self.construct_addFields_stage(config_aliases)
         if group_by is None:
-            group_by = {
-                'dataset': '$dataset',
-                'scenario': '$scenario',
-                'algorithm': '$algorithm',
-            }
+            group_by = ["dataset", "scenario"]
+        group = ResultQuery.aggregate_metrics(group_by, config_aliases_keys)
 
-        group_by |= {alias: f"${alias}" for _, alias in config_aliases}
-
-        group = {
-            "_id": group_by,
-            "avg_DR": {
-                "$avg": "$detection_rate"
-            },
-            "avg_FA": {
-                "$avg": {
-                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
-                }
-            },
-            "sum_FA": {
-                "$sum": {
-                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
-                }
-            },
-            "count": {
-                "$sum": 1
-            }
-        }
-
-        group2 = {
+        # This is helpful for the second grouping. We basically move the result group to the top level of the document.
+        push_groups_to_root = {
             "_id": {
                 "dataset": "$_id.dataset",
                 "scenario": "$_id.scenario",
@@ -264,6 +220,7 @@ class ResultQuery:
                         "$sortArray": {
                             "input": "$results",
                             "sortBy": {
+                                "avg_F1": -1,
                                 "avg_DR": -1,
                                 "avg_FA": 1
                             }
@@ -279,31 +236,33 @@ class ResultQuery:
         pipeline = [
             {"$match": match},
             {"$addFields": addFields},
+            {"$match": where or {}},
             {"$group": group},
-            {"$group": group2},
-            {"$project": sort_scenario_wise}
+            {"$group": push_groups_to_root},
+            {"$project": sort_scenario_wise},
         ]
+
         result = list(self._experiments.aggregate(pipeline))
         return result
 
     @staticmethod
-    def construct_addFields_stage(group_by_config) -> tuple[dict, list[tuple]]:
+    def construct_addFields_stage(aliases) -> tuple[dict, list[tuple]]:
         """ addFields phase to extract config values """
-        config_aliases = [_get_config_aliases([config]) for config in group_by_config.values()]
+        config_aliases = [_get_config_aliases([config]) for config in aliases.values()]
         config_aliases = list(itertools.chain.from_iterable(config_aliases))
         addFields = {}
         for config, config_alias in config_aliases:
             addFields[config_alias] = {
                 "$function": {
                     "body": _custom_js_function("get_config_value"),
-                    "args": ["$config.nodes", "$config.links", "$algorithm", group_by_config, config_alias],
+                    "args": ["$config.nodes", "$config.links", "$algorithm", aliases, config_alias],
                     "lang": "js"
                 }
             }
         return addFields, config_aliases
 
     @staticmethod
-    def construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios):
+    def construct_match_stage(algorithms, datasets, directions, features, features_exact_match, scenarios) -> dict:
         """ Match phase for filtering results """
         match = {}
         if algorithms is not None:
@@ -325,6 +284,52 @@ class ResultQuery:
         }
         match |= features_query
         return match
+
+    @staticmethod
+    def aggregate_metrics(group_by=None, config_aliases=None) -> dict:
+        """
+        Group results and calculate average detection rate, false alarms, ...
+
+        Args:
+            group_by: base keys to group results, default is dataset and algorithm
+            config_aliases: config aliases to group results
+
+        Returns:
+            query dict for grouping stage
+
+        """
+        # grouping phase
+        if group_by is None:
+            group_by = {
+                "dataset": "$dataset",
+                "algorithm": "$algorithm",
+            }
+        else:
+            group_by = {key: f"${key}" for key in group_by}
+
+        if config_aliases:
+            group_by |= {alias: f"${alias}" for _, alias in config_aliases}
+
+        # FIXME : make configurable
+        group = {
+            "_id": group_by,
+            "avg_DR": {
+                "$avg": "$detection_rate"
+            },
+            "avg_FA": {
+                "$avg": {
+                    "$add": ["$consecutive_false_positives_exploits", "$consecutive_false_positives_normal"]
+                }
+            },
+            "avg_F1": {
+                "$avg": "$f1_cfa"
+            },
+            "count": {
+                "$sum": 1
+            }
+        }
+
+        return group
 
 
 def _custom_js_function(function_name):
