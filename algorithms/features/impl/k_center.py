@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 from tqdm import tqdm
 
@@ -48,8 +49,8 @@ class KCenter(BuildingBlock):
         """
         feature_input = self._feature.get_result(syscall)
 
-        # cast int to list
-        if type(feature_input) == int:
+        # cast int or float to list
+        if type(feature_input) == int or type(feature_input) == float:
             feature_input = [feature_input]
 
         if feature_input is not None:
@@ -72,7 +73,7 @@ class KCenter(BuildingBlock):
         self._find_k_centers()
         self._find_max_radius()
 
-    def _calculate(self, syscall: Syscall) -> bool:
+    def _calculate(self, syscall: Syscall) -> Optional[bool]:
         """
         finds the nearest center for new datapoint
         checks if its euclidian distance is > r and decides if datapoint is anomal or not
@@ -111,12 +112,11 @@ class KCenter(BuildingBlock):
         greedy algorithm that finds the k centers in datapoints
         """
         n = len(self._distance_matrix)
-        dist = [0] * n
-        for i in range(n):
-            dist[i] = 10 ** 9
+        # filling the distance list with big values
+        dist = [10**9] * n
 
         max_index = 0
-        for i in tqdm(range(self._k), desc="Calculating centers".rjust(27)):
+        for _ in tqdm(range(self._k), desc="Calculating centers".rjust(27)):
             # add point to center indices list and center list
             self._center_indices.append(max_index)
             self._centers.append(self._datapoints[max_index])

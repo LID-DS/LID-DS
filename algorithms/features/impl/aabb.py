@@ -1,4 +1,5 @@
 from dataloader.syscall import Syscall
+from typing import Optional
 from algorithms.building_block import BuildingBlock
 
 MIN = 0
@@ -8,6 +9,16 @@ MAX = 1
 class AABB(BuildingBlock):
     def __init__(self,
                  feature: BuildingBlock):
+        """
+        Building Block that implements the axis alignes bounding box (aabb) decider approach
+
+        Idea: find min and max for all dimensions of feature input from validation data
+        all min and max values create an n-dimensional bounding box where n is the number of dimensions
+
+        if a new input vector is inside the bounding box the data point is considered benign
+        if it is not inside the bounding box it is considered an anomaly
+        @param feature: the input feature building block
+        """
         super().__init__()
         self._feature = feature
         self._dependency_list = []
@@ -26,7 +37,7 @@ class AABB(BuildingBlock):
 
         @param syscall: the syscall object to evaluate
         """
-        feature_input = self._check_input_type(self._feature.get_result(syscall))
+        feature_input = self._convert_to_tuple(self._feature.get_result(syscall))
 
         if feature_input is not None:
             for dimension, value in enumerate(feature_input):
@@ -39,34 +50,34 @@ class AABB(BuildingBlock):
                 if value > self.min_max_values[dimension][MAX]:
                     self.min_max_values[dimension][MAX] = value
 
-    def _calculate(self, syscall: Syscall) -> bool:
+    def _calculate(self, syscall: Syscall) -> Optional[bool]:
         """
         return True if all values of all dimensions are in min max range of their features
         else return false
         @param syscall: the syscall object to evaluate
         """
-        feature_input = self._check_input_type(self._feature.get_result(syscall))
+        feature_input = self._convert_to_tuple(self._feature.get_result(syscall))
 
         if feature_input is not None:
             # caching the result
-            if tuple(feature_input) in self._cache.keys():
-                return self._cache[tuple(feature_input)]
+            if feature_input in self._cache.keys():
+                return self._cache[feature_input]
             else:
-                    decider_state = False
-                    for dimension, value in enumerate(feature_input):
-                        if value < self.min_max_values[dimension][MIN]:
-                            decider_state = True
-                            break
-                        if value > self.min_max_values[dimension][MAX]:
-                            decider_state = True
-                            break
-                    self._cache[tuple(feature_input)] = decider_state
-                    return decider_state
+                decider_state = False
+                for dimension, value in enumerate(feature_input):
+                    if value < self.min_max_values[dimension][MIN]:
+                        decider_state = True
+                        break
+                    if value > self.min_max_values[dimension][MAX]:
+                        decider_state = True
+                        break
+                self._cache[tuple(feature_input)] = decider_state
+                return decider_state
         else:
             return None
 
     @staticmethod
-    def _check_input_type(feature_input):
+    def _convert_to_tuple(feature_input) -> Optional[tuple]:
         """
         checks type of feature input and creates a tuple out of it if input is 1-dim
         @param feature_input:

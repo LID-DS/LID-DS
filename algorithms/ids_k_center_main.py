@@ -5,19 +5,13 @@ import os
 import sys
 from pprint import pprint
 
-from algorithms.features.impl.k_center import KCenter
-from dataloader.dataloader_factory import dataloader_factory
-
-from dataloader.direction import Direction
-
-from algorithms.ids import IDS
-
 from algorithms.features.impl.int_embedding import IntEmbedding
-from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.k_center import KCenter
 from algorithms.features.impl.ngram import Ngram
-
-
-
+from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.ids import IDS
+from dataloader.dataloader_factory import dataloader_factory
+from dataloader.direction import Direction
 
 if __name__ == '__main__':
 
@@ -35,10 +29,8 @@ if __name__ == '__main__':
     LID_DS_VERSION = "LID-DS-2019"
     SCENARIO_NAME = "CVE-2017-7529"
 
-
     scenario_path = f"{LID_DS_BASE_PATH}/{LID_DS_VERSION}/{SCENARIO_NAME}"
     dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
-
 
     THREAD_AWARE = True
     WINDOW_LENGTH = 1000
@@ -60,4 +52,3 @@ if __name__ == '__main__':
     results = ids.detect().get_results()
 
     pprint(results)
-
