@@ -1,7 +1,11 @@
 import re
 import json
 import pprint
+
+from tqdm import tqdm
+
 from dataloader.dataloader_factory import dataloader_factory
+from dataloader.direction import Direction
 
 ip_pattern = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 port_pattern = re.compile(r"(?::)([0-9]+)")  # not bulletproof
@@ -19,10 +23,9 @@ def save_basic_info(alarm_entry):
         syscall_count = alarm_entry['last_line_id'] - alarm_entry['first_line_id']
 
     if alarm_entry['last_timestamp'] == alarm_entry['first_timestamp']:
-        time_window_seconds = "single syscall"
+        time_window_seconds = 0
     else:
         time_window_seconds = (alarm_entry['last_timestamp'] - alarm_entry['first_timestamp']) * pow(10, -9)
-
 
     basic_alarm_info = {'scenario_path': alarm_entry['filepath'],
                         'alert_recording': alarm_entry['filepath'].strip("/'").split('/')[3].strip(".zip"),
@@ -42,7 +45,7 @@ def learn_training_fds(dataloader):
     known_files = []
     known_ips = []
 
-    for recording in dataloader.training_data():
+    for recording in tqdm(dataloader.training_data(),desc="Learning training data...", unit=" recording" ):
         for syscall in recording.syscalls():
             if 'fd' in syscall.params().keys():
                 matched_files = re.findall(file_path_pattern, syscall.params()['fd'])
@@ -80,6 +83,27 @@ def is_duplicate_connection(dict_to_check: dict, network_list: dict):
             duplicate = True
 
     return duplicate
+
+
+def append_file(dict_to_check: dict, files_list: dict):
+    """
+    returns updated files list for process,
+    appends either new file or adds new action to existing one
+    """
+    duplicate = False
+    action = dict_to_check['action'][0]
+    for file in files_list:
+        if dict_to_check['path'] == file['path']:
+            if action not in file['action']:
+                file['action'].append(action)
+                duplicate = True
+            elif action in file['action']:
+                break
+
+    if not duplicate:
+        files_list.append(dict_to_check)
+
+    return files_list
 
 
 def trace_parent(syscall, process):
@@ -202,7 +226,7 @@ class Alert:
         self.process_list = []
 
     def set_id(self):
-       pass
+        pass
 
     def dictify_processes(self):
         for entry in self.process_list:
@@ -249,7 +273,7 @@ class Alert:
                 port_matches = re.findall(port_pattern, arg_str)
                 file_matches = re.findall(file_path_pattern, arg_str)
 
-                if ip_matches and port_matches:
+                if ip_matches and port_matches and len(ip_matches) > 1:  # so 0.0.0.0 won't be listed
                     for ip in ip_matches:
 
                         network_dict = {'client_ip': ip_matches[0],
@@ -267,17 +291,12 @@ class Alert:
 
                 if file_matches:
                     for file in file_matches:
-                        if file in known_files:
-                            known = True
-                        else:
-                            known = False
-
                         file_dict = {'path': file,
-                                     'action': syscall.name(),
+                                     'action': [syscall.name()],
                                      'known': check_known(file, known_files)
                                      }
-                        if file_dict not in self.files_list:
-                            self.files_list.append(file_dict)
+
+                        self.files_list = append_file(file_dict, self.files_list)
 
             else:
                 return
@@ -285,19 +304,19 @@ class Alert:
 
 if __name__ == '__main__':
 
-    alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
-    # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
+    # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
+    alert_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_sum_scg_stide_som_CVE-2017-7529.json'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
-    #alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
-    #scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
-    dataloader = dataloader_factory(scenario_path)
+    # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
+    # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
+    dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
     output = {'alerts': []}  # dict for json output
     alert_list = []  # list for saving alert objects
 
-    analyzed_args = ['fd', 'out_fd', 'in_fd']
+    analyzed_args = ['fd', 'out_fd', 'in_fd', 'res']
 
     known_files, known_ips = learn_training_fds(dataloader)
 
@@ -313,20 +332,24 @@ if __name__ == '__main__':
             alert_list.append(alert)
 
     for recording in dataloader.test_data():
-        """current_alert = None
-        for alert in alert_list:
-            print(recording.name, alert.recording_name)
-            if alert.recording_name == recording.name:
-                current_alert = alert
-                break"""
+
         current_alert = next((alert for alert in alert_list if alert.recording_name == recording.name), None)
 
         if current_alert is None:
             continue
 
         for syscall in recording.syscalls():
-            if syscall.line_id in range(current_alert.first_line_id, current_alert.last_line_id + 1):
+            if current_alert.syscall_count == 1:
+                if current_alert.first_line_id == syscall.line_id:
+                    current_process = set_process(syscall, current_alert)
 
+                    # extracting argument information from current syscall and adding them to process
+                    for arg in analyzed_args:
+                        current_process.arg_match(extract_arg_str(arg, syscall), known_ips, known_files)
+
+                    trace_parent(syscall, current_process)  # saving ptid for clone and execve syscalls
+
+            elif syscall.line_id in range(current_alert.first_line_id, current_alert.last_line_id + 1):
                 current_process = set_process(syscall, current_alert)
 
                 # extracting argument information from current syscall and adding them to process
