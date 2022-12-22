@@ -6,14 +6,15 @@ from dataloader.base_recording import BaseRecording
 
 
 # adjusting plot parameters
-plt.rcParams.update({"font.size": 20,
-                     "figure.figsize": (55, 40),
-                     "agg.path.chunksize": 10000,
-                     "legend.fontsize": 10,
-                     "axes.titlesize": 15,
-                     "axes.labelsize": 12,
-                     "xtick.labelsize": 10,
-                     "ytick.labelsize": 10},)
+plt.rcParams["figure.dpi"] = 100
+plt.rcParams["font.size"] = 30
+plt.rcParams["figure.figsize"] = (60, 25)
+plt.rcParams["agg.path.chunksize"] = 10000
+plt.rcParams["legend.fontsize"] = 20
+plt.rcParams["axes.titlesize"] = 35
+plt.rcParams["axes.labelsize"] = 30
+plt.rcParams["xtick.labelsize"] = 20
+plt.rcParams["ytick.labelsize"] = 20
 
 
 THRESHOLD_COLOR_LIST = ["teal",
@@ -37,7 +38,8 @@ class ScorePlot:
     Needs to be initialized in main handed over as parameter to IDS.
     Args:
     building_blocks(list): list of bbs of which threshold and anomaly scores
-                           are being extracted. !!! needs to be decider with threshold!!!
+                           are being extracted. 
+                           !!! needs to be decider with threshold!!!
     scenario_path(str): scenario path for title of plot.
     filename(str): filename if plot should be persisted.
     Attributes:
@@ -81,8 +83,8 @@ class ScorePlot:
         """
         called in ids at beginning of each new recording:
             sets exploit time,
-            appends lists of indices of first syscalls of exploit/normal recordings
-
+            appends lists of indices of first syscalls 
+            of exploit/normal recordings
         """
         if recording.metadata()["exploit"] is True:
             if self._anomaly_scores_exploits:
@@ -120,8 +122,10 @@ class ScorePlot:
                             bb._last_anomaly_score)
             syscall_time = syscall.timestamp_unix_in_ns() * (10 ** (-9))
 
-            # getting index of first syscall after exploit of each recording for plotting
-            if syscall_time >= self._exploit_time and self._first_sys_after_exploit is False:
+            # getting index of first syscall 
+            # after exploit of each recording for plotting
+            if syscall_time >= self._exploit_time and \
+                    self._first_sys_after_exploit is False:
                 self._first_syscall_after_exploit_index_list.append(
                         len(
                             list(self._anomaly_scores_exploits.values())[0]))
@@ -159,7 +163,11 @@ class ScorePlot:
         ax.spines['bottom'].set_color('none')
         ax.spines['left'].set_color('none')
         ax.spines['right'].set_color('none')
-        ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
+        ax.tick_params(labelcolor='w',
+                       top=False,
+                       bottom=False,
+                       left=False,
+                       right=False)
 
         # first subplot for normal activity
         for i, bb in enumerate(self._bb_list):
@@ -173,8 +181,10 @@ class ScorePlot:
         ax1.legend()
 
         # cfp windows for normal subplot
-        if len(self._first_syscall_of_cfp_list_normal) > 1 and len(self._last_syscall_of_cfp_list_normal) > 1:
-            for i, j in zip(self._first_syscall_of_cfp_list_normal, self._last_syscall_of_cfp_list_normal):
+        if len(self._first_syscall_of_cfp_list_normal) > 1 and \
+                len(self._last_syscall_of_cfp_list_normal) > 1:
+            for i, j in zip(self._first_syscall_of_cfp_list_normal,
+                            self._last_syscall_of_cfp_list_normal):
                 ax1.axvspan(i-1, j-1, color="mediumaquamarine", alpha=0.5)
 
         # second subplot for exploits
@@ -196,19 +206,28 @@ class ScorePlot:
         recording_start_index = 0
         done = False
         while not done:
-            exploit_window_start = self._first_syscall_after_exploit_index_list[exploit_start_index]
-            for i in range(recording_start_index, len(self._first_syscall_of_exploit_recording_index_list)):
-                if self._first_syscall_of_exploit_recording_index_list[i] > exploit_window_start:
+            exploit_window_start = \
+                    self._first_syscall_after_exploit_index_list[
+                            exploit_start_index]
+            for i in range(
+                    recording_start_index,
+                    len(self._first_syscall_of_exploit_recording_index_list)):
+                if self._first_syscall_of_exploit_recording_index_list[i] > \
+                        exploit_window_start:
                     exploit_window_end = self._first_syscall_of_exploit_recording_index_list[i]
                     recording_start_index = i
                     break
-            ax2.axvspan(exploit_window_start, exploit_window_end, color=EXPLOIT_COLOR)
+            ax2.axvspan(exploit_window_start,
+                        exploit_window_end,
+                        color=EXPLOIT_COLOR)
             exploit_start_index += 1
-            if exploit_start_index == len(self._first_syscall_after_exploit_index_list):
+            if exploit_start_index == \
+                    len(self._first_syscall_after_exploit_index_list):
                 done = True
 
         # cfp windows for exploit subplot
-        for i, j in zip(self._first_syscall_of_cfp_list_exploit, self._last_syscall_of_cfp_list_exploit):
+        for i, j in zip(self._first_syscall_of_cfp_list_exploit,
+                        self._last_syscall_of_cfp_list_exploit):
             ax2.axvspan(i, j, color="mediumaquamarine", alpha=0.5)
 
         # setting labels
@@ -219,7 +238,9 @@ class ScorePlot:
 
         ax1.set_title("normal activity")
         ax2.set_title("exploits")
-        self._figure.suptitle("Scenario: " + self._scenario_path.split("/")[-1], weight="bold")
+        self._figure.suptitle("Scenario: " 
+                              + self._scenario_path.split("/")[-1],
+                              weight="bold")
 
     def show_plot(self) -> None:
 
@@ -230,7 +251,7 @@ class ScorePlot:
             if self._filename is None:
                 plt.show()
             else:
-                plt.savefig(self._filename, dpi=300)
+                self._figure.savefig(self._filename)
         else:
             "There is no plot to show."
 
