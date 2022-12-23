@@ -6,7 +6,7 @@ from dataloader.base_recording import BaseRecording
 
 
 # adjusting plot parameters
-plt.rcParams["figure.dpi"] = 100
+plt.rcParams["figure.dpi"] = 50
 plt.rcParams["font.size"] = 30
 plt.rcParams["figure.figsize"] = (60, 25)
 plt.rcParams["agg.path.chunksize"] = 10000
@@ -251,18 +251,7 @@ class ScorePlot:
             if self._filename is None:
                 plt.show()
             else:
+                plt.show()
                 self._figure.savefig(self._filename)
         else:
             "There is no plot to show."
-
-    def save_plot(self, path: str) -> None:
-
-        """
-        saving plot as file if there is one,
-        input: destination path as string
-
-        """
-        if self._figure is not None:
-            plt.savefig(path)
-        else:
-            print("There is no plot to save.")
