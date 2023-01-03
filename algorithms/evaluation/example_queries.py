@@ -56,7 +56,7 @@ features = {
     "LSTM": ["MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding"],
 }
 
-group_by_config = {
+config_aliases = {
     "Som": {
         "name": "MaxScoreThreshold",
         "input": [
@@ -123,7 +123,7 @@ def find_best_algorithm():
         scenarios=["CVE-2017-7529", "CVE-2014-0160"],
         directions=[Direction.BOTH],
         features=features,
-        config_aliases=group_by_config,
+        config_aliases=config_aliases,
     )
 
     print(tabulate(results, headers="keys", tablefmt="github"))
@@ -138,16 +138,13 @@ def algorithm_wise_best_average_configuration():
         scenarios=["CVE-2017-7529", "CVE-2014-0160"],
         directions=[Direction.BOTH],
         features=features,
-        config_aliases=group_by_config,
+        config_aliases=config_aliases,
         firstK_in_group=3
     )
 
     for result in results:
         print(result['_id'])
-
-        r = [r.pop("_id") | r for r in result['results']]
-
-        print(tabulate(r, headers="keys", tablefmt="github"))
+        print(tabulate(result['results'], headers="keys", tablefmt="github"))
 
 
 def scenario_wise_best_average_configuration():
@@ -158,10 +155,10 @@ def scenario_wise_best_average_configuration():
         algorithms=["Som", "LSTM", "AE", "Stide"],
         directions=[Direction.BOTH],
         features=features,
-        config_aliases=group_by_config,
-        firstK_in_group=6
+        config_aliases=config_aliases,
+        firstK_in_group=3
     )
-    results = [r.pop("_id") | r for result in results for r in result['results']]
+    results = [r for result in results for r in result['results']]
     print(tabulate(results, headers="keys", tablefmt="github"))
 
 
