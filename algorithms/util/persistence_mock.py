@@ -89,7 +89,7 @@ def stub_fake_results_in_mongo_db():
                         results['config'] = config_tree
                         results['scenario'] = scenario_range[scenario_number]
                         results['dataset'] = lid_ds_version[lid_ds_version_number]
-                        results['direction'] = direction
+                        results['direction'] = direction.name.lower()
 
                         save_to_mongo(results, db_name='experiments_test')
 
