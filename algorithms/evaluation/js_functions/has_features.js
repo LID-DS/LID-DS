@@ -10,6 +10,7 @@
  * @returns {boolean} true if dependency graph contains specified features
  */
 function has_features(nodes, links, algorithm, algo_features, exact) {
+    if (!(algorithm in algo_features)) return false
     const features = algo_features[algorithm]
     const nodes_map = Object.fromEntries(nodes.map((node) => [node.id, node]))
     let previous_target_id = nodes[0].id

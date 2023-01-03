@@ -54,8 +54,6 @@ def find_results_with_specific_config():
 features = {
     "Som": ["MaxScoreThreshold", "Som", "Concat", "Ngram", "IntEmbedding"],
     "LSTM": ["MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding"],
-    "AE": [],
-    "Stide": []  # TODO: do not fail is key is missing
 }
 
 group_by_config = {
