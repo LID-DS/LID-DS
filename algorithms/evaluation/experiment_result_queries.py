@@ -336,7 +336,7 @@ def match_base(
     if datasets is not None:
         match |= {"dataset": {"$in": datasets}}
     if directions is not None:
-        match |= {"direction": {"$in": [d.value for d in directions]}}
+        match |= {"direction": {"$in": [d.name for d in directions]}}
     features_query = {
         "$expr": {
             "$function": {
