@@ -44,10 +44,10 @@ class ResultQuery:
         """
             Find all results matching the specified algorithm, dataset and configurations
         Args:
-            algorithms: algorithms to include
-            scenarios: scenarios to include
-            datasets: datasets to include
-            directions: directions to include
+            algorithms: algorithms to include, all if None
+            scenarios: scenarios to include, all if None
+            datasets: datasets to include, all if None
+            directions: directions to include, all if None
             features: keys of dict are algorithm names and values is list of feature names.
                 order of features should reflect how they are processed
             features_exact_match: if true: there should only be the specified features. If false: algo should start with specified features.
@@ -58,10 +58,13 @@ class ResultQuery:
         Returns:
             list[dict]: found experiment results
 
+        Examples:
+            See :func:`algorithms.evaluation.example_queries.find_results_with_specific_config` for an example.
+
         """
         pipeline = _pipeline(
             match_base(algorithms, datasets, directions, features, features_exact_match, scenarios),
-            addFields_stage(config_aliases),
+            add_config_values(config_aliases),
             {"$match": where or {}},
             {"$project": {"config": 0, "_id": 0}}
         )
@@ -82,10 +85,10 @@ class ResultQuery:
     ) -> list[dict]:
         """ Get all results matching the specified arguments sorted
         Args:
-            algorithms: algorithms to include
-            scenarios: scenarios to include
-            datasets: datasets to include
-            directions: directions to include
+            algorithms: algorithms to include, all if None
+            scenarios: scenarios to include, all if None
+            datasets: datasets to include, all if None
+            directions: directions to include, all if None
             features: keys of dict are algorithm names and values is list of feature names.
                 order of features should reflect how they are processed
             features_exact_match: if true: there should only be the specified features. If false: algo should start with specified features.
@@ -96,13 +99,16 @@ class ResultQuery:
 
         Returns:
             list[dict]: sorted experiment results
+
+        Examples:
+            See :func:`algorithms.evaluation.example_queries.find_best_algorithm` for an example.
         """
         if group_by is None:
             group_by = ["dataset", "algorithm"]
 
         pipeline = _pipeline(
             match_base(algorithms, datasets, directions, features, features_exact_match, scenarios),
-            addFields_stage(config_aliases),
+            add_config_values(config_aliases),
             grouped_metrics_aggregate(group_by, config_aliases),
             {"$sort": sort_by or {"avg_DR": -1, "avg_FA": 1}}
         )
@@ -126,10 +132,10 @@ class ResultQuery:
         """ For each algorithm, find the top k configurations
 
         Args:
-            algorithms: algorithms to include
-            scenarios: scenarios to include
-            datasets: datasets to include
-            directions: directions to include
+            algorithms: algorithms to include, all if None
+            scenarios: scenarios to include, all if None
+            datasets: datasets to include, all if None
+            directions: directions to include, all if None
             features: keys of dict are algorithm names and values is list of feature names.
                 order of features should reflect how they are processed
             features_exact_match: if true: there should only be the specified features. If false: algo should start with specified features.
@@ -162,13 +168,15 @@ class ResultQuery:
                 >>>     ]
                 >>> }
 
+        Examples:
+            See :func:`algorithms.evaluation.example_queries.algorithm_wise_best_average_configuration` for an example.
         """
         if group_by is None:
             group_by = ["dataset", "algorithm"]
 
         pipeline = _pipeline(
             match_base(algorithms, datasets, directions, features, features_exact_match, scenarios),
-            addFields_stage(config_aliases),
+            add_config_values(config_aliases),
             {"$match": where or {}},
             grouped_metrics_aggregate(group_by, config_aliases),
             regroup_and_sort(group_by, firstK_in_group, sort_by)
@@ -192,10 +200,10 @@ class ResultQuery:
     ) -> list[dict[str, dict]]:
         """ For each scenario, find the top k algorithms
         Args:
-            algorithms: algorithms to include
-            scenarios: scenarios to include
-            datasets: datasets to include
-            directions: directions to include
+            algorithms: algorithms to include, all if None
+            scenarios: scenarios to include, all if None
+            datasets: datasets to include, all if None
+            directions: directions to include, all if None
             features: keys of dict are algorithm names and values is list of feature names.
                 order of features should reflect how they are processed
             features_exact_match: if true: there should only be the specified features. If false: algo should start with specified features.
@@ -231,13 +239,16 @@ class ResultQuery:
                 >>>         {"dataset": "LID-DS-2019","scenario": "CVE-2020-9484","algorithm": "LSTM", "epochs": 300, "thread_aware": True, "avg_DR": 0.30, "avg_FA": 2},
                 >>>     ]
                 >>> }
+
+        Examples:
+            See :func:`algorithms.evaluation.example_queries.scenario_wise_best_average_configuration` for an example.
         """
         if group_by is None:
             group_by = ["dataset", "scenario"]
 
         pipeline = _pipeline(
             match_base(algorithms, datasets, directions, features, features_exact_match, scenarios),
-            addFields_stage(config_aliases),
+            add_config_values(config_aliases),
             {"$match": where or {}},
             grouped_metrics_aggregate(group_by + ["algorithm"], config_aliases),
             regroup_and_sort(group_by, firstK_in_group, sort_by)
@@ -247,6 +258,14 @@ class ResultQuery:
 
 
 def _pipeline(*args: Union[list[dict], dict]):
+    """ Util-function to convert pipline stages to pipline.
+
+    Args:
+        *args:
+
+    Returns:
+
+    """
     result = []
     for stage in args:
         if isinstance(stage, list):
@@ -258,6 +277,10 @@ def _pipeline(*args: Union[list[dict], dict]):
 
     return result
 
+
+###########################
+##### PIPELINE STAGES #####
+###########################
 
 def match_base(
         algorithms: list[str],
@@ -289,17 +312,19 @@ def match_base(
 
         The dict has the following format
 
-        >>> {
-        >>>   "algorithm": { "$in": [ "LSTM" ] },
-        >>>   "scenario": { "$in": [ "CVE-2017-7529", "CVE-2014-0160" ] },
-        >>>   "direction": { "$in": [ "open" ] },
-        >>>   "$expr": {
-        >>>     "$function": {
-        >>>       "body": "/** MongoDB custom function to query experiments by features **/ function has_features([...]",
-        >>>       "args": [ "$config.nodes", "$config.links", "$algorithm", { "LSTM": [ "MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding" ] }, False ],
-        >>>       "lang": "js"
-        >>>     }
-        >>>   }
+        >>> { "$match":
+        >>>    {
+        >>>      "algorithm": { "$in": [ "LSTM" ] },
+        >>>      "scenario": { "$in": [ "CVE-2017-7529", "CVE-2014-0160" ] },
+        >>>      "direction": { "$in": [ "open" ] },
+        >>>      "$expr": {
+        >>>        "$function": {
+        >>>          "body": "/** MongoDB custom function to query experiments by features **/ function has_features([...]",
+        >>>          "args": [ "$config.nodes", "$config.links", "$algorithm", { "LSTM": [ "MaxScoreThreshold", "LSTM", "Ngram", "W2VEmbedding" ] }, False ],
+        >>>          "lang": "js"
+        >>>        }
+        >>>      }
+        >>>    }
         >>> }
 
     """
@@ -325,7 +350,7 @@ def match_base(
     return {"$match": match}
 
 
-def addFields_stage(config_aliases_dict: dict[str, dict]) -> dict:
+def add_config_values(config_aliases_dict: dict[str, dict]) -> dict:
     """ Construct $addFields stage dictionary for extracting configuration values
 
     **MongoDB**: `$addFields <https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/>`__
@@ -340,10 +365,9 @@ def addFields_stage(config_aliases_dict: dict[str, dict]) -> dict:
 
     Returns:
         dict: addFields stage dictionary
-        list[tuple]: config key and alias pairs
 
     Examples:
-        The alias parameter should have the following format
+        Given the following config aliases specifying the config values `som_epoch`, `thread_aware` and `lstm_epochs`
 
         >>> conf_aliases = {
         >>>     "Som": {
@@ -365,13 +389,38 @@ def addFields_stage(config_aliases_dict: dict[str, dict]) -> dict:
         >>>         }]
         >>>     }
         >>> }
-        >>> addFields_query, config_aliases_keys = addFields_stage(conf_aliases)
-        >>> print(config_aliases_keys)
-        >>> [("epochs", "som_epochs"), ("thread_aware", "thread_aware"), ("epochs", "lstm_epochs")]
 
+        The returned stage will have the following format:
+
+        >>> add_config_values(conf_aliases)
+        >>> { "$addFields":
+        >>>    {
+        >>>      "som_epochs": {
+        >>>         "$function": {
+        >>>             "body": "/** MongoDB custom function to get the config value **/ function get_config_value([...]",
+        >>>             "args": [ "$config.nodes", "$config.links", "$algorithm", { "Som": { "name": "MaxScoreThreshold" [...]} , "som_epochs":}],
+        >>>             "lang": "js"
+        >>>         }
+        >>>      }
+        >>>      "thread_aware": {
+        >>>         "$function": {
+        >>>             "body": "/** MongoDB custom function to get the config value **/ function get_config_value([...]",
+        >>>             "args": [ "$config.nodes", "$config.links", "$algorithm", { "Som": { "name": "MaxScoreThreshold" [...]} , "thread_aware":}],
+        >>>             "lang": "js"
+        >>>         }
+        >>>      }
+        >>>      "lstm_epochs": {
+        >>>         "$function": {
+        >>>             "body": "/** MongoDB custom function to get the config value **/ function get_config_value([...]",
+        >>>             "args": [ "$config.nodes", "$config.links", "$algorithm", { "Som": { "name": "MaxScoreThreshold" [...]} , "lstm_epochs":}],
+        >>>             "lang": "js"
+        >>>         }
+        >>>      }
+        >>>    }
+        >>> }
     """
 
-    config_aliases = extract_config_aliases(config_aliases_dict)
+    config_aliases = _extract_config_aliases_pairs(config_aliases_dict)
     addFields = {}
     for config, config_alias in config_aliases:
         addFields[config_alias] = {
@@ -422,7 +471,7 @@ def grouped_metrics_aggregate(group_by: list[str], config_aliases_dict: dict[str
     group_by = {key: f"${key}" for key in group_by}
 
     if config_aliases_dict:
-        config_aliases = extract_config_aliases(config_aliases_dict)
+        config_aliases = _extract_config_aliases_pairs(config_aliases_dict)
         group_by |= {alias: f"${alias}" for _, alias in config_aliases}
 
     group = {
@@ -567,8 +616,12 @@ def regroup_and_sort(group_by: list[str], firstK_in_group: int, sort_by: dict[st
     return [{"$group": group}, {"$project": sort_group}]
 
 
-def extract_config_aliases(aliases: dict[str, dict]) -> list[tuple[str, str]]:
-    """
+###################
+##### HELPERS #####
+###################
+
+def _extract_config_aliases_pairs(aliases: dict[str, dict]) -> list[tuple[str, str]]:
+    """ Convert configuration aliases dictionary to a tuple of key-value pairs
 
     Args:
         aliases: dictionary in the structure of the dependency graph containing algorithm, config keys and aliases
@@ -599,7 +652,7 @@ def extract_config_aliases(aliases: dict[str, dict]) -> list[tuple[str, str]]:
         >>>         }]
         >>>     }
         >>> }
-        >>> config_aliases_keys = extract_config_aliases(conf_aliases)
+        >>> config_aliases_keys = _extract_config_aliases_pairs(conf_aliases)
         >>> print(config_aliases_keys)
         >>> [("epochs", "som_epochs"), ("thread_aware", "thread_aware"), ("epochs", "lstm_epochs")]
     """
