@@ -359,8 +359,8 @@ if __name__ == '__main__':
                 trace_parent(syscall, current_process)  # saving ptid for clone and execve syscalls
 
         current_alert.dictify_processes()
-        single_alert = current_alert.show(show_known=False)  # pprint alert as dict
+        single_alert = current_alert.show(show_known=True)  # pprint alert as dict
         single_alert_shortened = hide_irrelevant(single_alert)  # hide path and recording information for analysis
-        output['alerts'].append(single_alert_shortened)
+        output['alerts'].append(single_alert)
 
     save_to_file(output)
