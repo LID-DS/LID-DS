@@ -104,8 +104,9 @@ def append_file(dict_to_check: dict, files_list: dict):
             if action not in file['action']:
                 file['action'].append(action)
                 duplicate = True
-            elif action in file['action']:
                 break
+            elif action in file['action']:
+                return files_list
 
     if not duplicate:
         files_list.append(dict_to_check)
@@ -189,6 +190,8 @@ def  set_process(syscall, current_alert):
         if not any(process.process_id == syscall.process_id() for process in current_alert.process_list):
             current_process = current_alert.Process(syscall.process_id(), syscall.user_id(),
                                                     syscall.process_name())
+            current_alert.process_list.append(current_process)
+
         else:
             for process in current_alert.process_list:
                 if process.process_id == syscall.process_id():
@@ -198,6 +201,7 @@ def  set_process(syscall, current_alert):
         current_process = current_alert.Process(syscall.process_id(), syscall.user_id(),
                                                 syscall.process_name())
         current_alert.process_list.append(current_process)
+
 
     return current_process
 
@@ -239,10 +243,11 @@ class Alert:
         pass
 
     def dictify_processes(self):
+        processes_as_dicts = []
         for entry in self.process_list:
             entry_dict = vars(entry)
-            self.process_list.remove(entry)
-            self.process_list.append(entry_dict)
+            processes_as_dicts.append(entry_dict)
+        self.process_list = processes_as_dicts
 
         return self.process_list
 
@@ -318,10 +323,8 @@ def is_consecutive(previous_alert, current_alert):
     """
 
     timespan_ns = 10 * pow(10, 9) # 10 seconds timespan
-    print(current_alert.first_timestamp, previous_alert.last_timestamp)
 
     if (current_alert.first_timestamp - previous_alert.last_timestamp) < timespan_ns:
-        print("in timespan")
         return True
     else:
         return False
@@ -329,7 +332,7 @@ def is_consecutive(previous_alert, current_alert):
 def update_log(last_timestamp, last_line_id, current_alert):
     current_alert.last_timestamp = last_timestamp
     current_alert.last_line_id = last_line_id
-    current_alert.time_window = (last_timestamp - current_alert.first_timestamp) * pow(10, -9),
+    current_alert.time_window = (last_timestamp - current_alert.first_timestamp) * pow(10, -9)
     current_alert.syscall_count = last_line_id - current_alert.first_line_id
 
 
@@ -337,8 +340,8 @@ if __name__ == '__main__':
 
     # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_sum_scg_stide_som_CVE-2017-7529.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
 
     # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
     # scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
@@ -347,7 +350,7 @@ if __name__ == '__main__':
     output = {'alerts': []}  # dict for json output
     alert_list = []  # list for saving alert objects
 
-    analyzed_args = ['fd', 'out_fd', 'in_fd', 'res']
+    analyzed_args = ['fd', 'out_fd', 'in_fd', 'res', 'path']
 
     known_files, known_ips = learn_training_fds(dataloader)
 
@@ -405,10 +408,12 @@ if __name__ == '__main__':
             updated_log = False
 
         for log in logs_from_alerts:
-
             log.dictify_processes()
             single_alert = log.show(show_known=True)  # pprint alert as dict
             single_alert_shortened = hide_irrelevant(single_alert)  # hide path and recording information for analysis
             output['alerts'].append(single_alert)
+
+        if logs_from_alerts:
+            break
 
     save_to_file(output)

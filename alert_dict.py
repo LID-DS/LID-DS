@@ -209,7 +209,7 @@ def hide_irrelevant(alert_dict: dict):
 
 
 def save_to_file(alert_dict: dict):
-    with open('alerts.json', 'a') as alert_output_file:
+    with open('alerts_shortened.json', 'a') as alert_output_file:
         json.dump(alert_dict, alert_output_file, indent=2)
         print("--> Output saved to json.")
 
