@@ -11,7 +11,7 @@ from dataloader.direction import Direction
 
 ip_pattern = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 port_pattern = re.compile(r"(?::)([0-9]+)")  # not bulletproof
-file_path_pattern = re.compile(r"(\/.*?\.[\w:]+)")
+file_path_pattern = re.compile(r"((\/.+)+(\.\w+)?)")
 
 
 def save_basic_info(alarm_entry):
@@ -35,7 +35,7 @@ def save_basic_info(alarm_entry):
                         'alert_recording': alarm_entry['filepath'].strip("/'").split('/')[3].strip(".zip"),
                         'first_timestamp': alarm_entry['first_timestamp'],
                         'last_timestamp': alarm_entry['last_timestamp'],
-                        'starting_time' : starting_time,
+                        'starting_time': starting_time,
                         'time_window_seconds': time_window_seconds,
                         'syscall_count': syscall_count,
                         'first_line_id': alarm_entry['first_line_id'],
@@ -52,7 +52,7 @@ def learn_training_fds(dataloader):
     known_files = []
     known_ips = []
 
-    for recording in tqdm(dataloader.training_data(),desc="Learning training data...", unit=" recording" ):
+    for recording in tqdm(dataloader.training_data(), desc="Learning training data...", unit=" recording"):
         for syscall in recording.syscalls():
             if 'fd' in syscall.params().keys():
                 matched_files = re.findall(file_path_pattern, syscall.params()['fd'])
@@ -103,9 +103,11 @@ def append_file(dict_to_check: dict, files_list: dict):
         if dict_to_check['path'] == file['path']:
             if action not in file['action']:
                 file['action'].append(action)
+                file['occurrences'] += 1
                 duplicate = True
                 break
             elif action in file['action']:
+                file['occurrences'] += 1
                 return files_list
 
     if not duplicate:
@@ -181,7 +183,7 @@ def filter_known(list_of_attributes: list):
             print("List entries do not have 'known' attribute.")
 
 
-def  set_process(syscall, current_alert):
+def set_process(syscall, current_alert):
     """
     set current process or create new process entry in process list of current alert
     """
@@ -202,7 +204,6 @@ def  set_process(syscall, current_alert):
                                                 syscall.process_name())
         current_alert.process_list.append(current_process)
 
-
     return current_process
 
 
@@ -211,7 +212,8 @@ def hide_irrelevant(alert_dict: dict):
     removes all information irrelevant for analysis from dict
     """
 
-    keys_to_hide = ['path_to_syscalls', 'recording_name', 'first_timestamp', 'last_timestamp', 'first_line_id', 'last_line_id']
+    keys_to_hide = ['path_to_syscalls', 'recording_name', 'first_timestamp', 'last_timestamp', 'first_line_id',
+                    'last_line_id']
     alert_dict_shortened = alert_dict.copy()
     for key in keys_to_hide:
         alert_dict_shortened.pop(key)
@@ -289,29 +291,29 @@ class Alert:
                 file_matches = re.findall(file_path_pattern, arg_str)
 
                 if ip_matches and port_matches and len(ip_matches) > 1:  # so 0.0.0.0 won't be listed
-                    for ip in ip_matches:
 
-                        network_dict = {'source_ip': ip_matches[0],
-                                        'source_port': port_matches[0],
-                                        'dest_ip': ip_matches[1],
-                                        'dest_port': port_matches[1],
-                                        'dest_ip_known': check_known(ip, known_ips)
-                                        }
-                        if not self.network_list:
-                            self.network_list.append(network_dict)
-                        else:
-                            if network_dict not in self.network_list:
-                                if not is_duplicate_connection(network_dict, self.network_list):
-                                    self.network_list.append(network_dict)
+                    network_dict = {'source_ip': ip_matches[0],
+                                    'source_port': port_matches[0],
+                                    'dest_ip': ip_matches[1],
+                                    'dest_port': port_matches[1],
+                                    'dest_ip_known': check_known(ip_matches[1], known_ips)
+                                    }
+                    if not self.network_list:
+                        self.network_list.append(network_dict)
+                    else:
+                        if network_dict not in self.network_list:
+                            if not is_duplicate_connection(network_dict, self.network_list):
+                                self.network_list.append(network_dict)
 
                 if file_matches:
-                    for file in file_matches:
-                        file_dict = {'path': file,
-                                     'action': [syscall.name()],
-                                     'known': check_known(file, known_files)
-                                     }
+                    file_dict = {'path': file_matches[0][0],
+                                 # findall() returns list of tuples of group matches, therefore accessing first full match
+                                 'action': [syscall.name()],
+                                 'known': check_known(file_matches[0][0], known_files),
+                                 'occurrences': 1
+                                 }
 
-                        self.files_list = append_file(file_dict, self.files_list)
+                    self.files_list = append_file(file_dict, self.files_list)
 
             else:
                 return
@@ -322,12 +324,13 @@ def is_consecutive(previous_alert, current_alert):
     returns True if current alert happens within defined timespan after previous, else False
     """
 
-    timespan_ns = 10 * pow(10, 9) # 10 seconds timespan
+    timespan_ns = 10 * pow(10, 9)  # 10 seconds timespan
 
     if (current_alert.first_timestamp - previous_alert.last_timestamp) < timespan_ns:
         return True
     else:
         return False
+
 
 def update_log(last_timestamp, last_line_id, current_alert):
     current_alert.last_timestamp = last_timestamp
@@ -340,7 +343,7 @@ if __name__ == '__main__':
 
     # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
+    source_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_sum_scg_stide_som_CVE-2020-23839.json'
     scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
 
     # alert_file_path = '/home/emmely/PycharmProjects/LIDS/Git LIDS/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
@@ -354,7 +357,7 @@ if __name__ == '__main__':
 
     known_files, known_ips = learn_training_fds(dataloader)
 
-    with open(anomaly_file_path) as anomaly_file:
+    with open(source_file_path) as anomaly_file:
         anomaly_dict = json.load(anomaly_file)
 
         # looping over every entry in input alert file
@@ -413,7 +416,7 @@ if __name__ == '__main__':
             single_alert_shortened = hide_irrelevant(single_alert)  # hide path and recording information for analysis
             output['alerts'].append(single_alert)
 
-        if logs_from_alerts:
-            break
+        """if logs_from_alerts:
+            break"""
 
     save_to_file(output)
