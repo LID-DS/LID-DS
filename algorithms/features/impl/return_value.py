@@ -88,9 +88,6 @@ class ReturnValueLogNorm(BuildingBlock):
         super().__init__()
         self._max = {}
 
-    def train_on(self, syscall: Syscall):
-        pass
-
     def _calculate(self, syscall: Syscall):
         """
         calculate system call return value for all syscalls.

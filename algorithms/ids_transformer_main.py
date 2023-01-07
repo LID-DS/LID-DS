@@ -13,7 +13,7 @@ from algorithms.features.impl.ngram_minus_one import NgramMinusOne
 from algorithms.features.impl.return_value import ReturnValueLogNorm
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.ids import IDS
-from algorithms.persistance import save_to_json, ModelCheckPoint
+from algorithms.persistance import save_to_json, ModelCheckPoint, load_from_json
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
@@ -61,7 +61,10 @@ def _parse_args():
         '-c', dest='checkpoint_dir', action='store', type=str, required=True,
         help='Models checkpoint base directory'
     )
-
+    parser.add_argument(
+        '-e', dest='epochs', action='store', type=int,
+        help='Epoch (useful when only evaluating)'
+    )
     parser.add_argument(
         '-n', dest='ngram_length', action='store', type=int, required=True,
         help='Ngram length'
@@ -115,6 +118,11 @@ def _parse_args():
         help='use return value'
     )
 
+    parser.add_argument(
+        '-eval', dest='evaluate', type=lambda x: (str(x).lower() == 'true'),
+        help='Evaluate model, if false only training is performed'
+    )
+
     return parser.parse_args()
 
 
@@ -123,8 +131,10 @@ def main():
     scenario_number = 0
     checkpoint_dir = "Models"
     retrain = False
-    ngram_length = 11
+    evaluate = False
+    ngram_length = 8
     thread_aware = True
+
     language_model = True
     dedup_train_set = True
 
@@ -132,16 +142,15 @@ def main():
     layers = 6
     model_dim = 8
     pre_layer_norm = True
-
-    feedforward_dim = 1024
+    feedforward_dim = model_dim * 4
     batch_size = 256
     num_heads = 2
-    epochs = 20
+    epochs = 900
     dropout = 0.1
 
     use_return_value = True
-
-    if "IDS_ON_CLUSTER" in os.environ:
+    ON_CLUSTER = "IDS_ON_CLUSTER" in os.environ
+    if ON_CLUSTER:
         args = _parse_args()
         scenario = args.scenario
         lid_ds_version = args.lid_ds_version
@@ -159,6 +168,9 @@ def main():
         batch_size = args.batch_size
         anomaly_score = args.anomaly_score
         use_return_value = args.use_return_value
+        evaluate = args.eval
+        epochs = args.epochs
+        print(args)
     else:
         # getting the LID-DS base path from argument or environment variable
         if len(sys.argv) > 1:
@@ -219,14 +231,22 @@ def main():
 
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
 
-    for epochs in reversed(range(5, 21, 5)):
+    def _run_for_epoch(epoch):
+        if ON_CLUSTER:
+            result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}_epoch{epoch}.json'
+            last_results = load_from_json(result_path)
+            if last_results:
+                print(f"ALREADY EVALUATED: SKIPPING! \n{result_path=}")
+        else:
+            result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}.json'
+
         start = time.time()
         # decision engine (DE)
         transformer = Transformer(
             input_vector=ngram,
             distinct_syscalls=distinct_syscalls,
             retrain=retrain,
-            epochs=epochs,
+            epochs=epoch,
             batch_size=batch_size,
             anomaly_scoring=anomaly_score,
             checkpoint=checkpoint,
@@ -248,34 +268,30 @@ def main():
             plot_switch=False
         )
 
-        performance = ids.detect()
-        end = time.time()
+        if evaluate:
+            performance = ids.detect()
+            end = time.time()
 
-        stats = performance.get_results()
+            stats = performance.get_results()
 
-        stats['dataset'] = lid_ds_version
-        stats['scenario'] = scenario
-        stats['anomaly_score'] = anomaly_score.name
-        stats['ngram'] = ngram_length
-        stats['batch_size'] = batch_size
-        stats['epochs'] = epochs
-        stats['model_dim'] = model_dim
-        stats['num_heads'] = num_heads
-        stats['layers'] = layers
-        stats['dropout'] = dropout
-        stats['feedforward_dim'] = feedforward_dim
-        stats['thread_aware'] = thread_aware
-        stats['threshold'] = decider._threshold
-        stats['train_losses'] = transformer.train_losses
-        stats['val_losses'] = transformer.val_losses
-        stats['config'] = ids.get_config_tree_links()
-        stats['direction'] = dataloader.get_direction_string()
-        stats['date'] = str(datetime.now().date())
-        stats['detection_time'] = str(end - start)
+            stats['dataset'] = lid_ds_version
+            stats['scenario'] = scenario
+            stats['threshold'] = decider._threshold
+            stats['train_losses'] = transformer.train_losses
+            stats['val_losses'] = transformer.val_losses
+            stats['config'] = ids.get_config_tree_links()
+            stats['direction'] = dataloader.get_direction_string()
+            stats['date'] = str(datetime.now().date())
+            stats['detection_time'] = str(end - start)
 
-        pprint(stats)
-        result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}.json'
-        save_to_json(stats, result_path)
+            pprint(stats)
+            save_to_json(stats, result_path)
+
+    if (not ON_CLUSTER) and evaluate:
+        for epochs in reversed(range(60, 901, 60)):
+            _run_for_epoch(epochs)
+    else:
+        _run_for_epoch(epochs)
 
 
 if __name__ == '__main__':

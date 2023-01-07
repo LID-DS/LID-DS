@@ -55,7 +55,7 @@ if '2019' in BASE_PATH:
     SCENARIOS = scenario_2019
 else:
     SCENARIOS = scenario_2021
-SCRIPT = 'run_tf_on_sc.sh'
+SCRIPT = 'run_tf_on_sc_cpu.sh'
 
 MAX_JOBS_IN_QUEUE = 500
 NUM_EXPERIMENTS = 0
@@ -94,26 +94,27 @@ for scenario in SCENARIOS:
                         for language_model in LANGUAGE_MODEL:
                             for batch_size in BATCH_SIZES:
                                 for anomaly_score in ANOMALY_SCORINGS:
-                                    ff_dim = model_dim * 4  # for now use recommended dimensions
-                                    NUM_EXPERIMENTS += 1
-                                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length} " + \
-                                              f"{SCRIPT} " + \
-                                              f"{BASE_PATH} " + \
-                                              f"{DATASET} " + \
-                                              f"{scenario} " + \
-                                              f"{CHECKPOINT_DIR} " + \
-                                              f"{ngram_length} " + \
-                                              f"{thread_aware} " + \
-                                              f"{ff_dim} " + \
-                                              f"{layers} " + \
-                                              f"{model_dim} " + \
-                                              f"{num_heads} " + \
-                                              f"{language_model} " + \
-                                              f"{batch_size} " + \
-                                              f"{DEDUP} " + \
-                                              f"{USE_RET_VALUE} " + \
-                                              f"{anomaly_score} "
-
-                                    start_job(command)
+                                    for epochs in reversed(range(60, 901, 60)):
+                                        ff_dim = model_dim * 4  # for now use recommended dimensions
+                                        NUM_EXPERIMENTS += 1
+                                        command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length} " + \
+                                                  f"{SCRIPT} " + \
+                                                  f"{BASE_PATH} " + \
+                                                  f"{DATASET} " + \
+                                                  f"{scenario} " + \
+                                                  f"{CHECKPOINT_DIR} " + \
+                                                  f"{ngram_length} " + \
+                                                  f"{thread_aware} " + \
+                                                  f"{ff_dim} " + \
+                                                  f"{layers} " + \
+                                                  f"{model_dim} " + \
+                                                  f"{num_heads} " + \
+                                                  f"{language_model} " + \
+                                                  f"{batch_size} " + \
+                                                  f"{DEDUP} " + \
+                                                  f"{anomaly_score} " + \
+                                                  f"{USE_RET_VALUE} " + \
+                                                  f"{epochs} "
+                                        start_job(command)
 
 print(f"NUM_EXPERIMENTS = {NUM_EXPERIMENTS}")

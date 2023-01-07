@@ -12,8 +12,6 @@ from algorithms.decision_engines.nn.transformer import CustomTransformer
 from algorithms.persistance import ModelCheckPoint
 from dataloader.syscall import Syscall
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 class AnomalyScore(Enum):
     PRODUCT = 0
@@ -81,6 +79,8 @@ class Transformer(BuildingBlock):
         # placeholder for start of sentence, will be updated later in case we have more features
         self._sos = self._distinct_tokens + 1
 
+        self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     def _init_model(self):
 
         self._distinct_tokens = len(set([item for sublist in self._training_set for item in sublist]))
@@ -97,7 +97,7 @@ class Transformer(BuildingBlock):
             self._feedforward_dim,
             pre_layer_norm=self._pre_layer_norm,
             language_model=self._language_model
-        ).to(DEVICE)
+        ).to(self._device)
 
     def train_on(self, syscall: Syscall):
         input_vector: tuple = self._input_vector.get_result(syscall)
@@ -121,12 +121,19 @@ class Transformer(BuildingBlock):
             eps=1e-9
         )
 
-        t_dataset = TransformerDataset(self._training_set, self._language_model, self._dedup_train_set, sos=self._sos)
+        t_dataset = TransformerDataset(
+            self._training_set,
+            self._language_model,
+            self._dedup_train_set,
+            self._sos,
+            self._device
+        )
         t_dataset_val = TransformerDataset(
             self._validation_set,
             self._language_model,
             self._dedup_train_set,
-            sos=self._sos
+            self._sos,
+            self._device
         )
 
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
@@ -138,25 +145,12 @@ class Transformer(BuildingBlock):
                 optimizer,
                 self._epochs
             )
-        for epoch in tqdm(range(last_epoch + 1, self._epochs + 1)):
+        for epoch in tqdm(range(last_epoch + 1, self._epochs + 1), "train&val".rjust(27), unit=" epoch"):
             # Training
             self.transformer.train()
             train_loss = 0
             for batch in train_dataloader:
-                X, Y = batch
-                y_input = Y[:, :-1]
-                y_expected = Y[:, 1:]
-
-                sequence_length = y_input.size(1)
-                tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(DEVICE)
-
-                pred = self.transformer(X, y_input, tgt_mask)
-
-                # Permute pred to have batch size first again
-                pred = pred.permute(1, 2, 0)
-                # prediction probability for every possible syscall
-                loss = loss_fn(pred, y_expected)
-
+                loss = self._forward_and_get_loss(batch, loss_fn)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -164,29 +158,32 @@ class Transformer(BuildingBlock):
                 train_loss += loss.detach().item()
             self.train_losses[epoch] = train_loss / len(train_dataloader)
 
-            if epoch % 5 == 0:
+            if epoch % 1 == 0:
                 self.transformer.eval()
                 val_loss = 0
                 with torch.no_grad():
                     for batch in val_dataloader:
-                        X, Y = batch
-                        y_input = Y[:, :-1]
-                        y_expected = Y[:, 1:]
-
-                        # Get mask to mask out the next words
-                        sequence_length = y_input.size(1)
-                        tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(DEVICE)
-
-                        # Standard training except we pass in y_input and src_mask
-                        pred = self.transformer(X, y_input, tgt_mask)
-
-                        # Permute pred to have batch size first again
-                        pred = pred.permute(1, 2, 0)
-                        loss = loss_fn(pred, y_expected)
+                        loss = self._forward_and_get_loss(batch, loss_fn)
                         val_loss += loss.detach().item()
                 self.val_losses[epoch] = val_loss / len(val_dataloader)
             self._checkpoint.save(self.transformer, optimizer, epoch, self.train_losses, self.val_losses)
+        # evaluation only on cpu
         self.transformer.eval()
+        self._device = torch.device('cpu')
+        self.transformer.to(self._device)
+
+    def _forward_and_get_loss(self, batch, loss_fn):
+        X, Y = batch
+        y_input = Y[:, :-1]
+        y_expected = Y[:, 1:]
+        sequence_length = y_input.size(1)
+        tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(self._device)
+        pred = self.transformer(X, y_input, tgt_mask)
+        # Permute pred to have batch size first again
+        pred = pred.permute(1, 2, 0)
+        # prediction probability for every possible syscall
+        loss = loss_fn(pred, y_expected)
+        return loss
 
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
@@ -197,12 +194,12 @@ class Transformer(BuildingBlock):
         if input_vector is None:
             return None
         with torch.no_grad():
-            x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
-            y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=DEVICE)
+            x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=self._device)
+            y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=self._device)
             if self._language_model:
                 x_input = x_input[:, 1:]
 
-            tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(DEVICE)
+            tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(self._device)
             pred = self.transformer(x_input, y_input, tgt_mask)
             predicted_probs = nn.Softmax(dim=2)(pred).squeeze(1)
 
@@ -223,10 +220,10 @@ class Transformer(BuildingBlock):
 
 class TransformerDataset(Dataset):
 
-    def __init__(self, X, language_model, dedup_train_set, sos):
+    def __init__(self, X, language_model, dedup_train_set, sos, device):
         if dedup_train_set:
             X = list(set(X))
-        X = torch.tensor(X, dtype=torch.long, device=DEVICE)
+        X = torch.tensor(X, dtype=torch.long, device=device)
         if language_model:
             self.X = X[:, 1:-1]  # no need for <sos>
         else:
@@ -339,7 +336,6 @@ class PositionalEncoding(nn.Module):
         # Modified version from: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
         # max_len determines how far the position can have an effect on a token (window)
 
-        # Info
         self.dropout = nn.Dropout(dropout_p)
 
         # Encoding - From formula
