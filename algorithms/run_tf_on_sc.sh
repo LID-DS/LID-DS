@@ -8,6 +8,7 @@
 #SBATCH -o logs/job_%A_%a.log
 
 export IDS_ON_CLUSTER=1
+
 module load matplotlib/3.4.3-foss-2021b
 module load CUDA/11.3.1
 module load Python/3.9.6-GCCcore-11.2.0
@@ -37,4 +38,5 @@ pip install --user -r "$(grep -ivE 'torch' ../requirements.txt)"
 # 12: -b batch_size
 # 13: -dup dedup_train_set
 # 14: -as anomaly_score
-python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}"
+# 15: -ret use_return_value
+python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}" -ret "${15}"

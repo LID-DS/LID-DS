@@ -113,3 +113,5 @@ for scenario in SCENARIOS:
                                               f"{anomaly_score} "
 
                                     start_job(command)
+
+print(f"NUM_EXPERIMENTS = {NUM_EXPERIMENTS}")
