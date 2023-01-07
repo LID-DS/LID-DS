@@ -9,6 +9,8 @@ from algorithms.decision_engines.transformer import Transformer, AnomalyScore
 from algorithms.features.impl.int_embedding import IntEmbedding
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.ngram import Ngram
+from algorithms.features.impl.ngram_minus_one import NgramMinusOne
+from algorithms.features.impl.return_value import ReturnValueLogNorm
 from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.ids import IDS
 from algorithms.persistance import save_to_json, ModelCheckPoint
@@ -104,9 +106,13 @@ def _parse_args():
     )
 
     parser.add_argument(
-        '-as', dest='anomaly_score', action='store', type=AnomalyScore.argparse,
-        required=True,
+        '-as', dest='anomaly_score', action='store', type=AnomalyScore.argparse, required=True,
         help='Anomaly scoring strategy'
+    )
+
+    parser.add_argument(
+        '-ret', dest='use_return_value', type=lambda x: (str(x).lower() == 'true'), required=True,
+        help='use return value'
     )
 
     return parser.parse_args()
@@ -133,6 +139,8 @@ def main():
     epochs = 20
     dropout = 0.1
 
+    use_return_value = True
+
     if "IDS_ON_CLUSTER" in os.environ:
         args = _parse_args()
         scenario = args.scenario
@@ -150,6 +158,7 @@ def main():
         dedup_train_set = args.dedup_train_set
         batch_size = args.batch_size
         anomaly_score = args.anomaly_score
+        use_return_value = args.use_return_value
     else:
         # getting the LID-DS base path from argument or environment variable
         if len(sys.argv) > 1:
@@ -167,7 +176,7 @@ def main():
         scenario_path = f"{lid_ds_base_path}/{lid_ds_version}/{scenario}"
 
     # data loader for scenario
-    dataloader = dataloader_factory(scenario_path, direction=Direction.OPEN)
+    dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
     checkpoint = ModelCheckPoint(
         scenario,
@@ -183,22 +192,30 @@ def main():
             "feedforward_dim": feedforward_dim,
             "pre_layer_norm": pre_layer_norm,
             "direction": dataloader.get_direction_string(),
-            "language_model": language_model
-            "dedup_train_set": dedup_train_set
+            "language_model": language_model,
+            "dedup_train_set": dedup_train_set,
+            "use_return_value": use_return_value,
         },
         models_dir=checkpoint_dir
     )
 
-    # embedding
+    # FEATURES
     name = SyscallName()
 
     int_embedding = IntEmbedding(name)
+    features = [int_embedding]
+
+    if use_return_value:
+        return_value = IntEmbedding(ReturnValueLogNorm())
+        features.append(return_value)
 
     ngram = Ngram(
-        feature_list=[int_embedding],
+        feature_list=features,
         thread_aware=thread_aware,
         ngram_length=ngram_length
     )
+    if len(features) > 1:
+        ngram = NgramMinusOne(ngram=ngram, element_size=len(features) - 1)
 
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
 

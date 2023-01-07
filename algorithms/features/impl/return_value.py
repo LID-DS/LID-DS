@@ -1,3 +1,5 @@
+import math
+
 from algorithms.building_block import BuildingBlock
 from dataloader.syscall import Syscall
 
@@ -66,6 +68,51 @@ class ReturnValue(BuildingBlock):
                     return_value = -1
             except ZeroDivisionError:
                 return_value = 0
+        return return_value
+
+    def depends_on(self):
+        return []
+
+
+class ReturnValueLogNorm(BuildingBlock):
+    """
+    calculate system call return value for all syscalls.
+    calculation phase:
+        - log norm int return values > 2 : (reduces number of distinct return values)
+        - flags and fd as is
+        - 0 if no return value
+        - -1 for other data types such us memory addresses
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._max = {}
+
+    def train_on(self, syscall: Syscall):
+        pass
+
+    def _calculate(self, syscall: Syscall):
+        """
+        calculate system call return value for all syscalls.
+        calculation phase:
+            - log norm int return values > 2
+            - flags and fd as is
+            - 0 if no return value
+            - -1 for other data types such us memory addresses
+
+        """
+        return_value = 0
+        return_value_string = syscall.param('res')
+        if return_value_string is not None:
+            try:
+                return_value = int(return_value_string)
+                if return_value > 2:
+                    return_value = round(math.log2(return_value)) + 2
+            except ValueError:
+                if '(' in return_value_string:
+                    return_value = return_value_string
+                else:
+                    return_value = -1
         return return_value
 
     def depends_on(self):
