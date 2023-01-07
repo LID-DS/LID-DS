@@ -1,20 +1,21 @@
 import math
-from enum import IntEnum
+from enum import Enum
 from functools import lru_cache
 
 import torch
-from algorithms.building_block import BuildingBlock
-from algorithms.decision_engines.nn.transformer import CustomTransformer
-from algorithms.persistance import ModelCheckPoint
-from dataloader.syscall import Syscall
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
+from algorithms.building_block import BuildingBlock
+from algorithms.decision_engines.nn.transformer import CustomTransformer
+from algorithms.persistance import ModelCheckPoint
+from dataloader.syscall import Syscall
+
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-class AnomalyScore(IntEnum):
+class AnomalyScore(Enum):
     PRODUCT = 0
     MEAN = 1
     LAST = 2
@@ -57,11 +58,17 @@ class Transformer(BuildingBlock):
         super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
-        self._distinct_syscalls = distinct_syscalls
+        self._distinct_tokens = distinct_syscalls
         self._epochs = epochs
         self._batch_size = batch_size
         self._anomaly_scoring = anomaly_scoring
         self._checkpoint = checkpoint
+        self._num_heads = num_heads
+        self._layers = layers
+        self._model_dim = model_dim
+        self._dropout = dropout
+        self._feedforward_dim = feedforward_dim
+        self._pre_layer_norm = pre_layer_norm
         self._retrain = retrain
         self._language_model = language_model
         self._dedup_train_set = dedup_train_set
@@ -71,20 +78,25 @@ class Transformer(BuildingBlock):
         self._training_set = []
         self._validation_set = []
 
-        # placeholder for start of sentence and end of sentence
-        self._sos = distinct_syscalls + 1
+        # placeholder for start of sentence, will be updated later in case we have more features
+        self._sos = self._distinct_tokens + 1
+
+    def _init_model(self):
+
+        self._distinct_tokens = len(set([item for sublist in self._training_set for item in sublist]))
+        self._sos = self._distinct_tokens + 1
         # distinct syscalls plus sos, plus 1 for unknown syscalls
-        num_tokens = distinct_syscalls + 2
+        num_tokens = self._distinct_tokens + 2
         self.transformer = TransformerModel(
             num_tokens,
-            model_dim,
-            num_heads,
-            layers,
-            layers,
-            dropout,
-            feedforward_dim,
-            pre_layer_norm=pre_layer_norm,
-            language_model=language_model
+            self._model_dim,
+            self._num_heads,
+            self._layers,
+            self._layers,
+            self._dropout,
+            self._feedforward_dim,
+            pre_layer_norm=self._pre_layer_norm,
+            language_model=self._language_model
         ).to(DEVICE)
 
     def train_on(self, syscall: Syscall):
@@ -98,6 +110,7 @@ class Transformer(BuildingBlock):
             self._validation_set.append((self._sos,) + input_vector)
 
     def fit(self):
+        self._init_model()
         loss_fn = nn.CrossEntropyLoss()
 
         learning_rate = 0.001
@@ -108,8 +121,13 @@ class Transformer(BuildingBlock):
             eps=1e-9
         )
 
-        t_dataset = TransformerDataset(self._training_set, self._language_model, self._dedup_train_set)
-        t_dataset_val = TransformerDataset(self._validation_set, self._language_model, self._dedup_train_set)
+        t_dataset = TransformerDataset(self._training_set, self._language_model, self._dedup_train_set, sos=self._sos)
+        t_dataset_val = TransformerDataset(
+            self._validation_set,
+            self._language_model,
+            self._dedup_train_set,
+            sos=self._sos
+        )
 
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
@@ -174,27 +192,28 @@ class Transformer(BuildingBlock):
         input_vector = self._input_vector.get_result(syscall)
         return self._cached_results(input_vector)
 
-    @lru_cache(maxsize=5000)
+    @lru_cache(maxsize=10000)
     def _cached_results(self, input_vector):
         if input_vector is None:
             return None
-        x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
-        y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=DEVICE)
-        if self._language_model:
-            x_input = x_input[:, 1:]
+        with torch.no_grad():
+            x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=DEVICE)
+            y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=DEVICE)
+            if self._language_model:
+                x_input = x_input[:, 1:]
 
-        tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(DEVICE)
-        pred = self.transformer(x_input, y_input, tgt_mask)
-        predicted_probs = nn.Softmax(dim=2)(pred).squeeze(1)
+            tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(DEVICE)
+            pred = self.transformer(x_input, y_input, tgt_mask)
+            predicted_probs = nn.Softmax(dim=2)(pred).squeeze(1)
 
-        if self._anomaly_scoring == AnomalyScore.PRODUCT:
-            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].prod()
-        elif self._anomaly_scoring == AnomalyScore.MEAN:
-            conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].mean()
-        elif self._anomaly_scoring == AnomalyScore.LAST:
-            conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
-        else:
-            raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
+            if self._anomaly_scoring == AnomalyScore.PRODUCT:
+                conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].prod()
+            elif self._anomaly_scoring == AnomalyScore.MEAN:
+                conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].mean()
+            elif self._anomaly_scoring == AnomalyScore.LAST:
+                conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
+            else:
+                raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
 
         return 1 - float(conditional_prob)
 
@@ -204,7 +223,7 @@ class Transformer(BuildingBlock):
 
 class TransformerDataset(Dataset):
 
-    def __init__(self, X, language_model, dedup_train_set):
+    def __init__(self, X, language_model, dedup_train_set, sos):
         if dedup_train_set:
             X = list(set(X))
         X = torch.tensor(X, dtype=torch.long, device=DEVICE)
@@ -212,6 +231,8 @@ class TransformerDataset(Dataset):
             self.X = X[:, 1:-1]  # no need for <sos>
         else:
             self.X = X[:, :-1]
+            self.X[:, 0] = sos
+
         self.Y = torch.cat((X[:, 0:1], X[:, 2:]), 1)  # drop first token after <sos>
 
     def __len__(self):
