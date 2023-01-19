@@ -101,7 +101,6 @@ def append_file(dict_to_check: dict, files_list: dict):
                 duplicate = True
                 break
             elif action in file['action']:
-                print(file['occurrences'])
                 file['occurrences'] += 1
                 return files_list
 
@@ -303,16 +302,17 @@ class Alert:
                 if arg_tuple[0] == "fd":
                     fd_dict = stringmatch_arg(arg_tuple, syscall, known_files)
 
-                    if "dest_ip" in fd_dict.keys():
-                        if not self.network_list:
-                            self.network_list.append(fd_dict)
-                        else:
-                            if fd_dict not in self.network_list:
-                                if not is_duplicate_connection(fd_dict, self.network_list):
-                                    self.network_list.append(fd_dict)
+                    if fd_dict is not None:
+                        if "dest_ip" in fd_dict.keys():
+                            if not self.network_list:
+                                self.network_list.append(fd_dict)
+                            else:
+                                if fd_dict not in self.network_list:
+                                    if not is_duplicate_connection(fd_dict, self.network_list):
+                                        self.network_list.append(fd_dict)
 
-                    else:
-                        self.files_list = append_file(fd_dict, self.files_list)
+                        else:
+                            self.files_list = append_file(fd_dict, self.files_list)
 
             if len(args_found) == 2:
                 arg_tuple = (args_found[1], syscall.param(args_found[1]))
@@ -380,15 +380,16 @@ if __name__ == '__main__':
 
     # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_CVE-2017-7529.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    # anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_Bruteforce_CWE-307.json'
+    anomaly_file_path = "alarms_SOM_EPS_ngram_7_epoch_100_w2v_5_CWE-434.json"
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/EPS_CWE-434'
 
     dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
     output = {'alerts': []}  # dict for json output
     alert_list = []  # list for saving alert objects
 
-    analyzed_args = ['fd', 'path', 'name', 'filename', 'in_fd']
+    analyzed_args = ['fd', 'path', 'name', 'filename']
 
     known_files = learn_files(dataloader)
 
@@ -403,7 +404,7 @@ if __name__ == '__main__':
 
             alert_list.append(alert)
 
-    for recording in dataloader.test_data():
+    for recording in tqdm(dataloader.test_data(), desc="Iterating recordings...", unit=" recording"):
 
         alerts_of_recording = [alert for alert in alert_list if alert.recording_name == recording.name]
         alerts_grouped = []
