@@ -11,7 +11,8 @@ from dataloader.direction import Direction
 
 ip_pattern = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 port_pattern = re.compile(r"(?::)([0-9]+)")  # not bulletproof
-file_path_pattern = re.compile(r"((\/.+)+(\.\w+)?)")
+file_path_pattern = re.compile(r"((\/\w+)+(\.\w+)?)") # old one
+#file_path_pattern = re.compile(r"(?<=<f>)(.*)(?=\))")
 
 
 def save_basic_info(alarm_entry):
@@ -27,15 +28,12 @@ def save_basic_info(alarm_entry):
     if alarm_entry['last_timestamp'] == alarm_entry['first_timestamp']:
         time_window_seconds = 0
     else:
-        time_window_seconds = (alarm_entry['last_timestamp'] - alarm_entry['first_timestamp']) * pow(10, -9)
-
-    starting_time = (datetime.fromtimestamp(alarm_entry['first_timestamp'] // 1000000000)).strftime('%Y-%m-%d %H:%M:%S')
+        time_window_seconds = float("{:.3f}".format((alarm_entry['last_timestamp'] - alarm_entry['first_timestamp']) * pow(10, -9)))
 
     basic_alarm_info = {'scenario_path': alarm_entry['filepath'],
                         'alert_recording': alarm_entry['filepath'].strip("/'").split('/')[3].strip(".zip"),
                         'first_timestamp': alarm_entry['first_timestamp'],
                         'last_timestamp': alarm_entry['last_timestamp'],
-                        'starting_time': starting_time,
                         'time_window_seconds': time_window_seconds,
                         'syscall_count': syscall_count,
                         'first_line_id': alarm_entry['first_line_id'],
@@ -44,13 +42,12 @@ def save_basic_info(alarm_entry):
     return basic_alarm_info
 
 
-def learn_training_fds(dataloader):
+def learn_files(dataloader):
     """
     saves 'fd' information from arguments in training data,
     returns lists of known_files(0) and known_ips(1)
     """
     known_files = []
-    known_ips = []
 
     for recording in tqdm(dataloader.training_data(), desc="Learning training data...", unit=" recording"):
         for syscall in recording.syscalls():
@@ -63,12 +60,7 @@ def learn_training_fds(dataloader):
                         if file not in known_files:
                             known_files.append(file)
 
-                if ip_matches:
-                    for ip in ip_matches:
-                        if ip not in known_ips:
-                            known_ips.append(ip)
-
-    return known_files, known_ips
+    return known_files
 
 
 def is_duplicate_connection(dict_to_check: dict, network_list: dict):
@@ -84,8 +76,6 @@ def is_duplicate_connection(dict_to_check: dict, network_list: dict):
             continue
         elif entry['dest_port'] != dict_to_check['dest_port']:
             continue
-        elif entry['dest_ip_known'] != dict_to_check['dest_ip_known']:
-            continue
         elif entry['source_port'] != dict_to_check['source_port']:
             duplicate = True
 
@@ -97,6 +87,7 @@ def append_file(dict_to_check: dict, files_list: dict):
     returns updated files list for process,
     appends either new file or adds new action to existing one
     """
+
     duplicate = False
     action = dict_to_check['action'][0]
     for file in files_list:
@@ -107,6 +98,7 @@ def append_file(dict_to_check: dict, files_list: dict):
                 duplicate = True
                 break
             elif action in file['action']:
+                print(file['occurrences'])
                 file['occurrences'] += 1
                 return files_list
 
@@ -176,11 +168,7 @@ def filter_known(list_of_attributes: list):
         filtered_list = [item for item in list_of_attributes if item['known'] is False]
         return filtered_list
     except KeyError:
-        try:
-            filtered_list = [item for item in list_of_attributes if item['dest_ip_known'] is False]
-            return filtered_list
-        except KeyError:
-            print("List entries do not have 'known' attribute.")
+        print("List entries do not have 'known' attribute.")
 
 
 def set_process(syscall, current_alert):
@@ -207,12 +195,12 @@ def set_process(syscall, current_alert):
     return current_process
 
 
-def hide_irrelevant(alert_dict: dict):
+def shorten(alert_dict: dict):
     """
     removes all information irrelevant for analysis from dict
     """
 
-    keys_to_hide = ['path_to_syscalls', 'recording_name', 'first_timestamp', 'last_timestamp', 'first_line_id',
+    keys_to_hide = ['path_to_syscalls', 'recording_name', 'first_line_id',
                     'last_line_id']
     alert_dict_shortened = alert_dict.copy()
     for key in keys_to_hide:
@@ -236,7 +224,6 @@ class Alert:
         self.last_line_id = basic_info['last_line_id']
         self.first_timestamp = basic_info['first_timestamp']
         self.last_timestamp = basic_info['last_timestamp']
-        self.starting_time = basic_info['starting_time']
         self.time_window = basic_info['time_window_seconds']
         self.syscall_count = basic_info['syscall_count']
         self.process_list = []
@@ -253,9 +240,16 @@ class Alert:
 
         return self.process_list
 
+    def convert_timestamp(self):
+        """
+        converts timestamps in ns to date time format
+        """
+        self.first_timestamp = (datetime.fromtimestamp(self.first_timestamp // 1000000000)).strftime('%Y-%m-%d %H:%M:%S')
+        self.last_timestamp = (datetime.fromtimestamp(self.last_timestamp // 1000000000)).strftime('%Y-%m-%d %H:%M:%S')
+
     def show(self, show_known: bool):
         """
-        print alert as dict, show_known flag for view that excludes known files and destination ips
+        print alert object as dict, show_known flag for view that excludes known files
         """
         if show_known:
             pprint.pprint(vars(self))
@@ -265,9 +259,10 @@ class Alert:
             filter_dict = vars(self)
             for process in filter_dict['process_list']:
                 process['files_list'] = filter_known(process['files_list'])
-                process['network_list'] = filter_known(process['network_list'])
             pprint.pprint(filter_dict)
             return filter_dict
+
+
 
     class Process:
         def __init__(self, process_id, user_id, process_name):
@@ -278,7 +273,7 @@ class Alert:
             self.files_list = []
             self.parent_thread = None
 
-        def arg_match(self, arg_str: str, known_ips, known_files):
+        def arg_match(self, arg_str: str, syscall, known_files):
 
             """
             takes argument string, matches patterns and appends process information
@@ -286,9 +281,21 @@ class Alert:
             """
 
             if arg_str is not None:
+
                 ip_matches = re.findall(ip_pattern, arg_str)
                 port_matches = re.findall(port_pattern, arg_str)
                 file_matches = re.findall(file_path_pattern, arg_str)
+
+                if file_matches:
+                    file_path = file_matches[0][0] # findall() returns list of tuples of group matches, therefore accessing first full match
+
+                    file_dict = {'path': file_path,
+                                 'action': [syscall.name()],
+                                 'known': check_known(file_path, known_files),
+                                 'occurrences': 1
+                                 }
+
+                    self.files_list = append_file(file_dict, self.files_list)
 
                 if ip_matches and port_matches and len(ip_matches) > 1:  # so 0.0.0.0 won't be listed
 
@@ -296,7 +303,6 @@ class Alert:
                                     'source_port': port_matches[0],
                                     'dest_ip': ip_matches[1],
                                     'dest_port': port_matches[1],
-                                    'dest_ip_known': check_known(ip_matches[1], known_ips)
                                     }
                     if not self.network_list:
                         self.network_list.append(network_dict)
@@ -304,16 +310,6 @@ class Alert:
                         if network_dict not in self.network_list:
                             if not is_duplicate_connection(network_dict, self.network_list):
                                 self.network_list.append(network_dict)
-
-                if file_matches:
-                    file_dict = {'path': file_matches[0][0],
-                                 # findall() returns list of tuples of group matches, therefore accessing first full match
-                                 'action': [syscall.name()],
-                                 'known': check_known(file_matches[0][0], known_files),
-                                 'occurrences': 1
-                                 }
-
-                    self.files_list = append_file(file_dict, self.files_list)
 
             else:
                 return
@@ -332,30 +328,36 @@ def is_consecutive(previous_alert, current_alert):
         return False
 
 
-def update_log(last_timestamp, last_line_id, current_alert):
+def update_last_alert(last_timestamp, last_line_id, current_alert):
+    """
+    updates last processed alert with information from consecutive alert: groups them
+    """
+    intermediate_line_id = current_alert.last_line_id
     current_alert.last_timestamp = last_timestamp
     current_alert.last_line_id = last_line_id
-    current_alert.time_window = (last_timestamp - current_alert.first_timestamp) * pow(10, -9)
+    current_alert.time_window = float("{:.3f}".format((last_timestamp - current_alert.first_timestamp) * pow(10, -9)))
     current_alert.syscall_count = last_line_id - current_alert.first_line_id
+
+    return current_alert, intermediate_line_id
 
 
 if __name__ == '__main__':
 
     # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    source_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_sum_scg_stide_som_CVE-2020-23839.json'
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
+    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_CVE-2017-7529.json'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
 
     dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
 
     output = {'alerts': []}  # dict for json output
     alert_list = []  # list for saving alert objects
 
-    analyzed_args = ['fd', 'out_fd', 'in_fd', 'res', 'path']
+    analyzed_args = ['fd', 'out_fd', 'in_fd', 'res', 'path', 'name']
 
-    known_files, known_ips = learn_training_fds(dataloader)
+    known_files = learn_files(dataloader)
 
-    with open(source_file_path) as anomaly_file:
+    with open(anomaly_file_path) as anomaly_file:
         anomaly_dict = json.load(anomaly_file)
 
         # looping over every entry in input alert file
@@ -369,19 +371,19 @@ if __name__ == '__main__':
     for recording in dataloader.test_data():
 
         alerts_of_recording = [alert for alert in alert_list if alert.recording_name == recording.name]
-        logs_from_alerts = []
+        alerts_grouped = []
         first = True
-        updated_log = False
+        updated_alert = False
 
         for alert in alerts_of_recording:
             current_alert = alert
             if not first:
-                if is_consecutive(logs_from_alerts[-1], current_alert):
+                if is_consecutive(alerts_grouped[-1], current_alert):
                     last_timestamp = current_alert.last_timestamp
                     last_line_id = current_alert.last_line_id
-                    current_alert = logs_from_alerts[-1]
-                    update_log(last_timestamp, last_line_id, current_alert)
-                    updated_log = True
+                    current_alert = alerts_grouped[-1]
+                    current_alert, intermediate_line_id = update_last_alert(last_timestamp, last_line_id, current_alert)
+                    updated_alert = True
 
             for syscall in recording.syscalls():
                 if current_alert.syscall_count == 1:
@@ -390,31 +392,46 @@ if __name__ == '__main__':
 
                         # extracting argument information from current syscall and adding them to process
                         for arg in analyzed_args:
-                            current_process.arg_match(extract_arg_str(arg, syscall), known_ips, known_files)
+                            arg_string = extract_arg_str(arg, syscall)
+                            current_process.arg_match(arg_string, syscall, known_files)
 
                         trace_parent(syscall, current_process)  # saving ptid for clone and execve syscalls
 
-                elif syscall.line_id in range(current_alert.first_line_id, current_alert.last_line_id + 1):
-                    current_process = set_process(syscall, current_alert)
+                else:
+                    if updated_alert: # for updated alerts only new system call lines analyzed
+                        if syscall.line_id in range(intermediate_line_id, current_alert.last_line_id + 1):
+                            print("updated", syscall.line_id, intermediate_line_id, current_alert.last_line_id)
+                            current_process = set_process(syscall, current_alert)
 
-                    # extracting argument information from current syscall and adding them to process
-                    for arg in analyzed_args:
-                        current_process.arg_match(extract_arg_str(arg, syscall), known_ips, known_files)
+                            for arg in analyzed_args:
+                                arg_string = extract_arg_str(arg, syscall)
+                                current_process.arg_match(arg_string, syscall, known_files)
 
-                    trace_parent(syscall, current_process)  # saving ptid for clone and execve syscalls
+                            trace_parent(syscall, current_process)
+                    else:
+                        if syscall.line_id in range(current_alert.first_line_id, current_alert.last_line_id + 1):
+                            print("new alert", syscall.line_id, current_alert.first_line_id, current_alert.last_line_id)
+                            current_process = set_process(syscall, current_alert)
 
-            if not updated_log:
-                logs_from_alerts.append(copy.deepcopy(current_alert))
+                            for arg in analyzed_args:
+                                arg_string = extract_arg_str(arg, syscall)
+                                current_process.arg_match(arg_string, syscall, known_files)
+
+                            trace_parent(syscall, current_process)
+
+            if not updated_alert:
+                alerts_grouped.append(copy.deepcopy(current_alert))
             first = False
-            updated_log = False
+            updated_alert = False
 
-        for log in logs_from_alerts:
-            log.dictify_processes()
-            single_alert = log.show(show_known=True)  # pprint alert as dict
-            single_alert_shortened = hide_irrelevant(single_alert)  # hide path and recording information for analysis
+        for alert in alerts_grouped:
+            alert.dictify_processes()
+            alert.convert_timestamp()
+            single_alert = alert.show(show_known=True)  # pprint alert as dict
+            single_alert_shortened = shorten(single_alert)  # hide path and recording information for analysis
             output['alerts'].append(single_alert)
 
-        """if logs_from_alerts:
-            break"""
+        if alerts_grouped:
+            break
 
-    save_to_file(output)
+    #save_to_file(output)
