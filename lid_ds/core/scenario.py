@@ -57,6 +57,7 @@ class Scenario(metaclass=ABCMeta):
             exploit_start_time=0,
             exploit_name='default',
             storage_services: List[CollectorStorageService] = None,
+            log_files: list = [],
             recording_mode=RecordingModes.Sysdig
     ):
         """
@@ -158,6 +159,7 @@ class Scenario(metaclass=ABCMeta):
                 self._warmup()
                 self._recording()
         finally:
+            self._persist_logs()
             self._teardown()
 
         if self.auto_stop_recording:
@@ -183,3 +185,11 @@ class Scenario(metaclass=ABCMeta):
             self.general_meta.recording_time,
             self.general_meta.warmup_time,
         )
+
+    def _persist_logs(self) -> None:
+        # get docker id
+        # copy logs from docker to host
+        # take names declared in self.log_files
+        # save in runs/logs/
+        # e.g. docker cp NAME:/var/log/nginx/access.log runs/
+        return None
