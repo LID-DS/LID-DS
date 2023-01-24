@@ -168,7 +168,7 @@ def main():
         batch_size = args.batch_size
         anomaly_score = args.anomaly_score
         use_return_value = args.use_return_value
-        evaluate = args.eval
+        evaluate = args.evaluate
         epochs = args.epochs
         print(args)
     else:
