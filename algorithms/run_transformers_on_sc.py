@@ -96,7 +96,7 @@ for scenario in SCENARIOS:
                                 for anomaly_score in ANOMALY_SCORINGS:
                                     ff_dim = model_dim * 4  # for now use recommended dimensions
                                     NUM_EXPERIMENTS += 1
-                                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length} " + \
+                                    command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length}ret{USE_RET_VALUE} " + \
                                               f"{SCRIPT} " + \
                                               f"{BASE_PATH} " + \
                                               f"{DATASET} " + \
@@ -111,8 +111,8 @@ for scenario in SCENARIOS:
                                               f"{language_model} " + \
                                               f"{batch_size} " + \
                                               f"{DEDUP} " + \
-                                              f"{USE_RET_VALUE} " + \
-                                              f"{anomaly_score} "
+                                              f"{anomaly_score} " + \
+                                              f"{USE_RET_VALUE} "
 
                                     start_job(command)
 

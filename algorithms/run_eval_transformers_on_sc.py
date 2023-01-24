@@ -97,7 +97,7 @@ for scenario in SCENARIOS:
                                     for epochs in reversed(range(60, 901, 60)):
                                         ff_dim = model_dim * 4  # for now use recommended dimensions
                                         NUM_EXPERIMENTS += 1
-                                        command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length} " + \
+                                        command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}m{model_dim}l{layers}f{ff_dim}h{num_heads}lm{language_model}n{ngram_length}ret{USE_RET_VALUE}e{epochs} " + \
                                                   f"{SCRIPT} " + \
                                                   f"{BASE_PATH} " + \
                                                   f"{DATASET} " + \
