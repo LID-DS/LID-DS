@@ -35,6 +35,6 @@ for select_scenario_number in range(0, len(scenario_names)):
 
     for recording in dataloader.test_data():
         for syscall in recording.syscalls():
-            if "path" in syscall.params().keys():
+            if syscall.name() == "sendfile":
                 print(syscall.syscall_line)
-
+                print(syscall.direction())
