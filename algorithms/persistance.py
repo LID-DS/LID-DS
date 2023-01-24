@@ -191,7 +191,10 @@ class ModelCheckPoint:
             last_epoch = max(e for e in saved_epochs if e <= epoch)
         if last_epoch > 0:
             epoch_path = os.path.join(self.epochs_dir, f"epochs{last_epoch}.model")
-            checkpoint = torch.load(epoch_path)
+            checkpoint = torch.load(
+                epoch_path,
+                map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            )
             train_losses = checkpoint["train_losses"]
             val_losses = checkpoint["val_losses"]
             model.load_state_dict(checkpoint["model_state_dict"])
