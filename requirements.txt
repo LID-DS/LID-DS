@@ -31,3 +31,4 @@ MiniSom==2.2.9
 scikit-learn==1.0.2
 pytest==7.1.2
 tabulate==0.8.10
+sentencepiece~=0.1.97
