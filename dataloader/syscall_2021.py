@@ -1,7 +1,7 @@
 import base64
 from datetime import datetime
 from enum import IntEnum
-from typing import Tuple
+from typing import Union
 
 from dataloader.direction import Direction
 from dataloader.syscall import Syscall
@@ -183,7 +183,7 @@ class Syscall2021(Syscall):
                         pass
         return self._params
 
-    def param(self, param_name: str, b64decode: bool = False) -> Tuple[bytes, str]:
+    def param(self, param_name: str, b64decode: bool = False) -> Union[bytes, str]:
         """
 
         runs the params() method and returns the requested

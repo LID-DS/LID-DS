@@ -1,6 +1,6 @@
 from time import mktime
 from enum import IntEnum
-from typing import Tuple
+from typing import Union
 from datetime import datetime
 
 from dataloader.syscall import Syscall
@@ -166,7 +166,7 @@ class Syscall2019(Syscall):
                         self._params[split[Param.NAME]] = None
         return self._params
 
-    def param(self, param_name: str) -> Tuple[bytes, str]:
+    def param(self, param_name: str) -> Union[bytes, str]:
         """
         runs the params() method and returns the requested parameter
 

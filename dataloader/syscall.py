@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Tuple
+from typing import Union
 
 from dataloader.direction import Direction
 
@@ -78,7 +78,7 @@ class Syscall:
         """
         raise NotImplemented
 
-    def param(self, param_name: str, b64decode: bool = False) -> Tuple[bytes, str]:
+    def param(self, param_name: str, b64decode: bool = False) -> Union[bytes, str]:
         """
         Returns:
             str or bytes: syscall parameter value

@@ -1,8 +1,8 @@
 import re
-
 from enum import IntEnum
-from dataloader.syscall import Syscall
+
 from algorithms.building_block import BuildingBlock
+from dataloader.syscall import Syscall
 
 
 class FDMode(IntEnum):
@@ -42,23 +42,23 @@ class FileDescriptor(BuildingBlock):
         params = syscall.params()
         # check which kind of file_descriptor exists
         if 'fd' in params:
-            return self._get_fd_part(syscall.param('fd'), self._mode)
+            return self.get_fd_part(syscall.param('fd'), self._mode)
         # in_fd can occur without out_fd
         elif 'in_fd' in params:
             if 'out_fd' in params:
-                return self._get_fd_part(syscall.param('in_fd'), self._mode) + self._get_fd_part(
+                return self.get_fd_part(syscall.param('in_fd'), self._mode) + self.get_fd_part(
                     syscall.param('out_fd'), self._mode)
             else:
-                return self._get_fd_part(syscall.param('in_fd'), self._mode)
+                return self.get_fd_part(syscall.param('in_fd'), self._mode)
         # catch only out_fd
         elif 'out_fd' in params:
-            return self._get_fd_part(syscall.param('out_fd'), self._mode)
+            return self.get_fd_part(syscall.param('out_fd'), self._mode)
         # no fd in syscall
         else:
             return None
 
     @staticmethod
-    def _get_fd_part(fd, mode: FDMode):
+    def get_fd_part(fd, mode: FDMode):
         """
             split fd content into its parts and return it according to extraction mode
             cast to tuples
