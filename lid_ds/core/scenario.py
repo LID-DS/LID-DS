@@ -4,8 +4,11 @@ The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
 import datetime
+import os
 import random
+import tarfile
 from abc import ABCMeta, abstractmethod
+from io import StringIO
 from threading import Thread
 from time import sleep, time
 from typing import List
@@ -57,6 +60,7 @@ class Scenario(metaclass=ABCMeta):
             exploit_start_time=0,
             exploit_name='default',
             storage_services: List[CollectorStorageService] = None,
+            log_files: list = [],
             recording_mode=RecordingModes.Sysdig
     ):
         """
@@ -80,6 +84,8 @@ class Scenario(metaclass=ABCMeta):
         self.auto_stop_recording = True if recording_time == -1 else False
 
         self._recording_mode = recording_mode
+
+        self.log_files = log_files
 
         if exploit_start_time == 0 and self.auto_stop_recording:
             raise ValueError("Autostop of recording is only possible with active exploit")
@@ -157,6 +163,7 @@ class Scenario(metaclass=ABCMeta):
                 Collector().set_container_ready()
                 self._warmup()
                 self._recording()
+                self._persist_logs()
         finally:
             self._teardown()
 
@@ -183,3 +190,21 @@ class Scenario(metaclass=ABCMeta):
             self.general_meta.recording_time,
             self.general_meta.warmup_time,
         )
+
+    def _persist_logs(self):
+        """
+        persists selected files from self.log_files to host system
+        """
+        # get container name
+        victim_container = self.victim.container.attrs["Name"]
+        # initialize docker low level api
+        client = docker.from_env().api
+
+        # persist all chosen files
+        for file_path in self.log_files:
+            strm, stat = client.get_archive(victim_container, file_path)
+            with open(os.path.join("runs",
+                                   f"{self.general_meta.name}_{os.path.basename(file_path)}"),
+                    "wb") as outfile:
+                for d in strm:
+                    outfile.write(d)
