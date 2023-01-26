@@ -59,7 +59,7 @@ class Scenario(metaclass=ABCMeta):
             recording_time=300,
             exploit_start_time=0,
             exploit_name='default',
-            storage_services: List[CollectorStorageService] = None,
+            storage_services: List[CollectorStorageService] = [],
             log_files: list = [],
             recording_mode=RecordingModes.Sysdig
     ):
@@ -75,7 +75,7 @@ class Scenario(metaclass=ABCMeta):
         self.logging_thread = Thread(target=log.print_logs)
         self.logging_thread.start()
 
-        self.storage_services = storage_services if storage_services else []
+        self.storage_services = storage_services 
 
         self.victim = ScenarioVictim(victim)
         self.normal = ScenarioNormal(normal, wait_times)
@@ -202,9 +202,12 @@ class Scenario(metaclass=ABCMeta):
 
         # persist all chosen files
         for file_path in self.log_files:
-            strm, stat = client.get_archive(victim_container, file_path)
+            strm, _ = client.get_archive(victim_container, file_path)
+            # check if in in /var/log/*/ if true prepend * to name
+            folder_name = os.path.basename(os.path.dirname(file_path))
+            prefix = '' if folder_name == 'log' else folder_name 
             with open(os.path.join("runs",
-                                   f"{self.general_meta.name}_{os.path.basename(file_path)}"),
+                                   f"{self.general_meta.name}_{prefix}_{os.path.basename(file_path)}"),
                     "wb") as outfile:
                 for d in strm:
                     outfile.write(d)

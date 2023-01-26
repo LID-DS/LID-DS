@@ -66,6 +66,10 @@ if __name__ == '__main__':
         warmup_time=3,
         recording_time=recording_time,
         storage_services=storage_services,
-        exploit_start_time=exploit_time
+        exploit_start_time=exploit_time,
+        log_files=['/var/log/apache2/access.log',
+                   '/var/log/apache2/error.log',
+                   '/var/log/apache2/other_vhosts_access.log',
+                   '/var/log/mysql/error.log']
     )
     php_scenario()

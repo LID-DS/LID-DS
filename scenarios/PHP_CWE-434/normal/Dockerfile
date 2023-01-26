@@ -1,4 +1,4 @@
-FROM debian:9.2
+FROM debian:10
 
 
 RUN apt-get update && apt-get install -y wget python3 python3-pip wget unzip xvfb udev
@@ -8,7 +8,7 @@ RUN wget https://dl-ssl.google.com/linux/linux_signing_key.pub
 RUN apt-key add linux_signing_key.pub
 
 # install chrome
-RUN apt-get update && apt-get install -y google-chrome-stable git
+RUN apt-get update && apt-get install -y google-chrome-stable=109.0.5414.74-1 git
 
 # python related
 RUN pip3 install --upgrade pip setuptools
@@ -18,7 +18,7 @@ RUN pip3 install pyvirtualdisplay
 RUN pip3 install requests
 RUN pip3 install numpy
 
-RUN wget https://chromedriver.storage.googleapis.com/2.42/chromedriver_linux64.zip
+RUN wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip -d /usr/bin
 RUN chmod +x /usr/bin/chromedriver
 
