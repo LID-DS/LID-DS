@@ -36,6 +36,9 @@ class TimeDelta(BuildingBlock):
     def fit(self):
         self._last_time = {}
 
+    def new_recording(self):
+        self._last_time = {}
+
     def _calculate(self, syscall: Syscall):
         """
         calculate time delta of syscall
