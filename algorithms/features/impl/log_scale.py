@@ -31,7 +31,7 @@ class LogScale(BuildingBlock):
         feature_result = self._feature.get_result(syscall)
         if feature_result is None:
             return None
-        if not isinstance(feature_result, int) and not isinstance(feature_result, float):
+        if not isinstance(feature_result, (int, float)):
             return feature_result
         if feature_result <= self._linear_interpolation_value:
             return feature_result
