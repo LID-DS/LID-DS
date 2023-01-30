@@ -4,16 +4,17 @@ from dataloader.syscall import Syscall
 
 class TimeDelta(BuildingBlock):
     """
-    calculates the delta to the last systall within the same thread (if thread aware)
+    calculates the delta to the last syscall within the same thread (if thread aware)
     or to the last seen syscall over all
     """
 
-    def __init__(self, thread_aware: bool):
+    def __init__(self, thread_aware: bool, min_max_scaling: bool = True):
         super().__init__()
         self._max_time_delta = 0
         self._last_time = {}
         self._thread_aware = thread_aware
         self._dependency_list = []
+        self._min_max_scaling = min_max_scaling
 
     def depends_on(self) -> list:
         return []
@@ -22,6 +23,8 @@ class TimeDelta(BuildingBlock):
         """
         calc max time delta
         """
+        if not self._min_max_scaling:
+            return
         current_time = syscall.timestamp_unix_in_ns()
         thread_id = 0
         if self._thread_aware:
@@ -42,8 +45,11 @@ class TimeDelta(BuildingBlock):
         if self._thread_aware:
             thread_id = syscall.thread_id()
         delta = self._calc_delta(current_time, thread_id)
-        normalized_delta = delta / self._max_time_delta
-        return normalized_delta
+        if self._min_max_scaling:
+            normalized_delta = delta / self._max_time_delta
+            return normalized_delta
+        else:
+            return delta
 
     def _calc_delta(self, current_time: int, thread_id: int):
         if thread_id in self._last_time:
