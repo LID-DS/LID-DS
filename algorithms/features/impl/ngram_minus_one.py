@@ -12,7 +12,7 @@ class NgramMinusOne(BuildingBlock):
 
     """
 
-    def __init__(self, ngram: Ngram, element_size: int):
+    def __init__(self, ngram: Ngram, element_size: int = None):
         super().__init__()
         self._dependency_list = []
         self._dependency_list.append(ngram)
@@ -30,7 +30,8 @@ class NgramMinusOne(BuildingBlock):
         """
         ngram_value = self._ngram.get_result(syscall)
         if ngram_value is not None:
-                ngram_value = ngram_value[:-self._element_size]
-                return tuple(ngram_value)
+            if self._element_size is None:
+                self._element_size = len(ngram_value) // self._ngram._ngram_length - 1
+            return ngram_value[:-self._element_size]
         else:
             return None

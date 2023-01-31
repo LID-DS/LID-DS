@@ -227,7 +227,7 @@ def main():
         ngram_length=ngram_length
     )
     if len(features) > 1:
-        ngram = NgramMinusOne(ngram=ngram, element_size=len(features) - 1)
+        ngram = NgramMinusOne(ngram=ngram)
 
     distinct_syscalls = dataloader.distinct_syscalls_training_data()
 
