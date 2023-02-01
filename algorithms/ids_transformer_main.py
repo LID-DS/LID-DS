@@ -6,12 +6,18 @@ from datetime import datetime
 from pprint import pprint
 
 from algorithms.decision_engines.transformer import Transformer, AnomalyScore
-from algorithms.features.impl.int_embedding import IntEmbedding
+from algorithms.features.impl.int_embedding import IntEmbeddingConcat
 from algorithms.features.impl.max_score_threshold import MaxScoreThreshold
 from algorithms.features.impl.ngram import Ngram
 from algorithms.features.impl.ngram_minus_one import NgramMinusOne
-from algorithms.features.impl.return_value import ReturnValueLogNorm
+from algorithms.features.impl.path_like_param import PathLikeParam
+from algorithms.features.impl.path_preprocessor import PathPreprocessor
+from algorithms.features.impl.process_name import ProcessName
+from algorithms.features.impl.quantile_bucketing import QuantileBucketing
+from algorithms.features.impl.return_value import ReturnValueWithError
+from algorithms.features.impl.subwordunits_tokenizer import SubWordUnitsTokenizer
 from algorithms.features.impl.syscall_name import SyscallName
+from algorithms.features.impl.time_delta import TimeDelta
 from algorithms.ids import IDS
 from algorithms.persistance import save_to_json, ModelCheckPoint, load_from_json
 from dataloader.dataloader_factory import dataloader_factory
@@ -115,7 +121,22 @@ def _parse_args():
 
     parser.add_argument(
         '-ret', dest='use_return_value', type=lambda x: (str(x).lower() == 'true'), required=True,
-        help='use return value'
+        help='Use return value'
+    )
+
+    parser.add_argument(
+        '-pname', dest='use_process_name', type=lambda x: (str(x).lower() == 'true'), default=False,
+        help='Use process name'
+    )
+
+    parser.add_argument(
+        '-time', dest='use_time_delta', type=lambda x: (str(x).lower() == 'true'), default=False,
+        help='Use time delta'
+    )
+
+    parser.add_argument(
+        '-paths', dest='use_paths', type=lambda x: (str(x).lower() == 'true'), default=False,
+        help='Use paths'
     )
 
     parser.add_argument(
@@ -149,6 +170,11 @@ def main():
     dropout = 0.1
 
     use_return_value = True
+    quantile_bucket_size = 5
+    use_process_name = True
+    use_time_delta = False
+    use_paths = True
+
     ON_CLUSTER = "IDS_ON_CLUSTER" in os.environ
     if ON_CLUSTER:
         args = _parse_args()
@@ -170,6 +196,9 @@ def main():
         use_return_value = args.use_return_value
         evaluate = args.evaluate
         epochs = args.epochs
+        use_process_name = args.use_process_name
+        use_time_delta = args.use_time_delta
+        use_paths = args.use_paths
         print(args)
     else:
         # getting the LID-DS base path from argument or environment variable
@@ -207,6 +236,9 @@ def main():
             "language_model": language_model,
             "dedup_train_set": dedup_train_set,
             "use_return_value": use_return_value,
+            "use_process_name": use_process_name,
+            "use_time_delta": use_time_delta,
+            "use_paths": use_paths,
         },
         models_dir=checkpoint_dir
     )
@@ -214,15 +246,38 @@ def main():
     # FEATURES
     name = SyscallName()
 
-    int_embedding = IntEmbedding(name)
-    features = [int_embedding]
+    features = [name]
 
     if use_return_value:
-        return_value = IntEmbedding(ReturnValueLogNorm())
+        return_value = QuantileBucketing(
+            ReturnValueWithError(),
+            num_buckets=quantile_bucket_size,
+            excluded_values=[0]
+        )
         features.append(return_value)
+    if use_process_name:
+        process_name = ProcessName()
+        features.append(process_name)
+    if use_time_delta:
+        time_delta = QuantileBucketing(
+            TimeDelta(thread_aware=thread_aware, min_max_scaling=False),
+            num_buckets=quantile_bucket_size
+        )
+        features.append(time_delta)
+    if use_paths:
+        path_like = ['fd', 'name', 'in_fd']
+        subword_model_path = f"{checkpoint.model_path_base}/subword_model/{'_'.join(path_like)}/"
+        subword_path_like = SubWordUnitsTokenizer(
+            feature=PathPreprocessor(PathLikeParam(path_like)),
+            model_path_prefix=subword_model_path,
+            max_pieces_length=5,
+            vocab_size=150,  # TODO: make this configurable
+        )
+        features.append(subword_path_like)
+    int_embedding = IntEmbeddingConcat(building_blocks=features)
 
     ngram = Ngram(
-        feature_list=features,
+        feature_list=[int_embedding],
         thread_aware=thread_aware,
         ngram_length=ngram_length
     )
@@ -244,6 +299,7 @@ def main():
         # decision engine (DE)
         transformer = Transformer(
             input_vector=ngram,
+            concat_int_embedding=int_embedding,
             distinct_syscalls=distinct_syscalls,
             retrain=retrain,
             epochs=epoch,
@@ -279,16 +335,18 @@ def main():
             stats['threshold'] = decider._threshold
             stats['train_losses'] = transformer.train_losses
             stats['val_losses'] = transformer.val_losses
+            stats['distinct_tokens'] = len(int_embedding)
+            stats['train_set_size'] = transformer.train_set_size
             stats['config'] = ids.get_config_tree_links()
             stats['direction'] = dataloader.get_direction_string()
             stats['date'] = str(datetime.now().date())
             stats['detection_time'] = str(end - start)
 
-            pprint(stats)
+            # pprint(stats)
             save_to_json(stats, result_path)
 
     if (not ON_CLUSTER) and evaluate:
-        for epochs in reversed(range(60, 901, 60)):
+        for epochs in reversed(range(0, 501, 100)):
             _run_for_epoch(epochs)
     else:
         _run_for_epoch(epochs)

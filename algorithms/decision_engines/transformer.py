@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
 from algorithms.decision_engines.nn.transformer import CustomTransformer
+from algorithms.features.impl.int_embedding import IntEmbeddingConcat
 from algorithms.persistance import ModelCheckPoint
 from dataloader.syscall import Syscall
 
@@ -39,6 +40,7 @@ class Transformer(BuildingBlock):
     def __init__(
             self,
             input_vector: BuildingBlock,
+            concat_int_embedding: IntEmbeddingConcat,
             distinct_syscalls: int,
             epochs: int,
             batch_size: int,
@@ -55,6 +57,7 @@ class Transformer(BuildingBlock):
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
+        self._concat_int_embedding = concat_int_embedding
         self._dependency_list = [input_vector]
         self._distinct_tokens = distinct_syscalls
         self._epochs = epochs
@@ -75,6 +78,7 @@ class Transformer(BuildingBlock):
         self.val_losses = {}
         self._training_set = []
         self._validation_set = []
+        self.train_set_size = 0
 
         # placeholder for start of sentence, will be updated later in case we have more features
         self._sos = self._distinct_tokens + 1
@@ -83,7 +87,7 @@ class Transformer(BuildingBlock):
 
     def _init_model(self):
 
-        self._distinct_tokens = len(set([item for sublist in self._training_set for item in sublist]))
+        self._distinct_tokens = len(self._concat_int_embedding)
         self._sos = self._distinct_tokens + 1
         # distinct syscalls plus sos, plus 1 for unknown syscalls
         num_tokens = self._distinct_tokens + 2
@@ -158,15 +162,16 @@ class Transformer(BuildingBlock):
                 train_loss += loss.detach().item()
             self.train_losses[epoch] = train_loss / len(train_dataloader)
 
-            if epoch % 1 == 0:
-                self.transformer.eval()
-                val_loss = 0
-                with torch.no_grad():
-                    for batch in val_dataloader:
-                        loss = self._forward_and_get_loss(batch, loss_fn)
-                        val_loss += loss.detach().item()
-                self.val_losses[epoch] = val_loss / len(val_dataloader)
+            # Validation
+            self.transformer.eval()
+            val_loss = 0
+            with torch.no_grad():
+                for batch in val_dataloader:
+                    loss = self._forward_and_get_loss(batch, loss_fn)
+                    val_loss += loss.detach().item()
+            self.val_losses[epoch] = val_loss / len(val_dataloader)
             self._checkpoint.save(self.transformer, optimizer, epoch, self.train_losses, self.val_losses)
+        self.train_set_size = len(train_dataloader)
         # evaluation only on cpu
         self.transformer.eval()
         self._device = torch.device('cpu')
