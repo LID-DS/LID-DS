@@ -54,7 +54,7 @@ class IntEmbeddingConcat(BuildingBlock):
         super().__init__()
         self._encoding_dict = {idx: {} for idx in range(len(building_blocks))}
         self._dependency_list = building_blocks
-        self._size = 0
+        self._size = None
 
     def depends_on(self):
         return self._dependency_list
@@ -65,6 +65,8 @@ class IntEmbeddingConcat(BuildingBlock):
             the integer is current length of encoding_dict per building_block
             keep 0 free for unknown syscalls
         """
+        if self._size is not None:
+            return
         for idx, bb in enumerate(self._dependency_list):
             bb_value = bb.get_result(syscall)
             if isinstance(bb_value, (list, tuple)):
@@ -77,6 +79,9 @@ class IntEmbeddingConcat(BuildingBlock):
 
     def fit(self):
         """ offset encodings and update size """
+        if self._size is not None:
+            return
+
         offset = 0
         for idx, encoding_dict in self._encoding_dict.items():
             for key, value in encoding_dict.items():
