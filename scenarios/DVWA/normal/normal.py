@@ -83,8 +83,8 @@ def do_things():
 
         if args.verbose:
             print(' sending: {}'.format(sending_value))
-        browser.find_element_by_name('id').send_keys(sending_value)
-        browser.find_element_by_name('Submit').click()
+        browser.find_element('name','id').send_keys(sending_value)
+        browser.find_element('name','Submit').click()
 
     if 'vulnerabilities/upload' in browser.current_url:
         if args.verbose:
@@ -95,9 +95,9 @@ def do_things():
         file.write(os.urandom(file_size))
         if args.verbose:
             print(' upload file {}'.format(file.name))
-        fileinput = browser.find_element_by_name('uploaded')
+        fileinput = browser.find_element('name','uploaded')
         fileinput.send_keys(file.name)
-        browser.find_element_by_name('Upload').click()
+        browser.find_element('name','Upload').click()
 
 
 def follow_link():
@@ -108,7 +108,7 @@ def follow_link():
     if args.verbose:
         print('follow link...')
     link_list = list()
-    for link in browser.find_elements_by_xpath('.//a'):
+    for link in browser.find_elements('xpath', './/a'):
         link_url = link.get_attribute('href')
         if args.server_ip in link_url:
             if not any(e in link_url for e in exclude_links):
@@ -134,11 +134,11 @@ def log_in():
     browser.get(url)
     if args.verbose:
         print('    got response')
-    browser.find_element_by_name('username').send_keys(username)
-    browser.find_element_by_name('password').send_keys(password)
+    browser.find_element('name','username').send_keys(username)
+    browser.find_element('name','password').send_keys(password)
     if args.verbose:
         print('    filled form and click')
-    browser.find_element_by_name('Login').click()
+    browser.find_element('name','Login').click()
     if args.verbose:
         print('    logged in')
     client_state = logged_in
@@ -152,7 +152,7 @@ def log_off():
     global client_state
     if args.verbose:
         print('logout...')
-    browser.find_element_by_link_text('Logout').click()
+    browser.find_element('link text','Logout').click()
     if args.verbose:
         print('    logged out')
     client_state = logged_off
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     chrome_options = Options()
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument('--ignore-certificate-errors')
-    browser = webdriver.Chrome(chrome_options=chrome_options)
+    browser = webdriver.Chrome(options=chrome_options)
 
     # probability to log off:
     prob_log_off = 0.05
