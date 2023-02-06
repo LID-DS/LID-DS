@@ -1,7 +1,7 @@
-# PHP_CWE-434 Unrestricted File Upload
+# Damn Vulnerable Web Application
 
 ## Description / Overview of scenario
-Running Damn Vulnerable Web Application (DVWA). With possibility to log in, upload files and send sql queries. 
+Running Damn Vulnerable Web Application (DVWA). With possibility to log in, upload files and send sql queries.
 
 ## victim:
 Running [DVWA](https://dvwa.co.uk/) with unrestricted file upload possibility.

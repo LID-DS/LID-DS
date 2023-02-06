@@ -30,7 +30,7 @@ $_DVWA[ 'recaptcha_private_key' ] = '';
 # Default security level
 #   Default value for the security level with each session.
 #   The default is 'impossible'. You may wish to set this to either 'low', 'medium', 'high' or impossible'.
-$_DVWA[ 'default_security_level' ] = 'impossible';
+$_DVWA[ 'default_security_level' ] = 'low';
 
 # Default PHPIDS status
 #   PHPIDS status with each session.
