@@ -4,10 +4,11 @@ import urllib.request
 
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
-from lid_ds.core.image import StdinCommand, Image
+from lid_ds.core.image import StdinCommand, Image, ExecCommand
 from lid_ds.core.objects.victim import RecordingModes
 from lid_ds.sim import gen_schedule_wait_times, Sampler
 from lid_ds.utils.docker_utils import get_ip_address
+
 
 class DVWA(Scenario):
 
@@ -55,9 +56,9 @@ if __name__ == '__main__':
 
     storage_services = [JSONFileStorage()]
 
-    victim = Image("victim_php")
-    normal = Image("normal_php", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
-    exploit = Image("exploit_php", command=StdinCommand(""), init_args="-ip ${victim}")
+    victim = Image("victim_dvwa")
+    normal = Image("normal_dvwa", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
+    exploit = Image("exploit_dvwa", command=ExecCommand("python3 /home/exploit.py -ip ${victim}"))
 
     php_scenario = DVWA(
         victim=victim,
@@ -68,6 +69,9 @@ if __name__ == '__main__':
         recording_time=recording_time,
         storage_services=storage_services,
         exploit_start_time=exploit_time,
-        recording_mode=RecordingModes.LTTng
+        recording_mode=RecordingModes.LTTng,
+        log_files=["/var/log/apache2/access.log",
+                   "/var/log/apache2/error.log",
+                   "/var/log/apache2/other_vhosts_access.log"]
     )
     php_scenario()
