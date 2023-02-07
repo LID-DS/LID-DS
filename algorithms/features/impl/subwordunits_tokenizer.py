@@ -20,7 +20,8 @@ class SubWordUnitsTokenizer(BuildingBlock):
                  model_path_prefix: str,
                  vocab_size: int = 200,
                  max_pieces_length: int = 5,
-                 use_padding: bool = True):
+                 use_padding: bool = True,
+                 min_piece_length: int = 1):
         """
         Args:
             feature: input building block, should return a string
@@ -38,6 +39,7 @@ class SubWordUnitsTokenizer(BuildingBlock):
         self._vocab_size = vocab_size
         self._use_padding = use_padding
         self._pieces_length = max_pieces_length
+        self._min_piece_length = min_piece_length
 
         self._training_data: list[str] = []
 
@@ -110,17 +112,19 @@ class SubWordUnitsTokenizer(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         result = self._feature.get_result(syscall)
+        pieces = []
         if result is not None:
             pieces = self._to_pieces(result)
-            pieces = [piece for piece in pieces if len(piece) > 2]
-        else:
-            pieces = []
+            pieces = [piece for piece in pieces if len(piece) > self._min_piece_length]
+
         if self._use_padding:
-            zero_padded_pieces = pieces + ["<pad>"] * (self._pieces_length - len(pieces))
-            return zero_padded_pieces[:self._pieces_length]
+            padded_pieces = pieces + ["<pad>"] * (self._pieces_length - len(pieces))
+            return padded_pieces[:self._pieces_length]
+
+        if len(pieces) > self._pieces_length:
+            return pieces[:self._pieces_length]
         else:
-            if len(pieces) > self._pieces_length:
-                return pieces[:self._pieces_length]
+            return pieces
 
     def depends_on(self) -> list:
         return self._dependency_list

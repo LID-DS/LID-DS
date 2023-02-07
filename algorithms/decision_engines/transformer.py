@@ -132,6 +132,7 @@ class Transformer(BuildingBlock):
             self._sos,
             self._device
         )
+        self.train_set_size = len(t_dataset)
         t_dataset_val = TransformerDataset(
             self._validation_set,
             self._language_model,
@@ -142,6 +143,7 @@ class Transformer(BuildingBlock):
 
         train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
         val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
+
         last_epoch = 0
         if not self._retrain:
             last_epoch, self.train_losses, self.val_losses = self._checkpoint.load(
@@ -171,7 +173,6 @@ class Transformer(BuildingBlock):
                     val_loss += loss.detach().item()
             self.val_losses[epoch] = val_loss / len(val_dataloader)
             self._checkpoint.save(self.transformer, optimizer, epoch, self.train_losses, self.val_losses)
-        self.train_set_size = len(train_dataloader)
         # evaluation only on cpu
         self.transformer.eval()
         self._device = torch.device('cpu')

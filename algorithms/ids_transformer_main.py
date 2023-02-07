@@ -265,13 +265,14 @@ def main():
         )
         features.append(time_delta)
     if use_paths:
-        path_like = ['fd', 'name', 'in_fd']
-        subword_model_path = f"{checkpoint.model_path_base}/subword_model/{'_'.join(path_like)}/"
+        path_like_params = ['name', 'path', 'fd', 'in_fd']
+        subword_model_path = f"{checkpoint.model_path_base}/subword_model/{'_'.join(path_like_params)}/"
         subword_path_like = SubWordUnitsTokenizer(
-            feature=PathPreprocessor(PathLikeParam(path_like)),
+            feature=PathPreprocessor(PathLikeParam(path_like_params)),
             model_path_prefix=subword_model_path,
             max_pieces_length=5,
-            vocab_size=150,  # TODO: make this configurable
+            vocab_size=150,
+            min_piece_length=1,
         )
         features.append(subword_path_like)
     int_embedding = IntEmbeddingConcat(building_blocks=features)
@@ -329,7 +330,7 @@ def main():
             end = time.time()
 
             stats = performance.get_results()
-
+            pprint(stats)
             stats['dataset'] = lid_ds_version
             stats['scenario'] = scenario
             stats['threshold'] = decider._threshold
@@ -342,7 +343,7 @@ def main():
             stats['date'] = str(datetime.now().date())
             stats['detection_time'] = str(end - start)
 
-            # pprint(stats)
+            print(f"detection time: {stats['detection_time']}")
             save_to_json(stats, result_path)
 
     if (not ON_CLUSTER) and evaluate:
