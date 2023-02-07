@@ -32,6 +32,7 @@ class NgramMinusOne(BuildingBlock):
         if ngram_value is not None:
             if self._element_size is None:
                 self._element_size = len(ngram_value) // self._ngram._ngram_length - 1
+                self.update_config_value("element_size", self._element_size)
             return ngram_value[:-self._element_size]
         else:
             return None

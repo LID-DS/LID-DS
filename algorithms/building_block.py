@@ -132,3 +132,9 @@ class BuildingBlock:
             If BuildingBlock is a decider (e.g. max score threshold) return True
         """
         return False
+
+    def update_config_value(self, key, value):
+        """
+            Updates the value of a config key. Useful when the value is not known at init time.
+        """
+        self.__config[key] = value

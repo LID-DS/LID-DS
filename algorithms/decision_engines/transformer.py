@@ -41,7 +41,7 @@ class Transformer(BuildingBlock):
             self,
             input_vector: BuildingBlock,
             concat_int_embedding: IntEmbeddingConcat,
-            distinct_syscalls: int,
+            distinct_tokens: int,
             epochs: int,
             batch_size: int,
             anomaly_scoring: AnomalyScore,
@@ -59,7 +59,7 @@ class Transformer(BuildingBlock):
         self._input_vector = input_vector
         self._concat_int_embedding = concat_int_embedding
         self._dependency_list = [input_vector]
-        self._distinct_tokens = distinct_syscalls
+        self._distinct_tokens = distinct_tokens
         self._epochs = epochs
         self._batch_size = batch_size
         self._anomaly_scoring = anomaly_scoring
@@ -88,6 +88,7 @@ class Transformer(BuildingBlock):
     def _init_model(self):
 
         self._distinct_tokens = len(self._concat_int_embedding)
+        self.update_config_value("distinct_tokens", self._distinct_tokens)
         self._sos = self._distinct_tokens + 1
         # distinct syscalls plus sos, plus 1 for unknown syscalls
         num_tokens = self._distinct_tokens + 2

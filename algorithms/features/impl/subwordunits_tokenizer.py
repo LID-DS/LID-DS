@@ -61,6 +61,7 @@ class SubWordUnitsTokenizer(BuildingBlock):
             self._model = spm.SentencePieceProcessor()
             self._model.Load(self._model_path_prefix + ".model")
             self._vocab_size = self._model.GetPieceSize()
+            self.update_config_value("vocab_size", self._vocab_size)
 
     def train_on(self, syscall: Syscall):
         result = self._feature.get_result(syscall)
@@ -70,6 +71,7 @@ class SubWordUnitsTokenizer(BuildingBlock):
     def _load_config(self):
         config = load_from_json(self._model_path_prefix + ".json")
         self._pieces_length = config["pieces_length"]
+        self.update_config_value("pieces_length", self._pieces_length)
 
     def _save_config(self):
         config = {"pieces_length": self._pieces_length}
