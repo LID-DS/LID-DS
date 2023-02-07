@@ -56,9 +56,16 @@ if __name__ == '__main__':
 
     storage_services = [JSONFileStorage()]
 
+    attacks = [
+        "SQLI",
+        "RCE"
+    ]
+    # choose from attacks
+    attack = attacks[0]
+
     victim = Image("victim_dvwa")
     normal = Image("normal_dvwa", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
-    exploit = Image("exploit_dvwa", command=ExecCommand("python3 /home/exploit.py -ip ${victim}"))
+    exploit = Image("exploit_dvwa", command=ExecCommand("python3 /home/exploit.py -ip ${victim} -a " + attack))
 
     php_scenario = DVWA(
         victim=victim,
