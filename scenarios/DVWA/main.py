@@ -61,7 +61,7 @@ if __name__ == '__main__':
         "RCE"
     ]
     # choose from attacks
-    attack = attacks[0]
+    attack = attacks[1]
 
     victim = Image("victim_dvwa")
     normal = Image("normal_dvwa", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
@@ -79,6 +79,7 @@ if __name__ == '__main__':
         recording_mode=RecordingModes.LTTng,
         log_files=["/var/log/apache2/access.log",
                    "/var/log/apache2/error.log",
-                   "/var/log/apache2/other_vhosts_access.log"]
+                   "/var/log/apache2/other_vhosts_access.log"],
+        exploit_name=attack
     )
     php_scenario()
