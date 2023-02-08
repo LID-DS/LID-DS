@@ -58,10 +58,12 @@ if __name__ == '__main__':
 
     attacks = [
         "SQLI",
-        "RCE"
+        "RCE",
+        "Bruteforce",
+        "CommandInjection"
     ]
     # choose from attacks
-    attack = attacks[1]
+    attack = attacks[3]
 
     victim = Image("victim_dvwa")
     normal = Image("normal_dvwa", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
