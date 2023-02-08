@@ -293,6 +293,7 @@ def main():
             last_results = load_from_json(result_path)
             if last_results:
                 print(f"ALREADY EVALUATED: SKIPPING! \n{result_path=}")
+                return
         else:
             result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}.json'
 

@@ -1,6 +1,6 @@
 import math
 from enum import Enum
-from functools import lru_cache
+from functools import cache
 
 import torch
 from torch import nn
@@ -196,7 +196,7 @@ class Transformer(BuildingBlock):
         input_vector = self._input_vector.get_result(syscall)
         return self._cached_results(input_vector)
 
-    @lru_cache(maxsize=10000)
+    @cache()
     def _cached_results(self, input_vector):
         if input_vector is None:
             return None

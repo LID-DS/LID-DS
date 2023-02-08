@@ -5,7 +5,7 @@
 #SBATCH --mem=30GB
 #SBATCH --gres=gpu:a30
 #SBATCH --mail-type=FAIL
-#SBATCH -o logs/job_%A_%a.log
+#SBATCH -o logs/job_train_%A_%a.log
 
 export IDS_ON_CLUSTER=1
 
@@ -39,4 +39,7 @@ pip install --user -r "$(grep -ivE 'torch' ../requirements.txt)"
 # 13: -dup dedup_train_set
 # 14: -as anomaly_score
 # 15: -ret use_return_value
-python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}" -ret "${15}"
+# 16: -pname process_name
+# 17: -paths use_paths
+# 18: -time time_delta
+python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}" -ret "${15}" -pname "${16}" -paths "${17}" -time "${18}" -eval "False" -e 900
