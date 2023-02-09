@@ -196,7 +196,7 @@ class Transformer(BuildingBlock):
         input_vector = self._input_vector.get_result(syscall)
         return self._cached_results(input_vector)
 
-    @cache()
+    @cache
     def _cached_results(self, input_vector):
         if input_vector is None:
             return None

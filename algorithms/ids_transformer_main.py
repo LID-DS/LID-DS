@@ -166,7 +166,7 @@ def main():
     feedforward_dim = model_dim * 4
     batch_size = 256
     num_heads = 2
-    epochs = 900
+    epochs = 500
     dropout = 0.1
 
     use_return_value = True
@@ -224,21 +224,21 @@ def main():
         lid_ds_version,
         "transformer",
         algo_config={
-            "ngram_length": ngram_length,
-            "thread_aware": thread_aware,
-            "batch_size": batch_size,
+            "ngram": ngram_length,
+            "tha": thread_aware,
+            "batch": batch_size,
             "layers": layers,
-            "model_dim": model_dim,
-            "num_heads": num_heads,
-            "feedforward_dim": feedforward_dim,
-            "pre_layer_norm": pre_layer_norm,
+            "m_dim": model_dim,
+            "heads": num_heads,
+            "ffd": feedforward_dim,
+            "pre_ln": pre_layer_norm,
             "direction": dataloader.get_direction_string(),
-            "language_model": language_model,
-            "dedup_train_set": dedup_train_set,
-            "use_return_value": use_return_value,
-            "use_process_name": use_process_name,
-            "use_time_delta": use_time_delta,
-            "use_paths": use_paths,
+            "lm": language_model,
+            "dedup": dedup_train_set,
+            "retval": use_return_value,
+            "pname": use_process_name,
+            "tdelta": use_time_delta,
+            "paths": use_paths,
         },
         models_dir=checkpoint_dir
     )
@@ -296,6 +296,9 @@ def main():
                 return
         else:
             result_path = f'{checkpoint.model_path_base}/{checkpoint.model_name}.json'
+
+        if len(os.path.basename(result_path)) > 255:
+            raise ValueError(f"Filename too long: {result_path}")
 
         start = time.time()
         # decision engine (DE)
