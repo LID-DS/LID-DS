@@ -334,24 +334,26 @@ def main():
             end = time.time()
 
             stats = performance.get_results()
-            pprint(stats)
             stats['dataset'] = lid_ds_version
             stats['scenario'] = scenario
+            stats['distinct_tokens'] = len(int_embedding)
+            stats['direction'] = dataloader.get_direction_string()
+            stats['detection_time'] = str(end - start)
             stats['threshold'] = decider._threshold
+
+            pprint(stats)
+            print(f"detection time: {stats['detection_time']}")
+
+            stats['date'] = str(datetime.now().date())
             stats['train_losses'] = transformer.train_losses
             stats['val_losses'] = transformer.val_losses
-            stats['distinct_tokens'] = len(int_embedding)
             stats['train_set_size'] = transformer.train_set_size
             stats['config'] = ids.get_config_tree_links()
-            stats['direction'] = dataloader.get_direction_string()
-            stats['date'] = str(datetime.now().date())
-            stats['detection_time'] = str(end - start)
 
-            print(f"detection time: {stats['detection_time']}")
             save_to_json(stats, result_path)
 
     if (not ON_CLUSTER) and evaluate:
-        for epochs in reversed(range(0, 501, 100)):
+        for epochs in reversed(range(50, 601, 100)):
             _run_for_epoch(epochs)
     else:
         _run_for_epoch(epochs)

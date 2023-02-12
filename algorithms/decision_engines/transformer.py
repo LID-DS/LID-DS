@@ -232,17 +232,17 @@ class Transformer(BuildingBlock):
 
 class TransformerDataset(Dataset):
 
-    def __init__(self, X, language_model, dedup_train_set, sos, device):
+    def __init__(self, IN, language_model, dedup_train_set, sos, device):
         if dedup_train_set:
-            X = list(set(X))
-        X = torch.tensor(X, dtype=torch.long, device=device)
+            IN = list(set(IN))
+        IN = torch.tensor(IN, dtype=torch.long, device=device)
         if language_model:
-            self.X = X[:, 1:-1]  # no need for <sos>
+            self.X = IN[:, 1:-1]  # no need for <sos>
         else:
-            self.X = X[:, :-1]
+            self.X = IN[:, :-1]
             self.X[:, 0] = sos
 
-        self.Y = torch.cat((X[:, 0:1], X[:, 2:]), 1)  # drop first token after <sos>
+        self.Y = torch.cat((IN[:, 0:1], IN[:, 2:]), 1)  # drop first token after <sos>
 
     def __len__(self):
         return len(self.X)
