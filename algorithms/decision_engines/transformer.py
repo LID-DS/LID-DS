@@ -18,6 +18,7 @@ class AnomalyScore(Enum):
     PRODUCT = 0
     MEAN = 1
     LAST = 2
+    LOSS = 3
 
     def __str__(self):
         return str(self.name)
@@ -73,6 +74,7 @@ class Transformer(BuildingBlock):
         self._retrain = retrain
         self._language_model = language_model
         self._dedup_train_set = dedup_train_set
+        self._loss_fn = nn.CrossEntropyLoss()
 
         self.train_losses = {}
         self.val_losses = {}
@@ -116,7 +118,6 @@ class Transformer(BuildingBlock):
 
     def fit(self):
         self._init_model()
-        loss_fn = nn.CrossEntropyLoss()
 
         learning_rate = 0.001
         optimizer = torch.optim.Adam(
@@ -157,12 +158,12 @@ class Transformer(BuildingBlock):
             self.transformer.train()
             train_loss = 0
             for batch in train_dataloader:
-                loss = self._forward_and_get_loss(batch, loss_fn)
+                loss = self._forward_and_get_loss(batch)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
-                train_loss += loss.detach().item()
+                train_loss += loss.item()
             self.train_losses[epoch] = train_loss / len(train_dataloader)
 
             # Validation
@@ -170,8 +171,8 @@ class Transformer(BuildingBlock):
             val_loss = 0
             with torch.no_grad():
                 for batch in val_dataloader:
-                    loss = self._forward_and_get_loss(batch, loss_fn)
-                    val_loss += loss.detach().item()
+                    loss = self._forward_and_get_loss(batch)
+                    val_loss += loss.item()
             self.val_losses[epoch] = val_loss / len(val_dataloader)
             self._checkpoint.save(self.transformer, optimizer, epoch, self.train_losses, self.val_losses)
         # evaluation only on cpu
@@ -179,7 +180,7 @@ class Transformer(BuildingBlock):
         self._device = torch.device('cpu')
         self.transformer.to(self._device)
 
-    def _forward_and_get_loss(self, batch, loss_fn):
+    def _forward_and_get_loss(self, batch):
         X, Y = batch
         y_input = Y[:, :-1]
         y_expected = Y[:, 1:]
@@ -189,7 +190,7 @@ class Transformer(BuildingBlock):
         # Permute pred to have batch size first again
         pred = pred.permute(1, 2, 0)
         # prediction probability for every possible syscall
-        loss = loss_fn(pred, y_expected)
+        loss = self._loss_fn(pred, y_expected)
         return loss
 
     def _calculate(self, syscall: Syscall):
@@ -203,8 +204,9 @@ class Transformer(BuildingBlock):
         with torch.no_grad():
             x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=self._device)
             y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=self._device)
+            y_expected = torch.tensor([list(input_vector[1:])], dtype=torch.long).to(device=self._device)
             if self._language_model:
-                x_input = x_input[:, 1:]
+                x_input = torch.tensor([list(input_vector[:-1])], dtype=torch.long).to(device=self._device)
 
             tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(self._device)
             pred = self.transformer(x_input, y_input, tgt_mask)
@@ -216,6 +218,9 @@ class Transformer(BuildingBlock):
                 conditional_prob = predicted_probs[range(predicted_probs.shape[0]), input_vector[1:]].mean()
             elif self._anomaly_scoring == AnomalyScore.LAST:
                 conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
+            elif self._anomaly_scoring == AnomalyScore.LOSS:
+                pred = pred.permute(1, 2, 0)
+                return self._loss_fn(pred, y_expected).item()
             else:
                 raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
 
