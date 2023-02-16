@@ -12,7 +12,7 @@ from dataloader.direction import Direction
 
 ip_pattern = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 port_pattern = re.compile(r"(?::)([0-9]+)")  # not bulletproof
-file_path_pattern = re.compile(r"((\/\w+)+(\.\w+)?)")  # old one
+file_path_pattern = re.compile(r"((\/.+)+(\..+)*[^)]+)")  # old one
 
 
 # file_path_pattern = re.compile(r"(?<=<f>)(.*)(?=\))")
@@ -166,6 +166,8 @@ def set_process(syscall, current_alert):
             for process in current_alert.process_list:
                 if process.process_id == syscall.process_id():
                     current_process = process
+                    if not syscall.process_name() == current_process.process_name[-1]:          #appending new process name if new program is executed
+                        current_process.process_name.append(syscall.process_name())
 
     else:
         current_process = current_alert.Process(syscall.process_id(), syscall.user_id(),
@@ -290,7 +292,7 @@ class Alert:
         def __init__(self, process_id, user_id, process_name):
             self.process_id = process_id
             self.user_id = user_id
-            self.process_name = process_name
+            self.process_name = [process_name]
             self.network_list = []
             self.files_list = []
             self.parent_thread = None
@@ -301,16 +303,16 @@ class Alert:
 
             if len(args_found) == 1:
                 arg_tuple = (args_found[0], syscall.param(args_found[0]))
-                if any(arg_tuple[0] == arg for arg in ["name", "filename", "path", "in_fd"]):
+                if any(arg_tuple[0] == arg for arg in ["name", "filename", "in_fd"]):
                     fd_dict = construct_file_dict(arg_tuple, syscall, known_files)
                     self.files_list = append_file(fd_dict, self.files_list)
 
-                if arg_tuple[0] == "fd":
+                if arg_tuple[0] == "fd" or arg_tuple[0] == "path":
                     fd_dict = stringmatch_arg(arg_tuple, syscall, known_files)
 
                     if fd_dict is not None:
                         if "dest_ip" in fd_dict.keys():
-                            fd_dict["connection_id"] = next(id_iter)
+                            #fd_dict["connection_id"] = next(id_iter)
                             if not self.network_list:
                                 self.network_list.append(fd_dict)
                             else:
@@ -405,9 +407,9 @@ if __name__ == '__main__':
 
     # alert_file_path = '/home/mly/PycharmProjects/LID-DS/alarms_n_3_w_100_t_False_LID-DS-2021_CVE-2017-7529.json'
     # scenario_path = '/home/mly/PycharmProjects/LID-DS-2021/LID-DS-2021/CVE-2017-7529'
-    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_CVE-2017-7529.json'
+    anomaly_file_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/Alarme_Alerts/alarme/alarms_som_ngram7_w2v_CVE-2020-23839.json'
     # anomaly_file_path = "alarms_SOM_EPS_ngram_7_epoch_100_w2v_5_CWE-434.json"
-    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2017-7529'
+    scenario_path = '/mnt/0e52d7cb-afd4-4b49-8238-e47b9089ec68/LID-DS-2021/CVE-2020-23839'
 
     dataloader = dataloader_factory(scenario_path, direction=Direction.BOTH)
     id_iter = itertools.count()         #itererator for connection identifiers
@@ -454,7 +456,7 @@ if __name__ == '__main__':
 
                         current_process.analyze_arguments(syscall, analyzed_args, known_files)
                         current_process.trace_parent(syscall)
-                        current_process.check_sendfile(syscall, known_files, id_iter)
+                        #current_process.check_sendfile(syscall, known_files, id_iter)
                 else:
                     if updated_alert:  # for updated alerts only new system call lines analyzed
                         if syscall.line_id in range(intermediate_line_id, current_alert.last_line_id + 1):
@@ -463,7 +465,7 @@ if __name__ == '__main__':
 
                             current_process.analyze_arguments(syscall, analyzed_args, known_files)
                             current_process.trace_parent(syscall)
-                            current_process.check_sendfile(syscall, known_files, id_iter)
+                            #current_process.check_sendfile(syscall, known_files, id_iter)
                     else:
                         if syscall.line_id in range(current_alert.first_line_id, current_alert.last_line_id + 1):
 
@@ -471,7 +473,7 @@ if __name__ == '__main__':
 
                             current_process.analyze_arguments(syscall, analyzed_args, known_files)
                             current_process.trace_parent(syscall)
-                            current_process.check_sendfile(syscall, known_files, id_iter)
+                            #current_process.check_sendfile(syscall, known_files, id_iter)
 
             if not updated_alert:
                 alerts_grouped.append(copy.deepcopy(current_alert))
@@ -485,7 +487,7 @@ if __name__ == '__main__':
             single_alert_shortened = shorten(single_alert)  # hide path and recording information for analysis
             output['alerts'].append(single_alert)
 
-        """if alerts_grouped:
-            break"""
+        if alerts_grouped:
+            break
 
     save_to_file(output)

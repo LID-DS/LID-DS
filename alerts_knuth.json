@@ -1,0 +1,175 @@
+{
+  "alerts": [
+    {
+      "alert_id": null,
+      "path_to_syscalls": "CVE-2020-23839/test/normal_and_attack/abundant_knuth_3979.zip",
+      "recording_name": "abundant_knuth_3979",
+      "first_line_id": 11740,
+      "last_line_id": 11882,
+      "first_timestamp": "2021-12-21 16:29:57",
+      "last_timestamp": "2021-12-21 16:29:57",
+      "time_window": 0.003,
+      "syscall_count": 142,
+      "process_list": [
+        {
+          "process_id": 131048,
+          "user_id": 33,
+          "process_name": "sh",
+          "network_list": [],
+          "files_list": [
+            {
+              "path": "/var/www/html",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 3
+            },
+            {
+              "path": "/usr/local/sbin/cat",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/usr/local/bin/cat",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/usr/sbin/cat",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/usr/bin/cat",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/sbin/cat",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/bin/cat",
+              "action": [
+                "stat"
+              ],
+              "known": false,
+              "occurrences": 1
+            }
+          ],
+          "parent_thread": [
+            "130393(apache2)",
+            "clone"
+          ]
+        },
+        {
+          "process_id": 131049,
+          "user_id": 33,
+          "process_name": "sh",
+          "network_list": [],
+          "files_list": [
+            {
+              "path": "/etc/ld.so",
+              "action": [
+                "access",
+                "openat",
+                "fstat",
+                "mmap",
+                "close"
+              ],
+              "known": false,
+              "occurrences": 6
+            },
+            {
+              "path": "/lib/x86_64",
+              "action": [
+                "openat",
+                "read",
+                "fstat",
+                "mmap",
+                "close"
+              ],
+              "known": false,
+              "occurrences": 9
+            },
+            {
+              "path": "/dev/pts/0",
+              "action": [
+                "fstat",
+                "write",
+                "close"
+              ],
+              "known": false,
+              "occurrences": 4
+            },
+            {
+              "path": "/etc/passwd",
+              "action": [
+                "openat",
+                "fstat",
+                "read",
+                "close"
+              ],
+              "known": false,
+              "occurrences": 6
+            }
+          ],
+          "parent_thread": [
+            "131048(sh)",
+            "execve"
+          ]
+        },
+        {
+          "process_id": 130393,
+          "user_id": 33,
+          "process_name": "apache2",
+          "network_list": [],
+          "files_list": [
+            {
+              "path": "/var/www/html",
+              "action": [
+                "chdir"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/tmp",
+              "action": [
+                "fcntl"
+              ],
+              "known": false,
+              "occurrences": 1
+            },
+            {
+              "path": "/dev/pts/0",
+              "action": [
+                "fcntl"
+              ],
+              "known": false,
+              "occurrences": 2
+            }
+          ],
+          "parent_thread": null
+        }
+      ]
+    }
+  ]
+}
