@@ -1,12 +1,12 @@
-import sys
 import random
+import sys
 import urllib.request
 
 from lid_ds.core import Scenario
 from lid_ds.core.collector.json_file_store import JSONFileStorage
 from lid_ds.core.image import StdinCommand, Image, ExecCommand
 from lid_ds.core.objects.victim import RecordingModes
-from lid_ds.sim import gen_schedule_wait_times, Sampler
+from lid_ds.sim import Sampler
 from lid_ds.utils.docker_utils import get_ip_address
 
 
