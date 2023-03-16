@@ -63,7 +63,7 @@ if __name__ == '__main__':
         "CommandInjection"
     ]
     # choose from attacks
-    attack = attacks[3]
+    attack = attacks[int(sys.argv[4])]
 
     victim = Image("victim_dvwa")
     normal = Image("normal_dvwa", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
