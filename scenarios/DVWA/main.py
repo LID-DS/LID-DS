@@ -79,6 +79,7 @@ if __name__ == '__main__':
         storage_services=storage_services,
         exploit_start_time=exploit_time,
         recording_mode=RecordingModes.LTTng,
+        lttng_time_rotation=10,
         log_files=["/var/log/apache2/access.log",
                    "/var/log/apache2/error.log",
                    "/var/log/apache2/other_vhosts_access.log"],
