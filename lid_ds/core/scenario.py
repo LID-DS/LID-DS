@@ -6,9 +6,7 @@ create new scenarios and implementing needed functions.
 import datetime
 import os
 import random
-import tarfile
 from abc import ABCMeta, abstractmethod
-from io import StringIO
 from threading import Thread
 from time import sleep, time
 from typing import List
@@ -61,7 +59,8 @@ class Scenario(metaclass=ABCMeta):
             exploit_name='default',
             storage_services: List[CollectorStorageService] = None,
             log_files: list = [],
-            recording_mode=RecordingModes.Sysdig
+            recording_mode=RecordingModes.Sysdig,
+            lttng_time_rotation=-1,
     ):
         """
         initialize all time sequences needed for the recording process
@@ -84,6 +83,8 @@ class Scenario(metaclass=ABCMeta):
         self.auto_stop_recording = True if recording_time == -1 else False
 
         self._recording_mode = recording_mode
+
+        self.lttng_time_rotation = lttng_time_rotation
 
         self.log_files = log_files
 
@@ -122,7 +123,8 @@ class Scenario(metaclass=ABCMeta):
 
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
-        with self.victim.record_container(mode=self._recording_mode) as (sysdig, tcpdump, resource):
+        with self.victim.record_container(mode=self._recording_mode, lttng_time_rotation=self.lttng_time_rotation) as (
+        sysdig, tcpdump, resource):
             if self.auto_stop_recording:
                 self.start_time = datetime.datetime.now()
                 exploit_container_id = self.exploit.container.attrs['Id']
@@ -205,6 +207,6 @@ class Scenario(metaclass=ABCMeta):
             strm, stat = client.get_archive(victim_container, file_path)
             with open(os.path.join("runs",
                                    f"{self.general_meta.name}_{os.path.basename(file_path)}"),
-                    "wb") as outfile:
+                      "wb") as outfile:
                 for d in strm:
                     outfile.write(d)
