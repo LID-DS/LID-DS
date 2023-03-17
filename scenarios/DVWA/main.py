@@ -52,7 +52,7 @@ if __name__ == '__main__':
         # 1800s = 5hrs -> normal behaviour needs to be generated for a long time until exploit ends
         wait_times = Sampler("Aug95").timerange_sampling(user_count, 1800)
     else:
-        wait_times = Sampler("Aug95").timerange_sampling(user_count, recording_time)
+        wait_times = Sampler("Jul95").random_sampling(user_count, recording_time, 100, 500)
 
     storage_services = [JSONFileStorage()]
 
@@ -63,7 +63,10 @@ if __name__ == '__main__':
         "CommandInjection"
     ]
     # choose from attacks
-    attack = attacks[int(sys.argv[4])]
+    if len(sys.argv) > 4:
+        attack = attacks[int(sys.argv[4])]
+    else:
+        attack = ""
 
     victim = Image("victim_dvwa")
     normal = Image("normal_dvwa", command=StdinCommand(""), init_args="-ip ${victim} -v 1")
