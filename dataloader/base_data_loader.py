@@ -1,4 +1,4 @@
-from dataloader.direction import Direction
+from enum import Enum
 
 
 class BaseDataLoader:
@@ -26,7 +26,7 @@ class BaseDataLoader:
         """
         self.scenario_path = scenario_path
         print(f"loading {scenario_path}")
-        
+
     def training_data(self) -> list:
         """
 
@@ -99,7 +99,8 @@ class BaseDataLoader:
             parses Direction of system calls to string if attribute is present
         @return: direction string
         """
-        if hasattr(self, '_direction'):
-            return str(self._direction).split('.')[1].lower()
+        if hasattr(self, '_direction') and isinstance(self._direction, Enum):
+            return self._direction.name
         else:
-            return "None"
+            print("WARNING: DataLoader has no attribute _direction")
+            return None
