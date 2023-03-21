@@ -11,7 +11,7 @@ from algorithms.features.impl.syscall_name import SyscallName
 from algorithms.util.dependency_graph_encoding import dependency_graph_to_config_tree
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
-from tools.ngram_entropy.ngram_entropy import NgramEntropy
+from algorithms.ngram_entropy.ngram_entropy import NgramEntropy
 
 
 def _parse_args():
@@ -52,7 +52,6 @@ LID_DS_VERSION_NUMBER = 2
 LID_DS_VERSIONS = [
     "LID-DS-2019",
     "LID-DS-2021",
-    "LID-DS-2019_2"
 ]
 
 # scenarios ordered by training data size asc
