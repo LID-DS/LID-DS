@@ -60,7 +60,7 @@ class ScenarioVictim(ScenarioContainerBase):
         self.container.stop()
 
     @contextmanager
-    def record_container(self, buffer_size=1600, mode=RecordingModes.Sysdig):
+    def record_container(self, buffer_size=1600, mode=RecordingModes.Sysdig, lttng_time_rotation=-1):
         if mode == RecordingModes.Sysdig:
             sysdig = self._sysdig(buffer_size)
             tcpdump = self._tcpdump()
@@ -68,7 +68,7 @@ class ScenarioVictim(ScenarioContainerBase):
             kill_child(sysdig)
             tcpdump.kill()
         elif mode == RecordingModes.LTTng:
-            lttng = self._lttng()
+            lttng = self._lttng(lttng_time_rotation)
             tcpdump = self._tcpdump()
             yield lttng, tcpdump, self._resource_thread
 
@@ -86,16 +86,26 @@ class ScenarioVictim(ScenarioContainerBase):
             'sysdig -w {} -s {} container.name={} --unbuffered'.format(sysdig_out_path, buffer_size,
                                                                        self.env.victim_hostname))
 
-    def _lttng(self):
+    def _lttng(self, time_rotation=-1):
         lttng_out_path = os.path.join(ScenarioEnvironment().out_dir, f'{self.env.recording_name}')
         self.logger.info(f'Saving with LTTng to {lttng_out_path}')
         pid_ns = get_pid_namespace(self.container)
-        return os.system(
-            f'lttng create {self.env.recording_name} --output={lttng_out_path} && ' +
-            f'lttng add-context -k -t procname -t pid -t vpid -t tid -t vtid -t pid_ns && ' +
-            f'lttng enable-event -k --syscall -a --filter="\\$ctx.pid_ns == {pid_ns}" && ' +
-            f'lttng start'
-        )
+        if time_rotation == -1:
+            return os.system(
+                f'lttng create {self.env.recording_name} --output={lttng_out_path} && ' +
+                f'lttng add-context -k -t procname -t pid -t vpid -t tid -t vtid -t pid_ns && ' +
+                f'lttng enable-event -k --syscall -a --filter="\\$ctx.pid_ns == {pid_ns}" && ' +
+                f'lttng start'
+            )
+        else:
+            rotation_in_us = time_rotation * 1000000
+            return os.system(
+                f'lttng create {self.env.recording_name} --output={lttng_out_path} && ' +
+                f'lttng add-context -k -t procname -t pid -t vpid -t tid -t vtid -t pid_ns && ' +
+                f'lttng enable-event -k --syscall -a --filter="\\$ctx.pid_ns == {pid_ns}" && ' +
+                f'sudo lttng enable-rotation --timer={rotation_in_us} && ' +
+                f'lttng start'
+            )
 
 
     def _tcpdump(self):
