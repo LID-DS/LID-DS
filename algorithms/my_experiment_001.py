@@ -45,9 +45,10 @@ if __name__ == '__main__':
                              "Please specify as argument or set Environment Variable "
                              "$LID_DS_BASE") from exc
 
-    LID_DS_VERSION = "LID-DS-2021"
-    #SCENARIO_NAME = "CVE-2017-7529"
-    SCENARIO_NAME = "CVE-2014-0160"
+    #LID_DS_VERSION = "LID-DS-2021"
+    LID_DS_VERSION = "LID-DS-2019"
+    SCENARIO_NAME = "CVE-2017-7529"
+    #SCENARIO_NAME = "CVE-2014-0160"
     #SCENARIO_NAME = "Bruteforce_CWE-307"
     #SCENARIO_NAME = "CVE-2012-2122"
 
@@ -66,21 +67,23 @@ if __name__ == '__main__':
     int_embedding = IntEmbedding(syscall_name)
     
     # now build ngrams from these integers
-    n3 = Ngram([int_embedding], THREAD_AWARE, 3)
-    n7 = Ngram([int_embedding], THREAD_AWARE, 7)
-    n11 = Ngram([int_embedding], THREAD_AWARE, 11)
-    n15 = Ngram([int_embedding], THREAD_AWARE, 15)
-    n50 = HoppingNgram([int_embedding], THREAD_AWARE, 50, 25)
+    n1 = Ngram([int_embedding], THREAD_AWARE, 3)
+    n2 = Ngram([int_embedding], THREAD_AWARE, 7)
+    n3 = Ngram([int_embedding], THREAD_AWARE, 11)
+    n4 = Ngram([int_embedding], THREAD_AWARE, 15)
+    n5 = Ngram([int_embedding], THREAD_AWARE, 19)
+    context_window = HoppingNgram([int_embedding], THREAD_AWARE, WINDOW_LENGTH, WINDOW_LENGTH)
 
     # finally calculate the coverage algorithm using these ngrams
-    s3 = Coverage(n3,n50)
-    s7 = Coverage(n7,n50)
-    s11 = Coverage(n11,n50)
-    s15 = Coverage(n15,n50)
+    c1 = Coverage(n1,context_window)
+    c2 = Coverage(n2,context_window)
+    c3 = Coverage(n3,context_window)
+    c4 = Coverage(n4,context_window)
+    c5 = Coverage(n5,context_window)
 
     # decider
-    #decider = AABB(Concat([s3,s7,s11,s15]))
-    decider = MaxScoreThreshold(Som(Concat([s3,s7,s11,s15])))
+    decider = AABB(Concat([c1,c2,c3,c4,c5]))
+    #decider = MaxScoreThreshold(Som(Concat([c1,c2,c3,c4,c5])))
     #decider = MaxScoreThreshold(s3)
 
     ### the IDS
@@ -102,10 +105,6 @@ if __name__ == '__main__':
 
     ### print results
     pprint(results)
-    s3.stats()
-    s7.stats()
-    s11.stats()
-    s15.stats()
     # enrich results with configuration and save to mongoDB
     #results['config'] = ids.get_config_tree_links()
     #results['scenario'] = SCENARIO_NAME
