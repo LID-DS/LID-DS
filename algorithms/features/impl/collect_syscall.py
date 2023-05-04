@@ -46,7 +46,7 @@ class CollectSyscall(BuildingBlock):
             self._buffer[thread_id] = {}
         # if syscall not in thread buffer
         # create new syscall_name buffer
-        print(self._buffer)
+        # print(self._buffer)
         if syscall_name not in self._buffer[thread_id]:
             # if first syscall is closing one, discard it
             if syscall.direction() == Direction.CLOSE:

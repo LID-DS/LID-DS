@@ -32,6 +32,9 @@ class MaxScoreThreshold(BuildingBlock):
             if anomaly_score > self._threshold:
                 self._threshold = anomaly_score
 
+    def fit(self):
+        print(f"max threshold: {self._threshold}")
+
     def _calculate(self, syscall: Syscall) -> bool:
         """
         Return 0 if anomaly_score is below threshold.

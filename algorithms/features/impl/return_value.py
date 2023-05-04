@@ -61,7 +61,10 @@ class ReturnValue(BuildingBlock):
                         else:
                             return_value = -1
                     else:
-                        return_value = current_bytes
+                        if syscall.name() != "brk":
+                            return_value = current_bytes
+                        else:
+                            return_value = 0
                 else:
                     return_value = -1
             except ZeroDivisionError:
