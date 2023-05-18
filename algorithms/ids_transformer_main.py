@@ -120,7 +120,7 @@ def _parse_args():
     )
 
     parser.add_argument(
-        '-ret', dest='use_return_value', type=lambda x: (str(x).lower() == 'true'), required=True,
+        '-ret', dest='use_return_value', type=lambda x: (str(x).lower() == 'true'), default=False,
         help='Use return value'
     )
 
@@ -152,7 +152,7 @@ def main():
     scenario_number = 0
     checkpoint_dir = "Models"
     retrain = False
-    evaluate = False
+    evaluate = True
     ngram_length = 8
     thread_aware = True
 
@@ -168,12 +168,13 @@ def main():
     num_heads = 2
     epochs = 500
     dropout = 0.1
+    learning_rate = 0.001
 
-    use_return_value = True
+    use_return_value = False
     quantile_bucket_size = 5
-    use_process_name = True
+    use_process_name = False
     use_time_delta = False
-    use_paths = True
+    use_paths = False
 
     ON_CLUSTER = "IDS_ON_CLUSTER" in os.environ
     if ON_CLUSTER:
@@ -239,6 +240,8 @@ def main():
             "pname": use_process_name,
             "tdelta": use_time_delta,
             "paths": use_paths,
+            "drop": dropout,
+            "lr": learning_rate,
         },
         models_dir=checkpoint_dir
     )
@@ -318,7 +321,8 @@ def main():
             feedforward_dim=feedforward_dim,
             pre_layer_norm=pre_layer_norm,
             language_model=language_model,
-            dedup_train_set=dedup_train_set
+            dedup_train_set=dedup_train_set,
+            learning_rate=learning_rate,
         )
 
         decider = MaxScoreThreshold(transformer)
@@ -348,6 +352,7 @@ def main():
             stats['train_losses'] = transformer.train_losses
             stats['val_losses'] = transformer.val_losses
             stats['train_set_size'] = transformer.train_set_size
+            stats['val_set_size'] = transformer.val_set_size
             stats['config'] = ids.get_config_tree_links()
 
             save_to_json(stats, result_path)

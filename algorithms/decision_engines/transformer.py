@@ -55,6 +55,7 @@ class Transformer(BuildingBlock):
             pre_layer_norm: bool,
             language_model: bool,
             dedup_train_set: bool,
+            learning_rate: float,
             retrain=False):
         super().__init__()
         self._input_vector = input_vector
@@ -74,13 +75,16 @@ class Transformer(BuildingBlock):
         self._retrain = retrain
         self._language_model = language_model
         self._dedup_train_set = dedup_train_set
+        self._learning_rate = learning_rate
         self._loss_fn = nn.CrossEntropyLoss()
 
         self.train_losses = {}
         self.val_losses = {}
         self._training_set = []
         self._validation_set = []
+
         self.train_set_size = 0
+        self.val_set_size = 0
 
         # placeholder for start of sentence, will be updated later in case we have more features
         self._sos = self._distinct_tokens + 1
@@ -106,6 +110,9 @@ class Transformer(BuildingBlock):
             language_model=self._language_model
         ).to(self._device)
 
+        n_params = sum(p.numel() for p in self.transformer.parameters())
+        print("Transformer: number of parameters: %.2fM" % (n_params/1e6,))
+
     def train_on(self, syscall: Syscall):
         input_vector: tuple = self._input_vector.get_result(syscall)
         if input_vector is not None:
@@ -119,10 +126,9 @@ class Transformer(BuildingBlock):
     def fit(self):
         self._init_model()
 
-        learning_rate = 0.001
         optimizer = torch.optim.Adam(
             self.transformer.parameters(),
-            lr=learning_rate,
+            lr=self._learning_rate,
             betas=(0.9, 0.98),
             eps=1e-9
         )
@@ -142,9 +148,10 @@ class Transformer(BuildingBlock):
             self._sos,
             self._device
         )
+        self.val_set_size = len(t_dataset_val)
 
-        train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=False)
-        val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=False)
+        train_dataloader = DataLoader(t_dataset, batch_size=self._batch_size, shuffle=True)
+        val_dataloader = DataLoader(t_dataset_val, batch_size=self._batch_size, shuffle=True)
 
         last_epoch = 0
         if not self._retrain:
