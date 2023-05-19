@@ -42,4 +42,5 @@ pip install --user -r "$(grep -ivE 'torch' ../requirements.txt)"
 # 16: -pname process_name
 # 17: -paths use_paths
 # 18: -time time_delta
-python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}" -ret "${15}" -pname "${16}" -paths "${17}" -time "${18}" -eval "False" -e 900
+# 19: -run run number (for multiple runs)
+python ids_transformer_main.py -d "$1" -v "$2" -s "$3" -c "$4" -n "$5" -t "$6" -f "$7" -l "$8" -m "$9" -nh "${10}" -lm "${11}" -b "${12}" -dup "${13}" -as "${14}" -ret "${15}" -pname "${16}" -paths "${17}" -time "${18}" -run "${19}" -eval "False" -e 900

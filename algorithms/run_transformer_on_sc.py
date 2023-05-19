@@ -36,16 +36,16 @@ scenario_2021 = [
 ]
 
 EVAL = False
+REPEAT = 1
 USER = "ta651pyga"
 DATASET = "LID-DS-2019"
 CHECKPOINT_DIR = f"/work/users/{USER}/models"
-NGRAM_LENGTHS = [8, 16, 32, 64]
+NGRAM_LENGTHS = [4, 8, 16, 32]
 thread_aware = True
 language_model = True
-LAYERS = [2, 4, 6]
-FEEDFORWARD_DIMS = [1024, 2048]
+LAYERS = [2, 4]
 MODEL_DIMS = [8, 16, 32]
-NUM_HEADS = [1, 2, 4, 6]
+# NUM_HEADS = [1, 2, 4, 6]
 batch_size = 256
 DEDUP = True
 ANOMALY_SCORINGS = ['MEAN']
@@ -61,7 +61,7 @@ else:
     SCENARIOS = scenario_2021
 SCRIPT = 'run_tf_on_sc_cpu.sh'
 
-MAX_JOBS_IN_QUEUE = 500
+MAX_JOBS_IN_QUEUE = 600
 NUM_EXPERIMENTS = 0
 
 
@@ -89,10 +89,11 @@ def start_job(job_str):
 
 
 # start jobs for specific configuration
-for scenario in SCENARIOS:
-    for ngram_length in NGRAM_LENGTHS:
-        for num_heads in NUM_HEADS:
+for run in range(REPEAT):
+    for scenario in SCENARIOS:
+        for ngram_length in NGRAM_LENGTHS:
             for layers in LAYERS:
+                num_heads = layers
                 for model_dim in MODEL_DIMS:
                     for anomaly_score in ANOMALY_SCORINGS:
                         ff_dim = model_dim * 4  # for now use recommended dimensions
@@ -120,7 +121,8 @@ for scenario in SCENARIOS:
                                           f"{epochs} " + \
                                           f"{USE_PROCESS_NAME} " + \
                                           f"{USE_PATHS} " + \
-                                          f"{USE_TIME_DELTA} "
+                                          f"{USE_TIME_DELTA} " + \
+                                          f"{run} "
 
                                 start_job(command)
                         else:
@@ -145,7 +147,8 @@ for scenario in SCENARIOS:
                                       f"{USE_RET_VALUE} " + \
                                       f"{USE_PROCESS_NAME} " + \
                                       f"{USE_PATHS} " + \
-                                      f"{USE_TIME_DELTA} "
+                                      f"{USE_TIME_DELTA} " + \
+                                      f"{run} "
 
                             start_job(command)
 

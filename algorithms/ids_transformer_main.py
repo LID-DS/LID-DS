@@ -144,6 +144,11 @@ def _parse_args():
         help='Evaluate model, if false only training is performed'
     )
 
+    parser.add_argument(
+        '-run', dest='run', type=int, required=False, default=0,
+        help='Run number'
+    )
+
     return parser.parse_args()
 
 
@@ -155,6 +160,7 @@ def main():
     evaluate = True
     ngram_length = 8
     thread_aware = True
+    run = 0
 
     language_model = True
     dedup_train_set = True
@@ -200,6 +206,7 @@ def main():
         use_process_name = args.use_process_name
         use_time_delta = args.use_time_delta
         use_paths = args.use_paths
+        run = args.run
         print(args)
     else:
         # getting the LID-DS base path from argument or environment variable
@@ -242,6 +249,7 @@ def main():
             "paths": use_paths,
             "drop": dropout,
             "lr": learning_rate,
+            "run": run,
         },
         models_dir=checkpoint_dir
     )
@@ -344,6 +352,7 @@ def main():
             stats['direction'] = dataloader.get_direction_string()
             stats['detection_time'] = str(end - start)
             stats['threshold'] = decider._threshold
+            stats['run'] = run
 
             pprint(stats)
             print(f"detection time: {stats['detection_time']}")
