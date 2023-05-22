@@ -4,6 +4,7 @@ The scenario class should give a libraryuser the ability to simply
 create new scenarios and implementing needed functions.
 """
 import datetime
+import os
 import random
 from abc import ABCMeta, abstractmethod
 from threading import Thread
@@ -57,7 +58,9 @@ class Scenario(metaclass=ABCMeta):
             exploit_start_time=0,
             exploit_name='default',
             storage_services: List[CollectorStorageService] = None,
-            recording_mode=RecordingModes.Sysdig
+            log_files: list = [],
+            recording_mode=RecordingModes.Sysdig,
+            lttng_time_rotation=-1,
     ):
         """
         initialize all time sequences needed for the recording process
@@ -80,6 +83,10 @@ class Scenario(metaclass=ABCMeta):
         self.auto_stop_recording = True if recording_time == -1 else False
 
         self._recording_mode = recording_mode
+
+        self.lttng_time_rotation = lttng_time_rotation
+
+        self.log_files = log_files
 
         if exploit_start_time == 0 and self.auto_stop_recording:
             raise ValueError("Autostop of recording is only possible with active exploit")
@@ -116,7 +123,8 @@ class Scenario(metaclass=ABCMeta):
 
     def _recording(self):
         self.logger.info('Start Recording Scenario: {}'.format(self.general_meta.name))
-        with self.victim.record_container(mode=self._recording_mode) as (sysdig, tcpdump, resource):
+        with self.victim.record_container(mode=self._recording_mode, lttng_time_rotation=self.lttng_time_rotation) as (
+        sysdig, tcpdump, resource):
             if self.auto_stop_recording:
                 self.start_time = datetime.datetime.now()
                 exploit_container_id = self.exploit.container.attrs['Id']
@@ -157,6 +165,7 @@ class Scenario(metaclass=ABCMeta):
                 Collector().set_container_ready()
                 self._warmup()
                 self._recording()
+                self._persist_logs()
         finally:
             self._teardown()
 
@@ -183,3 +192,21 @@ class Scenario(metaclass=ABCMeta):
             self.general_meta.recording_time,
             self.general_meta.warmup_time,
         )
+
+    def _persist_logs(self):
+        """
+        persists selected files from self.log_files to host system
+        """
+        # get container name
+        victim_container = self.victim.container.attrs["Name"]
+        # initialize docker low level api
+        client = docker.from_env().api
+
+        # persist all chosen files
+        for file_path in self.log_files:
+            strm, stat = client.get_archive(victim_container, file_path)
+            with open(os.path.join("runs",
+                                   f"{self.general_meta.name}_{os.path.basename(file_path)}"),
+                      "wb") as outfile:
+                for d in strm:
+                    outfile.write(d)

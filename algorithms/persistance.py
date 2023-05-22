@@ -84,7 +84,7 @@ def print_as_table(results: list = None, path: str = None):
     print(result_list)
 
 
-def save_to_mongo(result_dict: dict):
+def save_to_mongo(result_dict: dict, db_name: str = 'experiments'):
     """
     opens connection to MongoDB Server and inserts current result document
     """
@@ -97,8 +97,8 @@ def save_to_mongo(result_dict: dict):
                              username=mongo_user,
                              password=mongo_pw)
 
-        db = client['experiments']
-        collection = db['experiments']
+        db = client[db_name]
+        collection = db[db_name]
 
         collection.insert_one(result_dict)
         print("Persisted results in MongoDB")

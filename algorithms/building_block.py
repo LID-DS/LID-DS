@@ -12,6 +12,7 @@ class BuildingBlock:
 
     def __init__(self):
         self.__config = BuildingBlock.__arguments()
+        self.name = self.__class__.__name__
         self.__instance_id = None
         self.__last_result = None
         self.__last_syscall_id = None
