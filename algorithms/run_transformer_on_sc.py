@@ -48,11 +48,11 @@ MODEL_DIMS = [8, 16, 32]
 # NUM_HEADS = [1, 2, 4, 6]
 batch_size = 256
 DEDUP = True
-ANOMALY_SCORINGS = ['MEAN']
-USE_RET_VALUE = True
-USE_PROCESS_NAME = True
-USE_PATHS = True
-USE_TIME_DELTA = True
+ANOMALY_SCORINGS = ['LOSS']
+USE_RET_VALUE = False
+USE_PROCESS_NAME = False
+USE_PATHS = False
+USE_TIME_DELTA = False
 
 BASE_PATH = f"/work/users/{USER}/datasets/{DATASET}/"
 if '2019' in BASE_PATH:

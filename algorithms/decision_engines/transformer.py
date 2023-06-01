@@ -5,6 +5,7 @@ from functools import cache
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from algorithms.building_block import BuildingBlock
@@ -85,6 +86,8 @@ class Transformer(BuildingBlock):
 
         self.train_set_size = 0
         self.val_set_size = 0
+
+        self._writer = SummaryWriter(log_dir=checkpoint.epochs_dir + "/tensorboard")
 
         # placeholder for start of sentence, will be updated later in case we have more features
         self._sos = self._distinct_tokens + 1
@@ -169,10 +172,18 @@ class Transformer(BuildingBlock):
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-
                 train_loss += loss.item()
             self.train_losses[epoch] = train_loss / len(train_dataloader)
 
+            # logging weights and gradients
+            for name, param in self.transformer.named_parameters():
+                if param.requires_grad and param.grad is not None:
+                    self._writer.add_histogram(name, param, epoch)
+                    self._writer.add_scalar(name + '_mean', param.mean(), epoch)
+                    self._writer.add_scalar(name + '_std', param.std(), epoch)
+                    self._writer.add_histogram(name + '_grad', param.grad, epoch)
+                    self._writer.add_scalar(name + '_grad_mean', param.grad.mean(), epoch)
+                    self._writer.add_scalar(name + '_grad_std', param.grad.std(), epoch)
             # Validation
             self.transformer.eval()
             val_loss = 0
