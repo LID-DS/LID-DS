@@ -23,12 +23,9 @@ class CustomTransformer(Module):
         d_model: the number of expected features in the encoder/decoder inputs (default=512).
         nhead: the number of heads in the multiheadattention models (default=8).
         num_encoder_layers: the number of sub-encoder-layers in the encoder (default=6).
-        num_decoder_layers: the number of sub-decoder-layers in the decoder (default=6).
         dim_feedforward: the dimension of the feedforward network model (default=2048).
         dropout: the dropout value (default=0.1).
         activation: the activation function of encoder/decoder intermediate layer, relu or gelu (default=relu).
-        custom_encoder: custom encoder (default=None).
-        custom_decoder: custom decoder (default=None).
         layer_norm_eps: the eps value in layer normalization components (default=1e-5).
         batch_first: If ``True``, then the input and output tensors are provided
             as (batch, seq, feature). Default: ``False`` (seq, batch, feature).
@@ -41,13 +38,12 @@ class CustomTransformer(Module):
     """
 
     def __init__(self, d_model: int = 512, nhead: int = 8, num_encoder_layers: int = 6,
-                 num_decoder_layers: int = 6, dim_feedforward: int = 2048, dropout: float = 0.1,
+                 dim_feedforward: int = 2048, dropout: float = 0.1,
                  activation: str = "relu", layer_norm_eps: float = 1e-5, pre_layer_norm: bool = False,
-                 batch_first: bool = False, device=None, dtype=None, language_model=False) -> None:
+                 batch_first: bool = False, device=None, dtype=None) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super(CustomTransformer, self).__init__()
         self._pre_layer_norm = pre_layer_norm
-        self.language_model = language_model
 
         encoder_layer = TransformerEncoderLayer(
             d_model, nhead, dim_feedforward, dropout,
@@ -56,15 +52,6 @@ class CustomTransformer(Module):
         )
         encoder_norm = LayerNorm(d_model, eps=layer_norm_eps, **factory_kwargs)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
-
-        if not self.language_model:
-            decoder_layer = TransformerDecoderLayer(
-                d_model, nhead, dim_feedforward, dropout,
-                activation, layer_norm_eps, batch_first,
-                **factory_kwargs
-            )
-            decoder_norm = LayerNorm(d_model, eps=layer_norm_eps, **factory_kwargs)
-            self.decoder = TransformerDecoder(decoder_layer, num_decoder_layers, decoder_norm)
 
         self._reset_parameters()
 
@@ -75,24 +62,14 @@ class CustomTransformer(Module):
 
     def forward(self,
                 src: Tensor,
-                tgt: Tensor,
                 src_mask: Optional[Tensor] = None,
-                tgt_mask: Optional[Tensor] = None,
-                memory_mask: Optional[Tensor] = None,
-                src_key_padding_mask: Optional[Tensor] = None,
-                tgt_key_padding_mask: Optional[Tensor] = None,
-                memory_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+                src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
         r"""Take in and process masked source/target sequences.
 
         Args:
             src: the sequence to the encoder (required).
-            tgt: the sequence to the decoder (required).
             src_mask: the additive mask for the src sequence (optional).
-            tgt_mask: the additive mask for the tgt sequence (optional).
-            memory_mask: the additive mask for the encoder output (optional).
             src_key_padding_mask: the ByteTensor mask for src keys per batch (optional).
-            tgt_key_padding_mask: the ByteTensor mask for tgt keys per batch (optional).
-            memory_key_padding_mask: the ByteTensor mask for memory keys per batch (optional).
 
         Shape:
             - src: :math:`(S, N, E)`, `(N, S, E)` if batch_first.
@@ -124,28 +101,10 @@ class CustomTransformer(Module):
             batch size, E is the feature number
 
         Examples:
-            >>> output = transformer_model(src, tgt, src_mask=src_mask, tgt_mask=tgt_mask)
+            >>> transformer_model = CustomTransformer(nhead=16, num_encoder_layers=12)
+            >>> out = transformer_model(src, src_mask=src_mask)
         """
-
-        if not self.batch_first and src.size(1) != tgt.size(1):
-            raise RuntimeError("the batch number of src and tgt must be equal")
-        elif self.batch_first and src.size(0) != tgt.size(0):
-            raise RuntimeError("the batch number of src and tgt must be equal")
-
-        if src.size(2) != self.d_model or tgt.size(2) != self.d_model:
-            raise RuntimeError("the feature number of src and tgt must be equal to d_model")
-
-        if self.language_model:
-            src_mask = tgt_mask
-
         output = self.encoder(src, mask=src_mask, src_key_padding_mask=src_key_padding_mask)
-
-        if not self.language_model:
-            output = self.decoder(
-                tgt, output, tgt_mask=tgt_mask, memory_mask=memory_mask,
-                tgt_key_padding_mask=tgt_key_padding_mask,
-                memory_key_padding_mask=memory_key_padding_mask
-            )
         return output
 
     def generate_square_subsequent_mask(self, sz: int) -> Tensor:

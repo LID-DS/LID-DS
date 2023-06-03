@@ -54,7 +54,6 @@ class Transformer(BuildingBlock):
             dropout: float,
             feedforward_dim: int,
             pre_layer_norm: bool,
-            language_model: bool,
             dedup_train_set: bool,
             learning_rate: float,
             retrain=False):
@@ -74,7 +73,6 @@ class Transformer(BuildingBlock):
         self._feedforward_dim = feedforward_dim
         self._pre_layer_norm = pre_layer_norm
         self._retrain = retrain
-        self._language_model = language_model
         self._dedup_train_set = dedup_train_set
         self._learning_rate = learning_rate
         self._loss_fn = nn.CrossEntropyLoss()
@@ -88,43 +86,34 @@ class Transformer(BuildingBlock):
         self.val_set_size = 0
 
         self._writer = SummaryWriter(log_dir=checkpoint.epochs_dir + "/tensorboard")
-
-        # placeholder for start of sentence, will be updated later in case we have more features
-        self._sos = self._distinct_tokens + 1
-
         self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def _init_model(self):
-
-        self._distinct_tokens = len(self._concat_int_embedding)
-        self.update_config_value("distinct_tokens", self._distinct_tokens)
-        self._sos = self._distinct_tokens + 1
-        # distinct syscalls plus sos, plus 1 for unknown syscalls
-        num_tokens = self._distinct_tokens + 2
+        num_tokens = len(self._concat_int_embedding)
+        self.update_config_value("distinct_tokens", num_tokens)
         self.transformer = TransformerModel(
             num_tokens,
             self._model_dim,
             self._num_heads,
             self._layers,
-            self._layers,
             self._dropout,
             self._feedforward_dim,
             pre_layer_norm=self._pre_layer_norm,
-            language_model=self._language_model
         ).to(self._device)
 
         n_params = sum(p.numel() for p in self.transformer.parameters())
-        print("Transformer: number of parameters: %.2fM" % (n_params/1e6,))
+        print("Transformer: number of parameters: %.2fT" % (n_params / 1e3,))
+        self.update_config_value("n_params", n_params)
 
     def train_on(self, syscall: Syscall):
         input_vector: tuple = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            self._training_set.append((self._sos,) + input_vector)
+            self._training_set.append(input_vector)
 
     def val_on(self, syscall: Syscall):
         input_vector: tuple = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            self._validation_set.append((self._sos,) + input_vector)
+            self._validation_set.append(input_vector)
 
     def fit(self):
         self._init_model()
@@ -138,17 +127,13 @@ class Transformer(BuildingBlock):
 
         t_dataset = TransformerDataset(
             self._training_set,
-            self._language_model,
             self._dedup_train_set,
-            self._sos,
             self._device
         )
         self.train_set_size = len(t_dataset)
         t_dataset_val = TransformerDataset(
             self._validation_set,
-            self._language_model,
             self._dedup_train_set,
-            self._sos,
             self._device
         )
         self.val_set_size = len(t_dataset_val)
@@ -200,15 +185,13 @@ class Transformer(BuildingBlock):
 
     def _forward_and_get_loss(self, batch):
         X, Y = batch
-        y_input = Y[:, :-1]
-        y_expected = Y[:, 1:]
-        sequence_length = y_input.size(1)
-        tgt_mask = self.transformer.get_tgt_mask(sequence_length).to(self._device)
-        pred = self.transformer(X, y_input, tgt_mask)
+        sequence_length = X.size(1)
+        mask = self.transformer.get_mask(sequence_length).to(self._device)
+        pred = self.transformer(X, mask)
         # Permute pred to have batch size first again
         pred = pred.permute(1, 2, 0)
         # prediction probability for every possible syscall
-        loss = self._loss_fn(pred, y_expected)
+        loss = self._loss_fn(pred, Y)
         return loss
 
     def _calculate(self, syscall: Syscall):
@@ -220,14 +203,11 @@ class Transformer(BuildingBlock):
         if input_vector is None:
             return None
         with torch.no_grad():
-            x_input = torch.tensor([[self._sos] + list(input_vector[:-1])], dtype=torch.long).to(device=self._device)
-            y_input = torch.tensor([[self._sos] + list(input_vector[1:-1])], dtype=torch.long).to(device=self._device)
-            y_expected = torch.tensor([list(input_vector[1:])], dtype=torch.long).to(device=self._device)
-            if self._language_model:
-                x_input = torch.tensor([list(input_vector[:-1])], dtype=torch.long).to(device=self._device)
+            X = torch.tensor([list(input_vector[:-1])], dtype=torch.long).to(device=self._device)
+            Y = torch.tensor([list(input_vector[1:])], dtype=torch.long).to(device=self._device)
 
-            tgt_mask = self.transformer.get_tgt_mask(y_input.size(1)).to(self._device)
-            pred = self.transformer(x_input, y_input, tgt_mask)
+            mask = self.transformer.get_mask(X.size(1)).to(self._device)
+            pred = self.transformer(X, mask)
             predicted_probs = nn.Softmax(dim=2)(pred).squeeze(1)
 
             if self._anomaly_scoring == AnomalyScore.PRODUCT:
@@ -238,7 +218,7 @@ class Transformer(BuildingBlock):
                 conditional_prob = predicted_probs[predicted_probs.shape[0] - 1, input_vector[-1]]
             elif self._anomaly_scoring == AnomalyScore.LOSS:
                 pred = pred.permute(1, 2, 0)
-                return self._loss_fn(pred, y_expected).item()
+                return self._loss_fn(pred, Y).item()
             else:
                 raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
 
@@ -250,17 +230,12 @@ class Transformer(BuildingBlock):
 
 class TransformerDataset(Dataset):
 
-    def __init__(self, IN, language_model, dedup_train_set, sos, device):
+    def __init__(self, IN, dedup_train_set, device):
         if dedup_train_set:
             IN = list(set(IN))
         IN = torch.tensor(IN, dtype=torch.long, device=device)
-        if language_model:
-            self.X = IN[:, 1:-1]  # no need for <sos>
-        else:
-            self.X = IN[:, :-1]
-            self.X[:, 0] = sos
-
-        self.Y = torch.cat((IN[:, 0:1], IN[:, 2:]), 1)  # drop first token after <sos>
+        self.X = IN[:, :-1]
+        self.Y = IN[:, 1:]
 
     def __len__(self):
         return len(self.X)
@@ -281,17 +256,14 @@ class TransformerModel(nn.Module):
             dim_model,
             num_heads,
             num_encoder_layers,
-            num_decoder_layers,
             dropout,
             feedforward_dim,
-            language_model,
             pre_layer_norm):
         super().__init__()
 
         # INFO
         self.model_type = "Transformer"
         self.dim_model = dim_model
-        self.language_model = language_model
 
         # LAYERS
         self.positional_encoder = PositionalEncoding(dim_model=dim_model, dropout_p=dropout, max_len=5000)
@@ -301,43 +273,36 @@ class TransformerModel(nn.Module):
             d_model=dim_model,
             nhead=num_heads,
             num_encoder_layers=num_encoder_layers,
-            num_decoder_layers=num_decoder_layers,
             dropout=dropout,
             dim_feedforward=feedforward_dim,
             pre_layer_norm=pre_layer_norm,
-            language_model=language_model
         )
 
         self.out = nn.Linear(dim_model, num_tokens)
 
-    def forward(self, src, tgt, tgt_mask=None, src_pad_mask=None, tgt_pad_mask=None):
+    def forward(self, src, src_mask=None, src_pad_mask=None):
         # Src size must be (batch_size, src sequence length)
-        # Tgt size must be (batch_size, tgt sequence length)
 
         # Embedding + positional encoding - Out size = (batch_size, sequence length, dim_model)
         src = self.embedding(src) * math.sqrt(self.dim_model)
-        tgt = self.embedding(tgt) * math.sqrt(self.dim_model)
         src = self.positional_encoder(src)
-        tgt = self.positional_encoder(tgt)
 
         # We could use the parameter batch_first=True, but our KDL version doesn't support it yet, so we permute
         # to obtain size (sequence length, batch_size, dim_model),
         src = src.permute(1, 0, 2)
-        tgt = tgt.permute(1, 0, 2)
 
         # Transformer blocks - Out size = (sequence length, batch_size, num_tokens)
         transformer_out = self.transformer(
             src,
-            tgt,
-            tgt_mask=tgt_mask,
+            src_mask=src_mask,
             src_key_padding_mask=src_pad_mask,
-            tgt_key_padding_mask=tgt_pad_mask
         )
         out = self.out(transformer_out)
 
         return out
 
-    def get_tgt_mask(self, size) -> torch.tensor:
+    @staticmethod
+    def get_mask(size) -> torch.tensor:
         # Generates a square matrix where each row allows one word more to be seen
         mask = torch.tril(torch.ones(size, size) == 1)  # Lower triangular matrix
         mask = mask.float()
@@ -353,7 +318,8 @@ class TransformerModel(nn.Module):
 
         return mask
 
-    def create_pad_mask(self, matrix: torch.tensor, pad_token: int) -> torch.tensor:
+    @staticmethod
+    def create_pad_mask(matrix: torch.tensor, pad_token: int) -> torch.tensor:
         # If matrix = [1,2,3,0,0,0] where pad_token=0, the result mask is
         # [False, False, False, True, True, True]
         return matrix == pad_token

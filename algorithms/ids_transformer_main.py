@@ -100,11 +100,6 @@ def _parse_args():
     )
 
     parser.add_argument(
-        '-lm', dest='language_model', type=lambda x: (str(x).lower() == 'true'), required=True,
-        help='Use Language model architecture'
-    )
-
-    parser.add_argument(
         '-b', dest='batch_size', action='store', type=int, required=True,
         help='Training batch size'
     )
@@ -196,7 +191,6 @@ def main():
         model_dim = args.model_dim
         feedforward_dim = args.feedforward_dim
         num_heads = args.num_heads
-        language_model = args.language_model
         dedup_train_set = args.dedup_train_set
         batch_size = args.batch_size
         anomaly_score = args.anomaly_score
@@ -328,7 +322,6 @@ def main():
             dropout=dropout,
             feedforward_dim=feedforward_dim,
             pre_layer_norm=pre_layer_norm,
-            language_model=language_model,
             dedup_train_set=dedup_train_set,
             learning_rate=learning_rate,
         )
