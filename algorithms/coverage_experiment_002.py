@@ -9,6 +9,7 @@ from algorithms.decision_engines.coverage import Coverage
 from algorithms.decision_engines.coverage_fast import CoverageFast
 from algorithms.features.impl.collect_syscall import CollectSyscall
 from algorithms.features.impl.hopping_ngram import HoppingNgram
+from algorithms.features.impl.path_length import PathLength
 from algorithms.features.impl.process_name import ProcessName
 from algorithms.features.impl.return_value import ReturnValue
 
@@ -40,9 +41,9 @@ if __name__ == '__main__':
     #LID_DS_VERSION = "LID-DS-2021"
     LID_DS_VERSION = "LID-DS-2019"
     #SCENARIO_NAME = "Bruteforce_CWE-307"
-    #SCENARIO_NAME = "CVE-2017-7529"
-    SCENARIO_NAME = "SQL_Injection_CWE-89"    
-    #SCENARIO_NAME = "CVE-2012-2122"
+    SCENARIO_NAME = "CVE-2017-7529"
+    #SCENARIO_NAME = "SQL_Injection_CWE-89"    
+    # SCENARIO_NAME = "CVE-2012-2122"
     # - - - - 
     #SCENARIO_NAME = "CVE-2014-0160"
 
@@ -60,8 +61,9 @@ if __name__ == '__main__':
     syscall_name = SyscallName()    
     process_name = ProcessName()    
     return_value = ReturnValue(False)
+    path_length = PathLength()
 
-    features = [syscall_name, process_name, return_value]
+    features = [syscall_name, process_name, return_value, path_length]
     #features = [syscall_int_embedding, process_name_int_embedding]
     #features = [syscall_name, process_name]
     collected_features = CollectSyscall(features)
