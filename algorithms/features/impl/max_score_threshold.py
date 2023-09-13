@@ -38,6 +38,10 @@ class MaxScoreThreshold(BuildingBlock):
         Otherwise return 1.
         """
         anomaly_score = self._feature.get_result(syscall)
+        # needed for correct cfp indices
+        # these are calculated in ids.py after this function is called
+        # but anomaly score is only available here
+        self._last_anomaly_score = anomaly_score
         if isinstance(anomaly_score, (int, float)):
             if anomaly_score > self._threshold:
                 return True
