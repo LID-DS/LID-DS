@@ -44,15 +44,15 @@ def parse_args():
     )
 
     parser.add_argument(
-        '-cs', dest='custom_split', type=lambda x: (str(x).lower() == 'true'), required=True,
+        '-cs', dest='custom_split', type=lambda x: (str(x).lower() == 'true'), required=False,
         help='Use custom split'
     )
     parser.add_argument(
-        '-eal', dest='eval_after_load', type=lambda x: (str(x).lower() == 'true'),  required=True,
+        '-eal', dest='eval_after_load', type=lambda x: (str(x).lower() == 'true'),  required=False,
         help='Evaluate after loading'
     )
     parser.add_argument(
-        '-do', dest='dropout', action='store', type=float, required=True,
+        '-do', dest='dropout', action='store', type=float, required=False,
         help='Dropout'
     )
 

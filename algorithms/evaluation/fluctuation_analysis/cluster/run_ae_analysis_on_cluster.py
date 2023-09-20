@@ -84,22 +84,20 @@ def start_job(job_str):
 # start jobs for specific configuration
 if not EVALUATE:
     SCRIPT = 'run_ae_on_sc_cpu.sh'
-    for custom_split in custom_splits:
-        for scenario in SCENARIOS:
-            for ngram_length in NGRAM_LENGTHS:
-                NUM_EXPERIMENTS += 1
-                command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}n{ngram_length}c{custom_split}eal{eval_after_load} " + \
-                          f"{SCRIPT} " + \
-                          f"{BASE_PATH} " + \
-                          f"{DATASET} " + \
-                          f"{scenario} " + \
-                          f"{CHECKPOINT_DIR} " + \
-                          f"{ngram_length} " + \
-                          f"{custom_split} " + \
-                          f"{eval_after_load} " + \
-                          f"False "
+    for scenario in SCENARIOS:
+        for ngram_length in NGRAM_LENGTHS:
+            NUM_EXPERIMENTS += 1
+            command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}n{ngram_length}eal{eval_after_load} " + \
+                      f"{SCRIPT} " + \
+                      f"{BASE_PATH} " + \
+                      f"{DATASET} " + \
+                      f"{scenario} " + \
+                      f"{CHECKPOINT_DIR} " + \
+                      f"{ngram_length} " + \
+                      f"{eval_after_load} " + \
+                      f"False "
 
-                start_job(command)
+            start_job(command)
 else:
     SCRIPT = 'run_ae_on_sc.sh'
     for dropout in DROPOUTS:
