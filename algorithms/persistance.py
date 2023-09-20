@@ -37,10 +37,7 @@ def save_to_json(result_dict: dict, path: str):
             performance[key] = result_dict[key]
         else:
             config[key] = result_dict[key]
-    complete_dict = {
-        'performance': performance,
-        'config': config
-    }
+    complete_dict = result_dict
     if os.path.exists(path):
         with open(path, 'r') as file:
             result_list = json.load(file)
