@@ -4,6 +4,7 @@ from functools import cache
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -43,7 +44,6 @@ class Transformer(BuildingBlock):
             self,
             input_vector: BuildingBlock,
             concat_int_embedding: IntEmbeddingConcat,
-            distinct_tokens: int,
             epochs: int,
             batch_size: int,
             anomaly_scoring: AnomalyScore,
@@ -56,12 +56,12 @@ class Transformer(BuildingBlock):
             pre_layer_norm: bool,
             dedup_train_set: bool,
             learning_rate: float,
-            retrain=False):
+            retrain=False,
+            log_grads=False):
         super().__init__()
         self._input_vector = input_vector
         self._concat_int_embedding = concat_int_embedding
         self._dependency_list = [input_vector]
-        self._distinct_tokens = distinct_tokens
         self._epochs = epochs
         self._batch_size = batch_size
         self._anomaly_scoring = anomaly_scoring
@@ -75,7 +75,10 @@ class Transformer(BuildingBlock):
         self._retrain = retrain
         self._dedup_train_set = dedup_train_set
         self._learning_rate = learning_rate
-        self._loss_fn = nn.CrossEntropyLoss()
+        self._loss_fn = F.cross_entropy
+        self._optimizer = None
+        self._anomaly_scores = {_: {} for _ in AnomalyScore}
+        self._log_grads = log_grads
 
         self.train_losses = {}
         self.val_losses = {}
@@ -91,6 +94,7 @@ class Transformer(BuildingBlock):
     def _init_model(self):
         num_tokens = len(self._concat_int_embedding)
         self.update_config_value("distinct_tokens", num_tokens)
+        self._distinct_tokens = num_tokens
         self.transformer = TransformerModel(
             num_tokens,
             self._model_dim,
@@ -118,7 +122,7 @@ class Transformer(BuildingBlock):
     def fit(self):
         self._init_model()
 
-        optimizer = torch.optim.Adam(
+        self._optimizer = torch.optim.Adam(
             self.transformer.parameters(),
             lr=self._learning_rate,
             betas=(0.9, 0.98),
@@ -143,9 +147,9 @@ class Transformer(BuildingBlock):
 
         last_epoch = 0
         if not self._retrain:
-            last_epoch, self.train_losses, self.val_losses = self._checkpoint.load(
+            last_epoch, self.train_losses, self.val_losses, _ = self._checkpoint.load(
                 self.transformer,
-                optimizer,
+                self._optimizer,
                 self._epochs
             )
         for epoch in tqdm(range(last_epoch + 1, self._epochs + 1), "train&val".rjust(27), unit=" epoch"):
@@ -154,21 +158,14 @@ class Transformer(BuildingBlock):
             train_loss = 0
             for batch in train_dataloader:
                 loss = self._forward_and_get_loss(batch)
-                optimizer.zero_grad()
+                self._optimizer.zero_grad()
                 loss.backward()
-                optimizer.step()
+                self._optimizer.step()
                 train_loss += loss.item()
             self.train_losses[epoch] = train_loss / len(train_dataloader)
 
-            # logging weights and gradients
-            for name, param in self.transformer.named_parameters():
-                if param.requires_grad and param.grad is not None:
-                    self._writer.add_histogram(name, param, epoch)
-                    self._writer.add_scalar(name + '_mean', param.mean(), epoch)
-                    self._writer.add_scalar(name + '_std', param.std(), epoch)
-                    self._writer.add_histogram(name + '_grad', param.grad, epoch)
-                    self._writer.add_scalar(name + '_grad_mean', param.grad.mean(), epoch)
-                    self._writer.add_scalar(name + '_grad_std', param.grad.std(), epoch)
+            self.log_grads(epoch)
+
             # Validation
             self.transformer.eval()
             val_loss = 0
@@ -177,7 +174,7 @@ class Transformer(BuildingBlock):
                     loss = self._forward_and_get_loss(batch)
                     val_loss += loss.item()
             self.val_losses[epoch] = val_loss / len(val_dataloader)
-            self._checkpoint.save(self.transformer, optimizer, epoch, self.train_losses, self.val_losses)
+            self.save_epoch(epoch)
         # evaluation only on cpu
         self.transformer.eval()
         self._device = torch.device('cpu')
@@ -193,6 +190,19 @@ class Transformer(BuildingBlock):
         # prediction probability for every possible syscall
         loss = self._loss_fn(pred, Y)
         return loss
+
+    def log_grads(self, epoch):
+        if not self._log_grads:
+            return
+        # logging weights and gradients
+        for name, param in self.transformer.named_parameters():
+            if param.requires_grad and param.grad is not None:
+                self._writer.add_histogram(name, param, epoch)
+                self._writer.add_scalar(name + '_mean', param.mean(), epoch)
+                self._writer.add_scalar(name + '_std', param.std(), epoch)
+                self._writer.add_histogram(name + '_grad', param.grad, epoch)
+                self._writer.add_scalar(name + '_grad_mean', param.grad.mean(), epoch)
+                self._writer.add_scalar(name + '_grad_std', param.grad.std(), epoch)
 
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
@@ -223,6 +233,60 @@ class Transformer(BuildingBlock):
                 raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
 
         return 1 - float(conditional_prob)
+
+    def load_epoch(self, epoch):
+        last_epoch, self.train_losses, self.val_losses, checkpoint = self._checkpoint.load(
+            self.transformer,
+            self._optimizer,
+            epoch
+        )
+        if checkpoint:
+            self._anomaly_scores = checkpoint.get("anomaly_scores", self._anomaly_scores)
+        self.transformer.eval()
+        self._device = torch.device('cpu')
+
+    def save_epoch(self, epoch):
+        self._checkpoint.save(
+            self.transformer,
+            self._optimizer,
+            epoch,
+            self.train_losses,
+            self.val_losses,
+            anomaly_scores=self._anomaly_scores
+        )
+
+    def get_cached_scores(self):
+        return self._anomaly_scores[self._anomaly_scoring]
+
+    def batched_results(self, input_vectors, batch_size=4096):
+        self._device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.transformer.to(self._device)
+        input_dataset = TransformerDataset(
+            input_vectors,
+            dedup_train_set=False,
+            device=self._device
+        )
+        input_loader = DataLoader(input_dataset, batch_size=batch_size, shuffle=False)
+        results = []
+        for batch in input_loader:
+            X, Y = batch
+            sequence_length = X.size(1)
+            mask = self.transformer.get_mask(sequence_length).to(self._device)
+            pred = self.transformer(X, mask)
+            pred = pred.permute(1, 2, 0)
+            losses = self._loss_fn(pred, Y, reduction="none")
+
+            predicted_probs = nn.Softmax(dim=1)(pred)  # (batch_size, vocab_size, seq_len)
+            if self._anomaly_scoring == AnomalyScore.LAST:
+                anomaly_scores = predicted_probs[range(predicted_probs.shape[0]), Y[:, -1], -1].tolist()
+            elif self._anomaly_scoring == AnomalyScore.LOSS:
+                anomaly_scores = losses.mean(dim=1).tolist()
+            else:
+                raise NotImplementedError(f"Anomaly scoring strategy not implemented for {self._anomaly_scoring}")
+            results.extend(anomaly_scores)
+        results = {vec: score for vec, score in zip(input_vectors, results)}
+        self._anomaly_scores[self._anomaly_scoring] |= results
+        return results
 
     def depends_on(self) -> list:
         return self._dependency_list

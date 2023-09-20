@@ -155,15 +155,14 @@ class ModelCheckPoint:
         self.model_name = '_'.join(''.join((key, str(val))) for (key, val) in algo_config.items())
         self.epochs_dir = os.path.join(self.model_path_base, self.model_name)
 
-        if not os.path.exists(self.epochs_dir):
-            os.makedirs(self.epochs_dir)
+        os.makedirs(self.epochs_dir, exist_ok=True)
 
     def load(
             self,
             model: nn.Module,
             optimizer: Optimizer,
             epoch: int = -1
-    ) -> tuple[int, dict[int, float], dict[int, float]]:
+    ) -> tuple[int, dict[int, float], dict[int, float], dict]:
         """ Load the recent checkpoint states to the given model and optimizer from a checkpoint
 
         If there exists a checkpoint with specified epoch it will be loaded. Else, the checkpoint with the highest epoch
@@ -182,12 +181,13 @@ class ModelCheckPoint:
         """
         train_losses = {}
         val_losses = {}
+        checkpoint = None
 
         saved_epochs = [f for f in os.listdir(self.epochs_dir) if f.endswith(".model")]
         saved_epochs = [int(re.findall(r'\d+', saved_epoch)[0]) for saved_epoch in saved_epochs]
         last_epoch = max(saved_epochs, default=0)
 
-        if last_epoch > epoch:
+        if saved_epochs and last_epoch > epoch:
             last_epoch = max(e for e in saved_epochs if e <= epoch)
         if last_epoch > 0:
             epoch_path = os.path.join(self.epochs_dir, f"epochs{last_epoch}.model")
@@ -200,7 +200,7 @@ class ModelCheckPoint:
             model.load_state_dict(checkpoint["model_state_dict"])
             optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
-        return last_epoch, train_losses, val_losses
+        return last_epoch, train_losses, val_losses, checkpoint
 
     def save(
             self,
@@ -208,7 +208,7 @@ class ModelCheckPoint:
             optimizer: Optimizer,
             epoch: int,
             train_losses: dict[int, float],
-            val_losses: dict[int, float]):
+            val_losses: dict[int, float], **kwargs):
         """ Saves the model and optimizer states.
 
         Args:
@@ -219,6 +219,7 @@ class ModelCheckPoint:
             val_losses: list of validation losses up to this epoch
         """
         epoch_path = os.path.join(self.epochs_dir, f"epochs{epoch}.model")
+
         torch.save(
             {
                 "epoch": epoch,
@@ -226,6 +227,6 @@ class ModelCheckPoint:
                 "optimizer_state_dict": optimizer.state_dict(),
                 "train_losses": train_losses,
                 "val_losses": val_losses
-            },
+            } | kwargs,
             epoch_path
         )

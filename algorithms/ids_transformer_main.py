@@ -310,7 +310,6 @@ def main():
         transformer = Transformer(
             input_vector=ngram,
             concat_int_embedding=int_embedding,
-            distinct_tokens=distinct_syscalls,
             retrain=retrain,
             epochs=epoch,
             batch_size=batch_size,

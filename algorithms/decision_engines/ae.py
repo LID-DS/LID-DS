@@ -3,6 +3,7 @@ from functools import lru_cache
 import time
 import torch
 import torch.utils.data.dataset as td
+import torch.nn.functional as torch_fn
 import torch.nn as nn
 from tqdm import tqdm
 import math
@@ -133,7 +134,7 @@ class AE(BuildingBlock):
         self._mode = mode
         self._input_size = 0
         self._autoencoder = None
-        self._loss_function = torch.nn.MSELoss()
+        self._loss_function = torch_fn.mse_loss
         self._batch_size = batch_size
         self._training_set = set()
         self._validation_set = set()
@@ -147,7 +148,10 @@ class AE(BuildingBlock):
 
         self.train_losses = {}
         self.val_losses = {}
+        self.anomaly_scores = { _: {} for _ in AEMode }
         self._use_early_stopping = use_early_stopping
+        self.use_cache = False
+        self.eval_after_load = False
 
     def depends_on(self):
         return self._dependency_list
@@ -271,9 +275,7 @@ class AE(BuildingBlock):
         )
         last_epoch = 0
         if self._checkpoint is not None:
-            last_epoch, self.train_losses, self.val_losses, _ = self._checkpoint.load(
-                self._autoencoder, self._optimizer, self._epochs
-            )
+            last_epoch = self.load_epoch(self._epochs)
 
         # loss preparation for early stop of training
         ae_ds = AEDataset(self._training_set)
@@ -312,7 +314,7 @@ class AE(BuildingBlock):
                 avg_val_loss = val_loss / count
                 self.val_losses[epoch] = avg_val_loss
             if self._checkpoint:
-                self._checkpoint.save(self._autoencoder, self._optimizer, epoch, self.train_losses, self.val_losses)
+                self.save_epoch(epoch)
 
         self._autoencoder.eval()
         self._training_set = set()
@@ -322,41 +324,103 @@ class AE(BuildingBlock):
     def _cached_results(self, input_vector):
         if input_vector is None:
             return None
-        else:
-            # Output of Autoencoder        
-            result = 0
-            in_t = torch.tensor(input_vector, dtype=torch.float32).to(device)
-            if self._mode == AEMode.LOSS:
-                # calculating the autoencoder:
-                with torch.no_grad():
-                    ae_output_t = self._autoencoder(in_t)
-                # Calculating the loss function
-                result = self._loss_function(ae_output_t, in_t).item()
-            if self._mode == AEMode.HIDDEN:
-                # calculating only the encoder part of the autoencoder:
-                with torch.no_grad():
-                    ae_encoder_t = self._autoencoder.encoder(in_t)
-                result = tuple(ae_encoder_t.tolist())
-            if self._mode == AEMode.LOSS_AND_HIDDEN:
-                with torch.no_grad():
-                    # encoder                
-                    ae_encoder_t = self._autoencoder.encoder(in_t)
-                    # decoder
-                    ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
-                # loss:
-                loss = self._loss_function(ae_decoder_t, in_t).item()
-                # hidden:
-                hidden = ae_encoder_t.tolist()
-                # result
-                rl = [loss]
-                rl.extend(hidden)
-                result = tuple(rl)
 
-            return result
+        if input_vector in self.anomaly_scores[self._mode]:
+            return self.anomaly_scores[self._mode][input_vector]
+        # Output of Autoencoder
+        result = 0
+        in_t = torch.tensor(input_vector, dtype=torch.float32).to(device)
+        if self._mode == AEMode.LOSS:
+            # calculating the autoencoder:
+            with torch.no_grad():
+                ae_output_t = self._autoencoder(in_t)
+            # Calculating the loss function
+            result = self._loss_function(ae_output_t, in_t).item()
+        if self._mode == AEMode.HIDDEN:
+            # calculating only the encoder part of the autoencoder:
+            with torch.no_grad():
+                ae_encoder_t = self._autoencoder.encoder(in_t)
+            result = tuple(ae_encoder_t.tolist())
+        if self._mode == AEMode.LOSS_AND_HIDDEN:
+            with torch.no_grad():
+                # encoder
+                ae_encoder_t = self._autoencoder.encoder(in_t)
+                # decoder
+                ae_decoder_t = self._autoencoder.decoder(ae_encoder_t)
+            # loss:
+            loss = self._loss_function(ae_decoder_t, in_t).item()
+            # hidden:
+            hidden = ae_encoder_t.tolist()
+            # result
+            rl = [loss]
+            rl.extend(hidden)
+            result = tuple(rl)
+
+        self.anomaly_scores[self._mode][input_vector] = result
+        return result
 
     def _calculate(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         return self._cached_results(input_vector)
+
+    def load_epoch(self, epoch):
+        if self._checkpoint is None:
+            return 0
+        last_epoch, self.train_losses, self.val_losses, checkpoint = self._checkpoint.load(
+            self._autoencoder, self._optimizer, epoch
+        )
+        if checkpoint is not None:
+            self.anomaly_scores = checkpoint.get("anomaly_scores", self.anomaly_scores)
+
+        if self.eval_after_load:
+            self._autoencoder.eval()
+        else:
+            self._autoencoder.train()
+        return last_epoch
+
+    def batched_results(self, input_vectors, batch_size=1024):
+        results = {}
+        if self.use_cache:
+            for input_vector in input_vectors:
+                if input_vector in self.anomaly_scores[self._mode]:
+                    results[input_vector] = self.anomaly_scores[self._mode][input_vector]
+            input_vectors = set(input_vectors) - set(results.keys())
+            if len(input_vectors) == 0:
+                return results
+        else:
+            self.anomaly_scores[self._mode] = {}
+
+        input_dataset = AEDataset(input_vectors)
+        data_loader = torch.utils.data.DataLoader(input_dataset, batch_size=batch_size, shuffle=False)
+        for batch in data_loader:
+            if self._mode == AEMode.LOSS:
+                # calculating the autoencoder:
+                with torch.no_grad():
+                    ae_output_t = self._autoencoder(batch)
+                # Calculating the loss function
+                result = self._loss_function(ae_output_t, batch, reduction="none").mean(dim=1).tolist()
+            else:
+                raise NotImplementedError("Batched results are only implemented for AEMode.LOSS")
+            for input_vector, result in zip(batch.tolist(), result):
+                results[tuple(input_vector)] = result
+                self.anomaly_scores[self._mode][tuple(input_vector)] = result
+
+        return results
+
+    def save_epoch(self, epoch):
+        if self._checkpoint is None:
+            return
+        self._checkpoint.save(
+            self._autoencoder,
+            self._optimizer,
+            epoch,
+            self.train_losses,
+            self.val_losses,
+            anomaly_scores=self.anomaly_scores
+        )
+
+    def get_cached_scores(self):
+        return self.anomaly_scores[self._mode]
 
     def new_recording(self):
         pass
