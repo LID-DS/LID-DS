@@ -2,7 +2,7 @@
 #SBATCH --partition=paul
 #SBATCH --time=2-00:00:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=30GB
+#SBATCH --mem=40GB
 #SBATCH --mail-type=FAIL
 #SBATCH -o logs/tf/job_train_%A_%a.log
 
@@ -12,7 +12,8 @@ module load matplotlib/3.4.3-foss-2021b
 module load CUDA/11.3.1
 module load Python/3.9.6-GCCcore-11.2.0
 module load SciPy-bundle/2021.10-foss-2021b
-module load PyTorch/1.12.1-foss-2022a-CUDA-11.7.0
+module load PyTorch/1.10.0-foss-2021a-CUDA-11.3.1
+module load tensorboard/2.8.0-foss-2021a
 
 #pip install --upgrade pip
 #python -c "import algorithms"
