@@ -1,11 +1,7 @@
 import os
 import pickle
-from pprint import pprint
 from typing import Iterable
 
-import numpy as np
-import torch
-from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
@@ -24,7 +20,6 @@ from algorithms.persistance import ModelCheckPoint
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
-from dataloader.recording_2019 import Recording2019
 
 
 def collect_ngrams(ngram_bb: Ngram, scenario_path, direction: Direction) -> NgramsCollector:
@@ -271,7 +266,7 @@ def get_cached_anomaly_scores(config: Iterable[int], base_path=""):
         return {}
 
 
-def cache_losses(_model, config: Iterable[int], base_path="" ):
+def cache_losses(_model, config: Iterable[int], base_path=""):
     cache_path = f"losses/{'_'.join((str(c) for c in config))}.pickle"
     cache_path = os.path.join(base_path, cache_path)
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)

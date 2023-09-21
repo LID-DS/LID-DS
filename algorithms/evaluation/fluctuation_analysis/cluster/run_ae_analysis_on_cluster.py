@@ -45,7 +45,7 @@ custom_splits = [True, False]
 USER = "ta651pyga"
 DATASET = "LID-DS-2019"
 CHECKPOINT_DIR = f"/work/users/{USER}/final/fluctuation_analysis/"
-NGRAM_LENGTHS = [8, 16, 32]
+NGRAM_LENGTHS = [5, 8, 16, 32]
 DROPOUTS = [0.05, 0.1, 0.3, 0.5]
 
 BASE_PATH = f"/work/users/{USER}/datasets/{DATASET}/"

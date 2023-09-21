@@ -12,6 +12,7 @@ module load matplotlib/3.4.3-foss-2021b
 module load CUDA/11.3.1
 module load Python/3.9.6-GCCcore-11.2.0
 module load SciPy-bundle/2021.10-foss-2021b
+module load PyTorch/1.12.1-foss-2022a-CUDA-11.7.0
 
 #pip install --upgrade pip
 #python -c "import algorithms"
@@ -19,10 +20,9 @@ module load SciPy-bundle/2021.10-foss-2021b
 #if [ $module_missing -ne 0 ]; then
 #  pip install --user -e ../
 #fi
-#pip install --user torch --extra-index-url https://download.pytorch.org/whl/cu116
 #pip install --user -r "$(grep -ivE 'torch' ../requirements.txt)"
 
-export PYTHONPATH="/home/sc.uni-leipzig.de/ta651pyga/lidds_wt/thesis/LID-DS"
+export PYTHONPATH="/home/sc.uni-leipzig.de/ta651pyga/lidds_wt/thesis/LID-DS:$PYTHONPATH"
 
 # parameters:
 # 1: -bp base_path
