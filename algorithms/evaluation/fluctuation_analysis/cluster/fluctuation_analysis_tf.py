@@ -2,7 +2,7 @@ import argparse
 
 import torch
 
-from algorithms.evaluation.fluctuation_analysis.utils import prepare_tf_ngs, scenario_stats, train_tf_model, \
+from algorithms.evaluation.fluctuation_analysis.utils import prepare_tf_ngs, ngram_sets, train_tf_model, \
     get_anomaly_scores_for_epochs, cache_losses
 from dataloader.direction import Direction
 
@@ -84,8 +84,14 @@ def main():
         num_heads = args.num_heads
         custom_split = args.custom_split
         dropout = args.dropout
+        if not torch.cuda.is_available():
+            print(
+                f"CUDA NOT AVAILABLE redo: "
+                f"[TF, '{dataset}', '{scenario}', {ngram_length}, {model_dim}, {layers}, {num_heads}, {dropout}, {custom_split}] "
+            )
+            exit(1)
 
-        NGS = scenario_stats(scenario_ngs)
+        NGS = ngram_sets(scenario_ngs)
         syscall_dict, _ = scenario_ngs.syscall_dict
 
         torch.manual_seed(42)
@@ -104,8 +110,13 @@ def main():
             layers=layers,
             NGS=NGS,
             epochs=900,
+            base_path=checkpoint_dir
         )
         model_tf.use_cache = True
-        config = ("TF", dataset, scenario, ngram_length, custom_split)
+        config = ("TF", dataset, scenario, ngram_length, model_dim, layers, num_heads, dropout, custom_split)
         _ = get_anomaly_scores_for_epochs(model_tf, range(1, 900, 5), NGS, scenario_ngs, config, checkpoint_dir)
         cache_losses(model_tf, config, base_path=checkpoint_dir)
+
+
+if __name__ == '__main__':
+    main()

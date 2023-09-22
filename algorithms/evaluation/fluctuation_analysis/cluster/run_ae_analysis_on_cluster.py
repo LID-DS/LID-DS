@@ -48,8 +48,8 @@ CHECKPOINT_DIR = f"/work/users/{USER}/final/fluctuation_analysis/"
 NGRAM_LENGTHS = [5, 8, 16, 32]
 DROPOUTS = [0.05, 0.1, 0.3, 0.5]
 
-BASE_PATH = f"/work/users/{USER}/datasets/{DATASET}/"
-if '2019' in BASE_PATH:
+BASE_PATH = f"/work/users/{USER}/datasets/"
+if '2019' in DATASET:
     SCENARIOS = scenario_2019
 else:
     SCENARIOS = scenario_2021
@@ -87,22 +87,21 @@ if not EVALUATE:
     for scenario in SCENARIOS:
         for ngram_length in NGRAM_LENGTHS:
             NUM_EXPERIMENTS += 1
-            command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}n{ngram_length}eal{eval_after_load} " + \
+            command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}n{ngram_length} " + \
                       f"{SCRIPT} " + \
                       f"{BASE_PATH} " + \
                       f"{DATASET} " + \
                       f"{scenario} " + \
                       f"{CHECKPOINT_DIR} " + \
                       f"{ngram_length} " + \
-                      f"{eval_after_load} " + \
-                      f"False "
+                      f"{False} "
 
             start_job(command)
 else:
     SCRIPT = 'run_ae_on_sc.sh'
-    for dropout in DROPOUTS:
-        for custom_split in custom_splits:
-            for scenario in SCENARIOS:
+    for scenario in SCENARIOS:
+        for dropout in DROPOUTS:
+            for custom_split in custom_splits:
                 for ngram_length in NGRAM_LENGTHS:
                     NUM_EXPERIMENTS += 1
                     command = f"sbatch --job-name=ex_{NUM_EXPERIMENTS:05}{scenario}n{ngram_length}c{custom_split}eal{eval_after_load}do{dropout} " + \
@@ -115,7 +114,7 @@ else:
                               f"{custom_split} " + \
                               f"{eval_after_load} " + \
                               f"{dropout} " + \
-                              f"True "
+                              f"{True} "
 
                     start_job(command)
 

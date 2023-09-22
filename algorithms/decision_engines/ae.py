@@ -313,7 +313,7 @@ class AE(BuildingBlock):
                     count += 1
                 avg_val_loss = val_loss / count
                 self.val_losses[epoch] = avg_val_loss
-            if self._checkpoint:
+            if self._checkpoint and epoch % 5 - 1 == 0:
                 self.save_epoch(epoch)
 
         self._autoencoder.eval()

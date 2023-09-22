@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40GB
 #SBATCH --mail-type=FAIL
-#SBATCH -o logs/ae/job_train_%A_%a.log
+#SBATCH -o /work/users/ta651pyga/final/logs/ae/job_train_%A_%a.log
 
 export IDS_ON_CLUSTER=1
 

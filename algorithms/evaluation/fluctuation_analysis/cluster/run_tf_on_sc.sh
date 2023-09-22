@@ -5,7 +5,7 @@
 #SBATCH --mem=40GB
 #SBATCH --gres=gpu:v100
 #SBATCH --mail-type=FAIL
-#SBATCH -o logs/tf/job_eval_%A_%a.log
+#SBATCH -o /work/users/ta651pyga/final/logs/tf/job_eval_%A_%a.log
 
 export IDS_ON_CLUSTER=1
 

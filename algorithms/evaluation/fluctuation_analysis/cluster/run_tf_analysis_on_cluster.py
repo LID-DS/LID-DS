@@ -49,8 +49,8 @@ LAYERS = [2, 4]
 MODEL_DIMS = [16]
 DROPOUTS = [0.05, 0.1, 0.3, 0.5]
 
-BASE_PATH = f"/work/users/{USER}/datasets/{DATASET}/"
-if '2019' in BASE_PATH:
+BASE_PATH = f"/work/users/{USER}/datasets/"
+if '2019' in DATASET:
     SCENARIOS = scenario_2019
 else:
     SCENARIOS = scenario_2021
@@ -95,14 +95,14 @@ if not EVALUATE:
                       f"{scenario} " + \
                       f"{CHECKPOINT_DIR} " + \
                       f"{ngram_length} " + \
-                      f"False "
+                      f"{False} "
 
             start_job(command)
 else:
     SCRIPT = 'run_tf_on_sc.sh'
-    for dropout in DROPOUTS:
-        for custom_split in custom_splits:
-            for scenario in SCENARIOS:
+    for scenario in SCENARIOS:
+        for dropout in DROPOUTS:
+            for custom_split in custom_splits:
                 for ngram_length in NGRAM_LENGTHS:
                     for layers in LAYERS:
                         num_heads = layers
@@ -120,7 +120,7 @@ else:
                                       f"{num_heads} " + \
                                       f"{custom_split} " + \
                                       f"{dropout} " + \
-                                      f"True "
+                                      f"{True} "
 
                             start_job(command)
 

@@ -46,7 +46,7 @@ def collect_ngrams(ngram_bb: Ngram, scenario_path, direction: Direction) -> Ngra
     return collector
 
 
-def scenario_stats(collector: NgramsCollector) -> Ngs:
+def ngram_sets(collector: NgramsCollector) -> Ngs:
     train_set = list(collector.train_set_counts.keys())
     val_set = list(collector.val_set_counts.keys())
     exploit_set = list(collector.exploit_set_counts.keys())
@@ -111,8 +111,6 @@ def scenario_stats(collector: NgramsCollector) -> Ngs:
 def anomaly_scores_for_epoch(model, epoch, NGS: Ngs) -> AnomalyScores:
     model._epochs = epoch
     model.load_epoch(epoch)
-    if not model._checkpoint:
-        model.fit()
 
     anomaly_scores_all = {}
     if model.use_cache:
@@ -353,7 +351,7 @@ def prepare_ae_ngs(dataset_base,
 
     scenario_path = os.path.join(dataset_base, dataset, scenario)
     if not os.path.exists(scenario_path):
-        raise FileNotFoundError(f"scenario {scenario} not found")
+        raise FileNotFoundError(f"scenario {scenario} not found at {scenario_path}")
 
     sys_name = SyscallName()
     ohe = OneHotEncoding(sys_name)

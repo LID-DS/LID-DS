@@ -174,7 +174,9 @@ class Transformer(BuildingBlock):
                     loss = self._forward_and_get_loss(batch)
                     val_loss += loss.item()
             self.val_losses[epoch] = val_loss / len(val_dataloader)
-            self.save_epoch(epoch)
+
+            if self._checkpoint and epoch % 5 - 1 == 0:
+                self.save_epoch(epoch)
         # evaluation only on cpu
         self.transformer.eval()
         self._device = torch.device('cpu')

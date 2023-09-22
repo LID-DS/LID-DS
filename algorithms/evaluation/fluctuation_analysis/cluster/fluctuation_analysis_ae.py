@@ -2,7 +2,7 @@ import argparse
 
 import torch
 
-from algorithms.evaluation.fluctuation_analysis.utils import scenario_stats, get_anomaly_scores_for_epochs, \
+from algorithms.evaluation.fluctuation_analysis.utils import ngram_sets, get_anomaly_scores_for_epochs, \
     cache_losses, prepare_ae_ngs, train_ae_model
 from dataloader.direction import Direction
 
@@ -48,7 +48,7 @@ def parse_args():
         help='Use custom split'
     )
     parser.add_argument(
-        '-eal', dest='eval_after_load', type=lambda x: (str(x).lower() == 'true'),  required=False,
+        '-eal', dest='eval_after_load', type=lambda x: (str(x).lower() == 'true'), required=False,
         help='Evaluate after loading'
     )
     parser.add_argument(
@@ -61,6 +61,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    print(args)
     dataset_base = args.base_path
     dataset = args.dataset
     scenario = args.scenario
@@ -74,8 +75,15 @@ def main():
         custom_split = args.custom_split
         eval_after_load = args.eval_after_load
         dropout = args.dropout
-        NGS = scenario_stats(scenario_ngs)
+        NGS = ngram_sets(scenario_ngs)
         syscall_dict, _ = scenario_ngs.syscall_dict
+
+        if not torch.cuda.is_available():
+            print(
+                f"CUDA NOT AVAILABLE redo: "
+                f"[AE, '{dataset}', '{scenario}', {ngram_length}, {dropout}, {custom_split}, {eval_after_load}] "
+            )
+            exit(1)
 
         torch.manual_seed(42)
         model_ae = train_ae_model(
@@ -87,12 +95,17 @@ def main():
             direction,
             custom_split,
             NGS,
-            epochs=900
+            epochs=900,
+            base_path=checkpoint_dir
         )
         model_ae.use_cache = True
         if eval_after_load:
             model_ae.use_cache = False
             model_ae.eval_after_load = eval_after_load
-        config = ("AE", dataset, scenario, ngram_length, custom_split, eval_after_load)
+        config = ("AE", dataset, scenario, ngram_length, dropout,custom_split, eval_after_load)
         _ = get_anomaly_scores_for_epochs(model_ae, range(1, 900, 5), NGS, scenario_ngs, config, checkpoint_dir)
         cache_losses(model_ae, config, base_path=checkpoint_dir)
+
+
+if __name__ == '__main__':
+    main()
