@@ -2,7 +2,7 @@ from dataloader.syscall import Syscall
 
 
 class SyscallADFALD(Syscall):
-    def __init__(self, syscall_id: str, mocked_time: int, recording_path: str):
+    def __init__(self, syscall_id: str, mocked_time: int, recording_path: str, thread_id: int = 0):
         """
             represents one ADFA-LD Syscall as an object
             
@@ -20,6 +20,7 @@ class SyscallADFALD(Syscall):
         self._name = syscall_id
         self._timestamp_unix = mocked_time
         self.recording_path = recording_path
+        self._thread_id = thread_id
 
     def name(self) -> str:
         """
@@ -33,3 +34,12 @@ class SyscallADFALD(Syscall):
         """
         return self._timestamp_unix
 
+    def thread_id(self) -> int:
+        """
+            @return: mocked thread id
+        """
+        return self._thread_id
+
+    def __str__(self):
+        # as dict
+        return f"{{'name': {self._name}, 'timestamp': {self._timestamp_unix}, 'thread_id': {self._thread_id}}}"

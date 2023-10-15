@@ -29,7 +29,7 @@ class AnomalyScores:
         self.normal_per_recording = anomaly_scores_normal_per_recording
         self.threshold = max(anomaly_scores_val)
         self.threshold_train = max(anomaly_scores_train)
-        self.threshold_before_exploit = max(anomaly_scores_before_exploit)
+        self.threshold_before_exploit = max(anomaly_scores_before_exploit, default=0)
         self.threshold_after_exploit = max(anomaly_scores_after_exploit)
         self.threshold_normal = max(anomaly_scores_normal)
         self.threshold_val_exc_train = max(anomaly_scores_val_exc_train)

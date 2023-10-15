@@ -1,5 +1,6 @@
 from os import listdir, path
 
+from dataloader.dataloader_adfa_ld_2 import DataLoaderFixedADFALD
 from dataloader.direction import Direction
 from dataloader.base_data_loader import BaseDataLoader
 from dataloader.data_loader_2019 import DataLoader2019
@@ -45,12 +46,14 @@ def dataloader_factory(scenario_path: str, direction: Direction = Direction.OPEN
                     raise_value_error()
             elif path.isdir(adfa_path):
                 if kwargs:
-                    return DataLoaderADFALD(scenario_path,
-                                            kwargs['attack'],
-                                            kwargs['val_count'],
-                                            kwargs['val_train_add'])
+                    return DataLoaderFixedADFALD(
+                        scenario_path,
+                        kwargs['attack'],
+                        kwargs['val_count'],
+                        kwargs['val_train_add'],
+                        kwargs['test_normal_count'])
                 else:
-                    return DataLoaderADFALD(scenario_path)
+                    return DataLoaderFixedADFALD(scenario_path)
             else:
                 zip_path = path.join(scenario_path, 'test')
                 example_file = listdir(zip_path)[0]

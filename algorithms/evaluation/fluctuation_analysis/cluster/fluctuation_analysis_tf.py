@@ -69,6 +69,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+    print(args)
     dataset_base = args.base_path
     dataset = args.dataset
     scenario = args.scenario

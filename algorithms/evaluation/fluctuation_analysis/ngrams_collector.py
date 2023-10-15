@@ -85,8 +85,11 @@ class NgramsCollector(BuildingBlock):
     def depends_on(self) -> list:
         return self._dependency_list
 
-    def recording(self, recording_name: str):
+    def recording_norm(self, recording_name: str):
+        self.current_rec = recording_name
+        self.per_rec_normal[recording_name] = {}
+
+    def recording_exploit(self, recording_name: str):
         self.current_rec = recording_name
         self.per_rec_before[recording_name] = {}
         self.per_rec_after[recording_name] = {}
-        self.per_rec_normal[recording_name] = {}

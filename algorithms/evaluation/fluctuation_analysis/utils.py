@@ -22,15 +22,15 @@ from dataloader.dataloader_factory import dataloader_factory
 from dataloader.direction import Direction
 
 
-def collect_ngrams(ngram_bb: Ngram, scenario_path, direction: Direction) -> NgramsCollector:
+def collect_ngrams(ngram_bb: Ngram, scenario_path, direction: Direction, **kwargs) -> NgramsCollector:
     collector = NgramsCollector(ngram_bb)
 
-    dataloader: BaseDataLoader = dataloader_factory(scenario_path, direction)
+    dataloader: BaseDataLoader = dataloader_factory(scenario_path, direction, **kwargs)
     data_preprocessor = DataPreprocessor(dataloader, collector)
 
     for recording in tqdm(dataloader.test_data()):
         if recording.metadata()["exploit"]:
-            collector.recording(recording.name)
+            collector.recording_exploit(recording.name)
             current_exploit_time = recording.metadata()["time"]["exploit"][0]["absolute"]
             for syscall in recording.syscalls():
                 collector.exploit_on(syscall)
@@ -40,6 +40,7 @@ def collect_ngrams(ngram_bb: Ngram, scenario_path, direction: Direction) -> Ngra
                 else:
                     collector.after_exploit_on(syscall)
         else:
+            collector.recording_norm(recording.name)
             for syscall in recording.syscalls():
                 collector.normal_on(syscall)
         data_preprocessor.new_recording()
@@ -251,6 +252,14 @@ def get_anomaly_scores_for_epochs(_model, epochs, _NGS, _collector, config: Iter
     return anos_per_epoch
 
 
+def cache_anomaly_scores(config: Iterable[int], anos_per_epoch, base_path=""):
+    cache_path = f"anomaly_scores/{'_'.join((str(c) for c in config))}.pickle"
+    cache_path = os.path.join(base_path, cache_path)
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    with open(cache_path, "wb") as f:
+        pickle.dump(anos_per_epoch, f)
+
+
 def get_cached_anomaly_scores(config: Iterable[int], base_path=""):
     cache_path = f"anomaly_scores/{'_'.join((str(c) for c in config))}.pickle"
     cache_path = os.path.join(base_path, cache_path)
@@ -304,8 +313,6 @@ def prepare_tf_ngs(dataset_base,
         return collector
 
     scenario_path = os.path.join(dataset_base, dataset, scenario)
-    if not os.path.exists(scenario_path):
-        raise FileNotFoundError(f"scenario {scenario} not found")
 
     sys_name = SyscallName()
     int_emb = IntEmbeddingConcat([sys_name])
@@ -350,8 +357,6 @@ def prepare_ae_ngs(dataset_base,
         return collector
 
     scenario_path = os.path.join(dataset_base, dataset, scenario)
-    if not os.path.exists(scenario_path):
-        raise FileNotFoundError(f"scenario {scenario} not found at {scenario_path}")
 
     sys_name = SyscallName()
     ohe = OneHotEncoding(sys_name)

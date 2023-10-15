@@ -102,7 +102,7 @@ def main():
         if eval_after_load:
             model_ae.use_cache = False
             model_ae.eval_after_load = eval_after_load
-        config = ("AE", dataset, scenario, ngram_length, dropout,custom_split, eval_after_load)
+        config = ("AE", dataset, scenario, ngram_length, dropout, custom_split, eval_after_load)
         _ = get_anomaly_scores_for_epochs(model_ae, range(1, 900, 5), NGS, scenario_ngs, config, checkpoint_dir)
         cache_losses(model_ae, config, base_path=checkpoint_dir)
 
