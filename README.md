@@ -3,8 +3,8 @@
 ![LID-DS](https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png)
 
 ## The LID-DS host based intrusion detection data set.
-* LID-DS 2021: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/cRswswLo2QfLNYL)
-* LID-DS 2019: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/HLXiWssriRMt9pp)
+* LID-DS 2021: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/kTY67LRiT3BGy8c)
+* LID-DS 2019: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/JtKyYC33SYnk49T)
 
 ## The LID-DS-2021 Lib and Dataloader
 * [wiki](https://github.com/LID-DS/LID-DS/wiki)
