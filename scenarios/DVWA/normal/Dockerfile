@@ -1,0 +1,39 @@
+FROM debian:10
+
+RUN apt-get update && apt-get install --no-install-recommends -y wget \
+                                                                python3 \
+                                                                python3-pip \
+                                                                unzip \
+                                                                xvfb \
+                                                                udev \
+                                                                libxkbcommon0 \
+                                                                libxrandr2 \
+                                                                xdg-utils \
+                                                                libpango-1.0-0 \
+                                                                libu2f-udev \
+                                                                libvulkan1 \
+                                                                libnspr4 \
+                                                                libnss3 \
+                                                                libgtk-3-0 \
+                                                                libgbm1 \
+                                                                fonts-liberation \
+                                                                libasound2 \
+                                                                libcurl3-gnutls \
+    && apt list
+
+# install chrome
+RUN wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_109.0.5414.74-1_amd64.deb
+RUN dpkg -i google-chrome-stable_109.0.5414.74-1_amd64.deb
+
+# python related
+RUN pip3 install --upgrade pip setuptools
+RUN pip3 install selenium==4.8.0 PyVirtualDisplay==3.0 requests==2.28.2 numpy==1.21.6 essential-generators==1.0
+RUN pip3 install 'urllib3==1.26' --force-reinstall
+
+RUN wget https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_linux64.zip
+RUN unzip chromedriver_linux64.zip -d /usr/bin
+RUN chmod +x /usr/bin/chromedriver
+
+ADD normal.py /home/normal.py
+ENTRYPOINT ["python3", "-u", "/home/normal.py"]
+CMD []
