@@ -3,8 +3,8 @@
 ![LID-DS](https://raw.githubusercontent.com/LID-DS/LID-DS/master/lidds-logo-300.png)
 
 ## The LID-DS host based intrusion detection data set.
-* LID-DS 2021: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/kTY67LRiT3BGy8c)
-* LID-DS 2019: [download](https://cloud.scadsai.uni-leipzig.de/index.php/s/JtKyYC33SYnk49T)
+* LID-DS 2021: [download](https://drive.proton.me/urls/BWKRGQK994#fCK9JKL93Sjm)
+* LID-DS 2019: [download](https://drive.proton.me/urls/4DCRHJC9XC#pn6TukLN0Wq5)
 
 ## The LID-DS-2021 Lib and Dataloader
 * [wiki](https://github.com/LID-DS/LID-DS/wiki)
@@ -15,7 +15,7 @@
 ## License
 
 Leipzig Intrusion Detection Dataset (LID-DS)
-Copyright (C) 2022 Martin Grimmer, Felix Nirsberger, Tim Kaelble, Emmely Schulze, Toni Rucks, Martin Max Röhling, Dennis Kreußel and Simon Ganz.
+Copyright (C) 2022-2025 Martin Grimmer, Felix Nirsberger, Tim Kaelble, Emmely Schulze, Toni Rucks, Martin Max Röhling, Dennis Kreußel and Simon Ganz.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Contact
-Leipzig University, Martin Grimmer (grimmer@informatik.uni-leipzig.de).
+Martin Grimmer (MainGradient@proton.me).
 
 ## Acknowledgements
 
