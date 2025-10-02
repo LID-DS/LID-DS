@@ -5,10 +5,9 @@ import itertools
 import os
 from typing import Union
 
+from dataloader.direction import Direction
 from pymongo import MongoClient
 from pymongo.collection import Collection
-
-from dataloader.direction import Direction
 
 
 class ResultQuery:
@@ -256,9 +255,18 @@ class ResultQuery:
         result = list(self._experiments.aggregate(pipeline))
         return result
 
+    def group_by_and_sort(self, group_by: list[str], sort_by: dict, firstK_in_group: int = 3, where: dict = None):
+        pipeline = _pipeline(
+            {"$project": {"config": 0, "_id": 0}},
+            {"$match": where or {}},
+            regroup_and_sort(group_by, firstK_in_group, sort_by),
+        )
+        result = list(self._experiments.aggregate(pipeline))
+        return result
+
 
 def _pipeline(*args: Union[list[dict], dict]):
-    """ Util-function to convert pipline stages to pipline.
+    """ Util-function to convert pipeline stages to pipeline.
 
     Args:
         *args:
@@ -336,17 +344,18 @@ def match_base(
     if datasets is not None:
         match |= {"dataset": {"$in": datasets}}
     if directions is not None:
-        match |= {"direction": {"$in": [d.name for d in directions]}}
-    features_query = {
-        "$expr": {
-            "$function": {
-                "body": _custom_js_function("has_features"),
-                "args": ["$config.nodes", "$config.links", "$algorithm", features, features_exact_match],
-                "lang": "js"
+        match |= {"direction": {"$in": [d.name.lower() for d in directions]}}
+    if features is not None:
+        features_query = {
+            "$expr": {
+                "$function": {
+                    "body": _custom_js_function("has_features"),
+                    "args": ["$config.nodes", "$config.links", "$algorithm", features, features_exact_match],
+                    "lang": "js"
+                }
             }
         }
-    }
-    match |= features_query
+        match |= features_query
     return {"$match": match}
 
 
@@ -674,7 +683,7 @@ def _is_leaf(node):
 
 def _get_config_aliases(config_groups: list[dict]) -> list[tuple[str, str]]:
     """
-    Travers "dict tree" and return all leaves
+    Traverse "dict tree" and return all leaves
     """
     if len(config_groups) == 0:
         return []
