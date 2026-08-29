@@ -7,8 +7,9 @@ from dataloader.syscall_2021 import Syscall2021
 
 
 def _sc(name, tid=1, idx=0):
+    # 2021 layout: [ts, user, pid, pname, tid, name, dir, params]
     return Syscall2021('test/rec.zip',
-                       f"100000000{idx} 0 {tid} proc 1 {name} < res=0")
+                       f"100000000{idx} 0 999 proc {tid} {name} < res=0")
 
 
 def test_frequency_vector_counts_and_vocab():
@@ -22,6 +23,7 @@ def test_frequency_vector_counts_and_vocab():
     # Training phase: build the vocabulary (ints start at 1, 0 = unknown)
     for sc in syscalls:
         ie.train_on(sc)
+        fv.train_on(sc)
     ie.fit()
     fv.fit()
 
@@ -53,6 +55,7 @@ def test_frequency_vector_thread_aware_buffers():
 
     for sc in syscalls:
         ie.train_on(sc)
+        fv.train_on(sc)
     ie.fit()
     fv.fit()
 
