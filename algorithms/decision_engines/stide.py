@@ -11,6 +11,8 @@ class Stide(BuildingBlock):
     Training: save seen Building Blocks into normal "database"
     Inference: check if current input is in normalbase return 0 if that is the case
     """
+    _online_trainable = True  # fit() only prints; _normal_database is ready after train_on
+
     def __init__(self, input: BuildingBlock):
         super().__init__()
         # parameter

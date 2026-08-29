@@ -37,8 +37,4 @@ class IntEmbedding(BuildingBlock):
             transforms given building_block to integer
         """
         bb_value = self._dependency_list[0].get_result(syscall)
-        try:
-            sys_to_int = self._syscall_dict[bb_value]
-        except KeyError:
-            sys_to_int = 0
-        return sys_to_int
+        return self._syscall_dict.get(bb_value, 0)

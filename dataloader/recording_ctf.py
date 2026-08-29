@@ -1,18 +1,17 @@
 import json
 
-import bt2
-
 from typing import Generator
 
 from dataloader.base_recording import BaseRecording
 from dataloader.direction import Direction
 from dataloader.syscall import Syscall
 from dataloader.syscall_ctf import SyscallCTF
+import bt2
 
 
 class RecordingCTF(BaseRecording):
     """
-        represents one recording of an LID-DS file in CTF Format
+        represents one recording of a trace in CTF Format
 
         Parameters:
             name: the name of the recording

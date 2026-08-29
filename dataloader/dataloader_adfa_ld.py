@@ -94,7 +94,7 @@ class DataLoaderADFALD(BaseDataLoader):
 
         elif category == TEST:
             attack_path = os.path.join(self.scenario_path, attack_dir)
-            sub_dirs = os.listdir(attack_path)
+            sub_dirs = [d for d in os.listdir(attack_path) if os.path.isdir(os.path.join(attack_path, d))]
 
             # filter attacks by dir name if specified
             if self._attack is not None:

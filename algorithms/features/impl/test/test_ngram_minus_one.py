@@ -38,8 +38,10 @@ def test_ngram_minus_one():
     syscall_9 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "1631209047762064269 0 3686303 apache2 3686303 close < fd=9(<f>wackawacka) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
     # no int as thread id
-    syscall_10 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                             "1631209047762064269 0 3686303 apache2 gibberish gibberish < fd=53(<4t>172.17.0.1:36368->172.17.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
+    # SYSCALL 10 - str instead of int as thread id: rejected eagerly at construction
+    with pytest.raises(ValueError):
+        Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
+                    "1631209047762064269 0 3686303 apache2 open gibberish < fd=53(<4t>172.17.0.1:36368->172.17.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
     # legit
     syscall_11 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                              "1631209047762064269 0 3686303 apache2 3686303 hello < fd=53(<4t>172.19.0.1:36368->172.19.0.3:3306) name=/etc/group flags=4097(O_RDONLY|O_CLOEXEC) mode=0 dev=200021 ")
@@ -92,10 +94,6 @@ def test_ngram_minus_one():
 
     # SYSCALL 9
     assert ngm.get_result(syscall_9) == ('poll', 'mmap')
-
-    # SYSCALL 10 - str instead of int as thread id
-    with pytest.raises(ValueError):
-        ngm.get_result(syscall_10)
 
     # SYSCALL 11
     assert ngm.get_result(syscall_11) == ('mmap', 'close')

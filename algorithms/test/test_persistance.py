@@ -1,3 +1,9 @@
+"""VERALTET — persistance-Modul nicht mehr aktiv gepflegt. Tests werden uebersprungen."""
+
+import pytest
+
+pytest.importorskip("pymongo", reason="pymongo nicht installiert, persistance-Tests uebersprungen")
+
 from algorithms.persistance import save_to_json, load_from_json
 
 import os

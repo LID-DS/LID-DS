@@ -10,6 +10,8 @@ from dataloader.syscall import Syscall
 
 
 class PathEvilness(BuildingBlock):
+    _online_trainable = True  # fit() only persists tree; tree built in train_on
+
     def __init__(self, scenario_path, path='Models', force_retrain=False, ):
         """
         Feature calculateor that builds a tree for all existing paths in the 

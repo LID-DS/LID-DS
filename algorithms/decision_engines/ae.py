@@ -1,5 +1,6 @@
 from enum import Enum
 from functools import lru_cache
+import sys
 import time
 import torch
 import torch.utils.data.dataset as td
@@ -43,69 +44,37 @@ class AENetwork(nn.Module):
     the actual autoencoder as torch module
     """
 
-    def __init__(self, input_size):
-        super().__init__()        
+    def __init__(self, input_size, bottleneck_size=64):
+        super().__init__()
         self._input_size = input_size
-        self._factor = 0.7
-        first_hidden_layer_size = self._input_size #int(self._input_size * 1.333)
-        # Building an encoder
+        hidden = max(bottleneck_size * 4, 256)
+
         self.encoder = torch.nn.Sequential(
-            torch.nn.Linear(self._input_size, first_hidden_layer_size),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),
-            
-            torch.nn.Linear(first_hidden_layer_size, int(first_hidden_layer_size * pow(self._factor,2))),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),
+            torch.nn.Linear(self._input_size, hidden),
+            torch.nn.Dropout(p=0.1),
+            torch.nn.ReLU(),
 
-            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,2)), int(first_hidden_layer_size * pow(self._factor,3))),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),
-
-            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,3)), int(first_hidden_layer_size * pow(self._factor,4))),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU()
+            torch.nn.Linear(hidden, bottleneck_size),
+            torch.nn.Dropout(p=0.1),
+            torch.nn.ReLU(),
         )
-          
-        # Building an decoder
+
         self.decoder = torch.nn.Sequential(
-            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,4)), int(first_hidden_layer_size * pow(self._factor,3))),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),
+            torch.nn.Linear(bottleneck_size, hidden),
+            torch.nn.Dropout(p=0.1),
+            torch.nn.ReLU(),
 
-            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,3)), int(first_hidden_layer_size * pow(self._factor,2))),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),
-
-            torch.nn.Linear(int(first_hidden_layer_size * pow(self._factor,2)), first_hidden_layer_size),
-            torch.nn.Dropout(p=0.5),
-            torch.nn.SELU(),
-
-            torch.nn.Linear(first_hidden_layer_size, self._input_size),
-            torch.nn.Dropout(p=0.5),
-            #torch.nn.Sigmoid()
+            torch.nn.Linear(hidden, self._input_size),
+            torch.nn.Sigmoid(),
         )
 
-        for m in self.encoder:
+        for m in list(self.encoder) + list(self.decoder):
             if isinstance(m, nn.Linear):
-                fan_in = m.in_features
-                nn.init.normal(m.weight, 0, math.sqrt(1. / fan_in))
-        for m in self.decoder:
-            if isinstance(m, nn.Linear):
-                fan_in = m.in_features                
-                nn.init.normal(m.weight, 0, math.sqrt(1. / fan_in))                
+                nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
 
-    def max_norm(self, max_val=2, eps=1e-8):
-        for name, param in self.named_parameters():
-            if 'bias' not in name:
-                norm = param.norm(2, dim=0, keepdim=True)
-                desired = torch.clamp(norm, 0, max_val)
-                param = param * (desired / (eps + norm))
-
-    def forward(self, x):        
+    def forward(self, x):
         encoded = self.encoder(x)
         decoded = self.decoder(encoded)
-        self.max_norm()
         return decoded
 
 
@@ -113,19 +82,23 @@ class AE(BuildingBlock):
     """
     the decision engine
     """
-    def __init__(self, input_vector: BuildingBlock, mode: AEMode = AEMode.LOSS, batch_size=256, max_training_time=600, early_stopping_epochs=50):
-        super().__init__()                
+    def __init__(self, input_vector: BuildingBlock, mode: AEMode = AEMode.LOSS,
+                 batch_size=256, max_training_time=600, early_stopping_epochs=50,
+                 bottleneck_size=64, deduplicate_training=True):
+        super().__init__()
         self._input_vector = input_vector
         self._dependency_list = [input_vector]
-        self._mode = mode 
+        self._mode = mode
         self._input_size = 0
-        self._autoencoder = None 
-        self._loss_function = torch.nn.MSELoss()        
+        self._autoencoder = None
+        self._loss_function = torch.nn.MSELoss()
         self._batch_size = batch_size
-        self._training_set = set() 
-        self._validation_set = set()
-        self._max_training_time = max_training_time # time in seconds
+        self._deduplicate = deduplicate_training
+        self._training_set = set() if deduplicate_training else []
+        self._validation_set = set() if deduplicate_training else []
+        self._max_training_time = max_training_time
         self._early_stopping_num_epochs = early_stopping_epochs
+        self._bottleneck_size = bottleneck_size
 
     def depends_on(self):
         return self._dependency_list
@@ -135,23 +108,33 @@ class AE(BuildingBlock):
         if input_vector is not None:
             if self._input_size == 0:
                 self._input_size = len(input_vector)
-            self._training_set.add(tuple(input_vector))
-        
+            t = tuple(input_vector)
+            if self._deduplicate:
+                self._training_set.add(t)
+            else:
+                self._training_set.append(t)
+
     def val_on(self, syscall: Syscall):
         input_vector = self._input_vector.get_result(syscall)
         if input_vector is not None:
-            self._validation_set.add(tuple(input_vector))
+            t = tuple(input_vector)
+            if self._deduplicate:
+                self._validation_set.add(t)
+            else:
+                self._validation_set.append(t)
         
     def fit(self):
-        print(f"AE.train_set: {len(self._training_set)}".rjust(27))
-        self._autoencoder = AENetwork(self._input_size).to(device)         
+        _quiet = not sys.stderr.isatty()
+        if not _quiet:
+            print(f"AE.train_set: {len(self._training_set)}".rjust(27))
+        self._autoencoder = AENetwork(self._input_size, self._bottleneck_size).to(device)
         self._autoencoder.train()
-        self._optimizer = torch.optim.Adam(            
+        self._optimizer = torch.optim.Adam(
             self._autoencoder.parameters(),
-            lr = 0.001,
-            betas=(0.9,0.999),
+            lr=0.001,
+            betas=(0.9, 0.999),
             eps=1e-07,
-            amsgrad=False
+            weight_decay=1e-5,
         )
         # loss preparation for early stop of training        
         best_avg_val_loss = math.inf
@@ -164,7 +147,7 @@ class AE(BuildingBlock):
         data_loader = torch.utils.data.DataLoader(ae_ds, batch_size=self._batch_size, shuffle=True)
         val_data_loader = torch.utils.data.DataLoader(ae_ds_val, batch_size=self._batch_size, shuffle=True)
         
-        with tqdm(total=self._max_training_time, unit=" epoch", bar_format="{l_bar}{bar}| {n:0.1f}/{total}s") as bar:              
+        with tqdm(total=self._max_training_time, unit=" epoch", bar_format="{l_bar}{bar}| {n:0.1f}/{total}s", disable=_quiet) as bar:              
             last_ts = time.time()            
             epoch_counter = 0
             bar.set_description(f"fit AE: {epoch_counter}|{0}/{self._early_stopping_num_epochs}|None".rjust(27), refresh=True)
@@ -221,11 +204,12 @@ class AE(BuildingBlock):
                 if stop_early:
                     break
 
-        print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))        
+        if not _quiet:
+            print(f"stop at {bar.n:2f} seconds and {epoch_counter} epochs".rjust(27))        
         self._autoencoder.load_state_dict(best_weights)
         self._autoencoder.eval()
-        self._training_set = set() 
-        self._validation_set = set()
+        self._training_set = set() if self._deduplicate else []
+        self._validation_set = set() if self._deduplicate else []
 
 
     @lru_cache(maxsize=1000)

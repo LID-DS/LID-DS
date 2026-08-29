@@ -8,7 +8,7 @@ from algorithms.features.impl.data_buffer import DataBuffer
 
 def test_data_buffer():
     syscall_1 = Syscall2019('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
-                            "1631209047761484608 0 3686302 apache2 3686302 open < fd=9(<f>/proc/sys/kernel/ngroups_max) name=/proc/sys/kernel/ngroups_max flags=1(O_RDONLY) mode=0 dev=200024")
+                            "2569 00:10:50.488781617 2 999 mysqld 22545 < write res=78")
     syscall_2 = Syscall2019('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',
                             "2569 00:10:50.488781617 2 999 mysqld 22545 < write res=78 data=J....5.5.23....hJyAy_PR...................*yE-M}Q\Z0|E.mysql_native_password.")
     syscall_3 = Syscall2021('CVE-2017-7529/test/normal_and_attack/acidic_bhaskara_7006.zip',

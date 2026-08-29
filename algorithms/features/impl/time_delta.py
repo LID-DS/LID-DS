@@ -7,6 +7,7 @@ class TimeDelta(BuildingBlock):
     calculates the delta to the last systall within the same thread (if thread aware)
     or to the last seen syscall over all
     """
+    _online_trainable = True  # fit() only clears per-recording state
 
     def __init__(self, thread_aware: bool):
         super().__init__()

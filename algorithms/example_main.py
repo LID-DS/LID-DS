@@ -24,9 +24,6 @@ from algorithms.features.impl.ngram import Ngram
 from algorithms.decision_engines.stide import Stide
 from algorithms.decision_engines.ae import AE
 
-from algorithms.persistance import save_to_mongo
-
-
 if __name__ == '__main__':
 
     # getting the LID-DS base path from argument or environment variable
@@ -92,11 +89,5 @@ if __name__ == '__main__':
     ### print results
     pprint(results)
 
-    # enrich results with configuration and save to mongoDB
-    results['config'] = ids.get_config_tree_links()
-    results['scenario'] = SCENARIO_NAME
-    results['dataset'] = LID_DS_VERSION
-    results['direction'] = dataloader.get_direction_string()
-    results['date'] = str(datetime.datetime.now().date())
-
+    # mongo persistence removed: no longer required
     # save_to_mongo(results)

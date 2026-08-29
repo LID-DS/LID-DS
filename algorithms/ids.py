@@ -28,12 +28,15 @@ class IDS:
                  data_loader: BaseDataLoader,
                  resulting_building_block: BuildingBlock,
                  plot_switch: bool,
-                 create_alarms: bool = False):
+                 create_alarms: bool = False,
+                 quiet: bool = False,
+                 skip_preprocess: bool = False):
         self._data_loader = data_loader
         self._final_bb = resulting_building_block
         if not self._final_bb.is_decider():
             raise ValueError('Resulting BuildingBlock is not a decider!')
-        self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block)
+        self._data_preprocessor = DataPreprocessor(self._data_loader, resulting_building_block,
+                                                   quiet=quiet, skip_training=skip_preprocess)
         self.threshold = 0.0
         self._alarm = False
         self._anomaly_scores_exploits = []
@@ -41,6 +44,7 @@ class IDS:
         self._first_syscall_after_exploit_list = []
         self._last_syscall_of_recording_list = []
         self._create_alarms = create_alarms
+        self._compiled_pipeline = None
         self.performance = Performance(create_alarms)
         if plot_switch is True:
             self.plot = ScorePlot(data_loader.scenario_path)
@@ -111,6 +115,17 @@ class IDS:
         plt.plot(scores)
         plt.show()
 
+    def compile(self):
+        """Compile the BB DAG into a flat function for fast detection."""
+        from algorithms.compiled_pipeline import compile_pipeline
+        self._compiled_pipeline = compile_pipeline(self._final_bb)
+
+    def _detect_syscall(self, syscall):
+        """Dispatch to compiled pipeline or fallback to get_result()."""
+        if self._compiled_pipeline is not None:
+            return self._compiled_pipeline(syscall)
+        return self._final_bb.get_result(syscall)
+
     def detect(self) -> Performance:
         """
         detecting performance values using the test data,
@@ -126,7 +141,7 @@ class IDS:
                 self.plot.new_recording(recording)
 
             for syscall in recording.syscalls():
-                is_anomaly = self._final_bb.get_result(syscall)
+                is_anomaly = self._detect_syscall(syscall)
                 self.performance.analyze_syscall(syscall, is_anomaly)
                 if self.plot is not None:
                     self.plot.add_to_plot_data(anomaly_score,
@@ -159,7 +174,7 @@ class IDS:
             performance._exploit_count += 1
 
         for syscall in recording.syscalls():
-            is_anomaly = self._final_bb.get_result(syscall)
+            is_anomaly = self._detect_syscall(syscall)
             performance.analyze_syscall(syscall, is_anomaly)
 
         self._data_preprocessor.new_recording()
