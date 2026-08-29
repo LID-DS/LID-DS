@@ -1,3 +1,4 @@
+import math
 from collections import deque
 
 from algorithms.building_block import BuildingBlock
@@ -5,20 +6,28 @@ from dataloader.syscall import Syscall
 from algorithms.features.impl.ngram import Ngram
 import networkx as nx
 
+VALID_SCORING_MODES = ('probability', 'frequency', 'confidence', '2-tuple', '3-tuple')
+
 class SystemCallGraph(BuildingBlock):
 
-    def __init__(self, input: BuildingBlock, thread_aware=True, thread_wise_graphs=False):
+    def __init__(self, input: BuildingBlock, thread_aware=True, thread_wise_graphs=False,
+                 scoring_mode='probability', confidence_tau=10.0):
         super().__init__()
-        # parameter        
+        if scoring_mode not in VALID_SCORING_MODES:
+            raise ValueError(f"scoring_mode must be one of {VALID_SCORING_MODES}, got '{scoring_mode}'")
+        # parameter
         self._input = input
         self._input_id = input.get_id()
         self._thread_aware = thread_aware
         self._thread_wise_graphs = thread_wise_graphs
+        self._scoring_mode = scoring_mode
+        self._confidence_tau = confidence_tau
 
         # internal data
         self._graphs = {}
         self._last_added_nodes = {}
         self._result_dict = {}
+        self._max_f = 1
 
         # dependency list
         self._dependency_list = []
@@ -68,12 +77,17 @@ class SystemCallGraph(BuildingBlock):
         print(f"got {len(self._graphs)} graphs")
         s_n = 0
         s_e = 0
+        max_f = 0
         for g in self._graphs.values():
             s_n += g.number_of_nodes()
             s_e += g.number_of_edges()
-        print(f"with in sum: {s_n} nodes and {s_e} edges")        
+            for s, t, data in g.edges(data=True):
+                if data["f"] > max_f:
+                    max_f = data["f"]
+        self._max_f = max_f if max_f > 0 else 1
+        print(f"with in sum: {s_n} nodes and {s_e} edges (max_f={self._max_f})")
         for g in self._graphs.values():
-            for source_node in g.nodes:                
+            for source_node in g.nodes:
                 sum_out = 0
                 for s,t,data in g.out_edges(nbunch=source_node,data=True):
                     f=data["f"]
@@ -84,7 +98,7 @@ class SystemCallGraph(BuildingBlock):
 
     def _calculate(self, syscall: Syscall):
         """
-        calculates transition probability 
+        calculates anomaly score based on scoring_mode
         """
         # the new node
         new_node = self._input.get_result(syscall)
@@ -98,26 +112,47 @@ class SystemCallGraph(BuildingBlock):
                 # is the result already calculated?
                 s = self._last_added_nodes[tid]
                 t = new_node
-                edge = tuple([s,t])                
+                edge = (s, t)
                 if edge in self._result_dict:
                     self._last_added_nodes[tid] = new_node
                     return self._result_dict[edge]
                 else:
-                    # was not the first node for this tid
-                    transition_probability = 0
+                    # aggregate probability and frequency across graphs
+                    transition_probability = 0.0
+                    frequency_norm = 0.0
                     for g in self._graphs.values():
                         if g.has_edge(s, t):
                             transition_probability += g[s][t]["p"]
-                    transition_probability /= len(self._graphs)                                        
-                    anomaly_score = 1.0 - transition_probability
-                    self._result_dict[edge] = anomaly_score
+                            frequency_norm += g[s][t]["f"] / self._max_f
+                    num_graphs = len(self._graphs)
+                    transition_probability /= num_graphs
+                    frequency_norm /= num_graphs
+
+                    result = self._compute_score(transition_probability, frequency_norm)
+                    self._result_dict[edge] = result
                     self._last_added_nodes[tid] = new_node
-                    return anomaly_score
+                    return result
             else:
                 self._last_added_nodes[tid] = new_node
                 return None
         else:
             return None
+
+    def _compute_score(self, p, f_norm):
+        prob_score = 1.0 - p
+        freq_score = 1.0 - f_norm
+        if self._scoring_mode == 'probability':
+            return prob_score
+        elif self._scoring_mode == 'frequency':
+            return freq_score
+        elif self._scoring_mode == 'confidence':
+            confidence = 1.0 - math.exp(-f_norm * self._max_f / self._confidence_tau)
+            return 1.0 - confidence * p
+        elif self._scoring_mode == '2-tuple':
+            return (prob_score, freq_score)
+        else:  # 3-tuple
+            confidence = 1.0 - math.exp(-f_norm * self._max_f / self._confidence_tau)
+            return (prob_score, freq_score, 1.0 - confidence * p)
             
 
     def new_recording(self):
