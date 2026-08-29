@@ -2,6 +2,7 @@ import os
 import csv
 import json
 import random
+from glob import glob as glob_files
 from tqdm import tqdm
 
 from dataloader.direction import Direction
@@ -21,7 +22,9 @@ class DataLoader2019(BaseDataLoader):
           scenario_path (str): path to LID-DS 2019 scenario
 
     """
-    def __init__(self, scenario_path: str, direction: Direction = Direction.OPEN):
+    def __init__(self, scenario_path: str, direction: Direction = Direction.OPEN,
+                 cache_recordings: bool = False, max_cache_bytes: int = 8 * 1024**3,
+                 permute_seed: int = None):
         super().__init__(scenario_path)
         self.scenario_path = scenario_path
         self._runs_path = os.path.join(scenario_path, 'runs.csv')
@@ -29,6 +32,23 @@ class DataLoader2019(BaseDataLoader):
         self._exploit_recordings = None
         self._distinct_syscalls = None
         self._direction = direction
+        self._permute_seed = permute_seed
+
+        # Determine if caching should be enabled based on scenario size
+        if cache_recordings:
+            total_bytes = sum(
+                os.path.getsize(f)
+                for f in glob_files(os.path.join(scenario_path, '*.txt'))
+                if os.path.isfile(f)
+            )
+            if total_bytes <= max_cache_bytes:
+                self._cache_lines = True
+                print(f"  Line caching enabled ({total_bytes / 1024**2:.0f} MB <= {max_cache_bytes / 1024**3:.1f} GB limit)")
+            else:
+                self._cache_lines = False
+                print(f"  Line caching disabled ({total_bytes / 1024**3:.1f} GB > {max_cache_bytes / 1024**3:.1f} GB limit)")
+        else:
+            self._cache_lines = False
 
         self.extract_recordings()
 
@@ -74,7 +94,9 @@ class DataLoader2019(BaseDataLoader):
             exploit_recordings = []
 
             for recording_line in recording_reader:
-                recording = Recording2019(recording_line, self.scenario_path, self._direction)
+                recording = Recording2019(recording_line, self.scenario_path, self._direction,
+                                          cache_lines=self._cache_lines,
+                                          permute_seed=self._permute_seed)
                 if not recording.metadata()['exploit']:
                     normal_recordings.append(recording)
                 else:
@@ -82,6 +104,12 @@ class DataLoader2019(BaseDataLoader):
 
         self._normal_recordings = normal_recordings
         self._exploit_recordings = exploit_recordings
+
+    def clear_cache(self):
+        """Frees line caches from all recordings."""
+        all_recordings = (self._normal_recordings or []) + (self._exploit_recordings or [])
+        for recording in all_recordings:
+            recording.clear_cache()
 
     def distinct_syscalls_training_data(self) -> int:
         """

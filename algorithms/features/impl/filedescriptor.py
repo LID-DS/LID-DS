@@ -46,8 +46,15 @@ class FileDescriptor(BuildingBlock):
         # in_fd can occur without out_fd
         elif 'in_fd' in params:
             if 'out_fd' in params:
-                return self._get_fd_part(syscall.param('in_fd'), self._mode) + self._get_fd_part(
-                    syscall.param('out_fd'), self._mode)
+                in_part = self._get_fd_part(syscall.param('in_fd'), self._mode)
+                out_part = self._get_fd_part(syscall.param('out_fd'), self._mode)
+                if in_part is None and out_part is None:
+                    return None
+                if in_part is None:
+                    return out_part
+                if out_part is None:
+                    return in_part
+                return in_part + out_part
             else:
                 return self._get_fd_part(syscall.param('in_fd'), self._mode)
         # catch only out_fd

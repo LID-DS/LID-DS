@@ -2,6 +2,8 @@ from dataloader.syscall import Syscall
 
 
 class SyscallADFALD(Syscall):
+    __slots__ = ('_name', '_timestamp_unix')
+
     def __init__(self, syscall_id: str, mocked_time: int, recording_path: str):
         """
             represents one ADFA-LD Syscall as an object

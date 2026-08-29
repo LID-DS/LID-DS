@@ -8,13 +8,24 @@ class BuildingBlock:
     """
     base class for features and other algorithms
     """
+    _online_trainable = None  # None = auto-detect
+
+    @property
+    def online_trainable(self):
+        """Whether _calculate() works correctly without fit() having been called.
+        Auto-detected: True if fit() is not overridden, False otherwise.
+        Subclasses with informational-only fit() can set _online_trainable = True.
+        """
+        if self._online_trainable is not None:
+            return self._online_trainable
+        return type(self).fit is BuildingBlock.fit
 
     def __init__(self):
-        self.__config = BuildingBlock.__arguments()
+        self._config = BuildingBlock._arguments()
         self.name = self.__class__.__name__
-        self.__instance_id = None
-        self.__last_result = None
-        self.__last_syscall_id = None
+        self._instance_id = None
+        self._last_result = None
+        self._last_syscall = None
 
     def train_on(self, syscall: Syscall):
         """
@@ -37,10 +48,10 @@ class BuildingBlock:
         It buffers its result until another system call is given.
         Returns its value (whatever it is) or None if it cant be calculated at the moment.
         """
-        if self.__last_syscall_id != id(syscall):
-            self.__last_result = self._calculate(syscall)
-            self.__last_syscall_id = id(syscall)
-        return self.__last_result
+        if self._last_syscall is not syscall:
+            self._last_result = self._calculate(syscall)
+            self._last_syscall = syscall
+        return self._last_result
 
     def _calculate(self, syscall: Syscall):
         """
@@ -69,11 +80,11 @@ class BuildingBlock:
         """
         distilled dictionary representation containing the configurations.
         """
-        if len(self.__config) > 0:
+        if len(self._config) > 0:
             result = {
                 'name': self.__class__.__name__,
                 'id': hex(id(self)),
-                'config': self.__config,
+                'config': self._config,
             }
         else:
             result = {
@@ -92,12 +103,12 @@ class BuildingBlock:
         """
         returns the id of this feature instance - used to differ between different building blocks
         """
-        if self.__instance_id is None:
-            self.__instance_id = BuildingBlockIDManager().get_id(self)
-        return self.__instance_id
+        if self._instance_id is None:
+            self._instance_id = BuildingBlockIDManager().get_id(self)
+        return self._instance_id
 
     @staticmethod
-    def __arguments():
+    def _arguments():
         """Returns tuple containing dictionary of calling function's
         named arguments and a list of calling function's unnamed
         positional arguments.

@@ -8,6 +8,7 @@ class Syscall:
     """
     represents one system call
     """
+    __slots__ = ('recording_path', 'line_id')
 
     def __init__(self):
         self.recording_path = None

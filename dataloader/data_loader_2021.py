@@ -88,16 +88,11 @@ class DataLoader2021(BaseDataLoader):
 
     """
 
-    def __init__(self, scenario_path, direction: Direction = Direction.BOTH):
-        """
-
-            Save path of scenario and create metadata_list.
-
-            Parameter:
-            scenario_path (str): path of assosiated folder
-
-        """
+    def __init__(self, scenario_path, direction: Direction = Direction.BOTH,
+                 cache_recordings: bool = False, max_cache_bytes: int = 8 * 1024**3,
+                 permute_seed: int = None):
         super().__init__(scenario_path)
+        self._permute_seed = permute_seed
         if os.path.isdir(scenario_path):
             self.scenario_path = scenario_path
             self._direction = direction
@@ -111,96 +106,64 @@ class DataLoader2021(BaseDataLoader):
                 scenario_path
             )
 
+        # Determine cache eligibility for train+val recordings
+        # Estimate uncompressed .sc size: compressed_zip_size × 7.7 (ratio) × 0.89 (.sc share)
+        self._cache_lines = False
+        if cache_recordings:
+            train_val_zips = (
+                glob.glob(os.path.join(scenario_path, 'training', '*.zip')) +
+                glob.glob(os.path.join(scenario_path, 'validation', '*.zip'))
+            )
+            compressed_bytes = sum(os.path.getsize(f) for f in train_val_zips if os.path.isfile(f))
+            estimated_sc_bytes = int(compressed_bytes * 7.7 * 0.89)
+            if estimated_sc_bytes <= max_cache_bytes:
+                self._cache_lines = True
+                print(f"  Line caching enabled (est. {estimated_sc_bytes / 1024**2:.0f} MB .sc <= {max_cache_bytes / 1024**3:.1f} GB limit)")
+            else:
+                print(f"  Line caching disabled (est. {estimated_sc_bytes / 1024**3:.1f} GB .sc > {max_cache_bytes / 1024**3:.1f} GB limit)")
+
+        # Build and persist recordings once
+        self._training_recordings = self._build_recordings(TRAINING)
+        self._validation_recordings = self._build_recordings(VALIDATION)
+        self._test_recordings = self._build_recordings(TEST, cache_lines=False)
+
         # patches missing nesting in asyncio needed for multiple consecutive pyshark extractions
         nest_asyncio.apply()
 
     def training_data(self, recording_type: RecordingType = None) -> list:
-        """
-
-            Create list of recordings contained in training data.
-            Specify recordings with recording_type.
-
-            Parameter:
-            recording_type (RecordingType): only include recordings of recording_type
-                :default: all included
-
-            Returns:
-            list: list of training data recordings
-
-        """
-        recordings = self.extract_recordings(category=TRAINING,
-                                             recording_type=recording_type)
-        return recordings
+        if recording_type is None:
+            return self._training_recordings
+        return [r for r in self._training_recordings
+                if self._metadata_list[TRAINING][r.name]['recording_type'] == recording_type]
 
     def validation_data(self, recording_type: RecordingType = None) -> list:
-        """
-
-            Create list of recordings contained in validation data.
-            Specify recordings with recording_type.
-
-            Parameter:
-            recording_type (RecordingType): only include recordings of recording_type
-                :default: all included
-
-            Returns:
-            list: list of validation data recordings
-
-        """
-        recordings = self.extract_recordings(category=VALIDATION,
-                                             recording_type=recording_type)
-        return recordings
+        if recording_type is None:
+            return self._validation_recordings
+        return [r for r in self._validation_recordings
+                if self._metadata_list[VALIDATION][r.name]['recording_type'] == recording_type]
 
     def test_data(self, recording_type: RecordingType = None) -> list:
-        """
+        if recording_type is None:
+            return self._test_recordings
+        return [r for r in self._test_recordings
+                if self._metadata_list[TEST][r.name]['recording_type'] == recording_type]
 
-            Create list of recordings contained in test data.
-            Specify recordings with recording_type.
-
-            Parameter:
-            recording_type (RecordingType): only include recordings of recording_type
-                :default: all included
-
-            Returns:
-            list: list of test data recordings
-
-        """
-        recordings = self.extract_recordings(category=TEST,
-                                             recording_type=recording_type)
-        return recordings
-
-    def extract_recordings(self,
-                           category: str,
-                           recording_type: RecordingType = None) -> list:
-        """
-
-            Go through list of all files in specified category.
-            Instanciate new Recording object and append to recordings list.
-            If all files have been seen return list of Recordings.
-
-            Parameter:
-            category (str): filter for category (training, validation, test)
-            recording_type (RecordingType): only include recordings of recording_type
-                :default: all included
-
-            Returns:
-            list: list of data recordings for specified category
-
-
-        """
+    def _build_recordings(self, category: str, cache_lines: bool = None) -> list:
+        if cache_lines is None:
+            cache_lines = self._cache_lines
         recordings = []
-        file_list = sorted(self._metadata_list[category].keys())
-        for file in file_list:
-            # check filter
-            if recording_type:
-                if self._metadata_list[category][file]['recording_type'] == recording_type:
-                    recordings.append(Recording2021(name=file,
-                                                path=self._metadata_list[category][file]['path'],
-                                                direction=self._direction))
-            else:
-                recordings.append(Recording2021(name=file,
-                                            path=self._metadata_list[category][file]['path'],
-                                            direction=self._direction))
+        for file in sorted(self._metadata_list[category].keys()):
+            recordings.append(Recording2021(
+                name=file,
+                path=self._metadata_list[category][file]['path'],
+                direction=self._direction,
+                cache_lines=cache_lines,
+                permute_seed=self._permute_seed))
         return recordings
+
+    def clear_cache(self):
+        for recording in self._training_recordings + self._validation_recordings:
+            recording.clear_cache()
 
     def collect_metadata(self) -> dict:
         """

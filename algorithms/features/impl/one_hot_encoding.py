@@ -45,13 +45,9 @@ class OneHotEncoding(BuildingBlock):
         """
         input = self._input_bb.get_result(syscall)
         if input is not None:
-            try:
-                input_to_int = self._input_to_int_dict[input]
-            except KeyError:
-                input_to_int = len(self._input_to_int_dict)
+            input_to_int = self._input_to_int_dict.get(input, len(self._input_to_int_dict))
             return self._int_to_ohe_dict[input_to_int]
-        else:
-            return None
+        return None
     
     def get_embedding_size(self):
         return len(self._int_to_ohe_dict)

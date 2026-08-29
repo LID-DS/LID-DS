@@ -1,5 +1,4 @@
 from functools import lru_cache
-from decimal import Decimal
 import math
 import torch
 import numpy
@@ -68,7 +67,8 @@ class MLP(BuildingBlock):
                  hidden_size: int,
                  hidden_layers: int,
                  batch_size: int,
-                 learning_rate: float = 0.003):
+                 learning_rate: float = 0.003,
+                 deduplicate_training: bool = True):
         super().__init__()
 
         self.input_vector = input_vector
@@ -77,6 +77,7 @@ class MLP(BuildingBlock):
         self.hidden_layers = hidden_layers
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+        self._deduplicate = deduplicate_training
 
         self._dependency_list = [input_vector, output_label]
 
@@ -84,12 +85,12 @@ class MLP(BuildingBlock):
         self._input_size = 0
         self._output_size = 0
 
-        self._training_set = set()
-        self._validation_set = set()
+        self._training_set = set() if deduplicate_training else []
+        self._validation_set = set() if deduplicate_training else []
         self._model = None  # to be initialized in fit()
 
         # number of epochs after which training is stopped if no improvement in loss has occurred
-        self._early_stop_epochs = 1000
+        self._early_stop_epochs = 50
 
         self._result_dict = {}
 
@@ -112,7 +113,11 @@ class MLP(BuildingBlock):
             if self._output_size == 0:
                 self._output_size = len(output_label)
 
-            self._training_set.add((input_vector, output_label))
+            pair = (input_vector, output_label)
+            if self._deduplicate:
+                self._training_set.add(pair)
+            else:
+                self._training_set.append(pair)
 
     def val_on(self, syscall: Syscall):
         """
@@ -125,7 +130,11 @@ class MLP(BuildingBlock):
         output_label = self.output_label.get_result(syscall)
 
         if input_vector is not None and output_label is not None:
-            self._validation_set.add((input_vector, output_label))
+            pair = (input_vector, output_label)
+            if self._deduplicate:
+                self._validation_set.add(pair)
+            else:
+                self._validation_set.append(pair)
 
     def fit(self):
         """
@@ -146,11 +155,14 @@ class MLP(BuildingBlock):
         self._model.train()
 
         criterion = nn.MSELoss()  # using mean squared error for loss calculation
-        optimizer = optim.Adam(self._model.parameters(), lr=self.learning_rate)  # using Adam optimizer
+        optimizer = optim.Adam(self._model.parameters(), lr=self.learning_rate, weight_decay=1e-5)
 
         # building the datasets
         train_data_set = MLPDataset(self._training_set)
         val_data_set = MLPDataset(self._validation_set)
+        del self._training_set, self._validation_set
+        self._training_set = None
+        self._validation_set = None
 
         # loss preparation for early stop of training
         epochs_since_last_best = 0
@@ -241,7 +253,7 @@ class MLP(BuildingBlock):
         with torch.no_grad():
             mlp_out = self._model(in_tensor)
         result = 1 - mlp_out[label_index].item()
-        return Decimal(f'{result}')
+        return result
 
     def _calculate(self, syscall: Syscall):
         """ Forwards the anomaly calculation to the LRU-Cached implementation
@@ -320,16 +332,14 @@ class Feedforward:
         hidden_layer_list = []
         for i in range(hidden_layers):
             hidden_layer_list.append(nn.Linear(self.hidden_size, self.hidden_size))
-            hidden_layer_list.append(nn.Dropout(p=0.5))
+            hidden_layer_list.append(nn.Dropout(p=0.1))
             hidden_layer_list.append(nn.ReLU())
-
 
         return [
                    nn.Linear(self.input_size, self.hidden_size),
-                   nn.Dropout(p=0.5),
+                   nn.Dropout(p=0.1),
                    nn.ReLU()
                ] + hidden_layer_list + [
                    nn.Linear(self.hidden_size, self.output_size),
-                   nn.Dropout(p=0.5),
-                   nn.Softmax(dim=0)
+                   nn.Softmax(dim=-1)
                ]

@@ -3,6 +3,7 @@ from dataloader.syscall import Syscall
 
 
 class SyscallsInTimeWindow(BuildingBlock):
+    _online_trainable = True  # fit() only clears buffer
 
     def __init__(self, window_length_in_s: int):
         """
