@@ -9,6 +9,8 @@
 ## The LID-DS-2021 Lib and Dataloader
 * [wiki](https://github.com/LID-DS/LID-DS/wiki)
 
+The library ships 62 composable building blocks spanning five categories (feature extraction, sequence processing, windowed aggregation, anomaly detection, and decision components). Detection algorithms are declared as dependency graphs and are executed, cached, and visualized automatically; the unified data loader supports LID-DS-2019, LID-DS-2021, ADFA-LD, CTF (WRTD), and scap (CB-DS) recordings.
+
 ## The Recording Framework Version 2021
 * [LID-DS-2021 Recording Framework: Documentation](https://github.com/LID-DS/LID-DS/wiki/LID-DS-Recording-Framework:-Documentation-and-Installation)
 
