@@ -1,0 +1,18 @@
+# Neither the config file or its backup should go
+# into the repo.
+config/config.inc.php.bak
+config/config.inc.php
+
+Dockerfile
+
+# Vim swap files
+.*swp
+
+# VS Code editor files
+*.code-workspace
+
+# Used by pytest
+tests/__pycache__/
+
+# Don't include any uploaded images
+hackable/uploads/*
